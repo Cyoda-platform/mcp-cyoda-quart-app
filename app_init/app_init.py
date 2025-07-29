@@ -4,7 +4,6 @@ import os
 
 from common.config.config import CHAT_REPOSITORY, CYODA_CLIENT_ID, CYODA_CLIENT_SECRET, CYODA_TOKEN_URL
 from common.grpc_client.grpc_client import GrpcClient
-from common.repository.cyoda.cyoda_init import CyodaInitService
 from common.repository.cyoda.cyoda_repository import CyodaRepository
 from common.repository.in_memory_db import InMemoryRepository
 from common.service.service import EntityServiceImpl
@@ -15,7 +14,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
-class BeanFactory:
+class ServicesFactory:
     _instance = None
     _initialized = False
 
@@ -79,3 +78,10 @@ class BeanFactory:
             "entity_service": self.entity_service,
             "cyoda_auth_service": self.cyoda_auth_service,
         }
+
+
+_factory = ServicesFactory(config={'CHAT_REPOSITORY': 'cyoda'})
+_services = _factory.get_services()
+entity_service = _services['entity_service']
+cyoda_auth_service = _services['cyoda_auth_service']
+grpc_client = _services['grpc_client']

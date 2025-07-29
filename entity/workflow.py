@@ -4,16 +4,56 @@ import inspect
 import os
 import entity
 
-process_dispatch = {}
+class LazyProcessDispatch(dict):
+    """A dictionary that automatically loads workflows when accessed."""
+    def __init__(self):
+        super().__init__()
+        self._workflows_loaded = False
+
+    def _ensure_loaded(self):
+        if not self._workflows_loaded:
+            find_and_import_workflows()
+
+    def __contains__(self, key):
+        self._ensure_loaded()
+        return super().__contains__(key)
+
+    def __getitem__(self, key):
+        self._ensure_loaded()
+        return super().__getitem__(key)
+
+    def keys(self):
+        self._ensure_loaded()
+        return super().keys()
+
+    def items(self):
+        self._ensure_loaded()
+        return super().items()
+
+    def values(self):
+        self._ensure_loaded()
+        return super().values()
+
+process_dispatch = LazyProcessDispatch()
+_workflows_loaded = False
 
 def find_and_import_workflows():
+    """Lazy load workflow modules to avoid circular imports during app initialization."""
+    global _workflows_loaded
+    if _workflows_loaded:
+        return
+
+    # Mark as loaded first to prevent recursive calls
+    _workflows_loaded = True
+    process_dispatch._workflows_loaded = True
+
     entity_path = entity.__path__[0]
-    # Pattern to match 'entity/*/workflow/workflow.py'
+    # Pattern to match 'entity/*/workflow.py'
     pattern = os.path.join(entity_path, '*', 'workflow.py')
     for module_path in glob.glob(pattern):
         # Compute the module name
-        # Example: if module_path is '/path/to/entity/any_name/workflow/workflow.py'
-        # The module name should be 'entity.any_name.workflow.workflow'
+        # Example: if module_path is '/path/to/entity/any_name/workflow.py'
+        # The module name should be 'entity.any_name.workflow'
         relative_path = os.path.relpath(module_path, entity_path)
         module_name = entity.__name__ + '.' + relative_path.replace(os.sep, '.')[:-3]  # Remove '.py' extension
         try:
@@ -25,16 +65,21 @@ def find_and_import_workflows():
                 # Collect all functions that don't start with an underscore
                 for name, func in inspect.getmembers(module, inspect.isfunction):
                     if not name.startswith("_"):
-                        process_dispatch[name] = func
+                        # Use dict.setitem to avoid triggering _ensure_loaded
+                        dict.__setitem__(process_dispatch, name, func)
         except Exception as e:
             print(f"Error importing module {module_name}: {e}")
 
-# Run the function to populate process_dispatch
-find_and_import_workflows()
+    # _workflows_loaded is already set at the beginning of the function
+
+# Don't run the function immediately - let it be called when needed
 
 #data={'entityId': 'ee965a32-4df6-11b2-b48d-f20bdf753a91', 'id': 'e37b9e72-c7b4-4ed3-9fa7-85ab6d85e4b1', 'payload': {'data': {'data_source': {'data_retrieval_method': 'GET', 'source_name': 'External API', 'source_url': 'https://api.example.com/data'}, 'job_id': 'job_001', 'job_name': 'Data Processing Job', 'recipients': [{'email': 'admin@example.com', 'name': 'Admin User'}, {'email': 'analyst@example.com', 'name': 'Data Analyst'}], 'report': {'distribution_info': {'communication_method': 'Email', 'sent_at': '2023-10-01T17:40:00Z'}, 'generated_at': '2023-10-01T17:35:00Z', 'report_id': 'report_001', 'report_title': 'Monthly Data Processing Report'}, 'request_parameters': {'code': '7080005051286', 'country': 'FI', 'name': ''}}, 'type': 'TREE'}, 'processorId': '1fbb8b6e-c2c7-11ef-a99c-ce3d8f1a57a3', 'processorName': 'ingest_raw_data', 'requestId': 'e37b9e72-c7b4-4ed3-9fa7-85ab6d85e4b1', 'success': True, 'transactionId': 'bb537de0-c2f2-11ef-b48d-f20bdf753a91', 'warnings': []}
 #processor_name='ingest_raw_data'
 async def process_event(data, processor_name):
+    # Ensure workflows are loaded before processing
+    find_and_import_workflows()
+
     payload_data = data['payload']['data']
     if processor_name in process_dispatch:
         #todo

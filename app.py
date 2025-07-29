@@ -4,7 +4,7 @@ import logging
 from quart import Quart
 from quart_schema import QuartSchema, ResponseSchemaValidationError, hide
 
-from app_init.app_init import BeanFactory
+from app_init.app_init import grpc_client
 from common.exception.exception_handler import register_error_handlers
 # Import blueprints for different route groups
 from routes.routes import routes_bp
@@ -12,8 +12,6 @@ from routes.routes import routes_bp
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
-factory = BeanFactory(config={"CHAT_REPOSITORY": "cyoda"})
-grpc_client = factory.get_services()["grpc_client"]
 
 app = Quart(__name__)
 
