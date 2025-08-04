@@ -1,11 +1,11 @@
- from dataclasses import dataclass
+from dataclasses import dataclass
 import asyncio
 import logging
 from datetime import datetime, timedelta
 import uuid
 
-from quart import Quart, jsonify
-from quart_schema import QuartSchema, validate_request
+from quart import Blueprint, jsonify
+from quart_schema import validate_request
 
 from app_init.app_init import BeanFactory
 from common.config.config import ENTITY_VERSION
@@ -17,8 +17,7 @@ factory = BeanFactory(config={'CHAT_REPOSITORY': 'cyoda'})
 entity_service = factory.get_services()['entity_service']
 cyoda_auth_service = factory.get_services()["cyoda_auth_service"]
 
-app = Quart(__name__)
-QuartSchema(app)
+routes_bp = Blueprint('routes', __name__)
 
 COOKING_TIMES = {
     "soft": 4 * 60,
@@ -117,7 +116,7 @@ async def process_cancel_alarm(entity: dict):
     entity["status"] = "cancelled"
     return entity
 
-@app.route("/alarm/set", methods=["POST"])
+@routes_bp.route("/alarm/set", methods=["POST"])
 @validate_request(SetAlarmRequest)
 async def set_alarm(data: SetAlarmRequest):
     try:
@@ -141,7 +140,7 @@ async def set_alarm(data: SetAlarmRequest):
         "time_to_alarm_seconds": duration,
     })
 
-@app.route("/alarm/status/<string:alarm_id>", methods=["GET"])
+@routes_bp.route("/alarm/status/<string:alarm_id>", methods=["GET"])
 async def get_alarm_status(alarm_id: str):
     try:
         alarm = await entity_service.get_item(
@@ -174,7 +173,7 @@ async def get_alarm_status(alarm_id: str):
         "status": alarm.get("status"),
     })
 
-@app.route("/alarm/cancel", methods=["POST"])
+@routes_bp.route("/alarm/cancel", methods=["POST"])
 @validate_request(CancelAlarmRequest)
 async def cancel_alarm(data: CancelAlarmRequest):
     alarm_id = data.alarm_id
@@ -216,12 +215,3 @@ async def cancel_alarm(data: CancelAlarmRequest):
         "status": "success",
         "message": "Alarm cancelled"
     })
-
-if __name__ == '__main__':
-    import sys
-    logging.basicConfig(
-        stream=sys.stdout,
-        level=logging.INFO,
-        format="%(asctime)s - %(levelname)s - %(message)s",
-    )
-    app.run(use_reloader=False, debug=True, host='0.0.0.0', port=8000, threaded=True)
