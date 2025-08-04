@@ -1,0 +1,74 @@
+{
+    "active": true,
+    "desc": "Workflow managing the lifecycle of an egg alarm",
+    "initialState": "none",
+    "name": "Egg Alarm Workflow",
+    "states": {
+        "cancelled": {
+            "transitions": []
+        },
+        "finished": {
+            "transitions": []
+        },
+        "none": {
+            "transitions": [
+                {
+                    "criterion": {
+                        "function": {
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            },
+                            "name": "can_start"
+                        },
+                        "type": "function"
+                    },
+                    "manual": false,
+                    "name": "start_alarm",
+                    "next": "running",
+                    "processors": [
+                        {
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            },
+                            "executionMode": "ASYNC_NEW_TX",
+                            "name": "init_alarm"
+                        }
+                    ]
+                }
+            ]
+        },
+        "running": {
+            "transitions": [
+                {
+                    "criterion": {
+                        "function": {
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            },
+                            "name": "can_finish"
+                        },
+                        "type": "function"
+                    },
+                    "manual": false,
+                    "name": "finish_alarm",
+                    "next": "finished"
+                },
+                {
+                    "criterion": {
+                        "function": {
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            },
+                            "name": "can_cancel"
+                        },
+                        "type": "function"
+                    },
+                    "manual": false,
+                    "name": "cancel_alarm_running",
+                    "next": "cancelled"
+                }
+            ]
+        }
+    },
+    "version": "1.0"
+}
