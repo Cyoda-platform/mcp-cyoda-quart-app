@@ -1,12 +1,11 @@
-```python
+from dataclasses import dataclass
 import asyncio
 import logging
 from datetime import datetime, timedelta
 import uuid
 
 from quart import Quart, request, jsonify
-from quart_schema import QuartSchema
-import httpx
+from quart_schema import QuartSchema, validate_request, validate_querystring
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -15,7 +14,6 @@ app = Quart(__name__)
 QuartSchema(app)
 
 # In-memory cache to hold alarms: { alarm_id: {egg_type, status, end_time} }
-# status: running, finished, cancelled
 alarms = {}
 
 # Fixed cooking times in seconds
@@ -24,6 +22,14 @@ COOKING_TIMES = {
     "medium": 7 * 60,
     "hard": 10 * 60,
 }
+
+@dataclass
+class SetAlarmRequest:
+    egg_type: str
+
+@dataclass
+class CancelAlarmRequest:
+    alarm_id: str
 
 async def alarm_countdown(alarm_id: str):
     try:
@@ -37,21 +43,19 @@ async def alarm_countdown(alarm_id: str):
         if wait_seconds > 0:
             await asyncio.sleep(wait_seconds)
 
-        # After sleep, mark alarm finished
         alarm["status"] = "finished"
         logger.info(f"Alarm {alarm_id} finished for egg type {alarm['egg_type']}")
-
-        # TODO: Notify user about alarm completion (e.g. push notification)
-        # For prototype: just log it
+        # TODO: Notify user about alarm completion
         logger.info(f"ALARM TRIGGERED: {alarm_id}")
 
     except Exception as e:
         logger.exception(f"Exception in alarm_countdown for {alarm_id}: {e}")
 
 @app.route("/alarm/set", methods=["POST"])
-async def set_alarm():
-    data = await request.get_json(force=True)
-    egg_type = data.get("egg_type")
+# Workaround: place validate_request last for POST due to quart-schema issue
+@validate_request(SetAlarmRequest)
+async def set_alarm(data: SetAlarmRequest):
+    egg_type = data.egg_type
     if egg_type not in COOKING_TIMES:
         return jsonify({"status": "error", "message": "Invalid egg_type"}), 400
 
@@ -67,7 +71,6 @@ async def set_alarm():
         "end_time": end_time,
     }
 
-    # Fire and forget countdown task
     asyncio.create_task(alarm_countdown(alarm_id))
 
     return jsonify({
@@ -96,12 +99,10 @@ async def get_alarm_status(alarm_id):
     })
 
 @app.route("/alarm/cancel", methods=["POST"])
-async def cancel_alarm():
-    data = await request.get_json(force=True)
-    alarm_id = data.get("alarm_id")
-    if not alarm_id:
-        return jsonify({"status": "error", "message": "alarm_id is required"}), 400
-
+# Workaround: place validate_request last for POST due to quart-schema issue
+@validate_request(CancelAlarmRequest)
+async def cancel_alarm(data: CancelAlarmRequest):
+    alarm_id = data.alarm_id
     alarm = alarms.get(alarm_id)
     if not alarm:
         return jsonify({"status": "error", "message": "Alarm not found"}), 404
@@ -117,19 +118,11 @@ async def cancel_alarm():
         "message": "Alarm cancelled"
     })
 
-# TODO: If an external API for notifications or alarms is defined later, integrate here
-# For now, the alarm trigger is logged only.
-
 if __name__ == '__main__':
     import sys
-    import logging.config
-
-    # Simple logging config for console output
     logging.basicConfig(
         stream=sys.stdout,
         level=logging.INFO,
         format="%(asctime)s - %(levelname)s - %(message)s",
     )
-
     app.run(use_reloader=False, debug=True, host='0.0.0.0', port=8000, threaded=True)
-```
