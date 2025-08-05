@@ -1,0 +1,14 @@
+{
+    "entities": [
+        {
+            "entity_data_example": {
+                "egg_type": "medium",
+                "end_time": "2024-06-01T12:34:56.789012",
+                "id": "123e4567-e89b-12d3-a456-426614174000",
+                "set_at": "2024-06-01T12:27:56.789012",
+                "status": "running"
+            },
+            "entity_name": "alarm"
+        }
+    ]
+}
