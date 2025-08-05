@@ -1,30 +1,27 @@
+from datetime import timezone, datetime
+import logging
+from quart import Blueprint, request, abort, jsonify
+from quart_schema import validate, validate_querystring, tag, operation_id
 from dataclasses import dataclass
 import asyncio
-import logging
-from datetime import datetime, timedelta
-from typing import Optional
-
-from quart import Quart, jsonify
-from quart_schema import QuartSchema, validate_request
-
 from app_init.app_init import BeanFactory
 from common.config.config import ENTITY_VERSION
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+
+FINAL_STATES = {'FAILURE', 'SUCCESS', 'CANCELLED', 'CANCELLED_BY_USER', 'UNKNOWN', 'FINISHED'}
+PROCESSING_STATE = 'PROCESSING'
+
+routes_bp = Blueprint('routes', __name__)
 
 factory = BeanFactory(config={'CHAT_REPOSITORY': 'cyoda'})
 entity_service = factory.get_services()['entity_service']
 cyoda_auth_service = factory.get_services()["cyoda_auth_service"]
 
-app = Quart(__name__)
-QuartSchema(app)
-
 @dataclass
 class AlarmRequest:
     egg_type: str
 
-# Constants for boiling times in seconds
 BOILING_TIMES = {
     "soft": 4 * 60,
     "medium": 7 * 60,
@@ -34,15 +31,11 @@ BOILING_TIMES = {
 alarm_entity_name = "alarm"
 
 async def alarm_countdown(egg_type: str, end_time: datetime, technical_id: str):
-    """
-    Async task to count down and update alarm status.
-    """
     try:
         while True:
             now = datetime.utcnow()
             remaining = (end_time - now).total_seconds()
             if remaining <= 0:
-                # update alarm status to ringing
                 try:
                     alarm = await entity_service.get_item(
                         token=cyoda_auth_service,
@@ -108,8 +101,8 @@ async def alarm_countdown(egg_type: str, end_time: datetime, technical_id: str):
         except Exception as e2:
             logger.exception("Failed to update alarm to stopped after exception: %s", e2)
 
-@app.route("/alarm/set", methods=["POST"])
-@validate_request(AlarmRequest)  # Workaround: validation last for POST due to quart-schema issue
+@routes_bp.route("/alarm/set", methods=["POST"])
+@validate(AlarmRequest)
 async def set_alarm(data: AlarmRequest):
     egg_type = data.egg_type
     if egg_type not in BOILING_TIMES:
@@ -117,7 +110,6 @@ async def set_alarm(data: AlarmRequest):
 
     alarm_data = {
         "egg_type": egg_type,
-        # end_time, status, set_at will be set in workflow
     }
 
     try:
@@ -131,7 +123,6 @@ async def set_alarm(data: AlarmRequest):
         logger.exception("Failed to add alarm item: %s", e)
         return jsonify({"status": "error", "message": "Failed to set alarm"}), 500
 
-    # Fetch persisted alarm to get end_time and egg_type
     try:
         persisted_alarm = await entity_service.get_item(
             token=cyoda_auth_service,
@@ -141,7 +132,6 @@ async def set_alarm(data: AlarmRequest):
         )
         end_time = datetime.fromisoformat(persisted_alarm["end_time"])
         egg_type = persisted_alarm["egg_type"]
-        # Start countdown in background fire-and-forget
         asyncio.create_task(alarm_countdown(egg_type, end_time, alarm_id))
     except Exception as e:
         logger.exception("Failed to start countdown task after alarm add: %s", e)
@@ -151,7 +141,7 @@ async def set_alarm(data: AlarmRequest):
     logger.info(message)
     return jsonify({"status": "success", "message": message, "id": alarm_id})
 
-@app.route("/alarm/remaining", methods=["GET"])
+@routes_bp.route("/alarm/remaining", methods=["GET"])
 async def get_remaining():
     try:
         alarms = await entity_service.get_items(
@@ -174,7 +164,7 @@ async def get_remaining():
         logger.exception("Failed to get remaining alarm time: %s", e)
         return jsonify({"remaining_seconds": 0, "message": "Error retrieving alarm"}), 500
 
-@app.route("/alarm/cancel", methods=["POST"])
+@routes_bp.route("/alarm/cancel", methods=["POST"])
 async def cancel_alarm():
     try:
         alarms = await entity_service.get_items(
@@ -203,6 +193,3 @@ async def cancel_alarm():
     except Exception as e:
         logger.exception("Failed to cancel alarm: %s", e)
         return jsonify({"status": "error", "message": "Failed to cancel alarm"}), 500
-
-if __name__ == "__main__":
-    app.run(use_reloader=False, debug=True, host="0.0.0.0", port=8000, threaded=True)
