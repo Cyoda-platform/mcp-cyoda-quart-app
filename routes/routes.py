@@ -5,11 +5,13 @@ from datetime import datetime
 from typing import Dict, Any
 
 import httpx
-from quart import Quart, jsonify
-from quart_schema import QuartSchema, validate_request
+from quart import Blueprint, jsonify
+from quart_schema import validate_request
 
 from app_init.app_init import BeanFactory
 from common.config.config import ENTITY_VERSION
+
+routes_bp = Blueprint('routes', __name__)
 
 factory = BeanFactory(config={'CHAT_REPOSITORY': 'cyoda'})
 entity_service = factory.get_services()['entity_service']
@@ -17,9 +19,6 @@ cyoda_auth_service = factory.get_services()["cyoda_auth_service"]
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
-
-app = Quart(__name__)
-QuartSchema(app)
 
 @dataclass
 class SignupData:
@@ -65,7 +64,7 @@ async def process_subscriber(entity_data: Dict[str, Any]) -> Dict[str, Any]:
 
     return entity_data
 
-@app.route("/api/signup", methods=["POST"])
+@routes_bp.route("/api/signup", methods=["POST"])
 @validate_request(SignupData)
 async def signup(data: SignupData):
     try:
@@ -133,8 +132,7 @@ async def fetch_cat_fact() -> str:
 
 async def process_send_facts():
     fact = await fetch_cat_fact()
-    subject = "Your Weekly Cat Fact 
-"
+    subject = "Your Weekly Cat Fact"
     body = f"Hello!\n\nHere is your weekly cat fact:\n\n{fact}\n\nEnjoy your week!"
 
     subscribers = await entity_service.get_items(
@@ -149,7 +147,7 @@ async def process_send_facts():
     # TODO: Implement real open tracking
     return fact
 
-@app.route("/api/fetch-and-send", methods=["POST"])
+@routes_bp.route("/api/fetch-and-send", methods=["POST"])
 async def fetch_and_send():
     try:
         fact = await process_send_facts()
@@ -158,7 +156,7 @@ async def fetch_and_send():
         logger.exception(e)
         return jsonify({"error": "Failed to fetch/send cat fact"}), 500
 
-@app.route("/api/report/subscribers", methods=["GET"])
+@routes_bp.route("/api/report/subscribers", methods=["GET"])
 async def report_subscribers():
     try:
         subscribers = await entity_service.get_items(
@@ -171,12 +169,9 @@ async def report_subscribers():
         logger.exception(e)
         return jsonify({"error": "Internal server error"}), 500
 
-@app.route("/api/report/interactions", methods=["GET"])
+@routes_bp.route("/api/report/interactions", methods=["GET"])
 async def report_interactions():
     total = email_open_stats["totalEmailsSent"]
     opens = email_open_stats["totalOpens"]
     rate = (opens / total) if total else 0
     return jsonify({"totalEmailsSent": total, "totalOpens": opens, "openRate": round(rate, 3)})
-
-if __name__ == '__main__':
-    app.run(use_reloader=False, debug=True, host='0.0.0.0', port=8000, threaded=True)
