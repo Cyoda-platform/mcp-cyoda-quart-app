@@ -1,27 +1,3 @@
-Absolutely, moving the core business logic and asynchronous tasks into the workflow function `process_alarm` is the right approach. This cleans up the controller layers (endpoints) and centralizes entity-related logic in the workflow function, which is called automatically before persisting the entity.
-
-Following your requirements and constraints, here is how I would refactor the code:
-
-- The `/alarm/set` endpoint will prepare the initial `alarm` entity data including the `end_time`, `status`, etc., and call `entity_service.add_item` with `workflow=process_alarm`.
-- The `process_alarm` function will handle:
-  - Canceling existing active alarms (by updating them with `update_item` since they are different entities).
-  - Scheduling the alarm countdown task as a background fire-and-forget asyncio task.
-- The countdown logic will be moved into the workflow function's async background task.
-- Since the workflow function cannot update the same entity (`alarm` being added/updated), the only changes allowed on the current entity is direct modification of the passed-in dict (which will be persisted).
-- All updates to other alarm entities (canceling old alarms, updating status during countdown) can be done via `update_item` safely.
-
-This approach means:
-
-- The endpoint just validates and calls `add_item` with the initial alarm data + workflow.
-- The workflow function does all the asynchronous logic: cancel existing alarms, start countdown, update statuses.
-- We keep the countdown logic as an async task spawned inside the workflow function.
-- Other endpoints (`/alarm/remaining`, `/alarm/cancel`) remain mostly unchanged since they query/update existing alarms.
-
----
-
-### Complete refactored code with logic moved into `process_alarm` workflow function:
-
-```python
 from dataclasses import dataclass
 import asyncio
 import logging
@@ -135,7 +111,7 @@ async def alarm_countdown(egg_type: str, end_time: datetime, technical_id: str):
 async def process_alarm(entity: dict) -> dict:
     """
     Workflow function applied to the alarm entity asynchronously before persistence.
-    Handles cancelling existing alarms and starting countdown task.
+    Handles cancelling existing alarms and sets fields on the new alarm entity.
     """
     egg_type = entity.get("egg_type")
     if egg_type not in BOILING_TIMES:
@@ -151,7 +127,6 @@ async def process_alarm(entity: dict) -> dict:
         for alarm in alarms:
             if alarm.get("status") in ("running", "ringing"):
                 alarm["status"] = "cancelled"
-                # Update other alarm entities - safe to update
                 await entity_service.update_item(
                     token=cyoda_auth_service,
                     entity_model=alarm_entity_name,
@@ -163,39 +138,25 @@ async def process_alarm(entity: dict) -> dict:
     except Exception as e:
         logger.exception("Failed to cancel existing alarms in workflow: %s", e)
 
-    # Compute end_time if not already set
+    # Compute and set end_time if not already set
     if "end_time" not in entity:
         boiling_seconds = BOILING_TIMES[egg_type]
         end_time = datetime.utcnow() + timedelta(seconds=boiling_seconds)
         entity["end_time"] = end_time.isoformat()
     else:
-        end_time = datetime.fromisoformat(entity["end_time"])
+        # Validate end_time format
+        try:
+            datetime.fromisoformat(entity["end_time"])
+        except Exception:
+            boiling_seconds = BOILING_TIMES[egg_type]
+            end_time = datetime.utcnow() + timedelta(seconds=boiling_seconds)
+            entity["end_time"] = end_time.isoformat()
 
     # Set initial status and set_at if not present
     entity.setdefault("status", "running")
     entity.setdefault("set_at", datetime.utcnow().isoformat())
 
-    # Start countdown task in background, passing the new entity id will be available after add_item returns
-    # But here inside workflow we don't have the id yet (entity id is assigned after persistence)
-    # So, we must schedule countdown *after* entity is persisted.
-    #
-    # Workaround:
-    # We can store the countdown task in a global queue or schedule it after add_item completes.
-    #
-    # But per current constraints, workflow function is called *before* persistence, entity id is unknown.
-    #
-    # So, we can add a special flag to the entity to indicate post-persistence processing needed.
-    # Then, after add_item returns, we can start countdown.
-    #
-    # Alternatively, we can spawn a watcher task that polls for new alarms in running status and starts countdown.
-    #
-    # To keep it simple and within requirements, let's:
-    # - just set the entity state here.
-    # - move countdown task spawn to after add_item returns in endpoint.
-    #
-    # So here we do NOT start countdown task (can't get id yet).
-    # The endpoint will start countdown after add_item returns.
-
+    # Return modified entity dict; changes will be persisted
     return entity
 
 @app.route("/alarm/set", methods=["POST"])
@@ -222,7 +183,7 @@ async def set_alarm(data: AlarmRequest):
         logger.exception("Failed to add alarm item: %s", e)
         return jsonify({"status": "error", "message": "Failed to set alarm"}), 500
 
-    # Now start countdown task with the persisted alarm id and end_time loaded from the entity
+    # Fetch persisted alarm to get end_time and egg_type
     try:
         persisted_alarm = await entity_service.get_item(
             token=cyoda_auth_service,
@@ -297,31 +258,3 @@ async def cancel_alarm():
 
 if __name__ == "__main__":
     app.run(use_reloader=False, debug=True, host="0.0.0.0", port=8000, threaded=True)
-```
-
----
-
-### Explanation:
-
-- **`process_alarm` workflow function**:
-  - Validates `egg_type`.
-  - Cancels existing alarms by updating their status (safe because these are different entities).
-  - Sets `end_time`, `status`, and `set_at` on the entity dict.
-  - **Does NOT start the countdown task** because the entity ID is not yet assigned at this point.
-
-- **`/alarm/set` endpoint**:
-  - Calls `add_item` with `workflow=process_alarm`.
-  - After successful persistence (and getting the new entity ID), fetches the persisted entity to get `end_time` and `egg_type`.
-  - Launches the countdown task with the obtained information asynchronously.
-
-- The countdown task and other endpoints remain unchanged.
-
----
-
-This approach respects the requirement that workflow functions cannot modify the current entity via add/update/delete calls but can modify its dictionary state directly, and can get/update other entities safely.
-
-If you want, I can help further improve this by making the countdown trigger fully inside workflow functions, but that would require a different way to start background tasks after persistence (which is outside the current workflow contract).
-
----
-
-Let me know if you want me to implement such a "post-persist" trigger mechanism or further refactor!
