@@ -1,0 +1,83 @@
+{
+    "active": true,
+    "desc": "State machine for egg alarm entity lifecycle",
+    "initialState": "none",
+    "name": "Egg Alarm Workflow",
+    "states": {
+        "cancelled": {
+            "transitions": []
+        },
+        "none": {
+            "transitions": [
+                {
+                    "manual": false,
+                    "name": "start_alarm",
+                    "next": "running",
+                    "processors": [
+                        {
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            },
+                            "executionMode": "ASYNC_NEW_TX",
+                            "name": "process_alarm"
+                        }
+                    ]
+                }
+            ]
+        },
+        "ringing": {
+            "transitions": [
+                {
+                    "criterion": {
+                        "function": {
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            },
+                            "name": "has_ringing_duration_passed"
+                        },
+                        "type": "function"
+                    },
+                    "manual": false,
+                    "name": "transition_to_stopped_after_ringing_duration",
+                    "next": "stopped"
+                }
+            ]
+        },
+        "running": {
+            "transitions": [
+                {
+                    "criterion": {
+                        "function": {
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            },
+                            "name": "is_time_up"
+                        },
+                        "type": "function"
+                    },
+                    "manual": false,
+                    "name": "transition_to_ringing_if_time_up",
+                    "next": "ringing"
+                },
+                {
+                    "criterion": {
+                        "function": {
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            },
+                            "name": "is_cancel_requested"
+                        },
+                        "type": "function"
+                    },
+                    "manual": false,
+                    "name": "transition_to_cancelled_if_cancel_requested",
+                    "next": "cancelled"
+                }
+            ]
+        },
+        "stopped": {
+            "transitions": []
+        }
+    },
+    "version": "1.0"
+}
