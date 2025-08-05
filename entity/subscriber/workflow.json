@@ -1,0 +1,99 @@
+{
+    "active": true,
+    "desc": "Manages subscriber onboarding and weekly cat fact sending",
+    "initialState": "none",
+    "name": "Weekly Cat Fact Subscription Workflow",
+    "states": {
+        "active": {
+            "transitions": [
+                {
+                    "criterion": {
+                        "function": {
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            },
+                            "name": "is_active"
+                        },
+                        "type": "function"
+                    },
+                    "manual": false,
+                    "name": "fetch_cat_fact",
+                    "next": "cat_fact_fetched",
+                    "processors": [
+                        {
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            },
+                            "executionMode": "ASYNC_NEW_TX",
+                            "name": "fetch_and_store_cat_fact"
+                        }
+                    ]
+                }
+            ]
+        },
+        "cat_fact_fetched": {
+            "transitions": [
+                {
+                    "criterion": {
+                        "function": {
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            },
+                            "name": "is_active"
+                        },
+                        "type": "function"
+                    },
+                    "manual": false,
+                    "name": "send_weekly_emails",
+                    "next": "active",
+                    "processors": [
+                        {
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            },
+                            "executionMode": "ASYNC_NEW_TX",
+                            "name": "send_weekly_fact_emails"
+                        }
+                    ]
+                }
+            ]
+        },
+        "none": {
+            "transitions": [
+                {
+                    "criterion": {
+                        "function": {
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            },
+                            "name": "is_new_subscriber"
+                        },
+                        "type": "function"
+                    },
+                    "manual": false,
+                    "name": "new_subscription",
+                    "next": "subscribed"
+                }
+            ]
+        },
+        "subscribed": {
+            "transitions": [
+                {
+                    "manual": false,
+                    "name": "process_new_subscriber",
+                    "next": "active",
+                    "processors": [
+                        {
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            },
+                            "executionMode": "ASYNC_NEW_TX",
+                            "name": "process_subscriber"
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    "version": "1.0"
+}
