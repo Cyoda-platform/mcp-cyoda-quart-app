@@ -1,12 +1,54 @@
-Certainly! I've updated the code to add the required `workflow` parameter to `entity_service.add_item` calls and implemented the necessary workflow function `process_subscriber` following your instructions:
+Absolutely, moving the business logic into workflow functions (`process_{entity_name}`) is a clean and maintainable approach. This keeps the endpoint/controller code minimal and free of heavy logic or side-effects, which aligns with modern best practices like separation of concerns and single responsibility.
 
-- The workflow function is asynchronous.
-- It receives the entity data as its only argument.
-- It can modify the entity before persistence.
-- It is passed as the `workflow` argument in `add_item`.
-- The function name uses the prefix `process_` + entity name in underscore lowercase (`subscriber`).
+---
 
-Here is the complete updated code with the new workflow function and usage:
+### What can be moved to workflow functions?
+
+1. **Subscriber-related logic**:
+   - Normalization or enrichment of subscriber data before saving (already done in `process_subscriber`).
+   - Triggering async side effects like notification dispatch or updating caches.
+
+2. **Job scheduling logic**:
+   - The `process_job` async function executes the ingestion job logic.
+   - Currently this is a fire-and-forget task triggered by the schedule endpoint.
+   - We can move the job state management (changing states) and data ingestion logic into a workflow function for a `job` entity.
+   - The endpoint would just add a `job` entity with minimal data, passing `workflow=process_job` that will run the ingestion logic and update the job entity state.
+
+3. **Notification dispatch**:
+   - The notification logic can be moved into workflow functions on entities that require it (e.g., after job state changes).
+
+---
+
+### Constraints & considerations
+
+- The workflow function cannot modify the current entity via `add/update/delete` (would cause recursion).
+- It can modify the entity data in-place (which will be persisted).
+- It can add/update other entities of different models.
+- Workflow functions are async and can await on async calls.
+- Fire-and-forget tasks can be awaited inside workflow functions (no need for separate background tasks).
+
+---
+
+### Plan for refactoring
+
+- Define `process_job(entity)` as workflow for `job` entity:
+  - It will perform ingestion, update the job state fields (in-place).
+  - It will notify subscribers (fetch subscribers & send notifications).
+  - It will add/update other entities (like laureates).
+  - No need for the `entity_jobs` in-memory dict, all job data would be in the persisted entity.
+
+- Refactor the schedule endpoint:
+  - Just add a new `job` entity with initial state `"SCHEDULED"`.
+  - Pass `workflow=process_job`.
+  - The workflow will perform the ingestion and update job state accordingly.
+
+- Refactor subscriber workflow (already done).
+
+- Remove `entity_jobs` in-memory job store and locks.
+
+---
+
+### Complete updated code (refactored) with comments
 
 ```python
 import asyncio
@@ -21,7 +63,6 @@ from quart import Quart, jsonify, request, abort
 from quart_schema import QuartSchema, validate_request, validate_querystring
 
 from app_init.app_init import BeanFactory
-
 from common.config.config import ENTITY_VERSION
 
 logger = logging.getLogger(__name__)
@@ -46,13 +87,9 @@ class LaureateQuery:
     year: Optional[str]
     category: Optional[str]
 
-# In-memory store only for jobs and subscribers keys, since jobs is not part of entity_service
-entity_jobs = {}
-lock = asyncio.Lock()
-
 NOBEL_API_URL = "https://public.opendatasoft.com/api/explore/v2.1/catalog/datasets/nobel-prize-laureates/records?limit=100"
 
-# --- Utility functions ---
+# --- Helper validation ---
 
 def validate_laureate(raw: dict) -> Optional[dict]:
     fields = raw.get("record", {}).get("fields", {})
@@ -94,113 +131,145 @@ def validate_laureate(raw: dict) -> Optional[dict]:
     }
     return laureate
 
-async def notify_subscribers(job_id: str, success: bool, error_message: Optional[str]):
-    async with lock:
-        subscribers = list(entity_jobs.get("subscribers_cache", []))
-    notify_payload = {
-        "job_id": job_id,
-        "status": "SUCCEEDED" if success else "FAILED",
-        "error": error_message,
-        "timestamp": datetime.utcnow().isoformat(),
-    }
-    async def notify(sub):
-        try:
-            if sub.get("email"):
-                # TODO: Implement real email sending
-                logger.info(f"Notify email {sub['email']}: {notify_payload}")
-            if sub.get("webhook_url"):
-                async with httpx.AsyncClient() as client:
-                    resp = await client.post(sub["webhook_url"], json=notify_payload, timeout=10)
-                    resp.raise_for_status()
-                logger.info(f"Notify webhook {sub['webhook_url']} succeeded")
-        except Exception as e:
-            logger.exception(f"Notification failed for subscriber {sub.get('subscriber_id')}: {e}")
-    await asyncio.gather(*(notify(sub) for sub in subscribers))
+# --- Workflow functions ---
 
-async def process_job(job_id: str):
-    async with lock:
-        job = entity_jobs.get(job_id)
-        if not job:
-            logger.error(f"Job {job_id} not found")
-            return
-        job["state"] = "INGESTING"
-        job["started_at"] = datetime.utcnow().isoformat()
+async def process_subscriber(entity: dict):
+    """
+    Workflow function for 'subscriber' entity.
+    Normalize email and assign default status.
+    """
+    if entity.get("email"):
+        entity["email"] = entity["email"].lower()
+    if "status" not in entity:
+        entity["status"] = "active"
+    return entity
+
+async def process_job(entity: dict):
+    """
+    Workflow function for 'job' entity.
+    Runs the ingestion workflow:
+    - Updates job state in-place
+    - Fetches Nobel laureates
+    - Adds/updates laureates entities
+    - Notifies subscribers via email/webhook
+    """
+    # Initialize job state
+    entity["state"] = "INGESTING"
+    entity["started_at"] = datetime.utcnow().isoformat()
+    entity["completed_at"] = None
+    entity["error_message"] = None
+
     try:
         async with httpx.AsyncClient(timeout=30) as client:
             resp = await client.get(NOBEL_API_URL)
             resp.raise_for_status()
             data = resp.json()
+
         records = data.get("records", [])
         valid_laureates = [l for rec in records if (l := validate_laureate(rec))]
-        # Add laureates via entity_service; since add_item returns only id, use update_item or replace logic
-        # But we have no batch add function, so here we add each laureate individually
+
+        # Add/update laureates entities
+        # We cannot add/update 'job' entity in workflow, but can add/update different entity_model 'laureate'
         for l in valid_laureates:
-            l_id_str = str(l["id"])
+            # Use update_item with technical_id = laureate id (string)
+            # We do not modify current entity 'job', so safe
             try:
                 await entity_service.update_item(
                     token=cyoda_auth_service,
                     entity_model="laureate",
                     entity_version=ENTITY_VERSION,
                     entity=l,
-                    technical_id=l_id_str,
+                    technical_id=str(l["id"]),
                     meta={}
                 )
             except Exception as e:
-                logger.exception(f"Failed to update laureate id={l_id_str}: {e}")
-        async with lock:
-            job["state"] = "SUCCEEDED"
-            job["completed_at"] = datetime.utcnow().isoformat()
-            job["error_message"] = None
-        await notify_subscribers(job_id, True, None)
+                logger.exception(f"Failed to update laureate id={l['id']}: {e}")
+
+        entity["state"] = "SUCCEEDED"
+        entity["completed_at"] = datetime.utcnow().isoformat()
+        entity["error_message"] = None
+
     except Exception as e:
         logger.exception(e)
-        async with lock:
-            job["state"] = "FAILED"
-            job["completed_at"] = datetime.utcnow().isoformat()
-            job["error_message"] = str(e)
-        await notify_subscribers(job_id, False, str(e))
-    finally:
-        async with lock:
-            job["state"] = "NOTIFIED_SUBSCRIBERS"
+        entity["state"] = "FAILED"
+        entity["completed_at"] = datetime.utcnow().isoformat()
+        entity["error_message"] = str(e)
 
-# --- Workflow functions ---
+    # Notify subscribers - fetch subscriber entities and send notifications
+    try:
+        subscribers = await entity_service.get_items(
+            token=cyoda_auth_service,
+            entity_model="subscriber",
+            entity_version=ENTITY_VERSION,
+        )
+        notify_payload = {
+            "job_id": entity.get("job_id"),
+            "status": entity.get("state"),
+            "error": entity.get("error_message"),
+            "timestamp": datetime.utcnow().isoformat(),
+        }
 
-async def process_subscriber(entity: dict):
-    """
-    Workflow function for 'subscriber' entity.
-    This function can modify the entity before it is persisted.
-    """
-    # Example: enforce lowercase email if provided
-    if entity.get("email"):
-        entity["email"] = entity["email"].lower()
-    # You can add other modifications or additional processing here
-    # For example, set a default status if not set
-    if "status" not in entity:
-        entity["status"] = "active"
+        async def notify(sub):
+            try:
+                if sub.get("email"):
+                    # TODO: implement real email sending if needed
+                    logger.info(f"Notify email {sub['email']}: {notify_payload}")
+                if sub.get("webhook_url"):
+                    async with httpx.AsyncClient() as client:
+                        resp = await client.post(sub["webhook_url"], json=notify_payload, timeout=10)
+                        resp.raise_for_status()
+                    logger.info(f"Notify webhook {sub['webhook_url']} succeeded")
+            except Exception as e:
+                logger.exception(f"Notification failed for subscriber {sub.get('subscriber_id')}: {e}")
+
+        await asyncio.gather(*(notify(sub) for sub in subscribers))
+        entity["state"] = "NOTIFIED_SUBSCRIBERS"
+    except Exception as e:
+        logger.exception(f"Failed to notify subscribers: {e}")
+        # Keep job state as is (SUCCEEDED or FAILED), optionally add notification error
+        entity.setdefault("notification_error", str(e))
+
     return entity
 
 # --- API routes ---
 
 @app.route("/jobs/schedule", methods=["POST"])
 async def schedule_job():
+    # Minimal job entity with just a job_id and initial state
     job_id = str(uuid.uuid4())
-    requested_at = datetime.utcnow().isoformat()
-    async with lock:
-        entity_jobs[job_id] = {
-            "job_id": job_id,
-            "state": "SCHEDULED",
-            "created_at": requested_at,
-            "completed_at": None,
-            "error_message": None,
-        }
-    logger.info(f"Job {job_id} scheduled")
-    asyncio.create_task(process_job(job_id))
+    job_entity = {
+        "job_id": job_id,
+        "state": "SCHEDULED",
+        "created_at": datetime.utcnow().isoformat(),
+        # other fields will be updated in workflow
+    }
+
+    try:
+        job_entity_id = await entity_service.add_item(
+            token=cyoda_auth_service,
+            entity_model="job",
+            entity_version=ENTITY_VERSION,
+            entity=job_entity,
+            workflow=process_job  # Run ingestion workflow before persisting
+        )
+    except Exception as e:
+        logger.exception(e)
+        abort(500, description="Failed to schedule job")
+
     return jsonify({"job_id": job_id, "status": "SCHEDULED"}), 202
 
 @app.route("/jobs/<string:job_id>", methods=["GET"])
 async def get_job_status(job_id):
-    async with lock:
-        job = entity_jobs.get(job_id)
+    try:
+        job = await entity_service.get_item(
+            token=cyoda_auth_service,
+            entity_model="job",
+            entity_version=ENTITY_VERSION,
+            technical_id=job_id
+        )
+    except Exception as e:
+        logger.exception(e)
+        abort(500, description="Failed to retrieve job status")
     if not job:
         abort(404, description="Job not found")
     return jsonify(job)
@@ -209,7 +278,7 @@ async def get_job_status(job_id):
 @validate_querystring(LaureateQuery)
 @app.route("/laureates", methods=["GET"])
 async def get_laureates():
-    args = LaureateQuery(**request.args)  # parsing by dataclass
+    args = LaureateQuery(**request.args)
     try:
         laureates = await entity_service.get_items(
             token=cyoda_auth_service,
@@ -252,13 +321,9 @@ async def list_subscribers():
     except Exception as e:
         logger.exception(e)
         abort(500, description="Failed to retrieve subscribers")
-    # Cache subscribers for notifications
-    async with lock:
-        entity_jobs["subscribers_cache"] = subscribers
     return jsonify(subscribers)
 
 @app.route("/subscribers", methods=["POST"])
-# validate_request last for POST due to library defect workaround
 @validate_request(SubscriberRequest)
 async def add_subscriber(data: SubscriberRequest):
     if not data.email and not data.webhook_url:
@@ -275,7 +340,7 @@ async def add_subscriber(data: SubscriberRequest):
             entity_model="subscriber",
             entity_version=ENTITY_VERSION,
             entity=subscriber_obj,
-            workflow=process_subscriber  # <-- Added workflow function here
+            workflow=process_subscriber
         )
     except Exception as e:
         logger.exception(e)
@@ -294,8 +359,31 @@ if __name__ == "__main__":
 
 ---
 
-### Summary of changes:
-- Added `async def process_subscriber(entity: dict)` workflow function.
-- Modified `add_subscriber` route to pass `workflow=process_subscriber` argument to `entity_service.add_item`.
+### Explanation of changes:
 
-This ensures the subscriber entity is processed asynchronously by your workflow function before being persisted, following the new `entity_service.add_item` signature requirements. Let me know if you need similar updates for other entity models!
+- **Job entity + `process_job` workflow**:
+  - The job scheduling endpoint now creates a minimal `job` entity and passes the workflow function.
+  - `process_job` workflow runs ingestion, updates job state, adds laureates, and sends notifications.
+  - No in-memory job store or locks — all state is persisted via `entity_service`.
+  - Notifications are sent inside the workflow function.
+
+- **Subscriber workflow**:
+  - Normalizes email and sets default status.
+
+- **Controllers simplified**:
+  - Only create/add or fetch entities.
+  - No manual async tasks or internal state management.
+
+---
+
+### Benefits:
+
+- All business logic related to entity creation/update lives in respective `process_{entity_name}` workflow functions.
+- Controllers are thin and easier to maintain/test.
+- Async workflows are naturally chained in `add_item`.
+- No risk of infinite recursion as current entity updates are done by modifying entity dict in-place.
+- Easier to add logging, error handling, and side effects in one place per entity type.
+
+---
+
+If you want me to help refactor other entity workflows or add more robustness, just ask!
