@@ -1,0 +1,107 @@
+{
+    "active": true,
+    "desc": "Workflow managing ingestion job lifecycle and subscriber notification",
+    "initialState": "none",
+    "name": "Nobel Laureates Data Ingestion Workflow",
+    "states": {
+        "failed": {
+            "transitions": [
+                {
+                    "manual": false,
+                    "name": "transition_to_notified_subscribers",
+                    "next": "notified_subscribers",
+                    "processors": [
+                        {
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            },
+                            "executionMode": "ASYNC_NEW_TX",
+                            "name": "notify_subscribers"
+                        }
+                    ]
+                }
+            ]
+        },
+        "ingesting": {
+            "transitions": [
+                {
+                    "criterion": {
+                        "function": {
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            },
+                            "name": "is_ingestion_successful"
+                        },
+                        "type": "function"
+                    },
+                    "manual": false,
+                    "name": "transition_to_succeeded",
+                    "next": "succeeded"
+                },
+                {
+                    "criterion": {
+                        "function": {
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            },
+                            "name": "has_ingestion_failed"
+                        },
+                        "type": "function"
+                    },
+                    "manual": false,
+                    "name": "transition_to_failed",
+                    "next": "failed"
+                }
+            ]
+        },
+        "none": {
+            "transitions": [
+                {
+                    "manual": false,
+                    "name": "transition_to_scheduled",
+                    "next": "scheduled"
+                }
+            ]
+        },
+        "notified_subscribers": {
+            "transitions": []
+        },
+        "scheduled": {
+            "transitions": [
+                {
+                    "manual": false,
+                    "name": "transition_to_ingesting",
+                    "next": "ingesting",
+                    "processors": [
+                        {
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            },
+                            "executionMode": "ASYNC_NEW_TX",
+                            "name": "ingest_data"
+                        }
+                    ]
+                }
+            ]
+        },
+        "succeeded": {
+            "transitions": [
+                {
+                    "manual": false,
+                    "name": "transition_to_notified_subscribers",
+                    "next": "notified_subscribers",
+                    "processors": [
+                        {
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            },
+                            "executionMode": "ASYNC_NEW_TX",
+                            "name": "notify_subscribers"
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    "version": "1.0"
+}
