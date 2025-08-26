@@ -6,8 +6,8 @@ from datetime import datetime
 from typing import Optional
 
 import httpx
-from quart import Quart, jsonify, request, abort
-from quart_schema import QuartSchema, validate_request, validate_querystring
+from quart import Blueprint, jsonify, request, abort
+from quart_schema import validate_request, validate_querystring
 
 from app_init.app_init import BeanFactory
 from common.config.config import ENTITY_VERSION
@@ -19,8 +19,7 @@ factory = BeanFactory(config={'CHAT_REPOSITORY': 'cyoda'})
 entity_service = factory.get_services()['entity_service']
 cyoda_auth_service = factory.get_services()["cyoda_auth_service"]
 
-app = Quart(__name__)
-QuartSchema(app)
+routes_bp = Blueprint('routes', __name__)
 
 @dataclass
 class SubscriberRequest:
@@ -152,7 +151,7 @@ async def process_job(entity: dict):
 
     return entity
 
-@app.route("/jobs/schedule", methods=["POST"])
+@routes_bp.route("/jobs/schedule", methods=["POST"])
 async def schedule_job():
     job_id = str(uuid.uuid4())
     job_entity = {
@@ -174,7 +173,7 @@ async def schedule_job():
 
     return jsonify({"job_id": job_id, "status": "SCHEDULED"}), 202
 
-@app.route("/jobs/<string:job_id>", methods=["GET"])
+@routes_bp.route("/jobs/<string:job_id>", methods=["GET"])
 async def get_job_status(job_id):
     try:
         job = await entity_service.get_item(
@@ -190,8 +189,8 @@ async def get_job_status(job_id):
         abort(404, description="Job not found")
     return jsonify(job)
 
+@routes_bp.route("/laureates", methods=["GET"])
 @validate_querystring(LaureateQuery)
-@app.route("/laureates", methods=["GET"])
 async def get_laureates():
     args = LaureateQuery(**request.args)
     try:
@@ -209,7 +208,7 @@ async def get_laureates():
         laureates = [l for l in laureates if l.get("category") == args.category]
     return jsonify(laureates)
 
-@app.route("/laureates/<string:technical_id>", methods=["GET"])
+@routes_bp.route("/laureates/<string:technical_id>", methods=["GET"])
 async def get_laureate(technical_id):
     try:
         laureate = await entity_service.get_item(
@@ -225,7 +224,7 @@ async def get_laureate(technical_id):
         abort(404, description="Laureate not found")
     return jsonify(laureate)
 
-@app.route("/subscribers", methods=["GET"])
+@routes_bp.route("/subscribers", methods=["GET"])
 async def list_subscribers():
     try:
         subscribers = await entity_service.get_items(
@@ -238,7 +237,7 @@ async def list_subscribers():
         abort(500, description="Failed to retrieve subscribers")
     return jsonify(subscribers)
 
-@app.route("/subscribers", methods=["POST"])
+@routes_bp.route("/subscribers", methods=["POST"])
 @validate_request(SubscriberRequest)
 async def add_subscriber(data: SubscriberRequest):
     if not data.email and not data.webhook_url:
@@ -260,12 +259,3 @@ async def add_subscriber(data: SubscriberRequest):
         logger.exception(e)
         abort(500, description="Failed to add subscriber")
     return jsonify({"subscriber_id": subscriber_id, "status": "active"}), 201
-
-if __name__ == "__main__":
-    import sys
-    logging.basicConfig(
-        stream=sys.stdout,
-        level=logging.INFO,
-        format="%(asctime)s %(levelname)s %(name)s - %(message)s",
-    )
-    app.run(use_reloader=False, debug=True, host="0.0.0.0", port=8000, threaded=True)
