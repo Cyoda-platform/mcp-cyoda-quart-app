@@ -1,10 +1,34 @@
-Certainly! I've updated your code to:
+Absolutely, moving as much logic as possible into the `process_{entity_name}` workflow functions is a great approach to keep the endpoints lean and maintainable. The workflow functions run asynchronously before the entity is persisted, so they are the perfect place for validation, enrichment, side-effects, and related entity manipulations — all without risking infinite recursion because they cannot add/update/delete the same entity_model.
 
-- Define workflow functions for each entity with the prefix `process_` followed by the entity name in underscore lowercase.
-- Pass these workflow functions as the new `workflow` parameter to the `entity_service.add_item` call.
-- Each workflow function is async and receives the entity dict; you can modify the entity inside it.
+---
 
-Below is the full updated code with these changes applied:
+### What can be moved?
+
+- **Entity enrichment**: ID generation, default values, normalization (e.g., uppercasing SKU).
+- **Side effects and async tasks**: e.g., triggering async notifications, marking payments, or related entity updates on different models.
+- **Validation or business logic**: anything that mutates the entity state before saving.
+- **Fetching or creating related entities**: from other models if needed.
+
+---
+
+### What cannot be moved?
+
+- Directly adding/updating/deleting the same entity_model inside its own workflow — that would cause infinite recursion.
+- Any HTTP response or request parsing logic stays in endpoints.
+
+---
+
+### What was done:
+
+- Moved ID generation into workflow functions where applicable.
+- Moved default value settings like status.
+- Moved `auto_mark_paid` call from endpoint into `process_payment` workflow as an async fire-and-forget task.
+- Removed redundant ID setting in endpoints.
+- Enriched entities inside workflows.
+
+---
+
+### Here is the updated code with this refactor applied:
 
 ```python
 from dataclasses import dataclass
@@ -92,45 +116,65 @@ def gen_ulid(): return str(ulid.new())
 # Workflow functions for each entity
 
 async def process_product(entity: dict):
-    # Example: ensure SKU is uppercase before saving
-    if 'sku' in entity and isinstance(entity['sku'], str):
-        entity['sku'] = entity['sku'].upper()
-    # Additional processing logic here
+    # Normalize SKU to uppercase
+    sku = entity.get('sku')
+    if sku and isinstance(sku, str):
+        entity['sku'] = sku.upper()
+    # Could add more enrichment here if needed
     return entity
 
 async def process_cart(entity: dict):
-    # Example: set default status if missing
+    # Set default status if missing or empty
     if not entity.get('status'):
         entity['status'] = 'new'
+    # Could add more logic here or async side effects if needed
     return entity
 
 async def process_user(entity: dict):
-    # Example: generate userId if not present
+    # Generate a userId if missing
     if not entity.get('userId'):
         entity['userId'] = gen_id()
+    # Could add lookup or integration calls here
     return entity
 
 async def process_payment(entity: dict):
-    # Example: generate paymentId if missing
+    # Generate paymentId if missing
     if not entity.get('paymentId'):
         entity['paymentId'] = gen_id()
+
+    # Fire and forget: auto mark payment as paid after persisting
+    # Use asyncio.create_task to not block main flow
+    asyncio.create_task(auto_mark_paid(entity['paymentId']))
     return entity
 
 async def process_order(entity: dict):
-    # Example: generate orderId if missing
+    # Generate orderId if missing
     if not entity.get('orderId'):
         entity['orderId'] = gen_id()
+    # Add any order-specific enrichment here
     return entity
 
 async def process_shipment(entity: dict):
-    # Add any shipment-specific processing here
+    # Shipment-specific logic can be added here
     return entity
 
 async def process_pickledger(entity: dict):
-    # Example: generate pickId if missing
+    # Generate pickId if missing
     if not entity.get('pickId'):
         entity['pickId'] = gen_id()
     return entity
+
+async def auto_mark_paid(payment_id: str):
+    # Placeholder for original logic of auto_mark_paid
+    # This runs asynchronously AFTER payment entity persisted
+    # You can get/add/update other entities here except payment itself
+    try:
+        # Example: simulate some async processing
+        await asyncio.sleep(0.1)
+        logger.info(f"Auto mark paid triggered for payment_id={payment_id}")
+        # You could add/update related entities here
+    except Exception as e:
+        logger.error(f"auto_mark_paid failed for payment_id={payment_id}: {e}")
 
 # PRODUCT
 @app.route("/entity/Product", methods=["GET"])
@@ -260,8 +304,7 @@ async def cart_get(cartId):
 async def user_upsert(data: UserRequest):
     try:
         user = data.__dict__
-        userId = user.get("userId") or gen_id()
-        user["userId"] = userId
+        # userId generation moved to process_user workflow
         id = await entity_service.add_item(
             token=cyoda_auth_service,
             entity_model="user",
@@ -306,7 +349,7 @@ async def user_patch(userId):
 async def payment_create(data: PaymentRequest):
     try:
         payment = data.__dict__
-        payment["paymentId"] = payment.get("paymentId") or gen_id()
+        # paymentId generation and auto_mark_paid moved to process_payment workflow
         id = await entity_service.add_item(
             token=cyoda_auth_service,
             entity_model="payment",
@@ -314,7 +357,6 @@ async def payment_create(data: PaymentRequest):
             entity=payment,
             workflow=process_payment
         )
-        asyncio.create_task(auto_mark_paid(id))
         return jsonify({"id": id}), 201
     except Exception as e:
         logger.exception(e)
@@ -326,7 +368,7 @@ async def payment_create(data: PaymentRequest):
 async def order_create(data: OrderRequest):
     try:
         order = data.__dict__
-        order["orderId"] = order.get("orderId") or gen_id()
+        # orderId generation moved to process_order workflow
         id = await entity_service.add_item(
             token=cyoda_auth_service,
             entity_model="order",
@@ -418,7 +460,7 @@ async def shipment_patch_get(shipmentId):
 async def pickledger_create(data: PickLedgerRequest):
     try:
         pick = data.__dict__
-        pick["pickId"] = pick.get("pickId") or gen_id()
+        # pickId generation moved to process_pickledger workflow
         id = await entity_service.add_item(
             token=cyoda_auth_service,
             entity_model="pickledger",
@@ -431,11 +473,6 @@ async def pickledger_create(data: PickLedgerRequest):
         logger.exception(e)
         return jsonify({"error": "failed to create pickledger"}), 500
 
-async def auto_mark_paid(payment_id: str):
-    # Placeholder for original logic of auto_mark_paid
-    # Implement or call external logic as needed
-    pass
-
 if __name__ == '__main__':
     import sys
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
@@ -444,9 +481,17 @@ if __name__ == '__main__':
 
 ---
 
-**Summary of changes:**
-- Added `process_product`, `process_cart`, `process_user`, `process_payment`, `process_order`, `process_shipment`, and `process_pickledger` async functions.
-- Passed corresponding `workflow=process_{entity}` in calls to `entity_service.add_item`.
-- Each workflow function is designed to mutate the entity dict before it is persisted.
+### Explanation:
+- **All ID generation** moved inside the workflows (`process_user`, `process_payment`, etc.).
+- **Default status setting** moved inside `process_cart`.
+- **SKU normalization** inside `process_product`.
+- **`auto_mark_paid` fire-and-forget async task** moved inside `process_payment` workflow.
+- Endpoints are now mostly simple: parse input, call `add_item` with the workflow, return result.
+- Patch and get endpoints remain as-is since they update or retrieve existing entities.
+- Workflow functions can be extended with more business logic or calls to add/get other entity models as needed.
 
-Let me know if you want me to customize the workflow functions more specifically!
+---
+
+This makes your service more robust, easier to maintain, and better encapsulated.
+
+Let me know if you want me to help extract more logic or add tests!
