@@ -1,0 +1,102 @@
+{
+    "active": true,
+    "desc": "FSM for e-commerce order processing with payment and shipment states",
+    "initialState": "none",
+    "name": "Order Lifecycle Workflow",
+    "states": {
+        "completed": {
+            "transitions": []
+        },
+        "failed": {
+            "transitions": []
+        },
+        "none": {
+            "transitions": [
+                {
+                    "manual": false,
+                    "name": "start_order_validation",
+                    "next": "validated"
+                }
+            ]
+        },
+        "processing": {
+            "transitions": [
+                {
+                    "criterion": {
+                        "function": {
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            },
+                            "name": "guard_payment_paid_and_shipments_delivered"
+                        },
+                        "type": "function"
+                    },
+                    "manual": false,
+                    "name": "complete_order_if_paid_and_delivered",
+                    "next": "completed"
+                },
+                {
+                    "criterion": {
+                        "function": {
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            },
+                            "name": "guard_payment_failed_or_cancelled"
+                        },
+                        "type": "function"
+                    },
+                    "manual": false,
+                    "name": "fail_if_payment_failed_or_cancelled",
+                    "next": "failed"
+                },
+                {
+                    "criterion": {
+                        "function": {
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            },
+                            "name": "guard_order_in_fulfillment"
+                        },
+                        "type": "function"
+                    },
+                    "manual": false,
+                    "name": "wait_for_fulfillment",
+                    "next": "processing"
+                }
+            ]
+        },
+        "validated": {
+            "transitions": [
+                {
+                    "criterion": {
+                        "function": {
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            },
+                            "name": "guard_cart_not_empty"
+                        },
+                        "type": "function"
+                    },
+                    "manual": false,
+                    "name": "proceed_if_cart_valid",
+                    "next": "processing"
+                },
+                {
+                    "criterion": {
+                        "function": {
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            },
+                            "name": "guard_cart_empty_or_invalid"
+                        },
+                        "type": "function"
+                    },
+                    "manual": false,
+                    "name": "fail_if_cart_invalid",
+                    "next": "failed"
+                }
+            ]
+        }
+    },
+    "version": "1.0"
+}
