@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional, List, Dict
-from quart import Quart, request, jsonify
-from quart_schema import QuartSchema, validate_request
+from quart import Blueprint, request, jsonify
+from quart_schema import validate_request
 import asyncio, datetime, uuid, ulid, logging
 from app_init.app_init import BeanFactory
 from common.config.config import ENTITY_VERSION
@@ -9,8 +9,7 @@ from common.config.config import ENTITY_VERSION
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-app = Quart(__name__)
-QuartSchema(app)
+routes_bp = Blueprint('routes', __name__)
 
 factory = BeanFactory(config={'CHAT_REPOSITORY': 'cyoda'})
 entity_service = factory.get_services()['entity_service']
@@ -127,7 +126,7 @@ async def process_pickledger(entity: dict):
         entity['pickId'] = gen_id()
     return entity
 
-@app.route("/entity/Product", methods=["GET"])
+@routes_bp.route("/entity/Product", methods=["GET"])
 async def product_list():
     try:
         items = await entity_service.get_items(
@@ -140,7 +139,7 @@ async def product_list():
         logger.exception(e)
         return jsonify({"error": "failed to get products"}), 500
 
-@app.route("/entity/Product", methods=["POST"])
+@routes_bp.route("/entity/Product", methods=["POST"])
 @validate_request(ProductRequest)
 async def product_create(data: ProductRequest):
     try:
@@ -156,7 +155,7 @@ async def product_create(data: ProductRequest):
         logger.exception(e)
         return jsonify({"error": "failed to create product"}), 500
 
-@app.route("/entity/Product/<string:sku>", methods=["PATCH"])
+@routes_bp.route("/entity/Product/<string:sku>", methods=["PATCH"])
 async def product_patch(sku):
     try:
         data = await request.get_json()
@@ -182,7 +181,7 @@ async def product_patch(sku):
         logger.exception(e)
         return jsonify({"error": "failed to patch product"}), 500
 
-@app.route("/entity/Cart", methods=["POST"])
+@routes_bp.route("/entity/Cart", methods=["POST"])
 @validate_request(CartRequest)
 async def cart_create(data: CartRequest):
     try:
@@ -198,7 +197,7 @@ async def cart_create(data: CartRequest):
         logger.exception(e)
         return jsonify({"error": "failed to create cart"}), 500
 
-@app.route("/entity/Cart/<string:cartId>", methods=["PATCH"])
+@routes_bp.route("/entity/Cart/<string:cartId>", methods=["PATCH"])
 @validate_request(CartPatchRequest)
 async def cart_patch(data: CartPatchRequest, cartId):
     try:
@@ -226,7 +225,7 @@ async def cart_patch(data: CartPatchRequest, cartId):
         logger.exception(e)
         return jsonify({"error": "failed to patch cart"}), 500
 
-@app.route("/entity/Cart/<string:cartId>", methods=["GET"])
+@routes_bp.route("/entity/Cart/<string:cartId>", methods=["GET"])
 async def cart_get(cartId):
     try:
         cart = await entity_service.get_item(
@@ -242,7 +241,7 @@ async def cart_get(cartId):
         logger.exception(e)
         return jsonify({"error": "failed to get cart"}), 500
 
-@app.route("/entity/User", methods=["POST"])
+@routes_bp.route("/entity/User", methods=["POST"])
 @validate_request(UserRequest)
 async def user_upsert(data: UserRequest):
     try:
@@ -258,7 +257,7 @@ async def user_upsert(data: UserRequest):
         logger.exception(e)
         return jsonify({"error": "failed to upsert user"}), 500
 
-@app.route("/entity/User/<string:userId>", methods=["PATCH"])
+@routes_bp.route("/entity/User/<string:userId>", methods=["PATCH"])
 async def user_patch(userId):
     try:
         data = await request.get_json()
@@ -284,7 +283,7 @@ async def user_patch(userId):
         logger.exception(e)
         return jsonify({"error": "failed to patch user"}), 500
 
-@app.route("/entity/Payment", methods=["POST"])
+@routes_bp.route("/entity/Payment", methods=["POST"])
 @validate_request(PaymentRequest)
 async def payment_create(data: PaymentRequest):
     try:
@@ -300,7 +299,7 @@ async def payment_create(data: PaymentRequest):
         logger.exception(e)
         return jsonify({"error": "failed to create payment"}), 500
 
-@app.route("/entity/Order", methods=["POST"])
+@routes_bp.route("/entity/Order", methods=["POST"])
 @validate_request(OrderRequest)
 async def order_create(data: OrderRequest):
     try:
@@ -316,7 +315,7 @@ async def order_create(data: OrderRequest):
         logger.exception(e)
         return jsonify({"error": "failed to create order"}), 500
 
-@app.route("/entity/Order/<string:orderId>", methods=["PATCH","GET"])
+@routes_bp.route("/entity/Order/<string:orderId>", methods=["PATCH","GET"])
 async def order_patch_get(orderId):
     try:
         if request.method == "GET":
@@ -352,7 +351,7 @@ async def order_patch_get(orderId):
         logger.exception(e)
         return jsonify({"error": "failed to process order"}), 500
 
-@app.route("/entity/Shipment/<string:shipmentId>", methods=["PATCH","GET"])
+@routes_bp.route("/entity/Shipment/<string:shipmentId>", methods=["PATCH","GET"])
 async def shipment_patch_get(shipmentId):
     try:
         if request.method == "GET":
@@ -388,7 +387,7 @@ async def shipment_patch_get(shipmentId):
         logger.exception(e)
         return jsonify({"error": "failed to process shipment"}), 500
 
-@app.route("/entity/PickLedger", methods=["POST"])
+@routes_bp.route("/entity/PickLedger", methods=["POST"])
 @validate_request(PickLedgerRequest)
 async def pickledger_create(data: PickLedgerRequest):
     try:
@@ -403,8 +402,3 @@ async def pickledger_create(data: PickLedgerRequest):
     except Exception as e:
         logger.exception(e)
         return jsonify({"error": "failed to create pickledger"}), 500
-
-if __name__ == '__main__':
-    import sys
-    logging.basicConfig(stream=sys.stdout, level=logging.INFO)
-    app.run(use_reloader=False, debug=True, host='0.0.0.0', port=8000, threaded=True)
