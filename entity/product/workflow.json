@@ -1,0 +1,62 @@
+{
+    "active": true,
+    "desc": "Assigns userId if missing",
+    "initialState": "none",
+    "name": "User Identity Workflow",
+    "states": {
+        "check_user_id": {
+            "transitions": [
+                {
+                    "criterion": {
+                        "function": {
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            },
+                            "name": "needs_user_id"
+                        },
+                        "type": "function"
+                    },
+                    "manual": false,
+                    "name": "assign_id_if_missing",
+                    "next": "ready",
+                    "processors": [
+                        {
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            },
+                            "executionMode": "ASYNC_NEW_TX",
+                            "name": "process_user"
+                        }
+                    ]
+                },
+                {
+                    "criterion": {
+                        "function": {
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            },
+                            "name": "has_user_id"
+                        },
+                        "type": "function"
+                    },
+                    "manual": false,
+                    "name": "skip_assign_if_present",
+                    "next": "ready"
+                }
+            ]
+        },
+        "none": {
+            "transitions": [
+                {
+                    "manual": false,
+                    "name": "to_check_user_id",
+                    "next": "check_user_id"
+                }
+            ]
+        },
+        "ready": {
+            "transitions": []
+        }
+    },
+    "version": "1.0"
+}
