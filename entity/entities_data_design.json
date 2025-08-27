@@ -1,0 +1,130 @@
+{
+    "entities": [
+        {
+            "entity_data_example": {
+                "category": "electronics",
+                "description": "A sample product description",
+                "name": "Sample Product",
+                "price": 19.99,
+                "quantityAvailable": 100,
+                "sku": "sku123"
+            },
+            "entity_name": "product"
+        },
+        {
+            "entity_data_example": {
+                "cartId": "cart123",
+                "lines": [
+                    {
+                        "name": "Sample Product",
+                        "price": 19.99,
+                        "qty": 2,
+                        "sku": "sku123"
+                    }
+                ],
+                "status": "ACTIVE",
+                "totals": {
+                    "grand": 39.98,
+                    "items": 2
+                },
+                "userId": "user456"
+            },
+            "entity_name": "cart"
+        },
+        {
+            "entity_data_example": {
+                "addresses": {
+                    "billing": {
+                        "city": "BillingCity",
+                        "country": "USA",
+                        "line1": "123 Billing St",
+                        "postcode": "12345",
+                        "updatedAt": "2024-06-01T12:00:00Z"
+                    },
+                    "default": {
+                        "city": "DefaultCity",
+                        "country": "USA",
+                        "line1": "456 Default Ave",
+                        "postcode": "67890",
+                        "updatedAt": "2024-06-01T12:00:00Z"
+                    },
+                    "delivery": {
+                        "city": "DeliveryCity",
+                        "country": "USA",
+                        "line1": "789 Delivery Rd",
+                        "postcode": "54321",
+                        "updatedAt": "2024-06-01T12:00:00Z"
+                    }
+                },
+                "email": "john.doe@example.com",
+                "name": "John Doe",
+                "phone": "123-456-7890",
+                "userId": "user456"
+            },
+            "entity_name": "user"
+        },
+        {
+            "entity_data_example": {
+                "amount": 39.98,
+                "cartId": "cart123",
+                "paymentId": "payment789",
+                "provider": "DUMMY",
+                "status": "INITIATED"
+            },
+            "entity_name": "payment"
+        },
+        {
+            "entity_data_example": {
+                "lines": [
+                    {
+                        "lineTotal": 39.98,
+                        "name": "Sample Product",
+                        "qty": 2,
+                        "sku": "sku123",
+                        "unitPrice": 19.99
+                    }
+                ],
+                "orderId": "order101112",
+                "orderNumber": "01F8MECHZX3TBDSZ7XRADM79XE",
+                "shippingAddress": {
+                    "city": "DeliveryCity",
+                    "country": "USA",
+                    "line1": "789 Delivery Rd",
+                    "postcode": "54321",
+                    "updatedAt": "2024-06-01T12:00:00Z"
+                },
+                "status": "WAITING_TO_FULFILL",
+                "totals": {
+                    "grand": 39.98,
+                    "items": 2
+                },
+                "userId": "user456"
+            },
+            "entity_name": "order"
+        },
+        {
+            "entity_data_example": {
+                "carrier": "DHL",
+                "estimatedDelivery": "2024-06-10T12:00:00Z",
+                "orderId": "order101112",
+                "shipmentId": "shipment131415",
+                "status": "PICKING",
+                "trackingNumber": "TRACK123456789"
+            },
+            "entity_name": "shipment"
+        },
+        {
+            "entity_data_example": {
+                "actor": "warehouse_worker_1",
+                "at": "2024-06-02T15:00:00Z",
+                "delta": -2,
+                "note": "Picked items for shipment",
+                "orderId": "order101112",
+                "pickId": "pick161718",
+                "shipmentId": "shipment131415",
+                "sku": "sku123"
+            },
+            "entity_name": "pickledger"
+        }
+    ]
+}
