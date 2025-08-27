@@ -1,0 +1,144 @@
+{
+    "active": true,
+    "desc": "Cart lifecycle workflow for e-commerce order management",
+    "initialState": "none",
+    "name": "CartFlow",
+    "states": {
+        "active": {
+            "transitions": [
+                {
+                    "criterion": {
+                        "function": {
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            },
+                            "name": "is_cart_not_empty"
+                        },
+                        "type": "function"
+                    },
+                    "manual": false,
+                    "name": "start_checkout_if_cart_not_empty",
+                    "next": "checking_out",
+                    "processors": [
+                        {
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            },
+                            "executionMode": "ASYNC_NEW_TX",
+                            "name": "set_cart_status_checking_out"
+                        }
+                    ]
+                },
+                {
+                    "criterion": {
+                        "function": {
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            },
+                            "name": "is_cart_status_active"
+                        },
+                        "type": "function"
+                    },
+                    "manual": false,
+                    "name": "remain_active_if_empty",
+                    "next": "active"
+                }
+            ]
+        },
+        "checking_out": {
+            "transitions": [
+                {
+                    "criterion": {
+                        "function": {
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            },
+                            "name": "order_created_successfully"
+                        },
+                        "type": "function"
+                    },
+                    "manual": false,
+                    "name": "convert_when_order_created",
+                    "next": "converted",
+                    "processors": [
+                        {
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            },
+                            "executionMode": "ASYNC_NEW_TX",
+                            "name": "set_cart_status_converted"
+                        }
+                    ]
+                },
+                {
+                    "criterion": {
+                        "function": {
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            },
+                            "name": "is_cart_status_checking_out"
+                        },
+                        "type": "function"
+                    },
+                    "manual": false,
+                    "name": "remain_checking_out_if_not_converted",
+                    "next": "checking_out"
+                }
+            ]
+        },
+        "converted": {
+            "transitions": []
+        },
+        "new": {
+            "transitions": [
+                {
+                    "criterion": {
+                        "function": {
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            },
+                            "name": "is_cart_not_empty"
+                        },
+                        "type": "function"
+                    },
+                    "manual": false,
+                    "name": "activate_cart_if_not_empty",
+                    "next": "active",
+                    "processors": [
+                        {
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            },
+                            "executionMode": "ASYNC_NEW_TX",
+                            "name": "set_cart_status_active"
+                        }
+                    ]
+                },
+                {
+                    "criterion": {
+                        "function": {
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            },
+                            "name": "is_cart_status_new"
+                        },
+                        "type": "function"
+                    },
+                    "manual": false,
+                    "name": "remain_new_if_empty",
+                    "next": "new"
+                }
+            ]
+        },
+        "none": {
+            "transitions": [
+                {
+                    "manual": false,
+                    "name": "init_cart",
+                    "next": "new"
+                }
+            ]
+        }
+    },
+    "version": "1.0"
+}
