@@ -1,0 +1,62 @@
+{
+    "active": true,
+    "desc": "Assigns userId to user entity if missing",
+    "initialState": "none",
+    "name": "User Identity Workflow",
+    "states": {
+        "check_userid": {
+            "transitions": [
+                {
+                    "criterion": {
+                        "function": {
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            },
+                            "name": "needs_user_id"
+                        },
+                        "type": "function"
+                    },
+                    "manual": false,
+                    "name": "assign_id_transition",
+                    "next": "ready",
+                    "processors": [
+                        {
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            },
+                            "executionMode": "ASYNC_NEW_TX",
+                            "name": "process_user"
+                        }
+                    ]
+                },
+                {
+                    "criterion": {
+                        "function": {
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            },
+                            "name": "has_user_id"
+                        },
+                        "type": "function"
+                    },
+                    "manual": false,
+                    "name": "already_has_id_transition",
+                    "next": "ready"
+                }
+            ]
+        },
+        "none": {
+            "transitions": [
+                {
+                    "manual": false,
+                    "name": "transition_to_check_userid",
+                    "next": "check_userid"
+                }
+            ]
+        },
+        "ready": {
+            "transitions": []
+        }
+    },
+    "version": "1.0"
+}
