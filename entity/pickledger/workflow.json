@@ -1,0 +1,80 @@
+{
+    "active": true,
+    "desc": "Finite State Machine workflow for PickLedger entity lifecycle",
+    "initialState": "none",
+    "name": "pickledger_workflow",
+    "states": {
+        "audited": {
+            "transitions": [
+                {
+                    "criterion": {
+                        "function": {
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            },
+                            "name": "guard_pick_complete"
+                        },
+                        "type": "function"
+                    },
+                    "manual": false,
+                    "name": "to_completed_from_audited",
+                    "next": "completed"
+                }
+            ]
+        },
+        "completed": {
+            "transitions": []
+        },
+        "logged": {
+            "transitions": [
+                {
+                    "criterion": {
+                        "function": {
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            },
+                            "name": "guard_pick_audited"
+                        },
+                        "type": "function"
+                    },
+                    "manual": false,
+                    "name": "to_audited",
+                    "next": "audited"
+                },
+                {
+                    "criterion": {
+                        "function": {
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            },
+                            "name": "guard_pick_complete"
+                        },
+                        "type": "function"
+                    },
+                    "manual": false,
+                    "name": "to_completed",
+                    "next": "completed"
+                }
+            ]
+        },
+        "none": {
+            "transitions": [
+                {
+                    "manual": false,
+                    "name": "start_picklog",
+                    "next": "logged",
+                    "processors": [
+                        {
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            },
+                            "executionMode": "ASYNC_NEW_TX",
+                            "name": "process_pickledger"
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    "version": "1.0"
+}
