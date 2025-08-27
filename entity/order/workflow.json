@@ -1,0 +1,85 @@
+{
+    "active": true,
+    "desc": "Workflow for PickLedger entity lifecycle",
+    "initialState": "none",
+    "name": "pickledger_workflow",
+    "states": {
+        "audited": {
+            "transitions": [
+                {
+                    "criterion": {
+                        "function": {
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            },
+                            "name": "guard_pick_complete"
+                        },
+                        "type": "function"
+                    },
+                    "manual": false,
+                    "name": "complete_if_fully_processed",
+                    "next": "completed"
+                },
+                {
+                    "criterion": {
+                        "function": {
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            },
+                            "name": "guard_not_pick_complete"
+                        },
+                        "type": "function"
+                    },
+                    "manual": false,
+                    "name": "stay_audited_if_not_complete",
+                    "next": "audited"
+                }
+            ]
+        },
+        "completed": {
+            "transitions": []
+        },
+        "logged": {
+            "transitions": [
+                {
+                    "criterion": {
+                        "function": {
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            },
+                            "name": "guard_pick_audited"
+                        },
+                        "type": "function"
+                    },
+                    "manual": false,
+                    "name": "to_audited_if_audit_present",
+                    "next": "audited"
+                },
+                {
+                    "criterion": {
+                        "function": {
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            },
+                            "name": "guard_not_pick_audited"
+                        },
+                        "type": "function"
+                    },
+                    "manual": false,
+                    "name": "stay_logged_if_no_audit",
+                    "next": "logged"
+                }
+            ]
+        },
+        "none": {
+            "transitions": [
+                {
+                    "manual": false,
+                    "name": "start_picklog",
+                    "next": "logged"
+                }
+            ]
+        }
+    },
+    "version": "1.0"
+}
