@@ -1,25 +1,37 @@
 import asyncio
 import logging
+import time
 import uuid
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 import httpx
 from quart import Blueprint, jsonify, request, abort
 from quart_schema import validate_request, validate_querystring
 
-from app_init.app_init import BeanFactory
+from service.registry import get_entity_service, get_auth_service
 from common.config.config import ENTITY_VERSION
+# Removed health and metrics modules for simplicity
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-factory = BeanFactory(config={'CHAT_REPOSITORY': 'cyoda'})
-entity_service = factory.get_services()['entity_service']
-cyoda_auth_service = factory.get_services()["cyoda_auth_service"]
+# Services will be accessed through the registry
+entity_service = None
+cyoda_auth_service = None
 
 routes_bp = Blueprint('routes', __name__)
+
+
+def get_services():
+    """Get services from the registry lazily."""
+    global entity_service, cyoda_auth_service
+    if entity_service is None:
+        entity_service = get_entity_service()
+    if cyoda_auth_service is None:
+        cyoda_auth_service = get_auth_service()
+    return entity_service, cyoda_auth_service
 
 @dataclass
 class SubscriberRequest:
@@ -81,6 +93,8 @@ async def process_subscriber(entity: dict):
     return entity
 
 async def process_job(entity: dict):
+    entity_service, cyoda_auth_service = get_services()
+
     entity["state"] = "INGESTING"
     entity["started_at"] = datetime.utcnow().isoformat()
     entity["completed_at"] = None
@@ -153,11 +167,13 @@ async def process_job(entity: dict):
 
 @routes_bp.route("/jobs/schedule", methods=["POST"])
 async def schedule_job():
+    entity_service, cyoda_auth_service = get_services()
+
     job_id = str(uuid.uuid4())
     job_entity = {
         "job_id": job_id,
         "state": "SCHEDULED",
-        "created_at": datetime.utcnow().isoformat(),
+        "created_at": datetime.now(timezone.utc).isoformat(),
     }
 
     try:
@@ -175,6 +191,8 @@ async def schedule_job():
 
 @routes_bp.route("/jobs/<string:job_id>", methods=["GET"])
 async def get_job_status(job_id):
+    entity_service, cyoda_auth_service = get_services()
+
     try:
         job = await entity_service.get_item(
             token=cyoda_auth_service,
@@ -192,6 +210,8 @@ async def get_job_status(job_id):
 @routes_bp.route("/laureates", methods=["GET"])
 @validate_querystring(LaureateQuery)
 async def get_laureates():
+    entity_service, cyoda_auth_service = get_services()
+
     args = LaureateQuery(**request.args)
     try:
         laureates = await entity_service.get_items(
@@ -210,6 +230,8 @@ async def get_laureates():
 
 @routes_bp.route("/laureates/<string:technical_id>", methods=["GET"])
 async def get_laureate(technical_id):
+    entity_service, cyoda_auth_service = get_services()
+
     try:
         laureate = await entity_service.get_item(
             token=cyoda_auth_service,
@@ -226,6 +248,8 @@ async def get_laureate(technical_id):
 
 @routes_bp.route("/subscribers", methods=["GET"])
 async def list_subscribers():
+    entity_service, cyoda_auth_service = get_services()
+
     try:
         subscribers = await entity_service.get_items(
             token=cyoda_auth_service,
@@ -240,6 +264,8 @@ async def list_subscribers():
 @routes_bp.route("/subscribers", methods=["POST"])
 @validate_request(SubscriberRequest)
 async def add_subscriber(data: SubscriberRequest):
+    entity_service, cyoda_auth_service = get_services()
+
     if not data.email and not data.webhook_url:
         abort(400, description="At least one contact must be provided")
     subscriber_obj = {
@@ -257,5 +283,128 @@ async def add_subscriber(data: SubscriberRequest):
         )
     except Exception as e:
         logger.exception(e)
+
+
+# Health Check and Monitoring Endpoints
+
+@routes_bp.route('/health', methods=['GET'])
+async def health_check():
+    """Health check endpoint."""
+    try:
+        # Simple health check - just verify the app is running
+        return jsonify({
+            "status": "healthy",
+            "message": "Application is running",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }), 200
+
+    except Exception as e:
+        logger.exception("Health check failed")
+        return jsonify({
+            "status": "unhealthy",
+            "message": f"Health check error: {str(e)}",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }), 503
+
+
+@routes_bp.route('/health/live', methods=['GET'])
+async def liveness_check():
+    """Kubernetes liveness probe endpoint."""
+    return jsonify({
+        "status": "alive",
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }), 200
+
+
+@routes_bp.route('/health/ready', methods=['GET'])
+async def readiness_check():
+    """Kubernetes readiness probe endpoint."""
+    try:
+        # Simple readiness check
+        return jsonify({
+            "status": "ready",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }), 200
+
+    except Exception as e:
+        logger.exception("Readiness check failed")
+        return jsonify({
+            "status": "not_ready",
+            "message": f"Readiness check failed: {str(e)}",
+            "timestamp": datetime.utcnow().isoformat()
+        }), 503
+
+
+@routes_bp.route('/metrics', methods=['GET'])
+async def metrics():
+    """Metrics endpoint in Prometheus format."""
+    try:
+        collector = get_metrics_collector()
+        exporter = MetricsExporter(collector)
+
+        # Check if Prometheus format is requested
+        accept_header = request.headers.get('Accept', '')
+        if 'application/json' in accept_header:
+            metrics_data = exporter.export_json_format()
+            return jsonify(metrics_data)
+        else:
+            # Default to Prometheus format
+            prometheus_data = exporter.export_prometheus_format()
+            return prometheus_data, 200, {'Content-Type': 'text/plain; charset=utf-8'}
+
+    except Exception as e:
+        logger.exception("Metrics export failed")
+        return jsonify({
+            "error": f"Metrics export failed: {str(e)}",
+            "timestamp": datetime.utcnow().isoformat()
+        }), 500
+
+
+@routes_bp.route('/metrics/summary', methods=['GET'])
+async def metrics_summary():
+    """Metrics summary endpoint in JSON format."""
+    try:
+        collector = get_metrics_collector()
+        summary = collector.get_metrics_summary()
+        return jsonify(summary)
+
+    except Exception as e:
+        logger.exception("Metrics summary failed")
+        return jsonify({
+            "error": f"Metrics summary failed: {str(e)}",
+            "timestamp": datetime.utcnow().isoformat()
+        }), 500
+
+
+@routes_bp.route('/info', methods=['GET'])
+async def system_info():
+    """System information endpoint."""
+    try:
+        from common.config.manager import get_config_manager
+
+        config_manager = get_config_manager()
+
+        info = {
+            "application": {
+                "name": "Cyoda gRPC Client",
+                "version": ENTITY_VERSION,
+                "environment": config_manager.environment.value if hasattr(config_manager, 'environment') else "development",
+                "uptime_seconds": time.time() - start_time if 'start_time' in globals() else 0
+            },
+            "configuration": {
+                "sections": list(config_manager._sections.keys()) if hasattr(config_manager, '_sections') else [],
+                "loaded_files": config_manager._loaded_files if hasattr(config_manager, '_loaded_files') else []
+            },
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+
+        return jsonify(info)
+
+    except Exception as e:
+        logger.exception("System info failed")
+        return jsonify({
+            "error": f"System info failed: {str(e)}",
+            "timestamp": datetime.utcnow().isoformat()
+        }), 500
         abort(500, description="Failed to add subscriber")
     return jsonify({"subscriber_id": subscriber_id, "status": "active"}), 201

@@ -4,7 +4,7 @@ import logging
 from quart import Quart
 from quart_schema import QuartSchema, ResponseSchemaValidationError, hide
 
-from app_init.app_init import grpc_client
+from service.registry import initialize_services, get_grpc_client
 from common.exception.exception_handler import register_error_handlers
 # Import blueprints for different route groups
 from routes.routes import routes_bp
@@ -40,9 +40,29 @@ register_error_handlers(app)
 @hide
 def favicon():
     return "", 200
-# Startup tasks: initialize Cyoda and start the GRPC stream in the background
+# Startup tasks: initialize services and start the GRPC stream in the background
 @app.before_serving
 async def startup():
+    # Initialize services with proper configuration from environment
+    import os
+    config = {
+        'authentication': {
+            'client_id': os.getenv('CYODA_CLIENT_ID', ''),
+            'client_secret': os.getenv('CYODA_CLIENT_SECRET', ''),
+            'token_url': os.getenv('CYODA_TOKEN_URL', ''),
+            'scope': 'read write',
+        },
+        'repository': {
+            'use_in_memory': os.getenv('CHAT_REPOSITORY', 'in_memory').lower() != 'cyoda',
+        },
+        'processor': {
+            'modules': ['workflow.processors', 'workflow.criteria'],
+        },
+    }
+    initialize_services(config)
+
+    # Get the gRPC client and start the stream
+    grpc_client = get_grpc_client()
     app.background_task = asyncio.create_task(grpc_client.grpc_stream())
 
 

@@ -1,19 +1,21 @@
+"""
+Cyoda Repository Implementation
+
+Thread-safe repository for interacting with the Cyoda API.
+Provides CRUD operations with proper error handling and caching.
+"""
+
 import threading
 import json
 import logging
 import time
 import asyncio
-from typing import List, Any, Optional
+from typing import List, Any, Optional, Dict
 
-from common.config.config import (
-    CYODA_ENTITY_TYPE_EDGE_MESSAGE,
-)
+from common.config.config import CYODA_ENTITY_TYPE_EDGE_MESSAGE
 from common.config.conts import EDGE_MESSAGE_CLASS, TREE_NODE_ENTITY_CLASS, UPDATE_TRANSITION
 from common.repository.crud_repository import CrudRepository
-from common.utils.utils import (
-    custom_serializer,
-    send_cyoda_request,
-)
+from common.utils.utils import custom_serializer, send_cyoda_request
 
 logger = logging.getLogger(__name__)
 
@@ -24,19 +26,19 @@ _edge_messages_cache = {}
 class CyodaRepository(CrudRepository):
     """
     Thread-safe singleton repository for interacting with the Cyoda API.
-    Retries once on HTTP 401 by invalidating tokens and fetching fresh ones.
+    Provides CRUD operations with caching and error handling.
     """
 
     _instance = None
     _lock = threading.Lock()
 
     def __new__(cls, cyoda_auth_service):
+        """Thread-safe singleton implementation."""
         with cls._lock:
             if cls._instance is None:
                 cls._instance = super().__new__(cls)
                 cls._instance._cyoda_auth_service = cyoda_auth_service
         return cls._instance
-
 
     async def _wait_for_search_completion(
             self,
@@ -44,14 +46,16 @@ class CyodaRepository(CrudRepository):
             timeout: float = 60.0,
             interval: float = 0.3
     ) -> None:
-        """
-        Poll the snapshot status endpoint until SUCCESSFUL or error/timeout.
-        """
+        """Poll the snapshot status endpoint until SUCCESSFUL or error/timeout."""
         start = time.monotonic()
         status_path = f"search/snapshot/{snapshot_id}/status"
 
         while True:
-            resp = await send_cyoda_request(cyoda_auth_service=self._cyoda_auth_service, method="get", path=status_path)
+            resp = await send_cyoda_request(
+                cyoda_auth_service=self._cyoda_auth_service,
+                method="get",
+                path=status_path
+            )
             if resp.get("status") != 200:
                 return
             status = resp.get("json", {}).get("snapshotStatus")
@@ -63,86 +67,63 @@ class CyodaRepository(CrudRepository):
                 raise TimeoutError(f"Timeout exceeded after {timeout} seconds")
             await asyncio.sleep(interval)
 
-    async def delete(self, meta, entity: Any) -> None:
-        pass
 
-    async def get_meta(self, token, entity_model, entity_version):
-        return {"token": token, "entity_model": entity_model, "entity_version": entity_version}
-
-    async def count(self, meta) -> int:
-        items = await self.find_all(meta)
-        return len(items)
-
-    async def delete_all(self, meta) -> None:
-        path = f"entity/{meta['entity_model']}/{meta['entity_version']}"
-        await send_cyoda_request(cyoda_auth_service=self._cyoda_auth_service, method="delete", path=path)
-
-    async def delete_all_entities(self, meta, entities: List[Any]) -> None:
-        for entity in entities:
-            technical_id = getattr(entity, 'technical_id', entity)
-            await self.delete_by_id(meta, technical_id)
-
-    async def delete_all_by_key(self, meta, keys: List[Any]) -> None:
-        for key in keys:
-            await self.delete_by_key(meta, key)
-
-    async def delete_by_key(self, meta, key: Any) -> None:
-        entity = await self.find_by_key(meta, key)
-        if entity and 'technical_id' in entity:
-            await self.delete_by_id(meta, entity['technical_id'])
-
-    async def exists_by_key(self, meta, key: Any) -> bool:
-        return (await self.find_by_key(meta, key)) is not None
-
-    async def find_all(self, meta) -> List[Any]:
-        path = f"entity/{meta['entity_model']}/{meta['entity_version']}"
-        resp = await send_cyoda_request(cyoda_auth_service=self._cyoda_auth_service, method="get", path=path)
-        return resp.get("json", [])
-
-    async def find_all_by_key(self, meta, keys: List[Any]) -> List[Any]:
-        results = []
-        for key in keys:
-            entity = await self.find_by_key(meta, key)
-            if entity:
-                results.append(entity)
-        return results
-
-    async def find_by_key(self, meta, key: Any) -> Optional[Any]:
-        # If the user has pre‑set meta["condition"], use that; otherwise search by {"key": key}
-        criteria = meta.get("condition") or {"key": key}
-        entities = await self.find_all_by_criteria(meta, criteria)
-        return entities[0] if entities else None
-
-    async def find_by_id(self, meta, _uuid: Any) -> Optional[Any]:
+    # CRUD Repository Implementation
+    async def find_by_id(self, meta, entity_id: Any) -> Optional[Any]:
+        """Find entity by ID."""
         if meta and meta.get("type") == CYODA_ENTITY_TYPE_EDGE_MESSAGE:
-            if _uuid in _edge_messages_cache:
-                return _edge_messages_cache[_uuid]
-            path = f"message/get/{_uuid}"
-            resp = await send_cyoda_request(cyoda_auth_service=self._cyoda_auth_service, method="get", path=path)
+            if entity_id in _edge_messages_cache:
+                return _edge_messages_cache[entity_id]
+            path = f"message/get/{entity_id}"
+            resp = await send_cyoda_request(
+                cyoda_auth_service=self._cyoda_auth_service,
+                method="get",
+                path=path
+            )
             content = resp.get("json", {}).get("content", "{}")
             data = json.loads(content).get("edge_message_content")
             if data:
-                _edge_messages_cache[_uuid] = data
+                _edge_messages_cache[entity_id] = data
             return data
 
-        path = f"entity/{_uuid}"
-        resp = await send_cyoda_request(cyoda_auth_service=self._cyoda_auth_service, method="get", path=path)
+        path = f"entity/{entity_id}"
+        resp = await send_cyoda_request(
+            cyoda_auth_service=self._cyoda_auth_service,
+            method="get",
+            path=path
+        )
         payload = resp.get("json", {})
         data = payload.get("data", {})
         data["current_state"] = payload.get("meta", {}).get("state")
-        data["technical_id"] = _uuid
+        data["technical_id"] = entity_id
         return data
 
+    async def find_all(self, meta) -> List[Any]:
+        """Find all entities of a specific model."""
+        path = f"entity/{meta['entity_model']}/{meta['entity_version']}"
+        resp = await send_cyoda_request(
+            cyoda_auth_service=self._cyoda_auth_service,
+            method="get",
+            path=path
+        )
+        return resp.get("json", [])
+
     async def find_all_by_criteria(self, meta, criteria: Any) -> List[Any]:
-        # 1) trigger snapshot
+        """Find entities matching specific criteria using snapshot search."""
+        # 1. Create snapshot
         snap_path = f"search/snapshot/{meta['entity_model']}/{meta['entity_version']}"
-        resp = await send_cyoda_request(cyoda_auth_service=self._cyoda_auth_service, method="post", path=snap_path, data=json.dumps(criteria))
+        resp = await send_cyoda_request(
+            cyoda_auth_service=self._cyoda_auth_service,
+            method="post",
+            path=snap_path,
+            data=json.dumps(criteria)
+        )
         snapshot_id = resp.get("json")
 
-        # 2) poll until ready
+        # 2. Wait for completion
         await self._wait_for_search_completion(snapshot_id)
 
-        # 3) fetch results (first page)
+        # 3. Fetch results
         result_resp = await send_cyoda_request(
             cyoda_auth_service=self._cyoda_auth_service,
             method="get",
@@ -166,9 +147,10 @@ class CyodaRepository(CrudRepository):
         return entities
 
     async def save(self, meta, entity: Any) -> Any:
+        """Save a single entity."""
         if meta.get("type") == CYODA_ENTITY_TYPE_EDGE_MESSAGE:
             payload = {
-                "meta-data": {"source": "ai_assistant"},
+                "meta-data": {"source": "cyoda_client"},
                 "payload": {"edge_message_content": entity},
             }
             data = json.dumps(payload, default=custom_serializer)
@@ -177,7 +159,12 @@ class CyodaRepository(CrudRepository):
             data = json.dumps(entity, default=custom_serializer)
             path = f"entity/JSON/{meta['entity_model']}/{meta['entity_version']}"
 
-        resp = await send_cyoda_request(cyoda_auth_service=self._cyoda_auth_service, method="post", path=path, data=data)
+        resp = await send_cyoda_request(
+            cyoda_auth_service=self._cyoda_auth_service,
+            method="post",
+            path=path,
+            data=data
+        )
         result = resp.get("json", [])
 
         technical_id = None
@@ -190,10 +177,15 @@ class CyodaRepository(CrudRepository):
         return technical_id
 
     async def save_all(self, meta, entities: List[Any]) -> Any:
-        # restore v1 behavior: return first entity ID only
+        """Save multiple entities in batch."""
         data = json.dumps(entities, default=custom_serializer)
         path = f"entity/JSON/{meta['entity_model']}/{meta['entity_version']}"
-        resp = await send_cyoda_request(cyoda_auth_service=self._cyoda_auth_service, method="post", path=path, data=data)
+        resp = await send_cyoda_request(
+            cyoda_auth_service=self._cyoda_auth_service,
+            method="post",
+            path=path,
+            data=data
+        )
         result = resp.get("json", [])
 
         technical_id = None
@@ -203,6 +195,7 @@ class CyodaRepository(CrudRepository):
         return technical_id
 
     async def update(self, meta, technical_id: Any, entity: Any = None) -> Any:
+        """Update an entity or launch a transition."""
         if entity is None:
             return await self._launch_transition(meta=meta, technical_id=technical_id)
 
@@ -212,44 +205,61 @@ class CyodaRepository(CrudRepository):
             "?transactional=true&waitForConsistencyAfter=true"
         )
         data = json.dumps(entity, default=custom_serializer)
-        resp = await send_cyoda_request(cyoda_auth_service=self._cyoda_auth_service, method="put", path=path, data=data)
+        resp = await send_cyoda_request(
+            cyoda_auth_service=self._cyoda_auth_service,
+            method="put",
+            path=path,
+            data=data
+        )
         result = resp.get("json", {})
         if not isinstance(result, dict):
             logger.exception(result)
             return None
         return result.get("entityIds", [None])[0]
 
-    async def update_all(self, meta, entities: List[Any]) -> List[Any]:
-        payload = []
-        for ent in entities:
-            payload.append({
-                "id": meta.get("technical_id"),
-                "transition": meta.get("update_transition", UPDATE_TRANSITION),
-                "payload": json.dumps(ent, default=custom_serializer),
-            })
-        data = json.dumps(payload)
-        path = "entity/JSON"
-        await send_cyoda_request(cyoda_auth_service=self._cyoda_auth_service, method="put", path=path, data=data)
-        return entities
-
     async def delete_by_id(self, meta, technical_id: Any) -> None:
+        """Delete entity by ID."""
         path = f"entity/{technical_id}"
-        await send_cyoda_request(cyoda_auth_service=self._cyoda_auth_service, method="delete", path=path)
+        await send_cyoda_request(
+            cyoda_auth_service=self._cyoda_auth_service,
+            method="delete",
+            path=path
+        )
 
-    async def get_transitions(self, meta, technical_id: Any) -> Any:
-        entity_class = (
-            EDGE_MESSAGE_CLASS
-            if meta.get("type") == CYODA_ENTITY_TYPE_EDGE_MESSAGE
-            else TREE_NODE_ENTITY_CLASS
+    async def count(self, meta) -> int:
+        """Count entities of a specific model."""
+        items = await self.find_all(meta)
+        return len(items)
+
+    async def exists_by_key(self, meta, key: Any) -> bool:
+        """Check if entity exists by key."""
+        return (await self.find_by_key(meta, key)) is not None
+
+    async def find_by_key(self, meta, key: Any) -> Optional[Any]:
+        """Find entity by key."""
+        criteria = meta.get("condition") or {"key": key}
+        entities = await self.find_all_by_criteria(meta, criteria)
+        return entities[0] if entities else None
+
+    async def delete_all(self, meta) -> None:
+        """Delete all entities of a specific model."""
+        path = f"entity/{meta['entity_model']}/{meta['entity_version']}"
+        await send_cyoda_request(
+            cyoda_auth_service=self._cyoda_auth_service,
+            method="delete",
+            path=path
         )
-        path = (
-            f"platform-api/entity/fetch/transitions?entityClass={entity_class}"
-            f"&entityId={technical_id}"
-        )
-        resp = await send_cyoda_request(cyoda_auth_service=self._cyoda_auth_service, method="get", path=path)
-        return resp.get("json")
+
+    async def get_meta(self, token, entity_model, entity_version):
+        """Get metadata for repository operations."""
+        return {
+            "token": token,
+            "entity_model": entity_model,
+            "entity_version": entity_version
+        }
 
     async def _launch_transition(self, meta, technical_id):
+        """Launch entity transition."""
         entity_class = (
             EDGE_MESSAGE_CLASS
             if meta.get("type") == CYODA_ENTITY_TYPE_EDGE_MESSAGE
@@ -260,7 +270,11 @@ class CyodaRepository(CrudRepository):
             f"&entityClass={entity_class}&transitionName="
             f"{meta.get('update_transition', UPDATE_TRANSITION)}"
         )
-        resp = await send_cyoda_request(cyoda_auth_service=self._cyoda_auth_service, method="put", path=path)
+        resp = await send_cyoda_request(
+            cyoda_auth_service=self._cyoda_auth_service,
+            method="put",
+            path=path
+        )
         if resp.get('status') != 200:
             raise Exception(resp.get('json'))
         return resp.get("json")

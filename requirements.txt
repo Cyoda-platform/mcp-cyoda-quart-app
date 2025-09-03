@@ -16,3 +16,4 @@ httpx==0.28.1
 quart-schema[pydantic]==0.21.0
 PyJWT==2.10.1
 Authlib==1.6.0
+dependency_injector==4.48.1
