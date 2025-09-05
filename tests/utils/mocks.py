@@ -14,9 +14,11 @@ from dataclasses import dataclass
 from proto.cloudevents_pb2 import CloudEvent
 from entity.cyoda_entity import CyodaEntity
 from common.interfaces.services import (
-    IAuthService, IRepository, IEntityService, IProcessorManager,
+    IAuthService, IProcessorManager,
     IGrpcClient, IEventRouter, IResponseBuilder, IMiddleware
 )
+from common.repository.crud_repository import CrudRepository
+from common.service.entity_service import EntityService
 
 
 @dataclass
@@ -51,7 +53,7 @@ class MockAuthService(IAuthService):
         self.invalidate_calls += 1
 
 
-class MockRepository(IRepository):
+class MockRepository(CrudRepository):
     """Mock repository for testing."""
     
     def __init__(self):
@@ -85,7 +87,7 @@ class MockRepository(IRepository):
         return False
 
 
-class MockEntityService(IEntityService):
+class MockEntityService(EntityService):
     """Mock entity service for testing."""
     
     def __init__(self, repository: Optional[MockRepository] = None):

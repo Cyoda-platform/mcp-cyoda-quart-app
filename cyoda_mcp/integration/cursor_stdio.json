@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "cyoda-mcp": {
+      "command": "python",
+      "args": ["/home/kseniia/IdeaProjects/quart-client-template/cyoda_mcp/server.py"]
+    }
+  }
+}

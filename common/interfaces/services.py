@@ -6,8 +6,11 @@ enabling proper dependency inversion and testability.
 """
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, Protocol
+from typing import Any, Dict, List, Optional, Protocol, TypeVar, Generic
 from entity.cyoda_entity import CyodaEntity
+
+# Generic type for repository entities
+T = TypeVar('T')
 
 
 class IAuthService(ABC):
@@ -26,88 +29,6 @@ class IAuthService(ABC):
     @abstractmethod
     def invalidate_token(self) -> None:
         """Invalidate current token."""
-        pass
-
-
-class IRepository(ABC):
-    """Interface for data repositories."""
-    
-    @abstractmethod
-    async def save(self, entity: CyodaEntity) -> CyodaEntity:
-        """Save an entity."""
-        pass
-    
-    @abstractmethod
-    async def find_by_id(self, entity_id: str) -> Optional[CyodaEntity]:
-        """Find entity by ID."""
-        pass
-    
-    @abstractmethod
-    async def find_all(self) -> List[CyodaEntity]:
-        """Find all entities."""
-        pass
-    
-    @abstractmethod
-    async def delete(self, entity_id: str) -> bool:
-        """Delete entity by ID."""
-        pass
-
-
-class IEntityService(ABC):
-    """Interface for entity services."""
-    
-    @abstractmethod
-    async def create_entity(self, entity_data: Dict[str, Any]) -> CyodaEntity:
-        """Create a new entity."""
-        pass
-    
-    @abstractmethod
-    async def get_entity(self, entity_id: str) -> Optional[CyodaEntity]:
-        """Get entity by ID."""
-        pass
-    
-    @abstractmethod
-    async def update_entity(self, entity_id: str, updates: Dict[str, Any]) -> CyodaEntity:
-        """Update an entity."""
-        pass
-    
-    @abstractmethod
-    async def delete_entity(self, entity_id: str) -> bool:
-        """Delete an entity."""
-        pass
-    
-    @abstractmethod
-    async def list_entities(self) -> List[CyodaEntity]:
-        """List all entities."""
-        pass
-
-
-class IProcessorManager(ABC):
-    """Interface for processor management."""
-    
-    @abstractmethod
-    async def process_entity(self, processor_name: str, entity: CyodaEntity, **kwargs) -> CyodaEntity:
-        """Process an entity using the specified processor."""
-        pass
-    
-    @abstractmethod
-    async def check_criteria(self, criteria_name: str, entity: CyodaEntity, **kwargs) -> bool:
-        """Check if entity meets the specified criteria."""
-        pass
-    
-    @abstractmethod
-    def list_processors(self) -> List[str]:
-        """List available processors."""
-        pass
-    
-    @abstractmethod
-    def list_criteria(self) -> List[str]:
-        """List available criteria."""
-        pass
-    
-    @abstractmethod
-    def get_processor_info(self, processor_name: str) -> Optional[Dict[str, Any]]:
-        """Get information about a processor."""
         pass
 
 
@@ -245,33 +166,74 @@ class IEventPublisher(ABC):
 
 class IServiceRegistry(ABC):
     """Interface for service registry."""
-    
+
     @abstractmethod
     def register_service(self, name: str, service: Any) -> None:
         """Register a service."""
         pass
-    
+
     @abstractmethod
     def get_service(self, name: str) -> Any:
         """Get a service by name."""
         pass
-    
+
     @abstractmethod
     def has_service(self, name: str) -> bool:
         """Check if a service is registered."""
         pass
-    
+
     @abstractmethod
     def list_services(self) -> List[str]:
         """List all registered services."""
         pass
 
 
+class IProcessorManager(ABC):
+    """Interface for processor manager."""
+
+    @abstractmethod
+    def register_processor(self, processor: Any) -> None:
+        """Register a processor instance."""
+        pass
+
+    @abstractmethod
+    def register_criteria(self, criteria: Any) -> None:
+        """Register a criteria checker instance."""
+        pass
+
+    @abstractmethod
+    async def process_entity(self, processor_name: str, entity: CyodaEntity, **kwargs) -> CyodaEntity:
+        """Process an entity using the specified processor."""
+        pass
+
+    @abstractmethod
+    async def check_criteria(self, criteria_name: str, entity: CyodaEntity, **kwargs) -> bool:
+        """Check if entity meets the specified criteria."""
+        pass
+
+    @abstractmethod
+    def list_processors(self) -> List[str]:
+        """List available processors."""
+        pass
+
+    @abstractmethod
+    def list_criteria(self) -> List[str]:
+        """List available criteria."""
+        pass
+
+    @abstractmethod
+    def get_processor_info(self, processor_name: str) -> Optional[Dict[str, Any]]:
+        """Get information about a processor."""
+        pass
+
+    @abstractmethod
+    def get_criteria_info(self, criteria_name: str) -> Optional[Dict[str, Any]]:
+        """Get information about a criteria checker."""
+        pass
+
+
 # Type aliases for commonly used interfaces
 AuthService = IAuthService
-Repository = IRepository
-EntityService = IEntityService
-ProcessorManager = IProcessorManager
 GrpcClient = IGrpcClient
 EventRouter = IEventRouter
 ResponseBuilder = IResponseBuilder
@@ -281,3 +243,4 @@ MetricsCollector = IMetricsCollector
 HealthChecker = IHealthChecker
 EventPublisher = IEventPublisher
 ServiceRegistry = IServiceRegistry
+ProcessorManager = IProcessorManager

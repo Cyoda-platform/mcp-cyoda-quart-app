@@ -1,0 +1,171 @@
+# Augment Code Development Guidelines
+
+## Environment & Security
+- Always use the project's .venv virtual environment
+- Never scan or modify: backup/, .venv/, .idea/, .env files
+- Use appropriate package managers for dependency management (never edit package files directly)
+
+## Python Code Standards
+
+### Core Principles
+Follow The Zen of Python, PEP 8, and Guido van Rossum's principles:
+
+**Simple and explicit** — avoid cleverness unless it aids clarity
+**Readable** — easy to understand even for other developers  
+**Structured** — use meaningful names, clear control flow, avoid nested logic
+**Conventional** — follow standard Python idioms (e.g., `if x in dict:` over `.get()` for known keys)
+**PEP 8 compliant** — consistent formatting, spacing, and docstring conventions
+
+### Code Style Requirements
+
+#### Function Design
+- Single responsibility principle - one function, one purpose
+- Clear function signatures with type hints
+- Early returns to reduce nesting
+- Helper methods for complex logic
+- Maximum 25-30 lines per function (excluding docstrings)
+
+#### Variable and Naming
+- Descriptive names: `user_repository` not `repo`
+- snake_case for functions and variables
+- UPPER_CASE for constants
+- Avoid abbreviations unless universally understood
+
+#### Control Flow
+- Explicit is better than implicit
+- Use `if key in dict:` when key existence is expected
+- Use `dict.get(key, default)` only when default behavior is desired
+- Avoid nested ternary expressions
+- Prefer guard clauses over deep nesting
+
+#### Error Handling
+- Explicit exception handling with meaningful messages
+- Use specific exception types, not bare `except:`
+- Return meaningful error messages for user-facing functions
+- Log errors appropriately with context
+
+### Documentation Standards
+
+Avoid Docstrings (PEP 257 Style), do not add extensive comments or docstrings. The code should speak for itself.
+
+#### Comments
+- Only when they add necessary context
+- Explain WHY, not WHAT (code should be self-documenting)
+- Avoid obvious comments like `# increment counter`
+
+### Architecture Patterns
+
+#### Modular Design
+- Separate concerns into focused modules/classes
+- Use dependency injection for testability
+- Implement design patterns appropriately (Strategy, Factory, etc.)
+- Avoid monolithic classes/functions
+
+#### Repository Pattern
+- Use repository resolvers for determining repository names
+- Follow established patterns for programming language detection
+- Maintain backward compatibility when refactoring
+
+### Testing Standards
+
+#### Test Coverage
+- Comprehensive test coverage for all new functions
+- Test both success and failure scenarios
+- Include edge cases and boundary conditions
+- Use descriptive test method names
+
+#### Test Structure
+```python
+class TestClassName:
+    @pytest.fixture
+    def setup_method(self):
+        """Setup for each test method."""
+        
+    @pytest.mark.asyncio
+    async def test_specific_behavior(self):
+        """Test description explaining what is being tested."""
+        # Arrange
+        # Act  
+        # Assert
+```
+
+#### Mocking
+- Mock external dependencies appropriately
+- Use `AsyncMock` for async functions
+- Verify mock calls with meaningful assertions
+- Avoid over-mocking (test behavior, not implementation)
+
+### Security Guidelines
+
+#### Input Validation
+- Validate all user inputs
+- Sanitize file paths (no `..` or absolute paths)
+- Check for required parameters explicitly
+- Use type hints for parameter validation
+
+#### File Operations
+- Always use relative paths within project boundaries
+- Validate file paths before operations
+- Use appropriate file permissions
+- Handle file system errors gracefully
+
+### Performance Considerations
+
+#### Async/Await
+- Use async/await for I/O operations
+- Don't block the event loop
+- Use `asyncio.to_thread()` for CPU-bound operations
+- Proper exception handling in async functions
+
+#### Memory Management
+- Avoid loading large files entirely into memory
+- Use generators for large data processing
+- Clean up resources properly (use context managers)
+
+### Code Organization
+
+#### Import Organization
+- Standard library imports first
+- Third-party imports second
+- Local imports last
+- Use absolute imports when possible
+- Group related imports together
+
+### Refactoring Guidelines
+
+#### When to Refactor
+- Functions exceed 30 lines
+- Cyclomatic complexity is high
+- Code duplication exists
+- Non-Pythonic patterns are present
+- Tests are difficult to write
+
+#### How to Refactor
+- Extract helper methods for complex logic
+- Use design patterns to organize code
+- Maintain backward compatibility
+- Add comprehensive tests
+- Update documentation
+
+### Code Review Standards
+
+#### Before Submitting
+- All tests pass (100% pass rate expected)
+- Code follows Pythonic principles
+- Documentation is complete and accurate
+- No security vulnerabilities
+- Performance is acceptable
+
+#### Review Checklist
+- [ ] Follows Zen of Python principles
+- [ ] PEP 8 compliant
+- [ ] Comprehensive tests included
+- [ ] Security considerations addressed
+- [ ] Documentation complete
+- [ ] Backward compatibility maintained
+- [ ] Performance implications considered
+
+## Final Principle
+**If there are multiple ways to do something, choose the one that's the most Pythonic.**
+
+The goal is to write code that is not just functional, but beautiful, maintainable, and exemplifies Python's core values of simplicity, readability, and elegance.

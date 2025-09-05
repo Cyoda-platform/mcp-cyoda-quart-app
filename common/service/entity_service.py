@@ -143,7 +143,7 @@ class EntityService(ABC):
     # ========================================
 
     @abstractmethod
-    async def get_by_id(self, entity_id: str, entity_class: str, entity_version: str = "1.0") -> Optional[EntityResponse]:
+    async def get_by_id(self, entity_id: str, entity_class: str, entity_version: str = "1") -> Optional[EntityResponse]:
         """
         Get entity by technical UUID (FASTEST - use when you have the UUID).
         
@@ -163,7 +163,7 @@ class EntityService(ABC):
         entity_class: str, 
         business_id: str, 
         business_id_field: str,
-        entity_version: str = "1.0"
+        entity_version: str = "1"
     ) -> Optional[EntityResponse]:
         """
         Find entity by business identifier (MEDIUM SPEED - use for user-facing IDs).
@@ -181,7 +181,7 @@ class EntityService(ABC):
         pass
 
     @abstractmethod
-    async def find_all(self, entity_class: str, entity_version: str = "1.0") -> List[EntityResponse]:
+    async def find_all(self, entity_class: str, entity_version: str = "1") -> List[EntityResponse]:
         """
         Get all entities of a type (SLOW - use sparingly).
         
@@ -199,7 +199,7 @@ class EntityService(ABC):
         self, 
         entity_class: str, 
         condition: SearchConditionRequest,
-        entity_version: str = "1.0"
+        entity_version: str = "1"
     ) -> List[EntityResponse]:
         """
         Search entities with complex conditions (SLOWEST - most flexible).
@@ -220,7 +220,7 @@ class EntityService(ABC):
     # ========================================
 
     @abstractmethod
-    async def save(self, entity: Dict[str, Any], entity_class: str, entity_version: str = "1.0") -> EntityResponse:
+    async def save(self, entity: Dict[str, Any], entity_class: str, entity_version: str = "1") -> EntityResponse:
         """
         Save a new entity (CREATE operation).
 
@@ -241,7 +241,7 @@ class EntityService(ABC):
         entity: Dict[str, Any],
         entity_class: str,
         transition: Optional[str] = None,
-        entity_version: str = "1.0"
+        entity_version: str = "1"
     ) -> EntityResponse:
         """
         Update existing entity by technical UUID (FASTEST - use when you have UUID).
@@ -265,7 +265,7 @@ class EntityService(ABC):
         business_id_field: str,
         entity_class: str,
         transition: Optional[str] = None,
-        entity_version: str = "1.0"
+        entity_version: str = "1"
     ) -> EntityResponse:
         """
         Update existing entity by business identifier (MEDIUM SPEED).
@@ -283,7 +283,7 @@ class EntityService(ABC):
         pass
 
     @abstractmethod
-    async def delete_by_id(self, entity_id: str, entity_class: str, entity_version: str = "1.0") -> str:
+    async def delete_by_id(self, entity_id: str, entity_class: str, entity_version: str = "1") -> str:
         """
         Delete entity by technical UUID (FASTEST).
 
@@ -303,7 +303,7 @@ class EntityService(ABC):
         entity_class: str,
         business_id: str,
         business_id_field: str,
-        entity_version: str = "1.0"
+        entity_version: str = "1"
     ) -> bool:
         """
         Delete entity by business identifier.
@@ -328,7 +328,7 @@ class EntityService(ABC):
         self,
         entities: List[Dict[str, Any]],
         entity_class: str,
-        entity_version: str = "1.0"
+        entity_version: str = "1"
     ) -> List[EntityResponse]:
         """
         Save multiple entities in batch.
@@ -344,7 +344,7 @@ class EntityService(ABC):
         pass
 
     @abstractmethod
-    async def delete_all(self, entity_class: str, entity_version: str = "1.0") -> int:
+    async def delete_all(self, entity_class: str, entity_version: str = "1") -> int:
         """
         Delete all entities of a type (DANGEROUS - use with caution).
 
@@ -362,7 +362,7 @@ class EntityService(ABC):
     # ========================================
 
     @abstractmethod
-    async def get_transitions(self, entity_id: str, entity_class: str, entity_version: str = "1.0") -> List[str]:
+    async def get_transitions(self, entity_id: str, entity_class: str, entity_version: str = "1") -> List[str]:
         """
         Get available transitions for an entity.
 
@@ -382,7 +382,7 @@ class EntityService(ABC):
         entity_id: str,
         transition: str,
         entity_class: str,
-        entity_version: str = "1.0"
+        entity_version: str = "1"
     ) -> EntityResponse:
         """
         Execute a workflow transition on an entity.
@@ -402,7 +402,7 @@ class EntityService(ABC):
     # UTILITY METHODS
     # ========================================
 
-    async def exists_by_id(self, entity_id: str, entity_class: str, entity_version: str = "1.0") -> bool:
+    async def exists_by_id(self, entity_id: str, entity_class: str, entity_version: str = "1") -> bool:
         """
         Check if entity exists by technical UUID.
 
@@ -425,7 +425,7 @@ class EntityService(ABC):
         entity_class: str,
         business_id: str,
         business_id_field: str,
-        entity_version: str = "1.0"
+        entity_version: str = "1"
     ) -> bool:
         """
         Check if entity exists by business identifier.
@@ -445,7 +445,7 @@ class EntityService(ABC):
         except Exception:
             return False
 
-    async def count(self, entity_class: str, entity_version: str = "1.0") -> int:
+    async def count(self, entity_class: str, entity_version: str = "1") -> int:
         """
         Count entities of a specific type.
 

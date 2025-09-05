@@ -65,7 +65,7 @@ class EntityServiceImpl(EntityService):
         Get singleton instance of EntityServiceImpl.
 
         Args:
-            repository: CRUD repository for data operations
+            repository: CRUD repository for data operations (required for first initialization)
             model_registry: Registry of entity model classes
 
         Returns:
@@ -76,8 +76,14 @@ class EntityServiceImpl(EntityService):
                 if cls._instance is None:
                     if repository is None:
                         raise ValueError("Repository is required for first initialization")
-                    cls._instance = cls(repository, model_registry)
+                    # Create instance directly to avoid infinite recursion
+                    cls._instance = super(EntityServiceImpl, cls).__new__(cls)
+                    cls._instance.__init__(repository, model_registry)
                     logger.info("EntityServiceImpl singleton created")
+        elif repository is not None:
+            # If instance exists but repository is provided, log a warning
+            logger.warning("EntityServiceImpl instance already exists. Ignoring provided repository.")
+
         return cls._instance
 
     def __new__(cls, repository: CrudRepository = None, model_registry: Dict[str, Any] = None):
@@ -87,9 +93,8 @@ class EntityServiceImpl(EntityService):
         elif cls._instance is not None:
             return cls._instance
         else:
-            # Allow creation without repository for testing
-            instance = super().__new__(cls)
-            return instance
+            # If no repository and no instance, raise error
+            raise ValueError("Repository is required for EntityServiceImpl initialization. Use get_instance() or provide repository.")
 
     # ========================================
     # HELPER METHODS

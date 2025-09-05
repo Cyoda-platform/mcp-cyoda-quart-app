@@ -84,9 +84,8 @@ class FetchAndProcessDataProcessor(CyodaProcessor):
     
     def _get_services(self):
         """Get entity service and auth service."""
-        from service.registry import get_registry
-        registry = get_registry()
-        return registry.entity_service, registry.auth_service
+        from service.services import get_entity_service, get_auth_service
+        return get_entity_service(), get_auth_service()
     
     def _validate_laureate(self, raw: dict) -> Optional[dict]:
         """Validate and extract laureate data from raw API response."""

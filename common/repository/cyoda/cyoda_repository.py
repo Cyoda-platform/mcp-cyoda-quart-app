@@ -109,42 +109,165 @@ class CyodaRepository(CrudRepository):
         return resp.get("json", [])
 
     async def find_all_by_criteria(self, meta, criteria: Any) -> List[Any]:
-        """Find entities matching specific criteria using snapshot search."""
-        # 1. Create snapshot
-        snap_path = f"search/snapshot/{meta['entity_model']}/{meta['entity_version']}"
-        resp = await send_cyoda_request(
-            cyoda_auth_service=self._cyoda_auth_service,
+        """Find entities matching specific criteria using direct search endpoint."""
+        # Use direct search endpoint: POST /search/{entityName}/{modelVersion}
+        search_path = f"search/{meta['entity_model']}/{meta['entity_version']}"
+
+        # Convert criteria to Cyoda-native format if needed
+        search_criteria = self._ensure_cyoda_format(criteria)
+
+        resp = await self._send_search_request(
             method="post",
-            path=snap_path,
-            data=json.dumps(criteria)
+            path=search_path,
+            data=json.dumps(search_criteria)
         )
-        snapshot_id = resp.get("json")
 
-        # 2. Wait for completion
-        await self._wait_for_search_completion(snapshot_id)
-
-        # 3. Fetch results
-        result_resp = await send_cyoda_request(
-            cyoda_auth_service=self._cyoda_auth_service,
-            method="get",
-            path=f"search/snapshot/{snapshot_id}"
-        )
-        if result_resp.get("status") != 200:
-            return []
-        resp_json = json.loads(result_resp.get("json", "{}"))
-
-        if resp_json.get("page", {}).get("totalElements", 0) == 0:
+        if resp.get("status") != 200:
             return []
 
-        nodes = resp_json.get("_embedded", {}).get("objectNodes", [])
-        entities = []
-        for node in nodes:
-            tree = node.get("data", {})
-            if not tree.get("technical_id"):
-                tree["technical_id"] = node.get("meta", {}).get("id")
-            entities.append(tree)
+        # Handle the response - it should be a list of entities
+        entities = resp.get("json", [])
+        if not isinstance(entities, list):
+            return []
+
+        # Ensure each entity has technical_id
+        for entity in entities:
+            if isinstance(entity, dict) and not entity.get("technical_id"):
+                # Try to get technical_id from meta or other fields
+                if "meta" in entity and "id" in entity["meta"]:
+                    entity["technical_id"] = entity["meta"]["id"]
+                elif "id" in entity:
+                    entity["technical_id"] = entity["id"]
 
         return entities
+
+    async def _send_search_request(
+        self,
+        method: str,
+        path: str,
+        data: str = None,
+        base_url: str = None
+    ) -> dict:
+        """
+        Send a search request to the Cyoda API with custom headers and automatic retry on 401.
+        """
+        from common.utils.utils import send_request
+        from common.config.config import CYODA_API_URL
+
+        if base_url is None:
+            base_url = CYODA_API_URL
+
+        token = await self._cyoda_auth_service.get_access_token()
+
+        for attempt in range(2):
+            try:
+                # Prepare headers for search endpoint
+                headers = {
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {token}" if not token.startswith('Bearer') else token,
+                }
+
+                url = f"{base_url}/{path}"
+
+                # Send request
+                response = await send_request(headers, url, method, data=data)
+
+            except Exception as exc:
+                msg = str(exc)
+                if attempt == 0 and ("401" in msg or "Unauthorized" in msg):
+                    logger.warning(f"Request to {path} failed with 401; invalidating tokens and retrying")
+                    self._cyoda_auth_service.invalidate_tokens()
+                    token = await self._cyoda_auth_service.get_access_token()
+                    continue
+                raise
+
+            status = response.get("status") if isinstance(response, dict) else None
+            if attempt == 0 and status == 401:
+                logger.warning(f"Response from {path} returned status 401; invalidating tokens and retrying")
+                self._cyoda_auth_service.invalidate_tokens()
+                token = await self._cyoda_auth_service.get_access_token()
+                continue
+            return response
+
+        raise RuntimeError(f"Failed request {method.upper()} {path} after retry")
+
+    def _ensure_cyoda_format(self, criteria: Any) -> dict:
+        """Ensure criteria is in Cyoda-native format."""
+        if not isinstance(criteria, dict):
+            return criteria
+
+        # If it's already in group format, return as-is
+        if criteria.get("type") == "group":
+            return criteria
+
+        # If it's a single condition (simple or lifecycle), wrap it in a group
+        if criteria.get("type") in ["simple", "lifecycle"]:
+            return {
+                "type": "group",
+                "operator": "AND",
+                "conditions": [criteria]
+            }
+
+        # If it's a simple field-value dictionary, convert to Cyoda group format
+        conditions = []
+        for field, value in criteria.items():
+            if field in ["state", "current_state"]:
+                conditions.append({
+                    "type": "lifecycle",
+                    "field": field,
+                    "operatorType": "EQUALS",
+                    "value": value
+                })
+            else:
+                # Handle complex field-operator-value format
+                if isinstance(value, dict) and len(value) == 1:
+                    # Format: {"field": {"operator": "value"}}
+                    operator, actual_value = next(iter(value.items()))
+
+                    # Map internal operators back to Cyoda operators
+                    operator_mapping = {
+                        "eq": "EQUALS",
+                        "ieq": "IEQUALS",
+                        "ne": "NOT_EQUALS",
+                        "contains": "CONTAINS",
+                        "icontains": "ICONTAINS",
+                        "gt": "GREATER_THAN",
+                        "lt": "LESS_THAN",
+                        "gte": "GREATER_THAN_OR_EQUAL",
+                        "lte": "LESS_THAN_OR_EQUAL",
+                        "startswith": "STARTS_WITH",
+                        "endswith": "ENDS_WITH",
+                        "in": "IN",
+                        "not_in": "NOT_IN"
+                    }
+
+                    cyoda_operator = operator_mapping.get(operator, "EQUALS")
+
+                    # Convert field to jsonPath format
+                    json_path = f"$.{field}" if not field.startswith("$.") else field
+                    conditions.append({
+                        "type": "simple",
+                        "jsonPath": json_path,
+                        "operatorType": cyoda_operator,
+                        "value": actual_value
+                    })
+                else:
+                    # Simple field-value format: {"field": "value"}
+                    json_path = f"$.{field}" if not field.startswith("$.") else field
+                    conditions.append({
+                        "type": "simple",
+                        "jsonPath": json_path,
+                        "operatorType": "EQUALS",
+                        "value": value
+                    })
+
+        return {
+            "type": "group",
+            "operator": "AND",
+            "conditions": conditions
+        }
+
+
 
     async def save(self, meta, entity: Any) -> Any:
         """Save a single entity."""

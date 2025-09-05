@@ -14,6 +14,7 @@ from enum import Enum
 from pathlib import Path
 import yaml
 
+from common.config.config import CYODA_TOKEN_URL, GRPC_ADDRESS
 from common.interfaces.services import IConfigurationProvider
 
 logger = logging.getLogger(__name__)
@@ -173,10 +174,10 @@ class ConfigurationManager(IConfigurationProvider):
         
         auth_section.add_value(ConfigValue(
             key="token_url",
-            default="https://auth.cyoda.com/oauth/token",
+            default=CYODA_TOKEN_URL,
             required=False,
             description="OAuth token endpoint URL",
-            env_var="CYODA_TOKEN_URL",
+            env_var=CYODA_TOKEN_URL,
             validator=ConfigurationValidator.validate_url
         ))
         
@@ -193,7 +194,7 @@ class ConfigurationManager(IConfigurationProvider):
             default="grpc.cyoda.com:443",
             required=False,
             description="gRPC server address",
-            env_var="GRPC_ADDRESS"
+            env_var=GRPC_ADDRESS
         ))
         
         grpc_section.add_value(ConfigValue(
@@ -260,7 +261,7 @@ class ConfigurationManager(IConfigurationProvider):
             key="version",
             default="1.0.0",
             description="Application version",
-            env_var="APP_VERSION"
+            env_var="ENTITY_VERSION"
         ))
         
         app_section.add_value(ConfigValue(
@@ -430,6 +431,12 @@ def get_config_manager() -> ConfigurationManager:
         _config_manager = ConfigurationManager(env)
         _config_manager.initialize()
     return _config_manager
+
+
+def reset_config_manager() -> None:
+    """Reset the global configuration manager instance (for testing/reloading)."""
+    global _config_manager
+    _config_manager = None
 
 
 def get_config(key: str, default: Any = None) -> Any:

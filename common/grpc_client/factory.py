@@ -35,13 +35,12 @@ class GrpcStreamingFacadeFactory:
         """Create a fully configured GrpcStreamingFacade with all components."""
 
         # Import here to avoid circular imports
-        from service.registry import get_registry
+        from service.services import get_processor_manager
 
         # Create services object for handlers with processor manager
-        registry = get_registry()
         services = types.SimpleNamespace(
             processor_loop=processor_loop,
-            processor_manager=registry.processor_manager
+            processor_manager=get_processor_manager()
         )
 
         # Create and configure EventRouter with handlers
