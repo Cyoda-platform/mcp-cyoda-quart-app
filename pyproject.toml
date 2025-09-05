@@ -1,0 +1,82 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mcp-cyoda-client"
+version = "0.1.2"
+description = "Model Context Protocol server for Cyoda platform - enables AI assistants to interact with Cyoda's entity management, search, workflow, and deployment capabilities"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+
+# Runtime dependencies (moved from requirements.txt)
+dependencies = [
+    "fastmcp>=2.12.0",
+    "Quart>=0.19.9",
+    "Hypercorn>=0.17.3",
+    "quart-cors>=0.7.0",
+    "quart-openapi>=1.7.2",
+    "jsonschema>=4.23.0",
+    "grpcio>=1.64.1",
+    "grpcio-tools>=1.64.1",
+    "protobuf>=5.27.3",
+    "python-dotenv>=1.1.0",
+    "requests>=2.32.3",
+    "aiofiles>=24.1.0",
+    "httpx>=0.28.1",
+    "quart-schema[pydantic]>=0.21.0",
+    "PyJWT>=2.10.1",
+    "Authlib>=1.6.0",
+    "dependency_injector>=4.48.1",
+]
+
+authors = [
+    { name = "Cyoda Team", email = "support@cyoda.io" }
+]
+
+keywords = ["mcp", "cyoda", "model-context-protocol", "ai", "llm"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
+]
+
+# This creates the console command `mcp-cyoda-client`
+[project.scripts]
+mcp-cyoda-client = "cyoda_mcp.__main__:main"
+
+[project.urls]
+Homepage = "https://ai.cyoda.net"
+Documentation = "https://docs.cyoda.net"
+Repository = "https://github.com/Cyoda-platform/quart-client-template"
+Issues = "https://github.com/Cyoda-platform/quart-client-template/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["cyoda_mcp*", "common*", "entity*", "service*", "workflow*", "proto*", "routes*"]
+
+[tool.setuptools.package-data]
+# Include non-py files shipped with the package
+cyoda_mcp = ["*.json", "*.yaml", "*.yml"]
+proto = ["*.proto"]
+
+[tool.setuptools]
+package-dir = {"" = "."}
+
+# Optional development dependencies
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21.0",
+    "black>=23.0",
+    "isort>=5.12",
+    "mypy>=1.0",
+    "build>=0.10",
+    "twine>=4.0",
+]

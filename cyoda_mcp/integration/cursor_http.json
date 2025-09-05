@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "cyoda-client-tools": {
+      "url": "http://localhost:8002/mcp",
+      "disabled": false,
+      "description": "Cyoda Client Tools - FastMCP server for Cyoda entity operations and environment management"
+    }
+  }
+}

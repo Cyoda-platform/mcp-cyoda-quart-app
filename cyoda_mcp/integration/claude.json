@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "cyoda-client-tools": {
+      "command": "python",
+      "args": ["cyoda_mcp/server.py"],
+      "disabled": false,
+      "description": "Cyoda Client Tools - FastMCP server for Cyoda entity operations and environment management"
+    }
+  }
+}
