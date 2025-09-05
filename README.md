@@ -198,7 +198,7 @@ pip install build twine
 python -m build
 
 # Install locally for testing
-pipx install dist/mcp_cyoda_client-0.1.0-py3-none-any.whl
+pipx install dist/mcp_cyoda_client-0.1.2-py3-none-any.whl
 
 # Test the installed package
 mcp-cyoda-client --version

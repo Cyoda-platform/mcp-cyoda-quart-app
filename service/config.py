@@ -31,7 +31,7 @@ def get_service_config() -> Dict[str, Any]:
             'scope': 'read write',
         },
         'repository': {
-            'use_in_memory': os.getenv('CHAT_REPOSITORY', 'in_memory').lower() != 'cyoda',
+            'use_in_memory': os.getenv('CHAT_REPOSITORY', 'cyoda').lower() != 'cyoda',
         },
         'processor': {
             'modules': ['workflow.processors', 'workflow.criteria'],
@@ -55,7 +55,7 @@ def get_repository_type() -> str:
     Returns:
         'in_memory' or 'cyoda'
     """
-    return 'in_memory' if os.getenv('CHAT_REPOSITORY', 'in_memory').lower() != 'cyoda' else 'cyoda'
+    return 'in_memory' if os.getenv('CHAT_REPOSITORY', 'cyoda').lower() != 'cyoda' else 'cyoda'
 
 
 def is_in_memory_repository() -> bool:

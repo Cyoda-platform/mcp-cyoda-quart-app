@@ -131,7 +131,7 @@ async def system_info():
             },
             "configuration": {
                 "entity_version": os.getenv("ENTITY_VERSION", "1.0"),
-                "chat_repository": os.getenv("CHAT_REPOSITORY", "in_memory"),
+                "chat_repository": os.getenv("CHAT_REPOSITORY", "cyoda"),
                 "cyoda_client_configured": bool(os.getenv("CYODA_CLIENT_ID")),
                 "debug_mode": os.getenv("DEBUG", "false").lower() == "true"
             },
@@ -189,7 +189,7 @@ async def get_configuration():
             },
             "cyoda": {
                 "entity_version": os.getenv("ENTITY_VERSION", "1.0"),
-                "chat_repository": os.getenv("CHAT_REPOSITORY", "in_memory"),
+                "chat_repository": os.getenv("CHAT_REPOSITORY", "cyoda"),
                 "client_id_configured": bool(os.getenv("CYODA_CLIENT_ID")),
                 "client_secret_configured": bool(os.getenv("CYODA_CLIENT_SECRET")),
                 "token_url": CYODA_TOKEN_URL

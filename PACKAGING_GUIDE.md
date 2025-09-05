@@ -78,7 +78,7 @@ python -m build
 
 ```bash
 # Install from local wheel
-pipx install --force dist/mcp_cyoda_client-0.1.0-py3-none-any.whl
+pipx install --force dist/mcp_cyoda_client-0.1.2-py3-none-any.whl
 
 # Test the command
 mcp-cyoda-client --version
