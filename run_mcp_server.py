@@ -104,7 +104,7 @@ def main():
         logger.info("Running in stdio mode")
 
     # Check environment variables
-    required_vars = ['CYODA_CLIENT_ID', 'CYODA_CLIENT_SECRET', 'CYODA_TOKEN_URL']
+    required_vars = ['CYODA_CLIENT_ID', 'CYODA_CLIENT_SECRET', 'CYODA_HOST']
     missing_vars = [var for var in required_vars if not os.getenv(var)]
 
     if missing_vars:

@@ -107,6 +107,26 @@ def run_mcp(transport: str = "stdio", host: str = "127.0.0.1", port: int = 8002)
         raise ValueError(f"Unsupported transport: {transport}")
 
 
+def start(transport: str = "stdio", host: str = "127.0.0.1", port: int = 8002):
+    """
+    Boot the MCP server with the specified transport.
+    Read any API keys from env vars.
+    Don't require users to edit this file.
+
+    This is the main entry point for the packaged CLI.
+
+    Args:
+        transport: Transport type ("stdio", "http", "sse")
+        host: Host to bind to (for HTTP/SSE transport)
+        port: Port to bind to (for HTTP/SSE transport)
+    """
+    # Setup the server composition first
+    asyncio.run(setup())
+
+    # Then run the server
+    run_mcp(transport=transport, host=host, port=port)
+
+
 if __name__ == "__main__":
     # Setup the server composition
     asyncio.run(setup())
