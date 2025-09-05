@@ -1,4 +1,22 @@
+"""
+In-Memory Repository Implementation
+
+This module provides an in-memory repository implementation using a global dictionary cache.
+The in-memory database is used when CHAT_REPOSITORY environment variable is not set to 'cyoda'.
+
+IMPORTANT:
+- This is a global in-memory cache that persists for the lifetime of the application
+- Data is NOT persisted between application restarts
+- This is primarily used for testing and development
+- The cache is thread-safe using singleton pattern with locks
+
+Configuration:
+- Set CHAT_REPOSITORY=cyoda to use Cyoda repository instead
+- Set CHAT_REPOSITORY=in_memory (or leave unset) to use this in-memory repository
+"""
+
 import threading
+import logging
 from typing import List
 
 from common.repository.crud_repository import CrudRepository
@@ -6,6 +24,8 @@ from common.utils.utils import *
 
 logger = logging.getLogger('django')
 
+# Global in-memory cache - this is where all data is stored when using in-memory repository
+# This dictionary persists for the lifetime of the application process
 cache = {}
 
 
@@ -15,15 +35,22 @@ class InMemoryRepository(CrudRepository):
     _lock = threading.Lock()
 
     def __new__(cls):
-        logger.info("initializing CyodaService")
+        logger.info("Initializing InMemoryRepository (singleton pattern)")
         if cls._instance is None:
             with cls._lock:
                 if cls._instance is None:
                     cls._instance = super(InMemoryRepository, cls).__new__(cls)
+                    logger.info("✓ InMemoryRepository singleton instance created")
+                    logger.info("✓ Using global in-memory cache for data storage")
+                    logger.info("⚠️  Data will NOT persist between application restarts")
         return cls._instance
 
     def __init__(self):
-        pass
+        """Initialize the in-memory repository."""
+        if not hasattr(self, '_initialized'):
+            logger.info("InMemoryRepository initialized successfully")
+            logger.info(f"Current cache size: {len(cache)} entities")
+            self._initialized = True
 
     async def get_transitions(self, meta, technical_id):
         pass
@@ -79,6 +106,7 @@ class InMemoryRepository(CrudRepository):
 
     async def update(self, meta, id, entity: Any) -> Any:
         cache[id] = entity
+        return id
 
     async def update_all(self, meta, entities: List[Any]) -> List[Any]:
         pass
