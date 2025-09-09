@@ -1,0 +1,126 @@
+{
+    "entities": [
+        {
+            "Pet": {
+                "entity_data_example": {
+                    "age": 24,
+                    "breed": "Golden Retriever",
+                    "category": {
+                        "id": 1,
+                        "name": "Dogs"
+                    },
+                    "color": "golden",
+                    "createdAt": "2023-10-01T12:00:00Z",
+                    "description": "A very friendly dog",
+                    "gender": "male",
+                    "id": 1,
+                    "name": "Fluffy",
+                    "neutered": false,
+                    "photoUrls": [
+                        "http://example.com/photo1.jpg",
+                        "http://example.com/photo2.jpg"
+                    ],
+                    "price": 299.99,
+                    "tags": [
+                        {
+                            "id": 1,
+                            "name": "friendly"
+                        },
+                        {
+                            "id": 2,
+                            "name": "vaccinated"
+                        }
+                    ],
+                    "updatedAt": "2023-10-01T12:00:00Z",
+                    "vaccinated": true,
+                    "weight": 30
+                }
+            }
+        },
+        {
+            "Order": {
+                "entity_data_example": {
+                    "complete": false,
+                    "createdAt": "2023-10-01T12:00:00Z",
+                    "id": 1,
+                    "notes": "Please deliver in the morning",
+                    "paymentMethod": "credit_card",
+                    "paymentStatus": "pending",
+                    "petId": 1,
+                    "quantity": 1,
+                    "shipDate": "2023-10-05T12:00:00Z",
+                    "shippingAddress": {
+                        "city": "Springfield",
+                        "country": "USA",
+                        "state": "IL",
+                        "street": "123 Main St",
+                        "zipCode": "62701"
+                    },
+                    "totalAmount": 299.99,
+                    "updatedAt": "2023-10-01T12:00:00Z",
+                    "userId": 1
+                }
+            }
+        },
+        {
+            "User": {
+                "entity_data_example": {
+                    "address": {
+                        "city": "Springfield",
+                        "country": "USA",
+                        "state": "IL",
+                        "street": "456 Elm St",
+                        "zipCode": "62701"
+                    },
+                    "createdAt": "2023-10-01T12:00:00Z",
+                    "dateOfBirth": "1990-01-01",
+                    "email": "john.doe@example.com",
+                    "firstName": "John",
+                    "id": 1,
+                    "lastName": "Doe",
+                    "password": "hashed_password",
+                    "phone": "123-456-7890",
+                    "preferences": {
+                        "newsletter": true,
+                        "notifications": true,
+                        "preferredCategories": [
+                            "Dogs",
+                            "Cats"
+                        ]
+                    },
+                    "updatedAt": "2023-10-01T12:00:00Z",
+                    "username": "user123"
+                }
+            }
+        },
+        {
+            "Category": {
+                "entity_data_example": {
+                    "createdAt": "2023-10-01T12:00:00Z",
+                    "description": "All kinds of dogs",
+                    "displayOrder": 1,
+                    "id": 1,
+                    "imageUrl": "http://example.com/dogs.jpg",
+                    "isActive": true,
+                    "name": "Dogs",
+                    "parentCategoryId": null,
+                    "updatedAt": "2023-10-01T12:00:00Z"
+                }
+            }
+        },
+        {
+            "Tag": {
+                "entity_data_example": {
+                    "category": "behavior",
+                    "color": "#00FF00",
+                    "createdAt": "2023-10-01T12:00:00Z",
+                    "description": "Represents friendly pets",
+                    "id": 1,
+                    "isActive": true,
+                    "name": "friendly",
+                    "updatedAt": "2023-10-01T12:00:00Z"
+                }
+            }
+        }
+    ]
+}
