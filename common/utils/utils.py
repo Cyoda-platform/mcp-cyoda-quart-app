@@ -17,7 +17,7 @@ from common.config.config import CYODA_API_URL
 logger = logging.getLogger(__name__)
 
 
-class ValidationErrorException(Exception):
+class ValidationError(Exception):
     """Custom exception for validation errors."""
 
     def __init__(self, message: str):
@@ -342,7 +342,7 @@ async def validate_result(data: str, file_path: str, schema: Optional[str]) -> s
         return normalized_json_data
     except jsonschema.exceptions.ValidationError as err:
         logger.error(f"JSON schema validation failed: {err.message}")
-        raise ValidationErrorException(
+        raise ValidationError(
             message=f"JSON schema validation failed: {err}, {err.message}"
         )
     except json.JSONDecodeError as err:
@@ -353,14 +353,12 @@ async def validate_result(data: str, file_path: str, schema: Optional[str]) -> s
         except Exception as e:
             logger.error(f"Failed to consolidate JSON errors: {e}")
             errors = [str(e)]
-        raise ValidationErrorException(
+        raise ValidationError(
             message=f"Failed to decode JSON: {err}, {err.msg}, {errors} . Please make sure the json returned is correct and aligns with json formatting rules. make sure you're using quotes for string values, including None"
         )
     except Exception as err:
         logger.error(f"Unexpected error during JSON validation: {err}")
-        raise ValidationErrorException(
-            message=f"Unexpected error during JSON validation: {err}"
-        )
+        raise ValidationError(message=f"Unexpected error during JSON validation: {err}")
 
 
 def consolidate_json_errors(json_str: str) -> List[str]:

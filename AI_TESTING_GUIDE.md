@@ -2,6 +2,64 @@
 
 This guide provides specific commands and prompts for working with AI assistants to test the Cyoda Client Application.
 
+## 🛠️ MCP Tools Setup
+
+### Installing MCP Tools for AI Assistants
+
+The Cyoda MCP Client provides tools that AI assistants can use directly. Install with:
+
+```bash
+# Install globally with pipx (recommended)
+pipx install mcp-cyoda-client
+
+# Or install with pip
+pip install mcp-cyoda-client
+```
+
+### AI Assistant Configuration
+
+Add this configuration to your AI assistant's MCP settings:
+
+```json
+{
+  "mcpServers": {
+    "cyoda": {
+      "command": "mcp-cyoda-client",
+      "env": {
+        "CYODA_CLIENT_ID": "your-client-id-here",
+        "CYODA_CLIENT_SECRET": "your-client-secret-here",
+        "CYODA_HOST": "client-123.eu.cyoda.net"
+      }
+    }
+  }
+}
+```
+
+### Available MCP Tools
+
+Once configured, AI assistants have access to these tools:
+
+#### Entity Management Tools
+- `entity_get_entity_tool_cyoda-mcp` - Retrieve entities by ID
+- `entity_list_entities_tool_cyoda-mcp` - List all entities of a type
+- `entity_create_entity_tool_cyoda-mcp` - Create new entities
+- `entity_update_entity_tool_cyoda-mcp` - Update existing entities
+- `entity_delete_entity_tool_cyoda-mcp` - Delete entities
+
+#### Search Tools
+- `search_find_all_cyoda-mcp` - Find all entities of a type
+- `search_search_cyoda-mcp` - Advanced search with conditions
+
+#### Workflow Management Tools
+- `workflow_mgmt_export_workflows_to_file_tool_cyoda-mcp` - Export workflows
+- `workflow_mgmt_import_workflows_from_file_tool_cyoda-mcp` - Import workflows
+- `workflow_mgmt_list_workflow_files_tool_cyoda-mcp` - List workflow files
+- `workflow_mgmt_validate_workflow_file_tool_cyoda-mcp` - Validate workflows
+
+#### Edge Message Tools
+- `edge_message_get_edge_message_tool_cyoda-mcp` - Retrieve messages
+- `edge_message_send_edge_message_tool_cyoda-mcp` - Send messages
+
 ## 🤖 AI Assistant Commands
 
 ### Quick Start Commands
@@ -30,17 +88,33 @@ This guide provides specific commands and prompts for working with AI assistants
 
 ### Full E2E Workflow Test
 
-**Step 1: Request Full Test**
+**Step 1: Request Full Test with MCP Tools**
 ```
-"I need you to test the complete Cyoda client application workflow:
+"I need you to test the complete Cyoda client application workflow using MCP tools:
 
 1. Start the application (python run_app.py)
-2. Import ExampleEntity workflow from example_application/resources/workflow/exampleentity/version_1/ExampleEntity.json
-3. Import OtherEntity workflow from example_application/resources/workflow/otherentity/version_1/OtherEntity.json  
-4. Create an ExampleEntity with valid data
+2. Import ExampleEntity workflow using:
+   workflow_mgmt_import_workflows_from_file_tool_cyoda-mcp(
+       entity_name="ExampleEntity",
+       model_version="1",
+       file_path="example_application/resources/workflow/exampleentity/version_1/ExampleEntity.json"
+   )
+3. Import OtherEntity workflow using:
+   workflow_mgmt_import_workflows_from_file_tool_cyoda-mcp(
+       entity_name="OtherEntity",
+       model_version="1",
+       file_path="example_application/resources/workflow/otherentity/version_1/OtherEntity.json"
+   )
+4. Create an ExampleEntity using:
+   entity_create_entity_tool_cyoda-mcp(
+       entity_model="exampleentity",
+       entity_data={"name": "Test Entity", "description": "E2E Test", "value": 100, "category": "ELECTRONICS", "isActive": true}
+   )
 5. Verify in logs that criteria validation executes
 6. Verify in logs that processor executes and creates 3 OtherEntity instances
-7. Confirm all gRPC events are processed successfully"
+7. List created OtherEntity instances using:
+   entity_list_entities_tool_cyoda-mcp(entity_model="otherentity")
+8. Confirm all gRPC events are processed successfully"
 ```
 
 **Expected AI Response Pattern:**
@@ -72,6 +146,40 @@ Fix any issues found and confirm all checks pass."
 - No style violations from flake8
 - No security issues from bandit
 - All tests pass (12/12 integration tests)
+
+### MCP Tools Testing
+
+**Request:**
+```
+"Test all MCP tools functionality:
+
+1. List available workflow files:
+   workflow_mgmt_list_workflow_files_tool_cyoda-mcp(base_path="example_application/resources/workflow")
+
+2. Validate workflow files:
+   workflow_mgmt_validate_workflow_file_tool_cyoda-mcp(file_path="example_application/resources/workflow/exampleentity/version_1/ExampleEntity.json")
+
+3. Test entity search with conditions:
+   search_search_cyoda-mcp(
+       entity_model="exampleentity",
+       search_conditions={"type": "simple", "jsonPath": "$.category", "operatorType": "EQUALS", "value": "ELECTRONICS"}
+   )
+
+4. Test edge message functionality:
+   edge_message_send_edge_message_tool_cyoda-mcp(
+       subject="Test Message",
+       content={"test": "data", "timestamp": "2024-01-01T00:00:00Z"}
+   )
+
+Verify all tools work correctly and return expected results."
+```
+
+**Expected Results:**
+- Workflow files listed correctly
+- Workflow validation passes
+- Search returns filtered results
+- Edge messages send successfully
+- No tool execution errors
 
 ### Performance and Load Testing
 
@@ -144,6 +252,44 @@ INFO:example_application.processor.example_entity_processor.ExampleEntityProcess
 "Integration tests are failing. Please run the test suite with verbose output, identify the specific failures, and fix the underlying issues. Then re-run to confirm all 12 tests pass."
 ```
 
+### Issue: "MCP tools not working"
+**AI Command:**
+```
+"MCP tools are not responding correctly. Please verify:
+1. The mcp-cyoda-client package is installed correctly
+2. Environment variables (CYODA_CLIENT_ID, CYODA_CLIENT_SECRET, CYODA_HOST) are set
+3. The MCP server configuration is correct
+4. Test basic tool functionality with entity_list_entities_tool_cyoda-mcp"
+```
+
+### Issue: "Workflow import via MCP fails"
+**AI Command:**
+```
+"Workflow import through MCP tools is failing. Please check:
+1. The file path is correct and accessible
+2. The entity_name parameter matches the ENTITY_NAME in the entity class exactly
+3. The workflow JSON file is valid using workflow_mgmt_validate_workflow_file_tool_cyoda-mcp
+4. Try importing with verbose logging to see detailed error messages
+5. Alternative: Use the standalone import script: python scripts/import_workflows.py --entity EntityName --version 1 --file path/to/workflow.json --validate-only"
+```
+
+### Issue: "Need to import workflows without MCP tools"
+**AI Command:**
+```
+"Use the standalone workflow import script instead of MCP tools:
+
+1. List available workflows:
+   python scripts/import_workflows.py --list
+
+2. Validate workflow file:
+   python scripts/import_workflows.py --entity ExampleEntity --version 1 --file path/to/workflow.json --validate-only
+
+3. Import workflow:
+   python scripts/import_workflows.py --entity ExampleEntity --version 1 --file example_application/resources/workflow/exampleentity/version_1/ExampleEntity.json
+
+This script provides the same functionality as MCP tools but can be run directly from the command line."
+```
+
 ## 📊 Success Metrics
 
 ### Performance Benchmarks
@@ -190,10 +336,13 @@ When issues occur:
 ```
 ✅ Cyoda E2E Test Results:
 - Application: Started successfully
-- Workflows: ExampleEntity and OtherEntity imported
-- Entity Processing: [X] entities processed
+- MCP Tools: All tools responding correctly
+- Workflows: ExampleEntity and OtherEntity imported via MCP
+- Entity Processing: [X] entities processed via MCP tools
 - Processor: Created [X] OtherEntity instances
 - Criteria: All validations passed
+- Search Tools: Advanced search working correctly
+- Edge Messages: Messaging functionality working
 - Integration Tests: 12/12 passing
 - Code Quality: All checks passed
 ```

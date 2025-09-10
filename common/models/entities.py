@@ -22,7 +22,7 @@ if PYDANTIC_AVAILABLE:
     from pydantic import ConfigDict, Field, field_validator, model_validator
 else:
     # Lightweight stubs to keep runtime import errors away if Pydantic isn't present.
-    def Field(*args: Any, **kwargs: Any) -> Any:  # type: ignore
+    def Field(*args: Any, **kwargs: Any) -> Any:  # type: ignore  # noqa: N802
         return None
 
     def field_validator(*_fields: str, **_kwargs: Any):  # type: ignore[no-untyped-def,no-redef]

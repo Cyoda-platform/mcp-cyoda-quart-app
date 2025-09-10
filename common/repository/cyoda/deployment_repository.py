@@ -21,6 +21,7 @@ class AuthService(Protocol):
     """Minimal protocol for the auth service this repo depends on."""
 
     async def get_access_token(self) -> str: ...
+
     def invalidate_tokens(self) -> None: ...
 
 

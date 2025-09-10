@@ -2,7 +2,7 @@ import json
 import logging
 from typing import Any, Optional
 
-from example_application.entity import create_entity
+from common.entity.entity_factory import create_entity
 from common.grpc_client.constants import (
     CRITERIA_CALC_REQ_EVENT_TYPE,
     CRITERIA_CALC_RESP_EVENT_TYPE,

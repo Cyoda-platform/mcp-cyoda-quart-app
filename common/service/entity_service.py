@@ -27,7 +27,148 @@ PERFORMANCE NOTES:
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import datetime
+from enum import Enum
 from typing import Any, Dict, List, Optional
+
+
+class SearchOperator(Enum):
+    """Search operators for entity queries."""
+
+    # Equality operators
+    EQUALS = "eq"
+    NOT_EQUALS = "ne"
+    IEQUALS = "ieq"  # Case-insensitive equals
+    INOT_EQUALS = "ine"  # Case-insensitive not equals
+
+    # Null checks
+    IS_NULL = "is_null"
+    NOT_NULL = "not_null"
+
+    # Comparison operators
+    GREATER_THAN = "gt"
+    GREATER_OR_EQUAL = "gte"
+    LESS_THAN = "lt"
+    LESS_OR_EQUAL = "lte"
+
+    # Text operators
+    CONTAINS = "contains"
+    NOT_CONTAINS = "not_contains"
+    STARTS_WITH = "startswith"
+    NOT_STARTS_WITH = "not_startswith"
+    ENDS_WITH = "endswith"
+    NOT_ENDS_WITH = "not_endswith"
+
+    # Case-insensitive text operators
+    ICONTAINS = "icontains"
+    INOT_CONTAINS = "inot_contains"
+    ISTARTS_WITH = "istartswith"
+    INOT_STARTS_WITH = "inot_startswith"
+    IENDS_WITH = "iendswith"
+    INOT_ENDS_WITH = "inot_endswith"
+
+    # Pattern matching
+    MATCHES_PATTERN = "matches_pattern"
+    LIKE = "like"
+
+    # Range operators
+    BETWEEN = "between"
+    BETWEEN_INCLUSIVE = "between_inclusive"
+
+    # List operators
+    IN = "in"
+    NOT_IN = "not_in"
+
+    # Change detection
+    IS_UNCHANGED = "is_unchanged"
+    IS_CHANGED = "is_changed"
+
+
+class CyodaOperator(Enum):
+    """Cyoda search operators mapping to internal operators."""
+
+    # Equality operators
+    EQUALS = "EQUALS"
+    NOT_EQUAL = "NOT_EQUAL"
+    IEQUALS = "IEQUALS"
+    INOT_EQUAL = "INOT_EQUAL"
+
+    # Null checks
+    IS_NULL = "IS_NULL"
+    NOT_NULL = "NOT_NULL"
+
+    # Comparison operators
+    GREATER_THAN = "GREATER_THAN"
+    GREATER_OR_EQUAL = "GREATER_OR_EQUAL"
+    LESS_THAN = "LESS_THAN"
+    LESS_OR_EQUAL = "LESS_OR_EQUAL"
+
+    # Text operators
+    CONTAINS = "CONTAINS"
+    NOT_CONTAINS = "NOT_CONTAINS"
+    STARTS_WITH = "STARTS_WITH"
+    NOT_STARTS_WITH = "NOT_STARTS_WITH"
+    ENDS_WITH = "ENDS_WITH"
+    NOT_ENDS_WITH = "NOT_ENDS_WITH"
+
+    # Case-insensitive text operators
+    ICONTAINS = "ICONTAINS"
+    ISTARTS_WITH = "ISTARTS_WITH"
+    IENDS_WITH = "IENDS_WITH"
+    INOT_CONTAINS = "INOT_CONTAINS"
+    INOT_STARTS_WITH = "INOT_STARTS_WITH"
+    INOT_ENDS_WITH = "INOT_ENDS_WITH"
+
+    # Pattern matching
+    MATCHES_PATTERN = "MATCHES_PATTERN"
+    LIKE = "LIKE"
+
+    # Range operators
+    BETWEEN = "BETWEEN"
+    BETWEEN_INCLUSIVE = "BETWEEN_INCLUSIVE"
+
+    # Change detection
+    IS_UNCHANGED = "IS_UNCHANGED"
+    IS_CHANGED = "IS_CHANGED"
+
+
+class LogicalOperator(Enum):
+    """Logical operators for combining search conditions."""
+
+    AND = "and"
+    OR = "or"
+
+
+# Mapping from Cyoda operators to internal SearchOperator
+CYODA_OPERATOR_MAPPING = {
+    CyodaOperator.EQUALS.value: SearchOperator.EQUALS,
+    CyodaOperator.NOT_EQUAL.value: SearchOperator.NOT_EQUALS,
+    CyodaOperator.IEQUALS.value: SearchOperator.IEQUALS,
+    CyodaOperator.INOT_EQUAL.value: SearchOperator.INOT_EQUALS,
+    CyodaOperator.IS_NULL.value: SearchOperator.IS_NULL,
+    CyodaOperator.NOT_NULL.value: SearchOperator.NOT_NULL,
+    CyodaOperator.GREATER_THAN.value: SearchOperator.GREATER_THAN,
+    CyodaOperator.GREATER_OR_EQUAL.value: SearchOperator.GREATER_OR_EQUAL,
+    CyodaOperator.LESS_THAN.value: SearchOperator.LESS_THAN,
+    CyodaOperator.LESS_OR_EQUAL.value: SearchOperator.LESS_OR_EQUAL,
+    CyodaOperator.CONTAINS.value: SearchOperator.CONTAINS,
+    CyodaOperator.NOT_CONTAINS.value: SearchOperator.NOT_CONTAINS,
+    CyodaOperator.STARTS_WITH.value: SearchOperator.STARTS_WITH,
+    CyodaOperator.NOT_STARTS_WITH.value: SearchOperator.NOT_STARTS_WITH,
+    CyodaOperator.ENDS_WITH.value: SearchOperator.ENDS_WITH,
+    CyodaOperator.NOT_ENDS_WITH.value: SearchOperator.NOT_ENDS_WITH,
+    CyodaOperator.ICONTAINS.value: SearchOperator.ICONTAINS,
+    CyodaOperator.ISTARTS_WITH.value: SearchOperator.ISTARTS_WITH,
+    CyodaOperator.IENDS_WITH.value: SearchOperator.IENDS_WITH,
+    CyodaOperator.INOT_CONTAINS.value: SearchOperator.INOT_CONTAINS,
+    CyodaOperator.INOT_STARTS_WITH.value: SearchOperator.INOT_STARTS_WITH,
+    CyodaOperator.INOT_ENDS_WITH.value: SearchOperator.INOT_ENDS_WITH,
+    CyodaOperator.MATCHES_PATTERN.value: SearchOperator.MATCHES_PATTERN,
+    CyodaOperator.LIKE.value: SearchOperator.LIKE,
+    CyodaOperator.BETWEEN.value: SearchOperator.BETWEEN,
+    CyodaOperator.BETWEEN_INCLUSIVE.value: SearchOperator.BETWEEN_INCLUSIVE,
+    CyodaOperator.IS_UNCHANGED.value: SearchOperator.IS_UNCHANGED,
+    CyodaOperator.IS_CHANGED.value: SearchOperator.IS_CHANGED,
+}
 
 
 @dataclass
@@ -63,7 +204,7 @@ class SearchCondition:
     """Search condition for entity queries."""
 
     field: str
-    operator: str  # "eq", "ne", "gt", "lt", "gte", "lte", "in", "contains"
+    operator: SearchOperator  # Use SearchOperator enum
     value: Any
 
 
@@ -92,7 +233,7 @@ class SearchConditionRequestBuilder:
         self._offset: Optional[int] = None
 
     def add_condition(
-        self, field: str, operator: str, value: Any
+        self, field: str, operator: SearchOperator, value: Any
     ) -> "SearchConditionRequestBuilder":
         """Add a search condition."""
         self._conditions.append(SearchCondition(field, operator, value))
@@ -100,21 +241,21 @@ class SearchConditionRequestBuilder:
 
     def equals(self, field: str, value: Any) -> "SearchConditionRequestBuilder":
         """Add equals condition."""
-        return self.add_condition(field, "eq", value)
+        return self.add_condition(field, SearchOperator.EQUALS, value)
 
     def contains(self, field: str, value: str) -> "SearchConditionRequestBuilder":
         """Add contains condition."""
-        return self.add_condition(field, "contains", value)
+        return self.add_condition(field, SearchOperator.CONTAINS, value)
 
     def in_values(
         self, field: str, values: List[Any]
     ) -> "SearchConditionRequestBuilder":
         """Add 'in' condition."""
-        return self.add_condition(field, "in", values)
+        return self.add_condition(field, SearchOperator.IN, values)
 
-    def operator(self, op: str) -> "SearchConditionRequestBuilder":
+    def operator(self, op: LogicalOperator) -> "SearchConditionRequestBuilder":
         """Set logical operator (and/or)."""
-        self._operator = op
+        self._operator = op.value
         return self
 
     def limit(self, limit: int) -> "SearchConditionRequestBuilder":

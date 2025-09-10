@@ -1,4 +1,4 @@
-# entity/example_entity.py
+# entity/example_entity/version_1/example_entity.py
 
 """
 ExampleEntity for Cyoda Client Application
@@ -10,7 +10,7 @@ with processing and validation capabilities as specified in functional requireme
 from datetime import datetime, timezone
 from typing import Any, ClassVar, Dict, List, Optional
 
-from pydantic import Field, validator
+from pydantic import Field, field_validator, model_validator
 
 from common.entity.cyoda_entity import CyodaEntity
 
@@ -72,7 +72,8 @@ class ExampleEntity(CyodaEntity):
         "SPORTS",
     ]
 
-    @validator("name")
+    @field_validator("name")
+    @classmethod
     def validate_name(cls, v: str) -> str:
         """Validate name field according to criteria requirements"""
         if not v or len(v.strip()) == 0:
@@ -83,7 +84,8 @@ class ExampleEntity(CyodaEntity):
             raise ValueError("Name must be at most 100 characters long")
         return v.strip()
 
-    @validator("description")
+    @field_validator("description")
+    @classmethod
     def validate_description(cls, v: str) -> str:
         """Validate description field according to criteria requirements"""
         if not v or len(v.strip()) == 0:
@@ -92,39 +94,42 @@ class ExampleEntity(CyodaEntity):
             raise ValueError("Description must be at most 500 characters long")
         return v.strip()
 
-    @validator("value")
+    @field_validator("value")
+    @classmethod
     def validate_value(cls, v: float) -> float:
         """Validate value field according to criteria requirements"""
         if v <= 0:
             raise ValueError("Value must be a positive number (greater than 0)")
         return v
 
-    @validator("category")
+    @field_validator("category")
+    @classmethod
     def validate_category(cls, v: str) -> str:
         """Validate category field according to criteria requirements"""
         if v not in cls.ALLOWED_CATEGORIES:
             raise ValueError(f"Category must be one of: {cls.ALLOWED_CATEGORIES}")
         return v
 
-    @validator("value")
-    def validate_business_logic(cls, v: float, values: Dict[str, Any]) -> float:
+    @model_validator(mode="after")
+    def validate_business_logic(self) -> "ExampleEntity":
         """Validate business logic rules according to criteria requirements"""
-        category = values.get("category")
-        is_active = values.get("is_active")
+        category = self.category
+        is_active = self.is_active
+        value = self.value
 
-        if category == "ELECTRONICS" and v <= 10:
+        if category == "ELECTRONICS" and value <= 10:
             raise ValueError("For ELECTRONICS category, value must be greater than 10")
 
-        if category == "CLOTHING" and (v < 5 or v > 1000):
+        if category == "CLOTHING" and (value < 5 or value > 1000):
             raise ValueError("For CLOTHING category, value must be between 5 and 1000")
 
-        if category == "BOOKS" and (v < 1 or v > 500):
+        if category == "BOOKS" and (value < 1 or value > 500):
             raise ValueError("For BOOKS category, value must be between 1 and 500")
 
-        if is_active is False and v >= 100:
+        if is_active is False and value >= 100:
             raise ValueError("If isActive is false, value must be less than 100")
 
-        return v
+        return self
 
     def update_timestamp(self) -> None:
         """Update the updated_at timestamp to current time"""
@@ -150,7 +155,7 @@ class ExampleEntity(CyodaEntity):
 
     def to_api_response(self) -> Dict[str, Any]:
         """Convert to API response format"""
-        data = self.dict(by_alias=True)
+        data = self.model_dump(by_alias=True)
         # Add state for API compatibility
         data["state"] = self.state
         return data

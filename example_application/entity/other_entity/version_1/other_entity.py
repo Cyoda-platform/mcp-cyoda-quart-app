@@ -8,7 +8,7 @@ and has its own simple workflow as specified in functional requirements.
 from datetime import datetime, timezone
 from typing import Any, ClassVar, Dict, List, Optional
 
-from pydantic import Field, validator
+from pydantic import Field, field_validator
 
 from common.entity.cyoda_entity import CyodaEntity
 
@@ -63,7 +63,8 @@ class OtherEntity(CyodaEntity):
     # Priority validation
     ALLOWED_PRIORITIES: ClassVar[List[str]] = ["LOW", "MEDIUM", "HIGH"]
 
-    @validator("title")
+    @field_validator("title")
+    @classmethod
     def validate_title(cls, v: str) -> str:
         """Validate title field"""
         if not v or len(v.strip()) == 0:
@@ -72,7 +73,8 @@ class OtherEntity(CyodaEntity):
             raise ValueError("Title must be at most 200 characters long")
         return v.strip()
 
-    @validator("content")
+    @field_validator("content")
+    @classmethod
     def validate_content(cls, v: str) -> str:
         """Validate content field"""
         if not v or len(v.strip()) == 0:
@@ -81,7 +83,8 @@ class OtherEntity(CyodaEntity):
             raise ValueError("Content must be at most 1000 characters long")
         return v.strip()
 
-    @validator("priority")
+    @field_validator("priority")
+    @classmethod
     def validate_priority(cls, v: str) -> str:
         """Validate priority field"""
         if v not in cls.ALLOWED_PRIORITIES:
@@ -133,7 +136,7 @@ class OtherEntity(CyodaEntity):
 
     def to_api_response(self) -> Dict[str, Any]:
         """Convert to API response format"""
-        data: Dict[str, Any] = self.dict(by_alias=True)
+        data: Dict[str, Any] = self.model_dump(by_alias=True)
         # Add state for API compatibility
         data["state"] = self.state
         return data

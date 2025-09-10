@@ -2,7 +2,7 @@ import json
 import logging
 from typing import Any, Optional
 
-from example_application.entity import create_entity
+from common.entity.entity_factory import create_entity
 from common.exception.grpc_exceptions import (
     HandlerError,
     ProcessingError,

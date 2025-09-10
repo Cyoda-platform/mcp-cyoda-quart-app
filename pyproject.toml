@@ -103,6 +103,7 @@ namespace_packages = true
 exclude = [
     "^proto/.*\\.py$",
     "^proto/.*\\.pyi$",
+    "^backup/.*\\.py$",
     "__pycache__",
     "build/",
     "dist/",
@@ -139,7 +140,9 @@ module = [
     "grpcio.*",
     "grpc.*",
     "protobuf.*",
+    "google.protobuf.*",
     "quart.*",
+    "quart_schema.*",
     "hypercorn.*",
     "dependency_injector.*",
     "aiofiles.*",
@@ -147,6 +150,8 @@ module = [
     "fastmcp.*",
     "httpx.*",
     "requests.*",
+    "asyncio_mqtt.*",
+    "pydantic.*",
 ]
 ignore_missing_imports = true
 
@@ -224,6 +229,8 @@ max-line-length = 88
 extend-ignore = [
     "E203",  # whitespace before ':'
     "E501",  # line too long (handled by black)
+    "E704",  # multiple statements on one line (def) - common in protocol stubs
+    "N805",  # first argument should be named 'self' (not applicable to classmethods)
     "W503",  # line break before binary operator
 ]
 exclude = [

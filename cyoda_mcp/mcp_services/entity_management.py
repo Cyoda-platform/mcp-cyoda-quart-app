@@ -9,7 +9,13 @@ import logging
 from typing import Any, Dict
 
 from common.config.config import ENTITY_VERSION
-from common.service.entity_service import EntityService, SearchConditionRequest
+from common.service.entity_service import (
+    CYODA_OPERATOR_MAPPING,
+    EntityService,
+    LogicalOperator,
+    SearchConditionRequest,
+    SearchOperator,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -289,11 +295,11 @@ class EntityManagementService:
                 and search_conditions.get("type") == "group"
             ):
                 # Handle complex Cyoda search structure (multiple conditions)
-                operator = search_conditions.get("operator", "AND").lower()
-                if operator == "and":
-                    builder.operator("and")
-                elif operator == "or":
-                    builder.operator("or")
+                operator = search_conditions.get("operator", "AND").upper()
+                if operator == "AND":
+                    builder.operator(LogicalOperator.AND)
+                elif operator == "OR":
+                    builder.operator(LogicalOperator.OR)
 
                 conditions = search_conditions.get("conditions", [])
                 for condition in conditions:
@@ -347,10 +353,11 @@ class EntityManagementService:
             operator_type = condition.get("operatorType", "EQUALS")
             value = condition.get("value")
 
-            # Map Cyoda operators to internal operators
-            op_mapping = {"EQUALS": "eq", "NOT_EQUALS": "ne", "CONTAINS": "contains"}
-            op = op_mapping.get(operator_type, "eq")
-            builder.add_condition(field, op, value)
+            # Map Cyoda operators to internal operators using enum mapping
+            search_operator = CYODA_OPERATOR_MAPPING.get(
+                operator_type, SearchOperator.EQUALS
+            )
+            builder.add_condition(field, search_operator, value)
 
         elif condition_type == "simple":
             # Handle simple JSON path conditions
@@ -363,21 +370,8 @@ class EntityManagementService:
                 json_path.replace("$.", "") if json_path.startswith("$.") else json_path
             )
 
-            # Map Cyoda operators to internal operators
-            op_mapping = {
-                "EQUALS": "eq",
-                "IEQUALS": "ieq",  # Case-insensitive equals
-                "NOT_EQUALS": "ne",
-                "CONTAINS": "contains",
-                "ICONTAINS": "icontains",  # Case-insensitive contains
-                "GREATER_THAN": "gt",
-                "LESS_THAN": "lt",
-                "GREATER_THAN_OR_EQUAL": "gte",
-                "LESS_THAN_OR_EQUAL": "lte",
-                "STARTS_WITH": "startswith",
-                "ENDS_WITH": "endswith",
-                "IN": "in",
-                "NOT_IN": "not_in",
-            }
-            op = op_mapping.get(operator_type, "eq")
-            builder.add_condition(field, op, value)
+            # Map Cyoda operators to internal operators using enum mapping
+            search_operator = CYODA_OPERATOR_MAPPING.get(
+                operator_type, SearchOperator.EQUALS
+            )
+            builder.add_condition(field, search_operator, value)

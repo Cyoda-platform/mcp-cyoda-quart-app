@@ -405,19 +405,29 @@ class EntityServiceImpl(EntityService):
         if len(condition.conditions) == 1:
             # Single condition - simple format
             cond: SearchCondition = condition.conditions[0]
-            if cond.operator == "eq":
+            operator_value = (
+                cond.operator.value
+                if hasattr(cond.operator, "value")
+                else cond.operator
+            )
+            if operator_value == "eq":
                 return {cond.field: cond.value}
             else:
-                return {cond.field: {cond.operator: cond.value}}
+                return {cond.field: {operator_value: cond.value}}
         else:
             # Multiple conditions - complex format
             criteria: Dict[str, List[Dict[str, Any]]] = {condition.operator: []}
             for cond in condition.conditions:
-                if cond.operator == "eq":
+                operator_value = (
+                    cond.operator.value
+                    if hasattr(cond.operator, "value")
+                    else cond.operator
+                )
+                if operator_value == "eq":
                     criteria[condition.operator].append({cond.field: cond.value})
                 else:
                     criteria[condition.operator].append(
-                        {cond.field: {cond.operator: cond.value}}
+                        {cond.field: {operator_value: cond.value}}
                     )
             return criteria
 

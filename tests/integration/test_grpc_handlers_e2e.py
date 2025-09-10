@@ -5,19 +5,18 @@ This module tests the complete flow from gRPC handlers through to processors and
 ensuring that the dynamic entity creation and workflow processing works correctly.
 """
 
-import asyncio
 import json
 from datetime import datetime, timezone
 from unittest.mock import AsyncMock, Mock
 
 import pytest
 
-from example_application.entity import create_entity
+from common.entity.entity_casting import cast_entity
+from common.entity.entity_factory import create_entity
 from common.grpc_client.handlers.calc import CalcRequestHandler
 from common.grpc_client.handlers.criteria_calc import CriteriaCalcRequestHandler
 from common.processor import get_processor_manager
 from common.proto.cloudevents_pb2 import CloudEvent
-from services.services import get_entity_service
 
 
 class TestGrpcHandlersE2E:
@@ -103,23 +102,34 @@ class TestGrpcHandlersE2E:
 
     @pytest.mark.asyncio
     async def test_entity_creation_dynamic(self, example_entity_data):
-        """Test dynamic entity creation works correctly."""
-        # Test creating ExampleEntity
+        """Test dynamic entity creation and casting works correctly."""
+        from example_application.entity.example_entity import ExampleEntity
+
+        # Test creating generic CyodaEntity (no registration needed)
         entity = create_entity("ExampleEntity", example_entity_data)
 
         assert entity is not None
+        assert type(entity).__name__ == "CyodaEntity"  # Always creates generic entity
         assert entity.name == "Test Entity"
         assert entity.category == "ELECTRONICS"
         assert entity.value == 42.5
         assert entity.is_active is True
 
-        # Test case insensitive creation
-        entity2 = create_entity("exampleentity", example_entity_data)
-        assert type(entity2).__name__ == "ExampleEntity"
+        # Test dynamic casting to specific type
+        example_entity = cast_entity(entity, ExampleEntity)
+        assert type(example_entity).__name__ == "ExampleEntity"
+        assert example_entity.name == "Test Entity"
+        assert example_entity.category == "ELECTRONICS"
+        assert example_entity.value == 42.5
+        assert example_entity.is_active is True
 
-        # Test with ENTITY_NAME
-        entity3 = create_entity("ExampleEntity", example_entity_data)
-        assert type(entity3).__name__ == "ExampleEntity"
+        # Test case insensitive creation (still creates generic entity)
+        entity2 = create_entity("exampleentity", example_entity_data)
+        assert type(entity2).__name__ == "CyodaEntity"
+
+        # Cast to specific type
+        example_entity2 = cast_entity(entity2, ExampleEntity)
+        assert type(example_entity2).__name__ == "ExampleEntity"
 
     @pytest.mark.asyncio
     async def test_criteria_calc_handler_e2e(self, cloud_event_criteria, mock_services):

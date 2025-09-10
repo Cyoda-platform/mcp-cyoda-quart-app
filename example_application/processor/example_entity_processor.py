@@ -11,8 +11,8 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional, Protocol, cast, runtime_checkable
 
-from common.processor.base import CyodaProcessor
-
+from common.entity.entity_casting import cast_entity
+from common.processor.base import CyodaEntity, CyodaProcessor
 from example_application.entity.example_entity import ExampleEntity
 from example_application.entity.other_entity import (  # noqa: F401  # Imported for clarity; referenced by name in service calls
     OtherEntity,
@@ -63,7 +63,7 @@ class ExampleEntityProcessor(CyodaProcessor):
             self.entity_service = cast(_EntityService, get_entity_service())
         return self.entity_service
 
-    async def process(self, entity: Any, **kwargs: Any) -> Any:
+    async def process(self, entity: CyodaEntity, **kwargs: Any) -> CyodaEntity:
         """
         Process the ExampleEntity according to functional requirements.
 
@@ -79,25 +79,22 @@ class ExampleEntityProcessor(CyodaProcessor):
                 f"Processing ExampleEntity {getattr(entity, 'technical_id', '<unknown>')}"
             )
 
-            # Explicitly assert the expected type for internal logic
-            if not isinstance(entity, ExampleEntity):
-                raise TypeError(
-                    "ExampleEntityProcessor received an entity that is not ExampleEntity"
-                )
+            # Cast the entity to ExampleEntity for type-safe operations
+            example_entity = cast_entity(entity, ExampleEntity)
 
             # Enrich entity with processed data
-            processed_data = self._create_processed_data(entity)
-            entity.processed_data = processed_data
+            processed_data = self._create_processed_data(example_entity)
+            example_entity.processed_data = processed_data
 
             # Create or update related OtherEntity instances
-            await self._create_related_other_entities(entity)
+            await self._create_related_other_entities(example_entity)
 
             # Log processing completion
             self.logger.info(
-                f"ExampleEntity {entity.technical_id} processed successfully"
+                f"ExampleEntity {example_entity.technical_id} processed successfully"
             )
 
-            return entity
+            return example_entity
 
         except Exception as e:
             self.logger.error(

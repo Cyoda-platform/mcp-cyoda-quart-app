@@ -9,9 +9,32 @@ import logging
 from typing import Any, Dict, List, Optional
 
 from common.config.config import ENTITY_VERSION
-from common.service.entity_service import EntityService, SearchConditionRequest
+from common.service.entity_service import (
+    EntityService,
+    LogicalOperator,
+    SearchConditionRequest,
+    SearchOperator,
+)
 
 logger = logging.getLogger(__name__)
+
+
+def _get_search_operator(op_str: str) -> SearchOperator:
+    """Convert string operator to SearchOperator enum."""
+    op_mapping = {
+        "eq": SearchOperator.EQUALS,
+        "ne": SearchOperator.NOT_EQUALS,
+        "gt": SearchOperator.GREATER_THAN,
+        "lt": SearchOperator.LESS_THAN,
+        "gte": SearchOperator.GREATER_OR_EQUAL,
+        "lte": SearchOperator.LESS_OR_EQUAL,
+        "contains": SearchOperator.CONTAINS,
+        "icontains": SearchOperator.ICONTAINS,
+        "startswith": SearchOperator.STARTS_WITH,
+        "endswith": SearchOperator.ENDS_WITH,
+        "in": SearchOperator.IN,
+    }
+    return op_mapping.get(op_str, SearchOperator.EQUALS)
 
 
 class SearchService:
@@ -112,15 +135,19 @@ class SearchService:
             for field, value in search_conditions.items():
                 if isinstance(value, dict) and "operator" in value:
                     # Advanced condition format: {"operator": "contains", "value": "text"}
-                    op = value.get("operator", "eq")
+                    op_str = value.get("operator", "eq")
                     val = value.get("value")
-                    builder.add_condition(field, op, val)
+                    search_op = _get_search_operator(op_str)
+                    builder.add_condition(field, search_op, val)
                 else:
                     # Simple condition format: field: value (defaults to equals)
                     builder.equals(field, value)
 
             # Set additional parameters
-            builder.operator(operator)
+            if operator.lower() == "and":
+                builder.operator(LogicalOperator.AND)
+            elif operator.lower() == "or":
+                builder.operator(LogicalOperator.OR)
             if limit:
                 builder.limit(limit)
             if offset:
@@ -201,16 +228,20 @@ class SearchService:
 
             for condition in conditions:
                 field = condition.get("field")
-                op = condition.get("operator", "eq")
+                op_str = condition.get("operator", "eq")
                 value = condition.get("value")
 
                 if not field or value is None:
                     continue
 
-                builder.add_condition(field, op, value)
+                search_op = _get_search_operator(op_str)
+                builder.add_condition(field, search_op, value)
 
             # Set additional parameters
-            builder.operator(operator)
+            if operator.lower() == "and":
+                builder.operator(LogicalOperator.AND)
+            elif operator.lower() == "or":
+                builder.operator(LogicalOperator.OR)
             if limit:
                 builder.limit(limit)
             if offset:

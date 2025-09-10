@@ -12,7 +12,14 @@ from pydantic import BaseModel, Field
 from quart import Blueprint, Response, jsonify, request
 from quart_schema import validate_querystring, validate_request
 
-from common.service.entity_service import EntityService, SearchConditionRequest
+from common.service.entity_service import (
+    CYODA_OPERATOR_MAPPING,
+    EntityService,
+    LogicalOperator,
+    SearchConditionRequest,
+    SearchConditionRequestBuilder,
+    SearchOperator,
+)
 from services.services import get_entity_service
 
 logger = logging.getLogger(__name__)
@@ -272,3 +279,212 @@ async def delete_other_entity(entity_id: str) -> Tuple[Response, int]:
     except Exception as e:
         logger.error(f"Error deleting OtherEntity {entity_id}: {str(e)}")
         return jsonify({"error": str(e)}), 500
+
+
+# ---- Additional Entity Service Endpoints ----------------------------------------
+
+
+@other_entities_bp.route("/by-business-id/<business_id>", methods=["GET"])
+async def get_by_business_id(business_id: str) -> Tuple[Response, int]:
+    """Get OtherEntity by business ID"""
+    try:
+        service = get_entity_service()
+        business_id_field = request.args.get("field", "title")  # Default to title field
+
+        result = await service.find_by_business_id(
+            entity_class="OtherEntity",
+            business_id=business_id,
+            business_id_field=business_id_field,
+            entity_version="1",
+        )
+
+        if not result:
+            return jsonify({"error": "OtherEntity not found"}), 404
+
+        entity_data = {
+            "id": result.get_id(),
+            "data": result.data,
+            "state": result.metadata.state,
+            "created_at": result.metadata.created_at,
+            "updated_at": result.metadata.updated_at,
+        }
+
+        return jsonify(entity_data), 200
+
+    except Exception as e:
+        logger.error(
+            f"Error getting OtherEntity by business ID {business_id}: {str(e)}"
+        )
+        return jsonify({"error": str(e)}), 500
+
+
+@other_entities_bp.route("/<entity_id>/exists", methods=["GET"])
+async def check_exists(entity_id: str) -> Tuple[Response, int]:
+    """Check if OtherEntity exists by ID"""
+    try:
+        service = get_entity_service()
+
+        exists = await service.exists_by_id(
+            entity_id=entity_id, entity_class="OtherEntity", entity_version="1"
+        )
+
+        return jsonify({"exists": exists, "entity_id": entity_id}), 200
+
+    except Exception as e:
+        logger.error(f"Error checking OtherEntity existence {entity_id}: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+
+@other_entities_bp.route("/count", methods=["GET"])
+async def count_entities() -> Tuple[Response, int]:
+    """Count OtherEntities"""
+    try:
+        service = get_entity_service()
+
+        count = await service.count(entity_class="OtherEntity", entity_version="1")
+
+        return jsonify({"count": count}), 200
+
+    except Exception as e:
+        logger.error(f"Error counting OtherEntities: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+
+@other_entities_bp.route("/<entity_id>/transitions", methods=["GET"])
+async def get_available_transitions(entity_id: str) -> Tuple[Response, int]:
+    """Get available transitions for OtherEntity"""
+    try:
+        service = get_entity_service()
+
+        transitions = await service.get_transitions(
+            entity_id=entity_id, entity_class="OtherEntity", entity_version="1"
+        )
+
+        return jsonify({"transitions": transitions, "entity_id": entity_id}), 200
+
+    except Exception as e:
+        logger.error(f"Error getting transitions for OtherEntity {entity_id}: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+
+# ---- Search Endpoints -----------------------------------------------------------
+
+
+@other_entities_bp.route("/search", methods=["POST"])
+async def search_entities() -> Tuple[Response, int]:
+    """Search OtherEntities using Cyoda search format"""
+    try:
+        service = get_entity_service()
+        search_data = await request.get_json()
+
+        if not search_data:
+            return jsonify({"error": "Search conditions required"}), 400
+
+        # Convert Cyoda search format to SearchConditionRequest
+        builder = SearchConditionRequest.builder()
+
+        # Check if this is a Cyoda-style search condition
+        if isinstance(search_data, dict) and search_data.get("type") == "group":
+            # Handle complex Cyoda search structure (multiple conditions)
+            operator = search_data.get("operator", "AND").upper()
+            if operator == "AND":
+                builder.operator(LogicalOperator.AND)
+            elif operator == "OR":
+                builder.operator(LogicalOperator.OR)
+
+            conditions = search_data.get("conditions", [])
+            for condition in conditions:
+                _process_cyoda_condition(condition, builder)
+
+        elif isinstance(search_data, dict) and search_data.get("type") in [
+            "simple",
+            "lifecycle",
+        ]:
+            # Handle single Cyoda condition (not wrapped in group)
+            _process_cyoda_condition(search_data, builder)
+
+        else:
+            # Handle simple field-value pairs (backward compatibility)
+            for field, value in search_data.items():
+                builder.equals(field, value)
+
+        search_request = builder.build()
+        results = await service.search(
+            entity_class="OtherEntity", condition=search_request, entity_version="1"
+        )
+
+        # Convert to simple format for API response
+        entities = [
+            {
+                "id": r.get_id(),
+                "data": r.data,
+                "state": r.metadata.state,
+                "created_at": r.metadata.created_at,
+                "updated_at": r.metadata.updated_at,
+            }
+            for r in results
+        ]
+
+        return (
+            jsonify(
+                {
+                    "entities": entities,
+                    "total": len(entities),
+                    "search_conditions": search_data,
+                }
+            ),
+            200,
+        )
+
+    except Exception as e:
+        logger.error(f"Error searching OtherEntities: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+
+@other_entities_bp.route("/find-all", methods=["GET"])
+async def find_all_entities() -> Tuple[Response, int]:
+    """Find all OtherEntities"""
+    try:
+        service = get_entity_service()
+
+        results = await service.find_all(entity_class="OtherEntity", entity_version="1")
+
+        return jsonify({"entities": results, "total": len(results)}), 200
+
+    except Exception as e:
+        logger.error(f"Error finding all OtherEntities: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+
+def _process_cyoda_condition(
+    condition: Dict[str, Any], builder: SearchConditionRequestBuilder
+) -> None:
+    """Process a single Cyoda condition and add it to the builder."""
+    condition_type = condition.get("type")
+
+    if condition_type == "lifecycle":
+        # Handle lifecycle conditions (entity state)
+        field = condition.get("field", "state")
+        operator_type = condition.get("operatorType", "EQUALS")
+        value = condition.get("value")
+
+        # Map Cyoda operators to internal operators using enum mapping
+        search_operator = CYODA_OPERATOR_MAPPING.get(
+            operator_type, SearchOperator.EQUALS
+        )
+        builder.add_condition(field, search_operator, value)
+
+    elif condition_type == "simple":
+        # Handle simple JSON path conditions
+        json_path = condition.get("jsonPath", "")
+        operator_type = condition.get("operatorType", "EQUALS")
+        value = condition.get("value")
+
+        # Convert JSON path to field name (remove $. prefix)
+        field = json_path.replace("$.", "") if json_path.startswith("$.") else json_path
+
+        # Map Cyoda operators to internal operators using enum mapping
+        search_operator = CYODA_OPERATOR_MAPPING.get(
+            operator_type, SearchOperator.EQUALS
+        )
+        builder.add_condition(field, search_operator, value)

@@ -137,6 +137,35 @@ This template also provides a structured framework for developing a web client u
 - **Extensibility**: A flexible and configurable project structure designed for easy customization.
 - **MCP Integration**: Full Model Context Protocol server for AI assistant integration
 
+## Utility Scripts
+
+The project includes standalone utility scripts for common operations:
+
+### Workflow Import Script
+
+Import workflows manually without using MCP tools:
+
+```bash
+# Import a specific workflow
+python scripts/import_workflows.py --entity ExampleEntity --version 1 --file example_application/resources/workflow/exampleentity/version_1/ExampleEntity.json
+
+# List available workflow files
+python scripts/import_workflows.py --list
+
+# Validate a workflow file
+python scripts/import_workflows.py --entity ExampleEntity --version 1 --file path/to/workflow.json --validate-only
+
+# Get help
+python scripts/import_workflows.py --help
+```
+
+This script provides:
+- ✅ Workflow validation before import
+- ✅ File listing and discovery
+- ✅ Comprehensive error handling
+- ✅ Support for both relative and absolute paths
+- ✅ Detailed success/failure reporting
+
 ## Contributing
 
 We welcome contributions! Please see our comprehensive guides:

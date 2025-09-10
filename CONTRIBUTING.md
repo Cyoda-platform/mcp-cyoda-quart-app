@@ -30,6 +30,8 @@ The `application/` directory is **reserved for end users** who will add their ow
 
 ### 1. Setting Up Development Environment
 
+**Note:** This project uses `pyproject.toml` for dependency management instead of `requirements.txt`.
+
 ```bash
 # Clone the repository
 git clone <repository-url>
@@ -39,8 +41,14 @@ cd mcp-cyoda-quart-app
 python -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
-# Install dependencies
-pip install -r requirements.txt
+# Install dependencies (development mode with all dev tools)
+pip install -e ".[dev]"
+
+# Alternative: Install just runtime dependencies
+# pip install -e .
+
+# Verify installation
+python -c "import cyoda_mcp; print('Installation successful')"
 ```
 
 ### 2. Code Quality Standards
@@ -234,10 +242,34 @@ When modifying entity-related code:
 - Register in `services/config.py` modules list
 
 ### MCP Tools Usage
-The project includes MCP (Model Context Protocol) tools for:
-- `workflow_mgmt_*`: Import/export workflows
+The project provides MCP (Model Context Protocol) tools that AI assistants can use:
+
+**Installation for AI Assistants:**
+```bash
+pipx install mcp-cyoda-client
+```
+
+**Configuration for AI Assistants:**
+```json
+{
+  "mcpServers": {
+    "cyoda": {
+      "command": "mcp-cyoda-client",
+      "env": {
+        "CYODA_CLIENT_ID": "your-client-id-here",
+        "CYODA_CLIENT_SECRET": "your-client-secret-here",
+        "CYODA_HOST": "client-123.eu.cyoda.net"
+      }
+    }
+  }
+}
+```
+
+**Available Tool Categories:**
+- `workflow_mgmt_*`: Import/export workflows, validate workflow files
 - `entity_*`: Create/read/update/delete entities
-- `search_*`: Search and query entities
+- `search_*`: Search and query entities with advanced conditions
+- `edge_message_*`: Send and retrieve edge messages
 
 ### Debugging Workflow Issues
 1. Check application logs for gRPC events
@@ -267,10 +299,29 @@ python -m pytest tests/integration/test_grpc_handlers_e2e.py::TestGrpcHandlersE2
 
 ### Manual E2E Testing
 1. Start application: `python run_app.py`
-2. Import workflows via MCP tools
+2. Import workflows via MCP tools or standalone script:
+   ```bash
+   # Using MCP tools (with AI assistant)
+   # OR using standalone script
+   python scripts/import_workflows.py --entity ExampleEntity --version 1 --file example_application/resources/workflow/exampleentity/version_1/ExampleEntity.json
+   ```
 3. Create entities and observe logs
 4. Verify processor creates related entities
 5. Confirm criteria validation passes
+
+### Standalone Workflow Import
+For manual workflow import without MCP tools:
+
+```bash
+# List available workflows
+python scripts/import_workflows.py --list
+
+# Import specific workflow
+python scripts/import_workflows.py --entity ExampleEntity --version 1 --file example_application/resources/workflow/exampleentity/version_1/ExampleEntity.json
+
+# Validate workflow before import
+python scripts/import_workflows.py --entity ExampleEntity --version 1 --file path/to/workflow.json --validate-only
+```
 
 ## 🐛 Troubleshooting
 

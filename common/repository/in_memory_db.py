@@ -22,7 +22,7 @@ from typing import Any, Dict, List, Optional
 from common.repository.crud_repository import CrudRepository
 from common.utils.utils import generate_uuid
 
-logger = logging.getLogger("django")
+logger = logging.getLogger(__name__)
 
 # Global in-memory cache - this is where all data is stored when using in-memory repository
 # This dictionary persists for the lifetime of the application process
