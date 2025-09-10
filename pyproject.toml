@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mcp-cyoda-client"
-version = "0.1.2"
+version = "0.1.4"
 description = "Model Context Protocol server for Cyoda platform - enables AI assistants to interact with Cyoda's entity management, search, workflow, and deployment capabilities"
 readme = "README.md"
 requires-python = ">=3.10"
