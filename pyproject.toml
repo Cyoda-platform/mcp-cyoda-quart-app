@@ -29,6 +29,7 @@ dependencies = [
     "PyJWT>=2.10.1",
     "Authlib>=1.6.0",
     "dependency_injector>=4.48.1",
+    "psutil>=7.0.0"
 ]
 
 authors = [
@@ -59,12 +60,13 @@ Issues = "https://github.com/Cyoda-platform/quart-client-template/issues"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["cyoda_mcp*", "common*", "entity*", "service*", "workflow*", "proto*", "routes*"]
+include = ["cyoda_mcp*", "common*", "application*"]
 
 [tool.setuptools.package-data]
 # Include non-py files shipped with the package
 cyoda_mcp = ["*.json", "*.yaml", "*.yml"]
-proto = ["*.proto"]
+"common.proto" = ["*.proto"]
+application = ["*.json", "*.yaml", "*.yml"]
 
 [tool.setuptools]
 package-dir = {"" = "."}
@@ -72,11 +74,186 @@ package-dir = {"" = "."}
 # Optional development dependencies
 [project.optional-dependencies]
 dev = [
-    "pytest>=7.0",
-    "pytest-asyncio>=0.21.0",
-    "black>=23.0",
-    "isort>=5.12",
-    "mypy>=1.0",
+    # Testing framework
+    "pytest==7.4.0",
+    "pytest-asyncio==0.21.0",
+    "pytest-cov==4.1.0",
+    # Code formatting and quality
+    "black==25.1.0",
+    "isort==6.0.1",
+    "mypy==1.17.1",
+    "flake8==7.1.1",  # Latest available version
+    "flake8-pyproject>=1.2.0",  # Enables pyproject.toml support for flake8
+    "bandit==1.8.6",
+    # Type stubs for better mypy support
+    "types-aiofiles>=23.0",
+    "types-jsonschema>=4.0",
+    "types-requests>=2.0",
+    # Build and packaging tools
     "build>=0.10",
     "twine>=4.0",
 ]
+# MyPy configuration
+[tool.mypy]
+python_version = "3.11"
+strict = true
+namespace_packages = true
+
+# Exclude proto-generated files and other directories that shouldn't be type-checked
+exclude = [
+    "^proto/.*\\.py$",
+    "^proto/.*\\.pyi$",
+    "^backup/.*\\.py$",
+    "__pycache__",
+    "build/",
+    "dist/",
+]
+
+# Focus on critical bug-catching errors only
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+disallow_untyped_calls = true
+check_untyped_defs = true
+strict_optional = true
+
+# Reduce noise from non-critical issues
+warn_return_any = false
+warn_unused_ignores = false
+ignore_missing_imports = false
+
+# Per-module overrides for proto files (additional safety net)
+[[tool.mypy.overrides]]
+module = [
+    "common.proto.*",
+    "common.proto.cloudevents_pb2",
+    "common.proto.cloudevents_pb2_grpc",
+    "common.proto.cyoda_cloud_api_pb2",
+    "common.proto.cyoda_cloud_api_pb2_grpc",
+    "tests.*",
+]
+ignore_errors = true
+
+# Override for external libraries without stubs
+[[tool.mypy.overrides]]
+module = [
+    "authlib.*",
+    "grpcio.*",
+    "grpc.*",
+    "protobuf.*",
+    "google.protobuf.*",
+    "quart.*",
+    "quart_schema.*",
+    "hypercorn.*",
+    "dependency_injector.*",
+    "aiofiles.*",
+    "jsonschema.*",
+    "fastmcp.*",
+    "httpx.*",
+    "requests.*",
+    "asyncio_mqtt.*",
+    "pydantic.*",
+]
+ignore_missing_imports = true
+
+# Black code formatting
+[tool.black]
+line-length = 88
+target-version = ["py310", "py311", "py312"]
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+  | common/proto
+)/
+'''
+
+# isort import sorting
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
+known_first_party = ["cyoda_mcp", "common", "application"]
+skip_glob = ["common/proto/*"]
+
+# pytest configuration
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra -q --strict-markers --strict-config"
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+]
+
+# Coverage configuration (if using pytest-cov)
+[tool.coverage.run]
+source = ["cyoda_mcp", "common", "entity", "service", "workflow", "routes"]
+omit = [
+    "*/tests/*",
+    "*/test_*",
+    "proto/*",
+    "*/__pycache__/*",
+    "*/.*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+
+# Flake8 configuration
+[tool.flake8]
+max-line-length = 88
+extend-ignore = [
+    "E203",  # whitespace before ':'
+    "E501",  # line too long (handled by black)
+    "E704",  # multiple statements on one line (def) - common in protocol stubs
+    "N805",  # first argument should be named 'self' (not applicable to classmethods)
+    "W503",  # line break before binary operator
+]
+exclude = [
+    ".git",
+    ".venv",
+    ".env",
+    "__pycache__",
+    "proto",
+    "build",
+    "dist",
+    ".eggs",
+    "*.egg",
+    ".pytest_cache",
+    ".mypy_cache",
+    ".coverage",
+    "htmlcov",
+    ".tox",
+    "venv",
+    "env",
+    "tests",
+]
+
+# Bandit security linter configuration
+[tool.bandit]
+exclude_dirs = ["tests", "proto", "build", "dist", "venv", "env"]
+skips = ["B101"]  # Skip assert_used test

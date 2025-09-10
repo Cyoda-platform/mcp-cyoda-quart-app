@@ -155,6 +155,8 @@ class TestClassName:
 - Documentation is complete and accurate
 - No security vulnerabilities
 - Performance is acceptable
+- Code quality tools pass (flake8, black, isort, mypy, bandit)
+- Always run mypy, flake8, black, isort, bandit to check generated code
 
 #### Review Checklist
 - [ ] Follows Zen of Python principles
@@ -164,6 +166,7 @@ class TestClassName:
 - [ ] Documentation complete
 - [ ] Backward compatibility maintained
 - [ ] Performance implications considered
+- [ ] Code quality tools pass (flake8, black, isort, mypy, bandit)
 
 ## Final Principle
 **If there are multiple ways to do something, choose the one that's the most Pythonic.**

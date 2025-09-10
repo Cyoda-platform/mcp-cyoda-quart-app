@@ -1,12 +1,9 @@
 import logging
-from typing import Optional
+from typing import Any, Dict, Optional
 
-from proto.cloudevents_pb2 import CloudEvent
-
+from common.exception.grpc_exceptions import ErrorHandler, GrpcClientError, HandlerError
 from common.grpc_client.middleware.base import MiddlewareLink
-from common.exception.grpc_exceptions import (
-    ErrorHandler, HandlerError, GrpcClientError
-)
+from common.proto.cloudevents_pb2 import CloudEvent
 
 logger = logging.getLogger(__name__)
 
@@ -14,11 +11,11 @@ logger = logging.getLogger(__name__)
 class ErrorMiddleware(MiddlewareLink):
     """Enhanced error middleware with comprehensive error handling."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.error_handler = ErrorHandler(logger)
 
-    async def handle(self, event: CloudEvent):
+    async def handle(self, event: CloudEvent) -> Any:
         try:
             return await super().handle(event)
         except GrpcClientError as e:
@@ -32,16 +29,14 @@ class ErrorMiddleware(MiddlewareLink):
                 event_type=event.type,
                 event_id=event.id,
                 message=str(e),
-                original_error=e
+                original_error=e,
             )
             self.error_handler.handle_error(grpc_error)
             return self._create_error_response(grpc_error, event)
 
     def _create_error_response(
-        self,
-        error: GrpcClientError,
-        event: CloudEvent
-    ) -> Optional[dict]:
+        self, error: GrpcClientError, event: CloudEvent
+    ) -> Optional[Dict[str, Any]]:
         """
         Create error response based on error type and recoverability.
 
@@ -55,4 +50,3 @@ class ErrorMiddleware(MiddlewareLink):
         # For now, preserve current behavior: do not emit error responses
         # This can be enhanced later to send error responses for certain error types
         return None
-

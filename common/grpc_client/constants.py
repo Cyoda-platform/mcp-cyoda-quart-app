@@ -13,4 +13,3 @@ GREET_EVENT_TYPE = "CalculationMemberGreetEvent"
 KEEP_ALIVE_EVENT_TYPE = "CalculationMemberKeepAliveEvent"
 EVENT_ACK_TYPE = "EventAckResponse"
 ERROR_EVENT_TYPE = "ErrorEvent"
-

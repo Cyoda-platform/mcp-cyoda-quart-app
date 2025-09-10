@@ -25,15 +25,156 @@ PERFORMANCE NOTES:
 """
 
 from abc import ABC, abstractmethod
-from typing import List, Any, Optional, Dict, Union, Collection
 from dataclasses import dataclass
 from datetime import datetime
-from uuid import UUID
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
+
+class SearchOperator(Enum):
+    """Search operators for entity queries."""
+
+    # Equality operators
+    EQUALS = "eq"
+    NOT_EQUALS = "ne"
+    IEQUALS = "ieq"  # Case-insensitive equals
+    INOT_EQUALS = "ine"  # Case-insensitive not equals
+
+    # Null checks
+    IS_NULL = "is_null"
+    NOT_NULL = "not_null"
+
+    # Comparison operators
+    GREATER_THAN = "gt"
+    GREATER_OR_EQUAL = "gte"
+    LESS_THAN = "lt"
+    LESS_OR_EQUAL = "lte"
+
+    # Text operators
+    CONTAINS = "contains"
+    NOT_CONTAINS = "not_contains"
+    STARTS_WITH = "startswith"
+    NOT_STARTS_WITH = "not_startswith"
+    ENDS_WITH = "endswith"
+    NOT_ENDS_WITH = "not_endswith"
+
+    # Case-insensitive text operators
+    ICONTAINS = "icontains"
+    INOT_CONTAINS = "inot_contains"
+    ISTARTS_WITH = "istartswith"
+    INOT_STARTS_WITH = "inot_startswith"
+    IENDS_WITH = "iendswith"
+    INOT_ENDS_WITH = "inot_endswith"
+
+    # Pattern matching
+    MATCHES_PATTERN = "matches_pattern"
+    LIKE = "like"
+
+    # Range operators
+    BETWEEN = "between"
+    BETWEEN_INCLUSIVE = "between_inclusive"
+
+    # List operators
+    IN = "in"
+    NOT_IN = "not_in"
+
+    # Change detection
+    IS_UNCHANGED = "is_unchanged"
+    IS_CHANGED = "is_changed"
+
+
+class CyodaOperator(Enum):
+    """Cyoda search operators mapping to internal operators."""
+
+    # Equality operators
+    EQUALS = "EQUALS"
+    NOT_EQUAL = "NOT_EQUAL"
+    IEQUALS = "IEQUALS"
+    INOT_EQUAL = "INOT_EQUAL"
+
+    # Null checks
+    IS_NULL = "IS_NULL"
+    NOT_NULL = "NOT_NULL"
+
+    # Comparison operators
+    GREATER_THAN = "GREATER_THAN"
+    GREATER_OR_EQUAL = "GREATER_OR_EQUAL"
+    LESS_THAN = "LESS_THAN"
+    LESS_OR_EQUAL = "LESS_OR_EQUAL"
+
+    # Text operators
+    CONTAINS = "CONTAINS"
+    NOT_CONTAINS = "NOT_CONTAINS"
+    STARTS_WITH = "STARTS_WITH"
+    NOT_STARTS_WITH = "NOT_STARTS_WITH"
+    ENDS_WITH = "ENDS_WITH"
+    NOT_ENDS_WITH = "NOT_ENDS_WITH"
+
+    # Case-insensitive text operators
+    ICONTAINS = "ICONTAINS"
+    ISTARTS_WITH = "ISTARTS_WITH"
+    IENDS_WITH = "IENDS_WITH"
+    INOT_CONTAINS = "INOT_CONTAINS"
+    INOT_STARTS_WITH = "INOT_STARTS_WITH"
+    INOT_ENDS_WITH = "INOT_ENDS_WITH"
+
+    # Pattern matching
+    MATCHES_PATTERN = "MATCHES_PATTERN"
+    LIKE = "LIKE"
+
+    # Range operators
+    BETWEEN = "BETWEEN"
+    BETWEEN_INCLUSIVE = "BETWEEN_INCLUSIVE"
+
+    # Change detection
+    IS_UNCHANGED = "IS_UNCHANGED"
+    IS_CHANGED = "IS_CHANGED"
+
+
+class LogicalOperator(Enum):
+    """Logical operators for combining search conditions."""
+
+    AND = "and"
+    OR = "or"
+
+
+# Mapping from Cyoda operators to internal SearchOperator
+CYODA_OPERATOR_MAPPING = {
+    CyodaOperator.EQUALS.value: SearchOperator.EQUALS,
+    CyodaOperator.NOT_EQUAL.value: SearchOperator.NOT_EQUALS,
+    CyodaOperator.IEQUALS.value: SearchOperator.IEQUALS,
+    CyodaOperator.INOT_EQUAL.value: SearchOperator.INOT_EQUALS,
+    CyodaOperator.IS_NULL.value: SearchOperator.IS_NULL,
+    CyodaOperator.NOT_NULL.value: SearchOperator.NOT_NULL,
+    CyodaOperator.GREATER_THAN.value: SearchOperator.GREATER_THAN,
+    CyodaOperator.GREATER_OR_EQUAL.value: SearchOperator.GREATER_OR_EQUAL,
+    CyodaOperator.LESS_THAN.value: SearchOperator.LESS_THAN,
+    CyodaOperator.LESS_OR_EQUAL.value: SearchOperator.LESS_OR_EQUAL,
+    CyodaOperator.CONTAINS.value: SearchOperator.CONTAINS,
+    CyodaOperator.NOT_CONTAINS.value: SearchOperator.NOT_CONTAINS,
+    CyodaOperator.STARTS_WITH.value: SearchOperator.STARTS_WITH,
+    CyodaOperator.NOT_STARTS_WITH.value: SearchOperator.NOT_STARTS_WITH,
+    CyodaOperator.ENDS_WITH.value: SearchOperator.ENDS_WITH,
+    CyodaOperator.NOT_ENDS_WITH.value: SearchOperator.NOT_ENDS_WITH,
+    CyodaOperator.ICONTAINS.value: SearchOperator.ICONTAINS,
+    CyodaOperator.ISTARTS_WITH.value: SearchOperator.ISTARTS_WITH,
+    CyodaOperator.IENDS_WITH.value: SearchOperator.IENDS_WITH,
+    CyodaOperator.INOT_CONTAINS.value: SearchOperator.INOT_CONTAINS,
+    CyodaOperator.INOT_STARTS_WITH.value: SearchOperator.INOT_STARTS_WITH,
+    CyodaOperator.INOT_ENDS_WITH.value: SearchOperator.INOT_ENDS_WITH,
+    CyodaOperator.MATCHES_PATTERN.value: SearchOperator.MATCHES_PATTERN,
+    CyodaOperator.LIKE.value: SearchOperator.LIKE,
+    CyodaOperator.BETWEEN.value: SearchOperator.BETWEEN,
+    CyodaOperator.BETWEEN_INCLUSIVE.value: SearchOperator.BETWEEN_INCLUSIVE,
+    CyodaOperator.IS_UNCHANGED.value: SearchOperator.IS_UNCHANGED,
+    CyodaOperator.IS_CHANGED.value: SearchOperator.IS_CHANGED,
+}
 
 
 @dataclass
 class EntityMetadata:
     """Entity metadata containing technical information."""
+
     id: str  # Technical UUID
     state: Optional[str] = None
     version: Optional[int] = None
@@ -45,13 +186,14 @@ class EntityMetadata:
 @dataclass
 class EntityResponse:
     """Response wrapper containing entity data and metadata."""
+
     data: Any  # The actual entity data
     metadata: EntityMetadata
-    
+
     def get_id(self) -> str:
         """Get technical UUID."""
         return self.metadata.id
-    
+
     def get_state(self) -> Optional[str]:
         """Get entity state."""
         return self.metadata.state
@@ -60,80 +202,86 @@ class EntityResponse:
 @dataclass
 class SearchCondition:
     """Search condition for entity queries."""
+
     field: str
-    operator: str  # "eq", "ne", "gt", "lt", "gte", "lte", "in", "contains"
+    operator: SearchOperator  # Use SearchOperator enum
     value: Any
 
 
 @dataclass
 class SearchConditionRequest:
     """Complex search request with multiple conditions."""
+
     conditions: List[SearchCondition]
     operator: str = "and"  # "and" or "or"
     limit: Optional[int] = None
     offset: Optional[int] = None
-    
+
     @classmethod
-    def builder(cls) -> 'SearchConditionRequestBuilder':
+    def builder(cls) -> "SearchConditionRequestBuilder":
         """Create a builder for SearchConditionRequest."""
         return SearchConditionRequestBuilder()
 
 
 class SearchConditionRequestBuilder:
     """Builder for SearchConditionRequest."""
-    
-    def __init__(self):
-        self._conditions = []
+
+    def __init__(self) -> None:
+        self._conditions: List[SearchCondition] = []
         self._operator = "and"
-        self._limit = None
-        self._offset = None
-    
-    def add_condition(self, field: str, operator: str, value: Any) -> 'SearchConditionRequestBuilder':
+        self._limit: Optional[int] = None
+        self._offset: Optional[int] = None
+
+    def add_condition(
+        self, field: str, operator: SearchOperator, value: Any
+    ) -> "SearchConditionRequestBuilder":
         """Add a search condition."""
         self._conditions.append(SearchCondition(field, operator, value))
         return self
-    
-    def equals(self, field: str, value: Any) -> 'SearchConditionRequestBuilder':
+
+    def equals(self, field: str, value: Any) -> "SearchConditionRequestBuilder":
         """Add equals condition."""
-        return self.add_condition(field, "eq", value)
-    
-    def contains(self, field: str, value: str) -> 'SearchConditionRequestBuilder':
+        return self.add_condition(field, SearchOperator.EQUALS, value)
+
+    def contains(self, field: str, value: str) -> "SearchConditionRequestBuilder":
         """Add contains condition."""
-        return self.add_condition(field, "contains", value)
-    
-    def in_values(self, field: str, values: List[Any]) -> 'SearchConditionRequestBuilder':
+        return self.add_condition(field, SearchOperator.CONTAINS, value)
+
+    def in_values(
+        self, field: str, values: List[Any]
+    ) -> "SearchConditionRequestBuilder":
         """Add 'in' condition."""
-        return self.add_condition(field, "in", values)
-    
-    def operator(self, op: str) -> 'SearchConditionRequestBuilder':
+        return self.add_condition(field, SearchOperator.IN, values)
+
+    def operator(self, op: LogicalOperator) -> "SearchConditionRequestBuilder":
         """Set logical operator (and/or)."""
-        self._operator = op
+        self._operator = op.value
         return self
-    
-    def limit(self, limit: int) -> 'SearchConditionRequestBuilder':
+
+    def limit(self, limit: int) -> "SearchConditionRequestBuilder":
         """Set result limit."""
         self._limit = limit
         return self
-    
-    def offset(self, offset: int) -> 'SearchConditionRequestBuilder':
+
+    def offset(self, offset: int) -> "SearchConditionRequestBuilder":
         """Set result offset."""
         self._offset = offset
         return self
-    
+
     def build(self) -> SearchConditionRequest:
         """Build the search request."""
         return SearchConditionRequest(
             conditions=self._conditions,
             operator=self._operator,
             limit=self._limit,
-            offset=self._offset
+            offset=self._offset,
         )
 
 
 class EntityService(ABC):
     """
     Simplified EntityService interface with clear method selection guidance.
-    
+
     This interface provides a clean, consistent API for entity operations
     with performance guidance and clear method selection criteria.
     """
@@ -143,15 +291,17 @@ class EntityService(ABC):
     # ========================================
 
     @abstractmethod
-    async def get_by_id(self, entity_id: str, entity_class: str, entity_version: str = "1") -> Optional[EntityResponse]:
+    async def get_by_id(
+        self, entity_id: str, entity_class: str, entity_version: str = "1"
+    ) -> Optional[EntityResponse]:
         """
         Get entity by technical UUID (FASTEST - use when you have the UUID).
-        
+
         Args:
             entity_id: Technical UUID from EntityResponse.metadata.id
             entity_class: Entity class/model name
             entity_version: Entity model version
-            
+
         Returns:
             EntityResponse with entity and metadata, or None if not found
         """
@@ -159,36 +309,38 @@ class EntityService(ABC):
 
     @abstractmethod
     async def find_by_business_id(
-        self, 
-        entity_class: str, 
-        business_id: str, 
+        self,
+        entity_class: str,
+        business_id: str,
         business_id_field: str,
-        entity_version: str = "1"
+        entity_version: str = "1",
     ) -> Optional[EntityResponse]:
         """
         Find entity by business identifier (MEDIUM SPEED - use for user-facing IDs).
         Examples: cart_id="CART-123", payment_id="PAY-456", order_id="ORD-789"
-        
+
         Args:
             entity_class: Entity class/model name
             business_id: Business identifier value (e.g., "CART-123")
             business_id_field: Field name containing the business ID (e.g., "cart_id")
             entity_version: Entity model version
-            
+
         Returns:
             EntityResponse with entity and metadata, or None if not found
         """
         pass
 
     @abstractmethod
-    async def find_all(self, entity_class: str, entity_version: str = "1") -> List[EntityResponse]:
+    async def find_all(
+        self, entity_class: str, entity_version: str = "1"
+    ) -> List[EntityResponse]:
         """
         Get all entities of a type (SLOW - use sparingly).
-        
+
         Args:
             entity_class: Entity class/model name
             entity_version: Entity model version
-            
+
         Returns:
             List of EntityResponse with entities and metadata
         """
@@ -196,20 +348,20 @@ class EntityService(ABC):
 
     @abstractmethod
     async def search(
-        self, 
-        entity_class: str, 
+        self,
+        entity_class: str,
         condition: SearchConditionRequest,
-        entity_version: str = "1"
+        entity_version: str = "1",
     ) -> List[EntityResponse]:
         """
         Search entities with complex conditions (SLOWEST - most flexible).
         Use for advanced queries with multiple conditions, filtering, etc.
-        
+
         Args:
             entity_class: Entity class/model name
             condition: Search condition (use SearchConditionRequest.builder())
             entity_version: Entity model version
-            
+
         Returns:
             List of EntityResponse with entities and metadata
         """
@@ -220,7 +372,9 @@ class EntityService(ABC):
     # ========================================
 
     @abstractmethod
-    async def save(self, entity: Dict[str, Any], entity_class: str, entity_version: str = "1") -> EntityResponse:
+    async def save(
+        self, entity: Dict[str, Any], entity_class: str, entity_version: str = "1"
+    ) -> EntityResponse:
         """
         Save a new entity (CREATE operation).
 
@@ -241,7 +395,7 @@ class EntityService(ABC):
         entity: Dict[str, Any],
         entity_class: str,
         transition: Optional[str] = None,
-        entity_version: str = "1"
+        entity_version: str = "1",
     ) -> EntityResponse:
         """
         Update existing entity by technical UUID (FASTEST - use when you have UUID).
@@ -265,7 +419,7 @@ class EntityService(ABC):
         business_id_field: str,
         entity_class: str,
         transition: Optional[str] = None,
-        entity_version: str = "1"
+        entity_version: str = "1",
     ) -> EntityResponse:
         """
         Update existing entity by business identifier (MEDIUM SPEED).
@@ -283,7 +437,9 @@ class EntityService(ABC):
         pass
 
     @abstractmethod
-    async def delete_by_id(self, entity_id: str, entity_class: str, entity_version: str = "1") -> str:
+    async def delete_by_id(
+        self, entity_id: str, entity_class: str, entity_version: str = "1"
+    ) -> str:
         """
         Delete entity by technical UUID (FASTEST).
 
@@ -303,7 +459,7 @@ class EntityService(ABC):
         entity_class: str,
         business_id: str,
         business_id_field: str,
-        entity_version: str = "1"
+        entity_version: str = "1",
     ) -> bool:
         """
         Delete entity by business identifier.
@@ -328,7 +484,7 @@ class EntityService(ABC):
         self,
         entities: List[Dict[str, Any]],
         entity_class: str,
-        entity_version: str = "1"
+        entity_version: str = "1",
     ) -> List[EntityResponse]:
         """
         Save multiple entities in batch.
@@ -362,7 +518,9 @@ class EntityService(ABC):
     # ========================================
 
     @abstractmethod
-    async def get_transitions(self, entity_id: str, entity_class: str, entity_version: str = "1") -> List[str]:
+    async def get_transitions(
+        self, entity_id: str, entity_class: str, entity_version: str = "1"
+    ) -> List[str]:
         """
         Get available transitions for an entity.
 
@@ -382,7 +540,7 @@ class EntityService(ABC):
         entity_id: str,
         transition: str,
         entity_class: str,
-        entity_version: str = "1"
+        entity_version: str = "1",
     ) -> EntityResponse:
         """
         Execute a workflow transition on an entity.
@@ -402,7 +560,9 @@ class EntityService(ABC):
     # UTILITY METHODS
     # ========================================
 
-    async def exists_by_id(self, entity_id: str, entity_class: str, entity_version: str = "1") -> bool:
+    async def exists_by_id(
+        self, entity_id: str, entity_class: str, entity_version: str = "1"
+    ) -> bool:
         """
         Check if entity exists by technical UUID.
 
@@ -425,7 +585,7 @@ class EntityService(ABC):
         entity_class: str,
         business_id: str,
         business_id_field: str,
-        entity_version: str = "1"
+        entity_version: str = "1",
     ) -> bool:
         """
         Check if entity exists by business identifier.
@@ -440,7 +600,9 @@ class EntityService(ABC):
             True if entity exists, False if not found
         """
         try:
-            result = await self.find_by_business_id(entity_class, business_id, business_id_field, entity_version)
+            result = await self.find_by_business_id(
+                entity_class, business_id, business_id_field, entity_version
+            )
             return result is not None
         except Exception:
             return False
@@ -466,30 +628,56 @@ class EntityService(ABC):
     # LEGACY COMPATIBILITY METHODS
     # ========================================
 
-    async def get_item(self, token: str, entity_model: str, entity_version: str, technical_id: str, meta=None) -> Any:
+    async def get_item(
+        self,
+        token: str,
+        entity_model: str,
+        entity_version: str,
+        technical_id: str,
+        meta: Any = None,
+    ) -> Any:
         """
         @deprecated Use get_by_id() instead for better clarity
         """
         import warnings
-        warnings.warn("get_item() is deprecated, use get_by_id() instead", DeprecationWarning, stacklevel=2)
+
+        warnings.warn(
+            "get_item() is deprecated, use get_by_id() instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         result = await self.get_by_id(technical_id, entity_model, entity_version)
         return result.data if result else None
 
-    async def get_items(self, token: str, entity_model: str, entity_version: str) -> List[Any]:
+    async def get_items(
+        self, token: str, entity_model: str, entity_version: str
+    ) -> List[Any]:
         """
         @deprecated Use find_all() instead for better clarity
         """
         import warnings
-        warnings.warn("get_items() is deprecated, use find_all() instead", DeprecationWarning, stacklevel=2)
+
+        warnings.warn(
+            "get_items() is deprecated, use find_all() instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         results = await self.find_all(entity_model, entity_version)
         return [result.data for result in results]
 
-    async def get_items_by_condition(self, token: str, entity_model: str, entity_version: str, condition: Any) -> List[Any]:
+    async def get_items_by_condition(
+        self, token: str, entity_model: str, entity_version: str, condition: Any
+    ) -> List[Any]:
         """
         @deprecated Use search() instead for better clarity
         """
         import warnings
-        warnings.warn("get_items_by_condition() is deprecated, use search() instead", DeprecationWarning, stacklevel=2)
+
+        warnings.warn(
+            "get_items_by_condition() is deprecated, use search() instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         # Convert legacy condition to SearchConditionRequest if needed
         if isinstance(condition, dict):
             search_request = SearchConditionRequest.builder()
