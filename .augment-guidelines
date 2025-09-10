@@ -166,6 +166,7 @@ class TestClassName:
 - [ ] Documentation complete
 - [ ] Backward compatibility maintained
 - [ ] Performance implications considered
+- [ ] Code quality tools pass (flake8, black, isort, mypy, bandit)
 
 ## Final Principle
 **If there are multiple ways to do something, choose the one that's the most Pythonic.**

@@ -137,6 +137,31 @@ This template also provides a structured framework for developing a web client u
 - **Extensibility**: A flexible and configurable project structure designed for easy customization.
 - **MCP Integration**: Full Model Context Protocol server for AI assistant integration
 
+## Contributing
+
+We welcome contributions! Please see our comprehensive guides:
+
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** - Complete contributor guide with development workflow, code quality standards, and testing requirements
+- **[AI_TESTING_GUIDE.md](AI_TESTING_GUIDE.md)** - Specific commands for testing with AI assistants
+- **[CYODA_E2E_TESTING_GUIDE.md](CYODA_E2E_TESTING_GUIDE.md)** - End-to-end testing procedures
+
+### Quick Contributor Setup
+```bash
+git clone <repository-url>
+cd mcp-cyoda-quart-app
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+
+# Run code quality checks
+python -m black . && python -m isort . && python -m mypy . && python -m flake8 . && python -m bandit -r .
+
+# Run integration tests
+python -m pytest tests/integration/test_grpc_handlers_e2e.py -v
+```
+
+**Important**: Contributors can edit all code except the `application/` directory, which is reserved for end users.
+
 ## Development Installation Guide
 
 For development or if you want to modify the source code:
