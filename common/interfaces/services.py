@@ -106,15 +106,15 @@ class IConfigurationProvider(ABC):
 class ILogger(Protocol):
     """Protocol for logger interface."""
 
-    def debug(self, message: str, *args, **kwargs) -> None: ...
+    def debug(self, message: str, *args: Any, **kwargs: Any) -> None: ...
 
-    def info(self, message: str, *args, **kwargs) -> None: ...
+    def info(self, message: str, *args: Any, **kwargs: Any) -> None: ...
 
-    def warning(self, message: str, *args, **kwargs) -> None: ...
+    def warning(self, message: str, *args: Any, **kwargs: Any) -> None: ...
 
-    def error(self, message: str, *args, **kwargs) -> None: ...
+    def error(self, message: str, *args: Any, **kwargs: Any) -> None: ...
 
-    def exception(self, message: str, *args, **kwargs) -> None: ...
+    def exception(self, message: str, *args: Any, **kwargs: Any) -> None: ...
 
 
 class IMetricsCollector(ABC):
@@ -214,14 +214,14 @@ class IProcessorManager(ABC):
 
     @abstractmethod
     async def process_entity(
-        self, processor_name: str, entity: CyodaEntity, **kwargs
+        self, processor_name: str, entity: CyodaEntity, **kwargs: Any
     ) -> CyodaEntity:
         """Process an entity using the specified processor."""
         pass
 
     @abstractmethod
     async def check_criteria(
-        self, criteria_name: str, entity: CyodaEntity, **kwargs
+        self, criteria_name: str, entity: CyodaEntity, **kwargs: Any
     ) -> bool:
         """Check if entity meets the specified criteria."""
         pass

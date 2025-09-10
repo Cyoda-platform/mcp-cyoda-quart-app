@@ -8,8 +8,7 @@ using the EdgeMessageRepository for Cyoda API operations.
 import logging
 from typing import Any, Dict, List, Optional
 
-from common.repository.cyoda.edge_message_repository import \
-    EdgeMessageRepository
+from common.repository.cyoda.edge_message_repository import EdgeMessageRepository
 
 logger = logging.getLogger(__name__)
 

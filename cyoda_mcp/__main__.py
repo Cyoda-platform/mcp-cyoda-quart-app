@@ -5,11 +5,9 @@ Keep this minimal so users get a reliable one-liner.
 """
 
 import argparse
-import asyncio
 import logging
 import os
 import sys
-from typing import Optional
 
 
 def setup_logging(level: str = "INFO") -> None:
@@ -80,7 +78,7 @@ def start_server(
             logger.info(f"Server will be available at {transport}://{host}:{port}")
 
         # Run the server (this will block)
-        start(transport=transport, host=host, port=port)
+        start(transport=transport, host=host, port=port)  # type: ignore[arg-type]
         return 0
 
     except ImportError as e:

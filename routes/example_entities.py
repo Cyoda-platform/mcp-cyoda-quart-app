@@ -5,14 +5,18 @@ Manages all ExampleEntity-related API endpoints including CRUD operations
 and workflow transitions as specified in functional requirements.
 """
 
+from __future__ import annotations
+
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Protocol, cast
 
 from pydantic import BaseModel, Field
 from quart import Blueprint, jsonify, request
+from quart.typing import ResponseReturnValue
 from quart_schema import validate_querystring, validate_request
 
-from entity.example_entity import ExampleEntity
+# Imported for possible external references / type hints
+from entity.example_entity import ExampleEntity  # noqa: F401
 from service.services import get_entity_service
 
 logger = logging.getLogger(__name__)
@@ -21,16 +25,86 @@ example_entities_bp = Blueprint(
     "example_entities", __name__, url_prefix="/api/example-entities"
 )
 
+
+# ---- Service typing ---------------------------------------------------------
+
+
+class _EntityMetadata(Protocol):
+    id: str
+    state: str
+
+
+class _SavedEntity(Protocol):
+    metadata: _EntityMetadata
+    data: Dict[str, Any]
+
+
+class _ListedEntity(Protocol):
+    def get_id(self) -> str: ...
+    def get_state(self) -> str: ...
+
+    data: Dict[str, Any]
+
+
+class EntityServiceProtocol(Protocol):
+    async def save(
+        self, *, entity: Dict[str, Any], entity_class: str, entity_version: str
+    ) -> _SavedEntity: ...
+
+    async def get_by_id(
+        self, *, entity_id: str, entity_class: str, entity_version: str
+    ) -> Optional[_SavedEntity]: ...
+
+    async def search(
+        self,
+        *,
+        entity_class: str,
+        search_conditions: Dict[str, str],
+        entity_version: str,
+    ) -> List[_ListedEntity]: ...
+
+    async def find_all(
+        self, *, entity_class: str, entity_version: str
+    ) -> List[_ListedEntity]: ...
+
+    async def update(
+        self,
+        *,
+        entity_id: str,
+        entity: Dict[str, Any],
+        entity_class: str,
+        transition: Optional[str],
+        entity_version: str,
+    ) -> _SavedEntity: ...
+
+    async def delete_by_id(
+        self, *, entity_id: str, entity_class: str, entity_version: str
+    ) -> None: ...
+
+    async def execute_transition(
+        self,
+        *,
+        entity_id: str,
+        transition: str,
+        entity_class: str,
+        entity_version: str,
+    ) -> _SavedEntity: ...
+
+
 # Services will be accessed through the registry
-entity_service = None
+entity_service: Optional[EntityServiceProtocol] = None
 
 
-def get_services():
+def get_services() -> EntityServiceProtocol:
     """Get services from the registry lazily."""
     global entity_service
     if entity_service is None:
-        entity_service = get_entity_service()
+        # get_entity_service() is likely untyped, so cast to our protocol
+        entity_service = cast(EntityServiceProtocol, get_entity_service())
     return entity_service
+
+
+# ---- Request/Query Models ---------------------------------------------------
 
 
 class ExampleEntityQueryParams(BaseModel):
@@ -88,22 +162,27 @@ class TransitionRequest(BaseModel):
     )
 
 
+# ---- Routes -----------------------------------------------------------------
+
+
 @example_entities_bp.route("", methods=["POST"])
 @validate_request(ExampleEntityCreateRequest)
-async def create_example_entity(data: ExampleEntityCreateRequest):
+async def create_example_entity(
+    data: ExampleEntityCreateRequest,
+) -> ResponseReturnValue:
     """Create a new ExampleEntity"""
     try:
         service = get_services()
 
         # Convert request to entity data
-        entity_data = data.model_dump(by_alias=True)
+        entity_data: Dict[str, Any] = data.model_dump(by_alias=True)
 
         # Save the entity
         response = await service.save(
             entity=entity_data, entity_class="ExampleEntity", entity_version="1"
         )
 
-        logger.info(f"Created ExampleEntity with ID: {response.metadata.id}")
+        logger.info("Created ExampleEntity with ID: %s", response.metadata.id)
 
         return (
             jsonify(
@@ -115,13 +194,13 @@ async def create_example_entity(data: ExampleEntityCreateRequest):
             201,
         )
 
-    except Exception as e:
-        logger.error(f"Error creating ExampleEntity: {str(e)}")
+    except Exception as e:  # pragma: no cover - keep robust error handling
+        logger.exception("Error creating ExampleEntity: %s", str(e))
         return jsonify({"error": str(e)}), 500
 
 
 @example_entities_bp.route("/<entity_id>", methods=["GET"])
-async def get_example_entity(entity_id: str):
+async def get_example_entity(entity_id: str) -> ResponseReturnValue:
     """Get ExampleEntity by ID"""
     try:
         service = get_services()
@@ -134,26 +213,28 @@ async def get_example_entity(entity_id: str):
             return jsonify({"error": "ExampleEntity not found"}), 404
 
         # Convert to API response format
-        entity_data = response.data
+        entity_data: Dict[str, Any] = dict(response.data)
         entity_data["id"] = response.metadata.id
         entity_data["state"] = response.metadata.state
 
         return jsonify(entity_data), 200
 
-    except Exception as e:
-        logger.error(f"Error getting ExampleEntity {entity_id}: {str(e)}")
+    except Exception as e:  # pragma: no cover
+        logger.exception("Error getting ExampleEntity %s: %s", entity_id, str(e))
         return jsonify({"error": str(e)}), 500
 
 
 @example_entities_bp.route("", methods=["GET"])
 @validate_querystring(ExampleEntityQueryParams)
-async def list_example_entities(query_args: ExampleEntityQueryParams):
+async def list_example_entities(
+    query_args: ExampleEntityQueryParams,
+) -> ResponseReturnValue:
     """List ExampleEntities with optional filtering"""
     try:
         service = get_services()
 
         # Build search conditions based on query parameters
-        search_conditions = {}
+        search_conditions: Dict[str, str] = {}
 
         if query_args.category:
             search_conditions["category"] = query_args.category
@@ -177,7 +258,7 @@ async def list_example_entities(query_args: ExampleEntityQueryParams):
             )
 
         # Convert to API response format
-        entity_list = []
+        entity_list: List[Dict[str, Any]] = []
         for entity in entities:
             entity_data = {
                 "id": entity.get_id(),
@@ -193,23 +274,25 @@ async def list_example_entities(query_args: ExampleEntityQueryParams):
 
         return jsonify({"entities": paginated_entities, "total": len(entity_list)}), 200
 
-    except Exception as e:
-        logger.error(f"Error listing ExampleEntities: {str(e)}")
+    except Exception as e:  # pragma: no cover
+        logger.exception("Error listing ExampleEntities: %s", str(e))
         return jsonify({"error": str(e)}), 500
 
 
 @example_entities_bp.route("/<entity_id>", methods=["PUT"])
 @validate_request(ExampleEntityUpdateRequest)
-async def update_example_entity(entity_id: str, data: ExampleEntityUpdateRequest):
+async def update_example_entity(
+    entity_id: str, data: ExampleEntityUpdateRequest
+) -> ResponseReturnValue:
     """Update ExampleEntity and optionally trigger workflow transition"""
     try:
         service = get_services()
 
         # Get transition from request body or query parameter
-        transition = data.transition or request.args.get("transition")
+        transition: Optional[str] = data.transition or request.args.get("transition")
 
         # Convert request to entity data (exclude None values)
-        entity_data = {
+        entity_data: Dict[str, Any] = {
             k: v
             for k, v in data.model_dump(by_alias=True, exclude_none=True).items()
             if k != "transition"
@@ -224,9 +307,9 @@ async def update_example_entity(entity_id: str, data: ExampleEntityUpdateRequest
             entity_version="1",
         )
 
-        logger.info(f"Updated ExampleEntity {entity_id}")
+        logger.info("Updated ExampleEntity %s", entity_id)
 
-        result = {
+        result: Dict[str, Any] = {
             "id": response.metadata.id,
             "message": "ExampleEntity updated successfully",
         }
@@ -236,13 +319,13 @@ async def update_example_entity(entity_id: str, data: ExampleEntityUpdateRequest
 
         return jsonify(result), 200
 
-    except Exception as e:
-        logger.error(f"Error updating ExampleEntity {entity_id}: {str(e)}")
+    except Exception as e:  # pragma: no cover
+        logger.exception("Error updating ExampleEntity %s: %s", entity_id, str(e))
         return jsonify({"error": str(e)}), 500
 
 
 @example_entities_bp.route("/<entity_id>", methods=["DELETE"])
-async def delete_example_entity(entity_id: str):
+async def delete_example_entity(entity_id: str) -> ResponseReturnValue:
     """Delete ExampleEntity"""
     try:
         service = get_services()
@@ -251,18 +334,20 @@ async def delete_example_entity(entity_id: str):
             entity_id=entity_id, entity_class="ExampleEntity", entity_version="1"
         )
 
-        logger.info(f"Deleted ExampleEntity {entity_id}")
+        logger.info("Deleted ExampleEntity %s", entity_id)
 
         return jsonify({"message": "ExampleEntity deleted successfully"}), 200
 
-    except Exception as e:
-        logger.error(f"Error deleting ExampleEntity {entity_id}: {str(e)}")
+    except Exception as e:  # pragma: no cover
+        logger.exception("Error deleting ExampleEntity %s: %s", entity_id, str(e))
         return jsonify({"error": str(e)}), 500
 
 
 @example_entities_bp.route("/<entity_id>/transitions", methods=["POST"])
 @validate_request(TransitionRequest)
-async def trigger_transition(entity_id: str, data: TransitionRequest):
+async def trigger_transition(
+    entity_id: str, data: TransitionRequest
+) -> ResponseReturnValue:
     """Trigger a specific workflow transition"""
     try:
         service = get_services()
@@ -286,7 +371,9 @@ async def trigger_transition(entity_id: str, data: TransitionRequest):
         )
 
         logger.info(
-            f"Executed transition '{json.transition_name}' on ExampleEntity {entity_id}"
+            "Executed transition '%s' on ExampleEntity %s",
+            data.transition_name,
+            entity_id,
         )
 
         return (
@@ -301,8 +388,8 @@ async def trigger_transition(entity_id: str, data: TransitionRequest):
             200,
         )
 
-    except Exception as e:
-        logger.error(
-            f"Error executing transition on ExampleEntity {entity_id}: {str(e)}"
+    except Exception as e:  # pragma: no cover
+        logger.exception(
+            "Error executing transition on ExampleEntity %s: %s", entity_id, str(e)
         )
         return jsonify({"error": str(e)}), 500

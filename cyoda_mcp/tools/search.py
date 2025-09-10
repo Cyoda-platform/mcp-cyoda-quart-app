@@ -11,14 +11,14 @@ from typing import Any, Dict, Optional
 
 from fastmcp import Context, FastMCP
 
+from common.config.config import ENTITY_VERSION
+from common.service.entity_service import SearchConditionRequest
+from service.services import get_entity_service
+
 # Add the parent directory to the path so we can import from the main app
 sys.path.insert(
     0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 )
-
-from common.config.config import ENTITY_VERSION
-from common.service.entity_service import SearchConditionRequest
-from service.services import get_entity_service
 
 # Create the MCP server for search operations
 mcp = FastMCP("Search")
@@ -26,7 +26,9 @@ mcp = FastMCP("Search")
 
 @mcp.tool
 async def find_all(
-    entity_model: str, entity_version: str = ENTITY_VERSION, ctx: Optional[Context] = None
+    entity_model: str,
+    entity_version: str = ENTITY_VERSION,
+    ctx: Optional[Context] = None,
 ) -> Dict[str, Any]:
     """
     Find all entities of a specific type using entity_service.find_all().
@@ -205,7 +207,7 @@ async def search(
         }
 
 
-def _process_cyoda_condition(condition: Dict[str, Any], builder):
+def _process_cyoda_condition(condition: Dict[str, Any], builder: Any) -> None:
     """Process a single Cyoda condition and add it to the builder."""
     condition_type = condition.get("type")
 

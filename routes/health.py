@@ -4,10 +4,21 @@ Health check and monitoring routes.
 This module contains routes for health checks, liveness probes, and readiness probes.
 """
 
-import logging
-from datetime import datetime, timezone
+from __future__ import annotations
 
+import logging
+import os
+import sys
+import time
+from datetime import datetime, timezone
+from typing import Any, Tuple
+
+# Third-party (mypy: no stubs by default)
+import psutil  # type: ignore[import-untyped]
+
+# Quart typings
 from quart import Blueprint, jsonify
+from quart.typing import ResponseReturnValue
 
 from service.services import get_auth_service, get_entity_service
 
@@ -17,11 +28,11 @@ logger.setLevel(logging.INFO)
 health_bp = Blueprint("health", __name__, url_prefix="/health")
 
 # Services will be accessed through the registry
-entity_service = None
-cyoda_auth_service = None
+entity_service: Any | None = None
+cyoda_auth_service: Any | None = None
 
 
-def get_services():
+def get_services() -> Tuple[Any | None, Any | None]:
     """Get services from the registry lazily."""
     global entity_service, cyoda_auth_service
     if entity_service is None:
@@ -32,7 +43,7 @@ def get_services():
 
 
 @health_bp.route("", methods=["GET"])
-async def health_check():
+async def health_check() -> ResponseReturnValue:
     """
     Main health check endpoint.
 
@@ -40,7 +51,7 @@ async def health_check():
     """
     try:
         # Get services to verify they're available
-        entity_service, cyoda_auth_service = get_services()
+        entity_service_obj, auth_service_obj = get_services()
 
         # Basic health check - verify services are initialized
         health_status = {
@@ -48,13 +59,13 @@ async def health_check():
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "version": "1.0.0",
             "services": {
-                "entity_service": "available" if entity_service else "unavailable",
-                "auth_service": "available" if cyoda_auth_service else "unavailable",
+                "entity_service": "available" if entity_service_obj else "unavailable",
+                "auth_service": "available" if auth_service_obj else "unavailable",
             },
         }
 
         # Check if any critical services are unavailable
-        if not entity_service or not cyoda_auth_service:
+        if not entity_service_obj or not auth_service_obj:
             health_status["status"] = "degraded"
             return jsonify(health_status), 503
 
@@ -76,7 +87,7 @@ async def health_check():
 
 
 @health_bp.route("/live", methods=["GET"])
-async def liveness_check():
+async def liveness_check() -> ResponseReturnValue:
     """
     Kubernetes liveness probe endpoint.
 
@@ -96,7 +107,7 @@ async def liveness_check():
 
 
 @health_bp.route("/ready", methods=["GET"])
-async def readiness_check():
+async def readiness_check() -> ResponseReturnValue:
     """
     Kubernetes readiness probe endpoint.
 
@@ -104,27 +115,27 @@ async def readiness_check():
     """
     try:
         # Check if services are ready
-        entity_service, cyoda_auth_service = get_services()
+        entity_service_obj, auth_service_obj = get_services()
 
         # Perform more thorough readiness checks
-        readiness_checks = {
+        readiness_checks: dict[str, bool] = {
             "entity_service": False,
             "auth_service": False,
             "database_connection": False,
         }
 
         # Check entity service
-        if entity_service:
+        if entity_service_obj:
             try:
                 # You could perform a simple query here to verify database connectivity
                 # For now, just check if service is available
                 readiness_checks["entity_service"] = True
                 readiness_checks["database_connection"] = True
-            except Exception as e:
+            except Exception as e:  # pragma: no cover - defensive
                 logger.warning(f"Entity service readiness check failed: {e}")
 
         # Check auth service
-        if cyoda_auth_service:
+        if auth_service_obj:
             readiness_checks["auth_service"] = True
 
         # Determine overall readiness
@@ -157,37 +168,34 @@ async def readiness_check():
 
 
 @health_bp.route("/detailed", methods=["GET"])
-async def detailed_health_check():
+async def detailed_health_check() -> ResponseReturnValue:
     """
     Detailed health check with comprehensive system information.
     """
     try:
-        import os
-
-        import psutil
-
-        entity_service, cyoda_auth_service = get_services()
+        entity_service_obj, auth_service_obj = get_services()
 
         # System information
+        process = psutil.Process()
         system_info = {
             "cpu_percent": psutil.cpu_percent(interval=1),
             "memory_percent": psutil.virtual_memory().percent,
             "disk_usage": psutil.disk_usage("/").percent,
             "process_id": os.getpid(),
-            "python_version": f"{psutil.sys.version_info.major}.{psutil.sys.version_info.minor}.{psutil.sys.version_info.micro}",
+            "python_version": f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
         }
 
         # Service status
         service_status = {
             "entity_service": {
-                "available": bool(entity_service),
-                "type": type(entity_service).__name__ if entity_service else None,
+                "available": bool(entity_service_obj),
+                "type": (
+                    type(entity_service_obj).__name__ if entity_service_obj else None
+                ),
             },
             "auth_service": {
-                "available": bool(cyoda_auth_service),
-                "type": (
-                    type(cyoda_auth_service).__name__ if cyoda_auth_service else None
-                ),
+                "available": bool(auth_service_obj),
+                "type": type(auth_service_obj).__name__ if auth_service_obj else None,
             },
         }
 
@@ -197,7 +205,7 @@ async def detailed_health_check():
             overall_status = "degraded"
         if system_info["memory_percent"] > 90:
             overall_status = "degraded"
-        if not entity_service or not cyoda_auth_service:
+        if not entity_service_obj or not auth_service_obj:
             overall_status = "unhealthy"
 
         response_data = {
@@ -205,13 +213,14 @@ async def detailed_health_check():
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "system": system_info,
             "services": service_status,
-            "uptime_seconds": psutil.Process().create_time(),
+            # Convert create_time (epoch seconds) to uptime seconds
+            "uptime_seconds": max(0, int(time.time() - process.create_time())),
         }
 
         status_code = 200 if overall_status == "healthy" else 503
         return jsonify(response_data), status_code
 
-    except ImportError:
+    except ImportError:  # pragma: no cover - psutil missing in some envs
         # psutil not available, return basic health check
         logger.warning("psutil not available for detailed health check")
         return await health_check()
@@ -231,7 +240,7 @@ async def detailed_health_check():
 
 
 @health_bp.route("/startup", methods=["GET"])
-async def startup_check():
+async def startup_check() -> ResponseReturnValue:
     """
     Startup probe endpoint for Kubernetes.
 
@@ -239,9 +248,9 @@ async def startup_check():
     """
     try:
         # Check if application has completed startup
-        entity_service, cyoda_auth_service = get_services()
+        entity_service_obj, auth_service_obj = get_services()
 
-        startup_complete = bool(entity_service and cyoda_auth_service)
+        startup_complete = bool(entity_service_obj and auth_service_obj)
 
         if startup_complete:
             return (

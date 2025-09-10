@@ -4,11 +4,14 @@ Base classes for processors and criteria checkers.
 
 import logging
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from entity.cyoda_entity import CyodaEntity
 
 logger = logging.getLogger(__name__)
+
+# Export CyodaEntity for convenience
+__all__ = ["CyodaProcessor", "CyodaCriteriaChecker", "CyodaEntity"]
 
 
 class CyodaProcessor(ABC):
@@ -29,7 +32,7 @@ class CyodaProcessor(ABC):
         )
 
     @abstractmethod
-    async def process(self, entity: CyodaEntity, **kwargs) -> CyodaEntity:
+    async def process(self, entity: CyodaEntity, **kwargs: Any) -> CyodaEntity:
         """
         Process the entity.
 
@@ -84,7 +87,7 @@ class CyodaCriteriaChecker(ABC):
         )
 
     @abstractmethod
-    async def check(self, entity: CyodaEntity, **kwargs) -> bool:
+    async def check(self, entity: CyodaEntity, **kwargs: Any) -> bool:
         """
         Check if the entity meets the criteria.
 

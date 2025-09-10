@@ -5,30 +5,54 @@ This module provides validated entity models using Pydantic for robust
 data validation and serialization.
 """
 
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Union
-from uuid import uuid4
+from __future__ import annotations
 
-from common.models.base import (PYDANTIC_AVAILABLE, BaseValidatedModel,
-                                EntityMetadata, EntityType, ValidationUtils)
+from datetime import datetime, timezone
+from typing import Annotated, Any, Dict, List, Optional, Union
+
+from common.models.base import (
+    PYDANTIC_AVAILABLE,
+    BaseValidatedModel,
+    EntityType,
+    ValidationUtils,
+)
 
 if PYDANTIC_AVAILABLE:
-    from pydantic import ConfigDict, Field, root_validator, validator
-    from pydantic.types import conint, constr
+    # Pydantic v2 APIs
+    from pydantic import ConfigDict, Field, field_validator, model_validator
 else:
-    Field = lambda *args, **kwargs: None  # type: ignore
-    validator = lambda *args, **kwargs: lambda f: f  # type: ignore
-    root_validator = lambda *args, **kwargs: lambda f: f  # type: ignore
-    constr = str  # type: ignore
-    conint = int  # type: ignore
+    # Lightweight stubs to keep runtime import errors away if Pydantic isn't present.
+    def Field(*args: Any, **kwargs: Any) -> Any:  # type: ignore
+        return None
+
+    def field_validator(*_fields: str, **_kwargs: Any):  # type: ignore[no-untyped-def,no-redef]
+        def decorator(fn):  # type: ignore[no-untyped-def]
+            return fn
+
+        return decorator
+
+    def model_validator(*_args: Any, **_kwargs: Any):  # type: ignore[no-untyped-def,no-redef]
+        def decorator(fn):  # type: ignore[no-untyped-def]
+            return fn
+
+        return decorator
+
+    class ConfigDict(dict):  # type: ignore
+        pass
 
 
 class ValidatedCyodaEntity(BaseValidatedModel):
     """Validated Cyoda entity model with comprehensive validation."""
 
-    entity_id: constr(min_length=1, max_length=100, regex=r"^[a-zA-Z0-9_-]+$") = Field(
-        ..., description="Unique entity identifier"
-    )
+    entity_id: Annotated[
+        str,
+        Field(
+            min_length=1,
+            max_length=100,
+            pattern=r"^[a-zA-Z0-9_-]+$",
+            description="Unique entity identifier",
+        ),
+    ]
     entity_type: EntityType = Field(..., description="Type of entity")
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc),
@@ -38,11 +62,13 @@ class ValidatedCyodaEntity(BaseValidatedModel):
         default_factory=lambda: datetime.now(timezone.utc),
         description="Entity last update timestamp",
     )
-    version: conint(ge=1) = Field(default=1, description="Entity version number")
+    version: Annotated[int, Field(ge=1, description="Entity version number")] = 1
 
     # Core entity data
-    name: Optional[constr(max_length=255)] = Field(None, description="Entity name")
-    description: Optional[constr(max_length=1000)] = Field(
+    name: Optional[Annotated[str, Field(max_length=255)]] = Field(
+        None, description="Entity name"
+    )
+    description: Optional[Annotated[str, Field(max_length=1000)]] = Field(
         None, description="Entity description"
     )
     status: Optional[str] = Field(default="active", description="Entity status")
@@ -84,15 +110,21 @@ class ValidatedCyodaEntity(BaseValidatedModel):
         }
     )
 
-    @validator("entity_id")
-    def validate_entity_id(cls, v):
+    # -----------------------
+    # Validators (Pydantic v2)
+    # -----------------------
+
+    @field_validator("entity_id")
+    @classmethod
+    def validate_entity_id(cls, v: str) -> str:
         """Validate entity ID format."""
         if not ValidationUtils.validate_entity_id(v):
             raise ValueError("Invalid entity ID format")
         return v.strip()
 
-    @validator("created_at", "updated_at", "last_processed_at", pre=True)
-    def parse_datetime(cls, v):
+    @field_validator("created_at", "updated_at", "last_processed_at", mode="before")
+    @classmethod
+    def parse_datetime(cls, v: Optional[Union[str, datetime]]) -> Optional[datetime]:
         """Parse datetime from various formats."""
         if v is None:
             return v
@@ -103,13 +135,14 @@ class ValidatedCyodaEntity(BaseValidatedModel):
             return datetime.fromisoformat(v)
         return v
 
-    @validator("tags")
-    def validate_tags(cls, v):
+    @field_validator("tags")
+    @classmethod
+    def validate_tags(cls, v: Any) -> List[str]:
         """Validate and normalize tags."""
         if not isinstance(v, list):
             return []
 
-        validated_tags = []
+        validated_tags: List[str] = []
         for tag in v:
             if isinstance(tag, str) and len(tag.strip()) > 0:
                 # Normalize tag format
@@ -120,25 +153,41 @@ class ValidatedCyodaEntity(BaseValidatedModel):
                 ):
                     validated_tags.append(normalized_tag)
 
-        return list(set(validated_tags))  # Remove duplicates
+        # Remove duplicates while preserving order
+        deduped: List[str] = []
+        seen = set()
+        for t in validated_tags:
+            if t not in seen:
+                seen.add(t)
+                deduped.append(t)
+        return deduped
 
-    @validator("children_ids")
-    def validate_children_ids(cls, v):
+    @field_validator("children_ids")
+    @classmethod
+    def validate_children_ids(cls, v: Any) -> List[str]:
         """Validate child entity IDs."""
         if not isinstance(v, list):
             return []
 
-        validated_ids = []
+        validated_ids: List[str] = []
         for child_id in v:
             if isinstance(child_id, str) and ValidationUtils.validate_entity_id(
                 child_id
             ):
                 validated_ids.append(child_id.strip())
 
-        return list(set(validated_ids))  # Remove duplicates
+        # Remove duplicates while preserving order
+        deduped: List[str] = []
+        seen = set()
+        for cid in validated_ids:
+            if cid not in seen:
+                seen.add(cid)
+                deduped.append(cid)
+        return deduped
 
-    @validator("parent_id")
-    def validate_parent_id(cls, v):
+    @field_validator("parent_id")
+    @classmethod
+    def validate_parent_id(cls, v: Optional[str]) -> Optional[str]:
         """Validate parent entity ID."""
         if v is None:
             return v
@@ -146,8 +195,9 @@ class ValidatedCyodaEntity(BaseValidatedModel):
             raise ValueError("Invalid parent entity ID format")
         return v.strip()
 
-    @validator("status")
-    def validate_status(cls, v):
+    @field_validator("status")
+    @classmethod
+    def validate_status(cls, v: Optional[str]) -> str:
         """Validate entity status."""
         if v is None:
             return "active"
@@ -158,8 +208,9 @@ class ValidatedCyodaEntity(BaseValidatedModel):
 
         return v.lower()
 
-    @validator("processing_status")
-    def validate_processing_status(cls, v):
+    @field_validator("processing_status")
+    @classmethod
+    def validate_processing_status(cls, v: Optional[str]) -> Optional[str]:
         """Validate processing status."""
         if v is None:
             return v
@@ -170,14 +221,15 @@ class ValidatedCyodaEntity(BaseValidatedModel):
 
         return v.lower()
 
-    @validator("metadata")
-    def validate_metadata(cls, v):
+    @field_validator("metadata")
+    @classmethod
+    def validate_metadata(cls, v: Any) -> Dict[str, Any]:
         """Validate metadata structure."""
         if not isinstance(v, dict):
             return {}
 
         # Ensure metadata keys are strings and values are serializable
-        validated_metadata = {}
+        validated_metadata: Dict[str, Any] = {}
         for key, value in v.items():
             if isinstance(key, str) and len(key) <= 100:
                 # Ensure value is JSON serializable
@@ -192,30 +244,28 @@ class ValidatedCyodaEntity(BaseValidatedModel):
 
         return validated_metadata
 
-    @root_validator
-    def validate_entity_consistency(cls, values):
-        """Validate entity consistency."""
+    @model_validator(mode="after")
+    def validate_entity_consistency(self) -> "ValidatedCyodaEntity":
+        """Validate entity consistency after model creation."""
         # Ensure updated_at is not before created_at
-        created_at = values.get("created_at")
-        updated_at = values.get("updated_at")
-
-        if created_at and updated_at and updated_at < created_at:
-            values["updated_at"] = created_at
+        if self.created_at and self.updated_at and self.updated_at < self.created_at:
+            self.updated_at = self.created_at
 
         # Ensure entity doesn't reference itself as parent
-        entity_id = values.get("entity_id")
-        parent_id = values.get("parent_id")
-
-        if entity_id and parent_id and entity_id == parent_id:
-            values["parent_id"] = None
+        if self.entity_id and self.parent_id and self.entity_id == self.parent_id:
+            self.parent_id = None
 
         # Ensure entity doesn't reference itself in children
-        children_ids = values.get("children_ids", [])
-        if entity_id and entity_id in children_ids:
-            children_ids.remove(entity_id)
-            values["children_ids"] = children_ids
+        if self.entity_id and self.children_ids and self.entity_id in self.children_ids:
+            self.children_ids = [
+                cid for cid in self.children_ids if cid != self.entity_id
+            ]
 
-        return values
+        return self
+
+    # -----------------------
+    # Convenience methods
+    # -----------------------
 
     def add_metadata(self, key: str, value: Any) -> None:
         """Add metadata to the entity."""
@@ -226,8 +276,10 @@ class ValidatedCyodaEntity(BaseValidatedModel):
                 json.dumps(value)  # Ensure value is serializable
                 self.metadata[key] = value
                 self.updated_at = datetime.now(timezone.utc)
-            except (TypeError, ValueError):
-                raise ValueError(f"Metadata value for key '{key}' is not serializable")
+            except (TypeError, ValueError) as exc:
+                raise ValueError(
+                    f"Metadata value for key '{key}' is not serializable"
+                ) from exc
 
     def get_metadata(self, key: str, default: Any = None) -> Any:
         """Get metadata value."""
@@ -287,13 +339,11 @@ class ValidatedCyodaEntity(BaseValidatedModel):
         self.last_processed_at = datetime.now(timezone.utc)
         self.updated_at = datetime.now(timezone.utc)
 
-        return legacy_entity
-
     @classmethod
-    def from_legacy_entity(cls, legacy_entity) -> "ValidatedCyodaEntity":
+    def from_legacy_entity(cls, legacy_entity: Any) -> "ValidatedCyodaEntity":
         """Create from legacy CyodaEntity."""
         # Extract basic fields
-        entity_data = {
+        entity_data: Dict[str, Any] = {
             "entity_id": legacy_entity.entity_id,
             "entity_type": legacy_entity.entity_type,
             "created_at": legacy_entity.created_at,
@@ -301,7 +351,8 @@ class ValidatedCyodaEntity(BaseValidatedModel):
 
         # Extract metadata
         if hasattr(legacy_entity, "metadata") and legacy_entity.metadata:
-            entity_data["metadata"] = legacy_entity.metadata.copy()
+            # Copy to avoid mutating legacy object
+            entity_data["metadata"] = dict(legacy_entity.metadata)
 
             # Extract special fields from metadata
             for field in [

@@ -69,62 +69,76 @@ class MiddlewareChainConfig:
         return sorted(enabled, key=lambda x: x.priority)
 
 
+# Allow any factory that returns a MiddlewareLink, accepting arbitrary args/kwargs.
+MiddlewareFactory = Callable[..., MiddlewareLink]
+
+
 class MiddlewareRegistry:
     """Registry for middleware types and their factory functions."""
 
-    def __init__(self):
-        self._factories: Dict[MiddlewareType, callable] = {}
+    def __init__(self) -> None:
+        self._factories: Dict[MiddlewareType, MiddlewareFactory] = {}
         self._register_default_middlewares()
 
-    def _register_default_middlewares(self):
+    def _register_default_middlewares(self) -> None:
         """Register default middleware factories."""
         self._factories[MiddlewareType.LOGGING] = self._create_logging_middleware
         self._factories[MiddlewareType.METRICS] = self._create_metrics_middleware
         self._factories[MiddlewareType.ERROR] = self._create_error_middleware
         self._factories[MiddlewareType.DISPATCH] = self._create_dispatch_middleware
 
-    def register_middleware(self, middleware_type: MiddlewareType, factory: Callable):
+    def register_middleware(
+        self, middleware_type: MiddlewareType, factory: MiddlewareFactory
+    ) -> None:
         """Register a custom middleware factory."""
         self._factories[middleware_type] = factory
         logger.info(f"Registered middleware factory for type: {middleware_type}")
 
-    def create_middleware(self, config: MiddlewareConfig, **kwargs) -> MiddlewareLink:
+    def create_middleware(
+        self, config: MiddlewareConfig, **kwargs: Any
+    ) -> MiddlewareLink:
         """Create a middleware instance from configuration."""
         if config.type not in self._factories:
             raise ValueError(f"Unknown middleware type: {config.type}")
 
         factory = self._factories[config.type]
         try:
+            # Pass the per-middleware config to the factory along with any extra kwargs
             return factory(config.config, **kwargs)
         except Exception as e:
             logger.error(f"Failed to create middleware {config.type}: {e}")
             raise
 
     def _create_logging_middleware(
-        self, config: Dict[str, Any], **kwargs
+        self, config: Dict[str, Any], **kwargs: Any
     ) -> LoggingMiddleware:
         """Create logging middleware with configuration."""
+        # Example: could use config (e.g., verbose) to configure instance if needed.
         return LoggingMiddleware()
 
     def _create_metrics_middleware(
-        self, config: Dict[str, Any], **kwargs
+        self, config: Dict[str, Any], **kwargs: Any
     ) -> MetricsMiddleware:
         """Create metrics middleware with configuration."""
         return MetricsMiddleware()
 
     def _create_error_middleware(
-        self, config: Dict[str, Any], **kwargs
+        self, config: Dict[str, Any], **kwargs: Any
     ) -> ErrorMiddleware:
         """Create error middleware with configuration."""
         return ErrorMiddleware()
 
     def _create_dispatch_middleware(
-        self, config: Dict[str, Any], **kwargs
+        self, config: Dict[str, Any], **kwargs: Any
     ) -> DispatchMiddleware:
         """Create dispatch middleware with configuration."""
-        from common.grpc_client.router import EventRouter
-        from common.grpc_client.responses.builders import ResponseBuilderRegistry
-        from common.grpc_client.outbox import Outbox
+        from common.grpc_client.outbox import (  # noqa: F401  (kept for type/context)
+            Outbox,
+        )
+        from common.grpc_client.responses.builders import (  # noqa: F401
+            ResponseBuilderRegistry,
+        )
+        from common.grpc_client.router import EventRouter  # noqa: F401
 
         # Extract required dependencies from kwargs
         router = kwargs.get("router")
@@ -137,21 +151,21 @@ class MiddlewareRegistry:
 
         # Cast to proper types after validation
         return DispatchMiddleware(
-            router=router,  # type: ignore
-            builders=builders,  # type: ignore
-            outbox=outbox,  # type: ignore
-            services=services
+            router=router,  # type: ignore[arg-type]
+            builders=builders,  # type: ignore[arg-type]
+            outbox=outbox,  # type: ignore[arg-type]
+            services=services,
         )
 
 
 class MiddlewareChainBuilder:
     """Builder for creating configured middleware chains."""
 
-    def __init__(self, registry: Optional[MiddlewareRegistry] = None):
+    def __init__(self, registry: Optional[MiddlewareRegistry] = None) -> None:
         self.registry = registry or MiddlewareRegistry()
 
     def build_chain(
-        self, config: MiddlewareChainConfig, **kwargs
+        self, config: MiddlewareChainConfig, **kwargs: Any
     ) -> Optional[MiddlewareLink]:
         """
         Build a middleware chain from configuration.
@@ -170,7 +184,7 @@ class MiddlewareChainBuilder:
             return None
 
         # Create middleware instances
-        middleware_instances = []
+        middleware_instances: List[MiddlewareLink] = []
         for middleware_config in enabled_middlewares:
             try:
                 middleware = self.registry.create_middleware(
@@ -237,7 +251,7 @@ def create_production_middleware_config() -> MiddlewareChainConfig:
 
 
 # Global registry instance
-_registry = MiddlewareRegistry()
+_registry: MiddlewareRegistry = MiddlewareRegistry()
 
 
 def get_middleware_registry() -> MiddlewareRegistry:
@@ -245,6 +259,8 @@ def get_middleware_registry() -> MiddlewareRegistry:
     return _registry
 
 
-def register_custom_middleware(middleware_type: MiddlewareType, factory: Callable):
+def register_custom_middleware(
+    middleware_type: MiddlewareType, factory: MiddlewareFactory
+) -> None:
     """Register a custom middleware with the global registry."""
     _registry.register_middleware(middleware_type, factory)

@@ -7,12 +7,11 @@ Uses dependency-injector for dependency management but with a simple interface.
 
 import asyncio
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional, cast
 
 from dependency_injector import containers, providers
 
-from common.interfaces.services import (IAuthService, IGrpcClient,
-                                        IProcessorManager)
+from common.interfaces.services import IAuthService, IGrpcClient, IProcessorManager
 from common.repository.crud_repository import CrudRepository
 from common.service.entity_service import EntityService
 
@@ -21,109 +20,117 @@ logger = logging.getLogger(__name__)
 
 def _create_auth_service(
     client_id: str, client_secret: str, token_url: str, scope: str = "read write"
-):
+) -> IAuthService:
     """Create auth service with lazy import."""
     from common.auth.cyoda_auth import CyodaAuthService
 
-    return CyodaAuthService(
-        client_id=client_id,
-        client_secret=client_secret,
-        token_url=token_url,
-        scope=scope,
+    # CyodaAuthService may not be typed; cast to the interface
+    return cast(
+        IAuthService,
+        CyodaAuthService(
+            client_id=client_id,
+            client_secret=client_secret,
+            token_url=token_url,
+            scope=scope,
+        ),
     )
 
 
-def _create_repository(auth_service, use_in_memory: bool):
+def _create_repository(
+    auth_service: IAuthService, use_in_memory: bool
+) -> CrudRepository[Any]:
     """Create repository with lazy import."""
     if use_in_memory:
         from common.repository.in_memory_db import InMemoryRepository
 
-        return InMemoryRepository()
+        # InMemoryRepository may be untyped; cast to CrudRepository[Any]
+        return cast(CrudRepository[Any], InMemoryRepository())
     else:
         from common.repository.cyoda.cyoda_repository import CyodaRepository
 
-        return CyodaRepository(cyoda_auth_service=auth_service)
+        # CyodaRepository may be untyped; cast to CrudRepository[Any]
+        return cast(
+            CrudRepository[Any], CyodaRepository(cyoda_auth_service=auth_service)
+        )
 
 
-def _create_entity_service(repository):
+def _create_entity_service(repository: CrudRepository[Any]) -> EntityService:
     """Create entity service with lazy import."""
     from common.service.service import EntityServiceImpl
 
-    return EntityServiceImpl(repository=repository)
+    # EntityServiceImpl should conform to EntityService
+    return cast(EntityService, EntityServiceImpl(repository=repository))
 
 
-def _create_grpc_client(auth_service):
+def _create_grpc_client(auth_service: IAuthService) -> IGrpcClient:
     """Create gRPC client with lazy import."""
     from common.grpc_client.grpc_client import GrpcClient
 
-    return GrpcClient(auth=auth_service)
+    # Third-party/legacy code may be untyped; silence with cast
+    return cast(IGrpcClient, GrpcClient(auth=auth_service))  # type: ignore[no-untyped-call]
 
 
-def _create_entity_management_service(entity_service):
+def _create_entity_management_service(entity_service: EntityService) -> Any:
     """Create entity management service with lazy import."""
-    from cyoda_mcp.mcp_services.entity_management import \
-        EntityManagementService
+    from cyoda_mcp.mcp_services.entity_management import EntityManagementService
 
-    return EntityManagementService(entity_service=entity_service)
+    return cast(Any, EntityManagementService(entity_service=entity_service))  # type: ignore[no-untyped-call]
 
 
-def _create_search_service(entity_service):
+def _create_search_service(entity_service: EntityService) -> Any:
     """Create search service with lazy import."""
     from cyoda_mcp.mcp_services.search import SearchService
 
-    return SearchService(entity_service=entity_service)
+    return cast(Any, SearchService(entity_service=entity_service))  # type: ignore[no-untyped-call]
 
 
-def _create_edge_message_repository(auth_service):
+def _create_edge_message_repository(auth_service: IAuthService) -> Any:
     """Create edge message repository with lazy import."""
-    from common.repository.cyoda.edge_message_repository import \
-        EdgeMessageRepository
+    from common.repository.cyoda.edge_message_repository import EdgeMessageRepository
 
-    return EdgeMessageRepository(cyoda_auth_service=auth_service)
+    return cast(Any, EdgeMessageRepository(cyoda_auth_service=auth_service))  # type: ignore[no-untyped-call]
 
 
-def _create_edge_message_service(edge_message_repository):
+def _create_edge_message_service(edge_message_repository: Any) -> Any:
     """Create edge message service with lazy import."""
     from cyoda_mcp.mcp_services.edge_message import EdgeMessageService
 
-    return EdgeMessageService(edge_message_repository=edge_message_repository)
+    return cast(Any, EdgeMessageService(edge_message_repository=edge_message_repository))  # type: ignore[no-untyped-call]
 
 
-def _create_workflow_repository(auth_service):
+def _create_workflow_repository(auth_service: IAuthService) -> Any:
     """Create workflow repository with lazy import."""
     from common.repository.cyoda.workflow_repository import WorkflowRepository
 
-    return WorkflowRepository(cyoda_auth_service=auth_service)
+    return cast(Any, WorkflowRepository(cyoda_auth_service=auth_service))  # type: ignore[no-untyped-call]
 
 
-def _create_workflow_management_service(workflow_repository):
+def _create_workflow_management_service(workflow_repository: Any) -> Any:
     """Create workflow management service with lazy import."""
-    from cyoda_mcp.mcp_services.workflow_management import \
-        WorkflowManagementService
+    from cyoda_mcp.mcp_services.workflow_management import WorkflowManagementService
 
-    return WorkflowManagementService(workflow_repository=workflow_repository)
+    return cast(Any, WorkflowManagementService(workflow_repository=workflow_repository))  # type: ignore[no-untyped-call]
 
 
-def _create_deployment_repository(auth_service):
+def _create_deployment_repository(auth_service: IAuthService) -> Any:
     """Create deployment repository with lazy import."""
-    from common.repository.cyoda.deployment_repository import \
-        DeploymentRepository
+    from common.repository.cyoda.deployment_repository import DeploymentRepository
 
-    return DeploymentRepository(cyoda_auth_service=auth_service)
+    return cast(Any, DeploymentRepository(cyoda_auth_service=auth_service))  # type: ignore[no-untyped-call,arg-type]
 
 
-def _create_deployment_service(deployment_repository):
+def _create_deployment_service(deployment_repository: Any) -> Any:
     """Create deployment service with lazy import."""
     from cyoda_mcp.mcp_services.deployment import DeploymentService
 
-    return DeploymentService(deployment_repository=deployment_repository)
+    return cast(Any, DeploymentService(deployment_repository=deployment_repository))  # type: ignore[no-untyped-call]
 
 
-def _create_processor_manager(modules):
+def _create_processor_manager(modules: List[str]) -> IProcessorManager:
     """Create processor manager with lazy import."""
     from common.processor import get_processor_manager
 
-    return get_processor_manager(modules)
+    return cast(IProcessorManager, get_processor_manager(modules))
 
 
 class ServiceContainer(containers.DeclarativeContainer):
@@ -216,7 +223,7 @@ class ServiceContainer(containers.DeclarativeContainer):
 
 # Global container instance
 _container: Optional[ServiceContainer] = None
-_initialized = False
+_initialized: bool = False
 
 
 def initialize_services(config: Dict[str, Any]) -> None:
@@ -271,97 +278,99 @@ def initialize_services(config: Dict[str, Any]) -> None:
     logger.info("Service initialization complete")
 
 
-def _ensure_initialized():
-    """Ensure services are initialized."""
+def _ensure_initialized() -> ServiceContainer:
+    """Ensure services are initialized and return the container."""
     if not _initialized or _container is None:
         raise RuntimeError(
             "Services not initialized. Call initialize_services() first."
         )
+    # Narrow Optional[ServiceContainer] to ServiceContainer for type-checker
+    return _container
 
 
 # Direct service access functions
 def get_auth_service() -> IAuthService:
     """Get the authentication service."""
-    _ensure_initialized()
-    return _container.auth_service()
+    container = _ensure_initialized()
+    return container.auth_service()  # type: ignore[return-value]
 
 
-def get_repository() -> CrudRepository:
+def get_repository() -> CrudRepository[Any]:
     """Get the repository."""
-    _ensure_initialized()
-    return _container.repository()
+    container = _ensure_initialized()
+    return container.repository()  # type: ignore[return-value]
 
 
 def get_entity_service() -> EntityService:
     """Get the entity service."""
-    _ensure_initialized()
-    return _container.entity_service()
+    container = _ensure_initialized()
+    return container.entity_service()  # type: ignore[return-value]
 
 
 def get_processor_manager() -> IProcessorManager:
     """Get the processor manager."""
-    _ensure_initialized()
-    return _container.processor_manager()
+    container = _ensure_initialized()
+    return container.processor_manager()  # type: ignore[return-value]
 
 
 def get_grpc_client() -> IGrpcClient:
     """Get the gRPC client."""
-    _ensure_initialized()
-    return _container.grpc_client()
+    container = _ensure_initialized()
+    return container.grpc_client()  # type: ignore[return-value]
 
 
 def get_chat_lock() -> asyncio.Lock:
     """Get the chat lock."""
-    _ensure_initialized()
-    return _container.chat_lock()
+    container = _ensure_initialized()
+    return container.chat_lock()  # type: ignore[return-value]
 
 
-def get_entity_management_service():
+def get_entity_management_service() -> Any:
     """Get the entity management service."""
-    _ensure_initialized()
-    return _container.entity_management_service()
+    container = _ensure_initialized()
+    return container.entity_management_service()
 
 
-def get_search_service():
+def get_search_service() -> Any:
     """Get the search service."""
-    _ensure_initialized()
-    return _container.search_service()
+    container = _ensure_initialized()
+    return container.search_service()
 
 
-def get_edge_message_repository():
+def get_edge_message_repository() -> Any:
     """Get the edge message repository."""
-    _ensure_initialized()
-    return _container.edge_message_repository()
+    container = _ensure_initialized()
+    return container.edge_message_repository()
 
 
-def get_edge_message_service():
+def get_edge_message_service() -> Any:
     """Get the edge message service."""
-    _ensure_initialized()
-    return _container.edge_message_service()
+    container = _ensure_initialized()
+    return container.edge_message_service()
 
 
-def get_workflow_repository():
+def get_workflow_repository() -> Any:
     """Get the workflow repository."""
-    _ensure_initialized()
-    return _container.workflow_repository()
+    container = _ensure_initialized()
+    return container.workflow_repository()
 
 
-def get_workflow_management_service():
+def get_workflow_management_service() -> Any:
     """Get the workflow management service."""
-    _ensure_initialized()
-    return _container.workflow_management_service()
+    container = _ensure_initialized()
+    return container.workflow_management_service()
 
 
-def get_deployment_repository():
+def get_deployment_repository() -> Any:
     """Get the deployment repository."""
-    _ensure_initialized()
-    return _container.deployment_repository()
+    container = _ensure_initialized()
+    return container.deployment_repository()
 
 
-def get_deployment_service():
+def get_deployment_service() -> Any:
     """Get the deployment service."""
-    _ensure_initialized()
-    return _container.deployment_service()
+    container = _ensure_initialized()
+    return container.deployment_service()
 
 
 def is_initialized() -> bool:

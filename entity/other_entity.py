@@ -6,7 +6,7 @@ and has its own simple workflow as specified in functional requirements.
 """
 
 from datetime import datetime, timezone
-from typing import Any, ClassVar, Dict, Optional
+from typing import Any, ClassVar, Dict, List, Optional
 
 from pydantic import Field, validator
 
@@ -61,10 +61,10 @@ class OtherEntity(CyodaEntity):
     )
 
     # Priority validation
-    ALLOWED_PRIORITIES: ClassVar[list] = ["LOW", "MEDIUM", "HIGH"]
+    ALLOWED_PRIORITIES: ClassVar[List[str]] = ["LOW", "MEDIUM", "HIGH"]
 
     @validator("title")
-    def validate_title(cls, v):
+    def validate_title(cls, v: str) -> str:
         """Validate title field"""
         if not v or len(v.strip()) == 0:
             raise ValueError("Title must be non-empty")
@@ -73,7 +73,7 @@ class OtherEntity(CyodaEntity):
         return v.strip()
 
     @validator("content")
-    def validate_content(cls, v):
+    def validate_content(cls, v: str) -> str:
         """Validate content field"""
         if not v or len(v.strip()) == 0:
             raise ValueError("Content must be non-empty")
@@ -82,7 +82,7 @@ class OtherEntity(CyodaEntity):
         return v.strip()
 
     @validator("priority")
-    def validate_priority(cls, v):
+    def validate_priority(cls, v: str) -> str:
         """Validate priority field"""
         if v not in cls.ALLOWED_PRIORITIES:
             raise ValueError(f"Priority must be one of: {cls.ALLOWED_PRIORITIES}")
@@ -92,7 +92,9 @@ class OtherEntity(CyodaEntity):
         """Update the updated_at timestamp to current time"""
         self.updated_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
-    def set_source_entity(self, source_entity_id: str, updated_by: Optional[str] = None) -> None:
+    def set_source_entity(
+        self, source_entity_id: str, updated_by: Optional[str] = None
+    ) -> None:
         """Set source entity information and update timestamp"""
         self.source_entity_id = source_entity_id
         if updated_by:
@@ -126,12 +128,12 @@ class OtherEntity(CyodaEntity):
 
     def get_priority_level(self) -> int:
         """Get numeric priority level for sorting"""
-        priority_levels = {"LOW": 1, "MEDIUM": 2, "HIGH": 3}
+        priority_levels: Dict[str, int] = {"LOW": 1, "MEDIUM": 2, "HIGH": 3}
         return priority_levels.get(self.priority, 0)
 
     def to_api_response(self) -> Dict[str, Any]:
         """Convert to API response format"""
-        data = self.dict(by_alias=True)
+        data: Dict[str, Any] = self.dict(by_alias=True)
         # Add state for API compatibility
         data["state"] = self.state
         return data

@@ -13,12 +13,12 @@ from typing import Any, Dict, List, Optional
 
 from fastmcp import Context, FastMCP
 
+from service.services import get_workflow_management_service
+
 # Add the parent directory to the path so we can import from the main app
 sys.path.insert(
     0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 )
-
-from service.services import get_workflow_management_service
 
 # Create the MCP server for workflow management operations
 mcp = FastMCP("Workflow Management")
@@ -83,7 +83,9 @@ async def export_workflows_to_file_tool(
             json.dump(workflows, f, indent=2, ensure_ascii=False)
 
         if ctx:
-            await ctx.info(f"Successfully exported {len(workflows)} workflows to {full_path}")
+            await ctx.info(
+                f"Successfully exported {len(workflows)} workflows to {full_path}"
+            )
 
         return {
             "success": True,
@@ -192,7 +194,9 @@ async def import_workflows_from_file_tool(
             import_result["file_path"] = str(full_path)
             import_result["workflows_loaded"] = len(workflows)
             if ctx:
-                await ctx.info(f"Successfully imported {len(workflows)} workflows from {full_path}")
+                await ctx.info(
+                    f"Successfully imported {len(workflows)} workflows from {full_path}"
+                )
 
         return import_result
 
@@ -273,7 +277,9 @@ async def list_workflow_files_tool(
                         first_workflow = workflow_data[0]
                         if isinstance(first_workflow, dict):
                             entity_info["workflow_name"] = first_workflow.get("name")
-                            entity_info["workflow_version"] = first_workflow.get("version")
+                            entity_info["workflow_version"] = first_workflow.get(
+                                "version"
+                            )
                     elif isinstance(workflow_data, dict):
                         entity_info["workflows_count"] = 1
                         entity_info["workflow_name"] = workflow_data.get("name")
@@ -284,11 +290,13 @@ async def list_workflow_files_tool(
             workflow_files.append(entity_info)
 
         # Sort by entity name and version
-        workflow_files.sort(key=lambda x: (
-            x.get("entity_name", ""),
-            x.get("model_version", ""),
-            x.get("file_name", "")
-        ))
+        workflow_files.sort(
+            key=lambda x: (
+                x.get("entity_name", ""),
+                x.get("model_version", ""),
+                x.get("file_name", ""),
+            )
+        )
 
         if ctx:
             await ctx.info(f"Found {len(workflow_files)} workflow files")
@@ -367,7 +375,6 @@ async def validate_workflow_file_tool(
 
         # Type-safe access to lists
         errors: List[str] = validation_result["errors"]
-        warnings: List[str] = validation_result["warnings"]
 
         # Validate structure
         if isinstance(workflow_data, list):
@@ -390,9 +397,15 @@ async def validate_workflow_file_tool(
                 if "states" in workflow and isinstance(workflow["states"], dict):
                     for state_name, state_data in workflow["states"].items():
                         if not isinstance(state_data, dict):
-                            errors.append(f"Workflow {i}, state '{state_name}' is not a dictionary")
-                        elif "transitions" in state_data and not isinstance(state_data["transitions"], list):
-                            errors.append(f"Workflow {i}, state '{state_name}' transitions must be an array")
+                            errors.append(
+                                f"Workflow {i}, state '{state_name}' is not a dictionary"
+                            )
+                        elif "transitions" in state_data and not isinstance(
+                            state_data["transitions"], list
+                        ):
+                            errors.append(
+                                f"Workflow {i}, state '{state_name}' transitions must be an array"
+                            )
 
         elif isinstance(workflow_data, dict):
             validation_result["workflows_count"] = 1
@@ -409,10 +422,16 @@ async def validate_workflow_file_tool(
                 for state_name, state_data in workflow_data["states"].items():
                     if not isinstance(state_data, dict):
                         errors.append(f"State '{state_name}' is not a dictionary")
-                    elif "transitions" in state_data and not isinstance(state_data["transitions"], list):
-                        errors.append(f"State '{state_name}' transitions must be an array")
+                    elif "transitions" in state_data and not isinstance(
+                        state_data["transitions"], list
+                    ):
+                        errors.append(
+                            f"State '{state_name}' transitions must be an array"
+                        )
         else:
-            errors.append("Workflow file must contain either a workflow object or array of workflows")
+            errors.append(
+                "Workflow file must contain either a workflow object or array of workflows"
+            )
 
         # Set overall success based on errors
         validation_result["success"] = len(errors) == 0
@@ -420,9 +439,13 @@ async def validate_workflow_file_tool(
 
         if ctx:
             if validation_result["success"]:
-                await ctx.info(f"Workflow file is valid: {validation_result['workflows_count']} workflows found")
+                await ctx.info(
+                    f"Workflow file is valid: {validation_result['workflows_count']} workflows found"
+                )
             else:
-                await ctx.error(f"Workflow file validation failed: {len(errors)} errors found")
+                await ctx.error(
+                    f"Workflow file validation failed: {len(errors)} errors found"
+                )
 
         return validation_result
 

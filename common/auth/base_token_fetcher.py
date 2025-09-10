@@ -1,6 +1,6 @@
 import time
 from abc import ABC, abstractmethod
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
 
 class BaseTokenFetcher(ABC):

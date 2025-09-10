@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+from typing import Any
 
 from common.grpc_client.handlers.base import Handler
 from proto.cloudevents_pb2 import CloudEvent
@@ -9,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 class GreetHandler(Handler):
-    async def handle(self, request: CloudEvent, services=None):
+    async def handle(self, request: CloudEvent, services: Any = None) -> None:
         data = json.loads(request.text_data)
         logger.info(f"Received greet event: {data}")
 
@@ -30,7 +31,7 @@ class GreetHandler(Handler):
 
         return None
 
-    async def _restart_failed_workflows(self, chat_service):
+    async def _restart_failed_workflows(self, chat_service: Any) -> None:
         """Restart failed workflows."""
         try:
             asyncio.create_task(chat_service.rollback_failed_workflows())

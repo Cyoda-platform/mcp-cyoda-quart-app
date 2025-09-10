@@ -14,7 +14,7 @@ load_dotenv()
 
 # Import new configuration system
 try:
-    from .manager import get_config_manager
+    from .manager import get_config_manager  # type: ignore[import-untyped]
 
     _use_new_config = True
     _config_manager = get_config_manager()
@@ -23,7 +23,7 @@ except ImportError:
 
 
 # Legacy function for backward compatibility
-def get_env(key):
+def get_env(key: str) -> str:
     """Get environment variable or raise exception if not found."""
     value = os.getenv(key)
     if value is None:

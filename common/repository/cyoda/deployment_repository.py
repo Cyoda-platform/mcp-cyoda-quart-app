@@ -9,12 +9,19 @@ import json
 import logging
 import threading
 from dataclasses import dataclass
-from typing import Any, Dict, Optional
+from typing import Any, ClassVar, Dict, Optional, Protocol
 
 from common.config.config import CYODA_AI_URL
 from common.utils.utils import custom_serializer, send_request
 
 logger = logging.getLogger(__name__)
+
+
+class AuthService(Protocol):
+    """Minimal protocol for the auth service this repo depends on."""
+
+    async def get_access_token(self) -> str: ...
+    def invalidate_tokens(self) -> None: ...
 
 
 @dataclass
@@ -28,7 +35,10 @@ class DeploymentRequest:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for API request."""
-        result = {"technical_id": self.technical_id, "entity": self.entity_data}
+        result: Dict[str, Any] = {
+            "technical_id": self.technical_id,
+            "entity": self.entity_data,
+        }
         if self.params:
             result["params"] = self.params
         return result
@@ -48,11 +58,15 @@ class DeploymentResponse:
     def from_api_response(cls, response_data: Dict[str, Any]) -> "DeploymentResponse":
         """Create DeploymentResponse from API response data."""
         return cls(
-            success=response_data.get("success", False),
-            message=response_data.get("message", ""),
+            success=bool(response_data.get("success", False)),
+            message=str(response_data.get("message", "")),
             build_id=response_data.get("build_id"),
             status=response_data.get("status"),
-            data=response_data.get("data", {}),
+            data=(
+                response_data.get("data", {})
+                if isinstance(response_data.get("data", {}), dict)
+                else None
+            ),
         )
 
 
@@ -62,37 +76,49 @@ class DeploymentRepository:
     Thread-safe singleton implementation.
     """
 
-    _instance = None
-    _lock = threading.Lock()
+    _instance: ClassVar[Optional["DeploymentRepository"]] = None
+    _lock: ClassVar[threading.Lock] = threading.Lock()
 
-    def __new__(cls, cyoda_auth_service):
+    # Instance attributes (initialized in __new__/__init__)
+    _cyoda_auth_service: AuthService
+    _initialized: bool
+
+    def __new__(cls, cyoda_auth_service: AuthService) -> "DeploymentRepository":
         """Thread-safe singleton implementation."""
         with cls._lock:
             if cls._instance is None:
-                cls._instance = super().__new__(cls)
-                cls._instance._cyoda_auth_service = cyoda_auth_service
-                cls._instance._initialized = False
-        return cls._instance
+                instance = super().__new__(cls)
+                # Stash dependencies/flags on first construction
+                instance._cyoda_auth_service = cyoda_auth_service
+                instance._initialized = False
+                cls._instance = instance
+        # If already created, we still return the same instance
+        return cls._instance  # type: ignore[return-value]
 
-    def __init__(self, cyoda_auth_service):
+    def __init__(self, cyoda_auth_service: AuthService) -> None:
         """Initialize the repository."""
-        if not self._initialized:
+        # Only initialize once for the singleton
+        if not getattr(self, "_initialized", False):
             self._cyoda_auth_service = cyoda_auth_service
             self._initialized = True
             logger.info("DeploymentRepository initialized")
 
     async def _send_ai_host_request(
-        self, method: str, path: str, data: Optional[str] = None, base_url: str = CYODA_AI_URL
-    ) -> dict:
+        self,
+        method: str,
+        path: str,
+        data: Optional[str] = None,
+        base_url: str = CYODA_AI_URL,
+    ) -> Dict[str, Any]:
         """
         Send an HTTP request to the AI Host API with automatic retry on 401.
         """
-        token = await self._cyoda_auth_service.get_access_token()
+        token: str = await self._cyoda_auth_service.get_access_token()
 
         for attempt in range(2):
             try:
                 # Prepare headers
-                headers = {
+                headers: Dict[str, str] = {
                     "Content-Type": "application/json",
                     "Authorization": (
                         f"Bearer {token}" if not token.startswith("Bearer") else token
@@ -102,7 +128,9 @@ class DeploymentRepository:
                 url = f"{base_url}/{path}"
 
                 # Send request
-                response = await send_request(headers, url, method, data=data)
+                response: Dict[str, Any] = await send_request(
+                    headers, url, method, data=data
+                )
 
             except Exception as exc:
                 msg = str(exc)
@@ -128,17 +156,12 @@ class DeploymentRepository:
 
         raise RuntimeError(f"Failed request {method.upper()} {path} after retry")
 
-    async def schedule_deploy_env(
-        self,
-        technical_id: str,
-    ) -> DeploymentResponse:
+    async def schedule_deploy_env(self, technical_id: str) -> DeploymentResponse:
         """
         Schedule environment deployment.
 
         Args:
             technical_id: Technical ID of the environment
-            user_id: User ID initiating the deployment
-            entity_data: Entity data for deployment
 
         Returns:
             DeploymentResponse object
@@ -149,9 +172,7 @@ class DeploymentRepository:
         try:
             path = "deployment/schedule/env"
 
-            request_obj = DeploymentRequest(
-                technical_id=technical_id,
-            )
+            request_obj = DeploymentRequest(technical_id=technical_id)
 
             data = json.dumps(request_obj.to_dict(), default=custom_serializer)
 
@@ -168,7 +189,9 @@ class DeploymentRepository:
                 )
 
             response_data = response.get("json", {})
-            deployment_response = DeploymentResponse.from_api_response(response_data)
+            deployment_response = DeploymentResponse.from_api_response(
+                response_data if isinstance(response_data, dict) else {}
+            )
 
             logger.info(
                 f"Successfully scheduled environment deployment for {technical_id}"
@@ -182,7 +205,10 @@ class DeploymentRepository:
             raise
 
     async def schedule_build_user_application(
-        self, technical_id: str, user_id: Optional[str] = None, entity_data: Optional[Dict[str, Any]] = None
+        self,
+        technical_id: str,
+        user_id: Optional[str] = None,
+        entity_data: Optional[Dict[str, Any]] = None,
     ) -> DeploymentResponse:
         """
         Schedule user application build.
@@ -220,7 +246,9 @@ class DeploymentRepository:
                 )
 
             response_data = response.get("json", {})
-            deployment_response = DeploymentResponse.from_api_response(response_data)
+            deployment_response = DeploymentResponse.from_api_response(
+                response_data if isinstance(response_data, dict) else {}
+            )
 
             logger.info(
                 f"Successfully scheduled user application build for {technical_id}"
@@ -234,7 +262,10 @@ class DeploymentRepository:
             raise
 
     async def schedule_deploy_user_application(
-        self, technical_id: str, user_id: Optional[str] = None, entity_data: Optional[Dict[str, Any]] = None
+        self,
+        technical_id: str,
+        user_id: Optional[str] = None,
+        entity_data: Optional[Dict[str, Any]] = None,
     ) -> DeploymentResponse:
         """
         Schedule user application deployment.
@@ -274,7 +305,9 @@ class DeploymentRepository:
                 )
 
             response_data = response.get("json", {})
-            deployment_response = DeploymentResponse.from_api_response(response_data)
+            deployment_response = DeploymentResponse.from_api_response(
+                response_data if isinstance(response_data, dict) else {}
+            )
 
             logger.info(
                 f"Successfully scheduled user application deployment for {technical_id}"
@@ -295,7 +328,7 @@ class DeploymentRepository:
 
         Args:
             build_id: Build ID to check status for
-            user_id: Optional user ID
+            user_id: Optional user ID (currently unused)
 
         Returns:
             DeploymentResponse object
@@ -317,7 +350,9 @@ class DeploymentRepository:
                 )
 
             response_data = response.get("json", {})
-            deployment_response = DeploymentResponse.from_api_response(response_data)
+            deployment_response = DeploymentResponse.from_api_response(
+                response_data if isinstance(response_data, dict) else {}
+            )
 
             logger.info(
                 f"Successfully retrieved deployment status for build {build_id}"

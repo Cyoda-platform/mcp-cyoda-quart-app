@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Dict, Optional
 
 from proto.cloudevents_pb2 import CloudEvent
 

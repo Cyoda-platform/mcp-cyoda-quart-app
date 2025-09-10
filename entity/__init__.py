@@ -160,10 +160,10 @@ def get_available_entity_types() -> list[str]:
         else:
             unique_types.add(entity_class.__name__)
 
-    return sorted(list(unique_types))
+    return sorted(unique_types)
 
 
-def refresh_entity_cache():
+def refresh_entity_cache() -> None:
     """
     Refresh the entity class cache. Useful for development or when new entities are added dynamically.
     """

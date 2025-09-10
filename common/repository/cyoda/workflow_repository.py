@@ -57,18 +57,18 @@ class WorkflowRepository:
     _instance = None
     _lock = threading.Lock()
 
-    def __new__(cls, cyoda_auth_service):
+    def __new__(cls, cyoda_auth_service: Any) -> "WorkflowRepository":
         """Thread-safe singleton implementation."""
         with cls._lock:
             if cls._instance is None:
                 cls._instance = super().__new__(cls)
-                cls._instance._cyoda_auth_service = cyoda_auth_service
-                cls._instance._initialized = False
+                cls._instance._cyoda_auth_service = cyoda_auth_service  # type: ignore[attr-defined,has-type]
+                cls._instance._initialized = False  # type: ignore[attr-defined,has-type]
         return cls._instance
 
-    def __init__(self, cyoda_auth_service):
+    def __init__(self, cyoda_auth_service: Any) -> None:
         """Initialize the repository."""
-        if not self._initialized:
+        if not self._initialized:  # type: ignore[has-type]
             self._cyoda_auth_service = cyoda_auth_service
             self._initialized = True
             logger.info("WorkflowRepository initialized")

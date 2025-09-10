@@ -9,12 +9,34 @@ OtherEntity instances as specified in functional requirements.
 import logging
 import uuid
 from datetime import datetime, timezone
-from typing import Any, Dict
+from typing import Any, Dict, Optional, Protocol, cast, runtime_checkable
 
 from common.processor.base import CyodaProcessor
 from entity.example_entity import ExampleEntity
-from entity.other_entity import OtherEntity
+from entity.other_entity import (  # noqa: F401  # Imported for clarity; referenced by name in service calls
+    OtherEntity,
+)
 from service.services import get_entity_service
+
+
+@runtime_checkable
+class _HasId(Protocol):
+    id: str
+
+
+@runtime_checkable
+class _HasMetadata(Protocol):
+    metadata: _HasId
+
+
+class _EntityService(Protocol):
+    async def save(
+        self, *, entity: Dict[str, Any], entity_class: str, entity_version: str
+    ) -> _HasMetadata: ...
+
+    async def execute_transition(
+        self, *, entity_id: str, transition: str, entity_class: str, entity_version: str
+    ) -> None: ...
 
 
 class ExampleEntityProcessor(CyodaProcessor):
@@ -23,20 +45,24 @@ class ExampleEntityProcessor(CyodaProcessor):
     enriches entity data, and creates/updates related OtherEntity instances.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="ExampleEntityProcessor",
             description="Processes ExampleEntity instances, enriches data and creates related OtherEntity instances",
         )
-        self.entity_service = None
+        self.entity_service: Optional[_EntityService] = None
+        # Ensure logger attribute is present for type-checkers/readers.
+        self.logger: logging.Logger = getattr(
+            self, "logger", logging.getLogger(__name__)
+        )
 
-    def _get_entity_service(self):
+    def _get_entity_service(self) -> _EntityService:
         """Get entity service lazily"""
         if self.entity_service is None:
-            self.entity_service = get_entity_service()
+            self.entity_service = cast(_EntityService, get_entity_service())
         return self.entity_service
 
-    async def process(self, entity: ExampleEntity, **kwargs) -> ExampleEntity:
+    async def process(self, entity: Any, **kwargs: Any) -> Any:
         """
         Process the ExampleEntity according to functional requirements.
 
@@ -48,7 +74,15 @@ class ExampleEntityProcessor(CyodaProcessor):
             The processed entity with enriched data
         """
         try:
-            self.logger.info(f"Processing ExampleEntity {entity.technical_id}")
+            self.logger.info(
+                f"Processing ExampleEntity {getattr(entity, 'technical_id', '<unknown>')}"
+            )
+
+            # Explicitly assert the expected type for internal logic
+            if not isinstance(entity, ExampleEntity):
+                raise TypeError(
+                    "ExampleEntityProcessor received an entity that is not ExampleEntity"
+                )
 
             # Enrich entity with processed data
             processed_data = self._create_processed_data(entity)
@@ -58,12 +92,16 @@ class ExampleEntityProcessor(CyodaProcessor):
             await self._create_related_other_entities(entity)
 
             # Log processing completion
-            self.logger.info(f"ExampleEntity {entity.technical_id} processed successfully")
+            self.logger.info(
+                f"ExampleEntity {entity.technical_id} processed successfully"
+            )
 
             return entity
 
         except Exception as e:
-            self.logger.error(f"Error processing entity {entity.technical_id}: {str(e)}")
+            self.logger.error(
+                f"Error processing entity {getattr(entity, 'technical_id', '<unknown>')}: {str(e)}"
+            )
             raise
 
     def _create_processed_data(self, entity: ExampleEntity) -> Dict[str, Any]:
@@ -81,7 +119,7 @@ class ExampleEntityProcessor(CyodaProcessor):
         )
         processing_id = str(uuid.uuid4())
 
-        processed_data = {
+        processed_data: Dict[str, Any] = {
             "processed_at": current_timestamp,
             "calculated_value": entity.value * 2.5,
             "enriched_category": entity.category.upper() + "_PROCESSED",
@@ -98,7 +136,15 @@ class ExampleEntityProcessor(CyodaProcessor):
             entity: The processed ExampleEntity
         """
         entity_service = self._get_entity_service()
-        processing_id = entity.processed_data.get("processing_id") if hasattr(entity, 'processed_data') else str(uuid.uuid4())
+
+        # Safely extract processing_id from processed_data (might be Optional in the entity model)
+        processing_id: str
+        pd = getattr(entity, "processed_data", None)
+        if isinstance(pd, dict):
+            pid = pd.get("processing_id")
+            processing_id = str(pid) if pid is not None else str(uuid.uuid4())
+        else:
+            processing_id = str(uuid.uuid4())
 
         # Create 3 related OtherEntity instances as specified
         for i in range(1, 4):
@@ -106,19 +152,17 @@ class ExampleEntityProcessor(CyodaProcessor):
                 # Determine priority based on business rules
                 priority = self._determine_priority(entity.value, i)
 
+                now_iso = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+
                 # Create OtherEntity data
-                other_entity_data = {
+                other_entity_data: Dict[str, Any] = {
                     "title": f"{entity.name}_Related_{i}",
                     "content": f"Generated from {entity.name} processing",
                     "priority": priority,
                     "sourceEntityId": entity.technical_id,
                     "lastUpdatedBy": "ExampleEntityProcessor",
-                    "createdAt": datetime.now(timezone.utc)
-                    .isoformat()
-                    .replace("+00:00", "Z"),
-                    "updatedAt": datetime.now(timezone.utc)
-                    .isoformat()
-                    .replace("+00:00", "Z"),
+                    "createdAt": now_iso,
+                    "updatedAt": now_iso,
                     "metadata": {
                         "sourceProcessingId": processing_id,
                         "generatedIndex": i,

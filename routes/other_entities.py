@@ -6,15 +6,14 @@ and workflow transitions as specified in functional requirements.
 """
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional, Tuple
 
 from pydantic import BaseModel, Field
-from quart import Blueprint, jsonify, request
+from quart import Blueprint, Response, jsonify, request
 from quart_schema import validate_querystring, validate_request
 
-from entity.other_entity import OtherEntity
-from service.services import get_entity_service
 from common.service.entity_service import EntityService, SearchConditionRequest
+from service.services import get_entity_service
 
 logger = logging.getLogger(__name__)
 
@@ -94,7 +93,7 @@ class OtherEntityUpdateRequest(BaseModel):
 
 @other_entities_bp.route("", methods=["POST"])
 @validate_request(OtherEntityCreateRequest)
-async def create_other_entity(json: OtherEntityCreateRequest):
+async def create_other_entity(json: OtherEntityCreateRequest) -> Tuple[Response, int]:
     """Create a new OtherEntity"""
     try:
         service = get_services()
@@ -125,7 +124,7 @@ async def create_other_entity(json: OtherEntityCreateRequest):
 
 
 @other_entities_bp.route("/<entity_id>", methods=["GET"])
-async def get_other_entity(entity_id: str):
+async def get_other_entity(entity_id: str) -> Tuple[Response, int]:
     """Get OtherEntity by ID"""
     try:
         service = get_services()
@@ -151,7 +150,9 @@ async def get_other_entity(entity_id: str):
 
 @other_entities_bp.route("", methods=["GET"])
 @validate_querystring(OtherEntityQueryParams)
-async def list_other_entities(query_args: OtherEntityQueryParams):
+async def list_other_entities(
+    query_args: OtherEntityQueryParams,
+) -> Tuple[Response, int]:
     """List OtherEntities with optional filtering"""
     try:
         service = get_services()
@@ -211,7 +212,9 @@ async def list_other_entities(query_args: OtherEntityQueryParams):
 
 @other_entities_bp.route("/<entity_id>", methods=["PUT"])
 @validate_request(OtherEntityUpdateRequest)
-async def update_other_entity(entity_id: str, json: OtherEntityUpdateRequest):
+async def update_other_entity(
+    entity_id: str, json: OtherEntityUpdateRequest
+) -> Tuple[Response, int]:
     """Update OtherEntity and optionally trigger workflow transition"""
     try:
         service = get_services()
@@ -253,7 +256,7 @@ async def update_other_entity(entity_id: str, json: OtherEntityUpdateRequest):
 
 
 @other_entities_bp.route("/<entity_id>", methods=["DELETE"])
-async def delete_other_entity(entity_id: str):
+async def delete_other_entity(entity_id: str) -> Tuple[Response, int]:
     """Delete OtherEntity"""
     try:
         service = get_services()

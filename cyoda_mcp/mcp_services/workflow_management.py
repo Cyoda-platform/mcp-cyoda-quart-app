@@ -6,7 +6,7 @@ using the CyodaRepository for workflow export/import operations.
 """
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from common.repository.cyoda.workflow_repository import WorkflowRepository
 

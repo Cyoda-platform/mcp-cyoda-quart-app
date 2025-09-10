@@ -1,12 +1,17 @@
 import asyncio
 import logging
+from typing import Callable, Dict, Optional
 
-from quart import Quart
+from quart import Quart, Response
 from quart_schema import QuartSchema, ResponseSchemaValidationError, hide
 
-from common.exception.exception_handler import register_error_handlers
+from common.exception.exception_handler import (
+    register_error_handlers as _register_error_handlers,
+)
+
 # Import blueprints for different route groups
 from routes import health_bp, system_bp
+
 # Import Cyoda Example Entity blueprints
 from routes.example_entities import example_entities_bp
 from routes.other_entities import other_entities_bp
@@ -37,6 +42,7 @@ QuartSchema(
         }
     },
 )
+
 # Register blueprints
 app.register_blueprint(health_bp)
 app.register_blueprint(system_bp)
@@ -45,28 +51,33 @@ app.register_blueprint(system_bp)
 app.register_blueprint(example_entities_bp)
 app.register_blueprint(other_entities_bp)
 
+# Global holder for the background task to satisfy mypy (avoid setting arbitrary attrs on app)
+_background_task: Optional[asyncio.Task[None]] = None
+
 
 # Register error handlers for custom and generic exceptions
 @app.errorhandler(ResponseSchemaValidationError)
-async def handle_response_validation_error():
+async def handle_response_validation_error(
+    error: ResponseSchemaValidationError,
+) -> tuple[Dict[str, str], int]:
+    # You can log/inspect `error` if needed
     return {"error": "VALIDATION"}, 500
 
 
-register_error_handlers(app)
+# Give mypy a typed view of the external function (if it lacks type hints)
+_register_error_handlers_typed: Callable[[Quart], None] = _register_error_handlers  # type: ignore[assignment]
+_register_error_handlers_typed(app)
 
 
 @app.route("/favicon.ico")
 @hide
-def favicon():
+def favicon() -> tuple[str, int]:
     return "", 200
 
 
 # Startup tasks: initialize services and start the GRPC stream in the background
 @app.before_serving
-async def startup():
-    # Initialize services with centralized configuration
-    import asyncio
-
+async def startup() -> None:
     from service.config import get_service_config, validate_configuration
 
     # Validate configuration and log any issues
@@ -83,35 +94,40 @@ async def startup():
 
     # Get the gRPC client and start the stream
     grpc_client = get_grpc_client()
-    app.background_task = asyncio.create_task(grpc_client.grpc_stream())
+
+    # The stream method is expected to be an async coroutine returning None
+    stream_coro = grpc_client.grpc_stream()
+    global _background_task
+    _background_task = asyncio.create_task(stream_coro)  # type: ignore[arg-type]
 
 
 # Shutdown tasks: cancel the background tasks when shutting down
 @app.after_serving
-async def shutdown():
+async def shutdown() -> None:
     """Cleanup tasks on shutdown."""
     logger.info("Shutting down application...")
 
+    global _background_task
     # Cancel the background gRPC stream task
-    if hasattr(app, "background_task"):
-        app.background_task.cancel()
+    if _background_task is not None:
+        _background_task.cancel()
         try:
-            await app.background_task
+            await _background_task
         except asyncio.CancelledError:
             pass
+        finally:
+            _background_task = None
 
     logger.info("Application shutdown complete")
 
 
 # Middleware to add CORS headers to every response
 @app.before_serving
-async def add_cors_headers():
+async def add_cors_headers() -> None:
     @app.after_request
-    async def apply_cors(response):
+    async def apply_cors(response: Response) -> Response:
         response.headers["Access-Control-Allow-Origin"] = "*"
-        response.headers["Access-Control-Allow-Methods"] = (
-            "GET, POST, PUT, DELETE, OPTIONS"
-        )
+        response.headers["Access-Control-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
         response.headers["Access-Control-Allow-Headers"] = "*"
         response.headers["Access-Control-Allow-Credentials"] = "true"
         return response

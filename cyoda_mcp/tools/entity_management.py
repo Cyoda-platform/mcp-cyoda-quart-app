@@ -10,13 +10,13 @@ from typing import Any, Dict, Optional
 
 from fastmcp import Context, FastMCP
 
+from common.config.config import ENTITY_VERSION
+from service.services import get_entity_management_service
+
 # Add the parent directory to the path so we can import from the main app
 sys.path.insert(
     0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 )
-
-from common.config.config import ENTITY_VERSION
-from service.services import get_entity_management_service
 
 # Create the MCP server for entity management
 mcp = FastMCP("Entity Management")

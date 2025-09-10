@@ -13,8 +13,7 @@ from unittest.mock import AsyncMock, Mock
 import pytest
 
 from common.grpc_client.handlers.calc import CalcRequestHandler
-from common.grpc_client.handlers.criteria_calc import \
-    CriteriaCalcRequestHandler
+from common.grpc_client.handlers.criteria_calc import CriteriaCalcRequestHandler
 from common.processor import get_processor_manager
 from entity import create_entity
 from proto.cloudevents_pb2 import CloudEvent

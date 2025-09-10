@@ -70,7 +70,10 @@ class DeploymentService:
             return {"success": False, "error": str(e), "technical_id": technical_id}
 
     async def schedule_build_user_application(
-        self, technical_id: str, user_id: Optional[str] = None, entity_data: Optional[Dict[str, Any]] = None
+        self,
+        technical_id: str,
+        user_id: Optional[str] = None,
+        entity_data: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """
         Schedule user application build.
@@ -116,7 +119,10 @@ class DeploymentService:
             return {"success": False, "error": str(e), "technical_id": technical_id}
 
     async def schedule_deploy_user_application(
-        self, technical_id: str, user_id: Optional[str] = None, entity_data: Optional[Dict[str, Any]] = None
+        self,
+        technical_id: str,
+        user_id: Optional[str] = None,
+        entity_data: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """
         Schedule user application deployment.

@@ -6,7 +6,7 @@ using the existing dependency injection system.
 """
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from common.config.config import ENTITY_VERSION
 from common.service.entity_service import EntityService, SearchConditionRequest
@@ -337,7 +337,7 @@ class EntityManagementService:
                 "entity_model": entity_model,
             }
 
-    def _process_cyoda_condition(self, condition: Dict[str, Any], builder):
+    def _process_cyoda_condition(self, condition: Dict[str, Any], builder: Any) -> None:
         """Process a single Cyoda condition and add it to the builder."""
         condition_type = condition.get("type")
 

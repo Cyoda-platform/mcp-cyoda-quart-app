@@ -1,3 +1,6 @@
+# cyoda_mcp/server.py
+from __future__ import annotations
+
 """
 Main MCP Server for Cyoda Integration
 
@@ -9,24 +12,27 @@ import asyncio
 import logging
 import os
 import sys
+from typing import Literal
 
 from fastmcp import FastMCP
 
-# Add the parent directory to the path so we can import from the main app
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 from cyoda_mcp.tools.edge_message import mcp as mcp_edge_message
-# Import presentation-only category servers
 from cyoda_mcp.tools.entity_management import mcp as mcp_entity
 from cyoda_mcp.tools.search import mcp as mcp_search
 from cyoda_mcp.tools.workflow_management import mcp as mcp_workflow_management
 
+# Add the parent directory to the path so we can import from the main app
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 logger = logging.getLogger(__name__)
 
 
-# Initialize services with dependency injection when MCP server starts
-def initialize_mcp_services():
-    """Initialize all services with proper dependency injection configuration."""
+def initialize_mcp_services() -> bool:
+    """Initialize all services with proper dependency injection configuration.
+
+    Returns:
+        bool: True if services initialized successfully, False otherwise.
+    """
     from service.config import get_service_config, validate_configuration
     from service.services import initialize_services
 
@@ -49,13 +55,13 @@ def initialize_mcp_services():
 
 
 # Initialize services when the module is loaded
-_services_initialized = initialize_mcp_services()
+_services_initialized: bool = initialize_mcp_services()
 
 # Single, unified server
-main = FastMCP("Cyoda Client Tools 🚀")
+main: FastMCP = FastMCP("Cyoda Client Tools 🚀")
 
 
-async def setup():
+async def setup() -> None:
     """Setup the main server by importing all category servers with prefixes."""
     try:
         # Namespace each category to keep the catalog tidy
@@ -70,10 +76,10 @@ async def setup():
         raise
 
 
-def set_integrated_mode():
+def set_integrated_mode() -> None:
     """Set the server to integrated mode (not standalone)."""
     # Services are already initialized, nothing to do
-    pass
+    return None
 
 
 def get_mcp() -> FastMCP:
@@ -81,12 +87,16 @@ def get_mcp() -> FastMCP:
     Get the configured FastMCP server instance.
 
     Returns:
-        The FastMCP server instance
+        FastMCP: The FastMCP server instance.
     """
     return main
 
 
-def run_mcp(transport: str = "stdio", host: str = "127.0.0.1", port: int = 8002):
+def run_mcp(
+    transport: Literal["stdio", "http", "sse"] = "stdio",
+    host: str = "127.0.0.1",
+    port: int = 8002,
+) -> None:
     """
     Run the FastMCP server (synchronous).
 
@@ -108,7 +118,11 @@ def run_mcp(transport: str = "stdio", host: str = "127.0.0.1", port: int = 8002)
         raise ValueError(f"Unsupported transport: {transport}")
 
 
-def start(transport: str = "stdio", host: str = "127.0.0.1", port: int = 8002):
+def start(
+    transport: Literal["stdio", "http", "sse"] = "stdio",
+    host: str = "127.0.0.1",
+    port: int = 8002,
+) -> None:
     """
     Boot the MCP server with the specified transport.
     Read any API keys from env vars.

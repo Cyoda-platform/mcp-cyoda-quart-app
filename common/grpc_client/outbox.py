@@ -1,10 +1,14 @@
 import asyncio
 import json
 import logging
+from typing import AsyncGenerator, Optional
 
-from common.grpc_client.constants import (CALC_RESP_EVENT_TYPE,
-                                          CRITERIA_CALC_RESP_EVENT_TYPE,
-                                          EVENT_ACK_TYPE, JOIN_EVENT_TYPE)
+from common.grpc_client.constants import (
+    CALC_RESP_EVENT_TYPE,
+    CRITERIA_CALC_RESP_EVENT_TYPE,
+    EVENT_ACK_TYPE,
+    JOIN_EVENT_TYPE,
+)
 from common.grpc_client.responses.builders import JoinResponseBuilder
 from common.grpc_client.responses.spec import ResponseSpec
 from proto.cloudevents_pb2 import CloudEvent
@@ -13,8 +17,8 @@ logger = logging.getLogger(__name__)
 
 
 class Outbox:
-    def __init__(self):
-        self._queue: asyncio.Queue = asyncio.Queue()
+    def __init__(self) -> None:
+        self._queue: asyncio.Queue[Optional[CloudEvent]] = asyncio.Queue()
 
     async def send(self, response: CloudEvent) -> None:
         await self._queue.put(response)
@@ -22,7 +26,7 @@ class Outbox:
     async def close(self) -> None:
         await self._queue.put(None)  # sentinel used by event_generator
 
-    async def event_generator(self):
+    async def event_generator(self) -> AsyncGenerator[CloudEvent, None]:
         """Generate outbound events: join first, then responses from queue."""
         # Send join event first
         join_spec = ResponseSpec(response_type=JOIN_EVENT_TYPE, data={})

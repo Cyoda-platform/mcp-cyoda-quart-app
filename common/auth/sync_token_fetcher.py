@@ -7,7 +7,13 @@ from common.auth.base_token_fetcher import BaseTokenFetcher
 
 
 class SyncTokenFetcher(BaseTokenFetcher):
-    def __init__(self, client_id: str, client_secret: str, token_url: str, scope: Optional[str] = None) -> None:
+    def __init__(
+        self,
+        client_id: str,
+        client_secret: str,
+        token_url: str,
+        scope: Optional[str] = None,
+    ) -> None:
         super().__init__()
         self._client = OAuth2Session(
             client_id=client_id, client_secret=client_secret, scope=scope

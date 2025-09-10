@@ -4,30 +4,38 @@ This contains all the complex logic moved out of GrpcClient.
 """
 
 import types
+from typing import Any
 
-from common.grpc_client.constants import (CALC_REQ_EVENT_TYPE,
-                                          CALC_RESP_EVENT_TYPE,
-                                          CRITERIA_CALC_REQ_EVENT_TYPE,
-                                          CRITERIA_CALC_RESP_EVENT_TYPE,
-                                          ERROR_EVENT_TYPE, EVENT_ACK_TYPE,
-                                          GREET_EVENT_TYPE, JOIN_EVENT_TYPE,
-                                          KEEP_ALIVE_EVENT_TYPE)
+from common.grpc_client.constants import (
+    CALC_REQ_EVENT_TYPE,
+    CALC_RESP_EVENT_TYPE,
+    CRITERIA_CALC_REQ_EVENT_TYPE,
+    CRITERIA_CALC_RESP_EVENT_TYPE,
+    ERROR_EVENT_TYPE,
+    EVENT_ACK_TYPE,
+    GREET_EVENT_TYPE,
+    JOIN_EVENT_TYPE,
+    KEEP_ALIVE_EVENT_TYPE,
+)
 from common.grpc_client.facade import GrpcStreamingFacade
 from common.grpc_client.handlers.ack import AckHandler
 from common.grpc_client.handlers.calc import CalcRequestHandler
-from common.grpc_client.handlers.criteria_calc import \
-    CriteriaCalcRequestHandler
+from common.grpc_client.handlers.criteria_calc import CriteriaCalcRequestHandler
 from common.grpc_client.handlers.error import ErrorHandler
 from common.grpc_client.handlers.greet import GreetHandler
 from common.grpc_client.handlers.keep_alive import KeepAliveHandler
 from common.grpc_client.middleware.config import (
-    MiddlewareChainBuilder, create_default_middleware_config)
+    MiddlewareChainBuilder,
+    create_default_middleware_config,
+)
 from common.grpc_client.outbox import Outbox
-from common.grpc_client.responses.builders import (AckResponseBuilder,
-                                                   CalcResponseBuilder,
-                                                   CriteriaCalcResponseBuilder,
-                                                   JoinResponseBuilder,
-                                                   ResponseBuilderRegistry)
+from common.grpc_client.responses.builders import (
+    AckResponseBuilder,
+    CalcResponseBuilder,
+    CriteriaCalcResponseBuilder,
+    JoinResponseBuilder,
+    ResponseBuilderRegistry,
+)
 from common.grpc_client.router import EventRouter
 
 
@@ -35,7 +43,9 @@ class GrpcStreamingFacadeFactory:
     """Factory that creates and wires all components for the GrpcStreamingFacade."""
 
     @staticmethod
-    def create(auth, processor_loop, grpc_client=None) -> GrpcStreamingFacade:
+    def create(
+        auth: Any, processor_loop: Any, grpc_client: Any = None
+    ) -> GrpcStreamingFacade:
         """Create a fully configured GrpcStreamingFacade with all components."""
 
         # Import here to avoid circular imports

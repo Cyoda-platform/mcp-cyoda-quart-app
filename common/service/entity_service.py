@@ -27,8 +27,7 @@ PERFORMANCE NOTES:
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Collection, Dict, List, Optional, Union
-from uuid import UUID
+from typing import Any, Dict, List, Optional
 
 
 @dataclass
@@ -86,11 +85,11 @@ class SearchConditionRequest:
 class SearchConditionRequestBuilder:
     """Builder for SearchConditionRequest."""
 
-    def __init__(self):
-        self._conditions = []
+    def __init__(self) -> None:
+        self._conditions: List[SearchCondition] = []
         self._operator = "and"
-        self._limit = None
-        self._offset = None
+        self._limit: Optional[int] = None
+        self._offset: Optional[int] = None
 
     def add_condition(
         self, field: str, operator: str, value: Any
@@ -494,7 +493,7 @@ class EntityService(ABC):
         entity_model: str,
         entity_version: str,
         technical_id: str,
-        meta=None,
+        meta: Any = None,
     ) -> Any:
         """
         @deprecated Use get_by_id() instead for better clarity

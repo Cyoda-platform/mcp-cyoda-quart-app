@@ -4,11 +4,16 @@ System information and metrics routes.
 This module contains routes for system information, metrics, and configuration.
 """
 
+from __future__ import annotations
+
+import importlib
 import logging
 import os
 from datetime import datetime, timezone
+from typing import Any, Dict, List, Literal, Optional, TypedDict
 
 from quart import Blueprint, jsonify
+from quart.typing import ResponseReturnValue
 
 from common.config.config import CYODA_TOKEN_URL
 
@@ -19,7 +24,7 @@ system_bp = Blueprint("system", __name__)
 
 
 @system_bp.route("/metrics", methods=["GET"])
-async def metrics():
+async def metrics() -> ResponseReturnValue:
     """
     Metrics endpoint in Prometheus format.
 
@@ -50,7 +55,7 @@ http_request_duration_seconds_count 155
 cyoda_entities_total{type="laureate"} 50
 cyoda_entities_total{type="subscriber"} 25
 cyoda_entities_total{type="job"} 10
-"""
+""".lstrip()
 
         return metrics_data, 200, {"Content-Type": "text/plain; charset=utf-8"}
 
@@ -68,7 +73,7 @@ cyoda_entities_total{type="job"} 10
 
 
 @system_bp.route("/metrics/summary", methods=["GET"])
-async def metrics_summary():
+async def metrics_summary() -> ResponseReturnValue:
     """
     Metrics summary endpoint in JSON format.
 
@@ -78,7 +83,7 @@ async def metrics_summary():
         # Placeholder metrics summary
         # In a real implementation, this would collect actual metrics
 
-        summary = {
+        summary: Dict[str, Any] = {
             "http_requests": {
                 "total": 155,
                 "success_rate": 0.97,
@@ -110,19 +115,18 @@ async def metrics_summary():
 
 
 @system_bp.route("/info", methods=["GET"])
-async def system_info():
+async def system_info() -> ResponseReturnValue:
     """
     System information endpoint.
 
     Returns comprehensive system and application information.
     """
     try:
-        import os
         import platform
         import sys
 
         # Basic system information
-        system_info = {
+        system_info: Dict[str, Any] = {
             "application": {
                 "name": "Cyoda Client Template",
                 "version": "1.0.0",
@@ -145,7 +149,7 @@ async def system_info():
 
         # Add optional system metrics if psutil is available
         try:
-            import psutil
+            import psutil  # type: ignore[import-untyped]
 
             process = psutil.Process()
 
@@ -159,8 +163,8 @@ async def system_info():
                 "open_files": len(process.open_files()),
                 "num_threads": process.num_threads(),
             }
-        except ImportError:
-            logger.info("psutil not available, skipping system metrics")
+        except Exception:
+            logger.info("psutil not available or failed, skipping system metrics")
 
         return jsonify(system_info), 200
 
@@ -178,17 +182,14 @@ async def system_info():
 
 
 @system_bp.route("/config", methods=["GET"])
-async def get_configuration():
+async def get_configuration() -> ResponseReturnValue:
     """
     Get application configuration (non-sensitive values only).
 
     Returns current application configuration excluding sensitive information.
     """
     try:
-        import os
-
-        # Safe configuration values (no secrets)
-        config = {
+        config: Dict[str, Any] = {
             "application": {
                 "name": "Cyoda Client Template",
                 "version": "1.0.0",
@@ -225,7 +226,7 @@ async def get_configuration():
 
 
 @system_bp.route("/version", methods=["GET"])
-async def get_version():
+async def get_version() -> ResponseReturnValue:
     """
     Get application version information.
 
@@ -235,7 +236,7 @@ async def get_version():
         import platform
         import sys
 
-        version_info = {
+        version_info: Dict[str, Any] = {
             "application": {
                 "name": "Cyoda Client Template",
                 "version": "1.0.0",
@@ -267,53 +268,86 @@ async def get_version():
         )
 
 
+# --- Typed structures for /status payload to keep mypy happy ---
+
+
+class ComponentStatus(TypedDict, total=False):
+    status: Literal["healthy", "unhealthy"]
+    available: bool
+    name: Optional[str]
+
+
+class Components(TypedDict):
+    entity_service: ComponentStatus
+    auth_service: ComponentStatus
+    mcp_server: ComponentStatus
+
+
+class StatusPayload(TypedDict, total=False):
+    overall_status: Literal["healthy", "degraded", "unhealthy"]
+    components: Components
+    timestamp: str
+    unhealthy_components: List[str]
+
+
 @system_bp.route("/status", methods=["GET"])
-async def system_status():
+async def system_status() -> ResponseReturnValue:
     """
     Overall system status endpoint.
 
     Returns a comprehensive status of all system components.
     """
     try:
-        from cyoda_mcp.server import get_mcp_server
+        # Import service getters (assumed to be available)
         from service.services import get_auth_service, get_entity_service
+
+        # Resolve optional MCP server getter via importlib to avoid mypy attr issues
+        mcp_server = None
+        try:
+            m = importlib.import_module("cyoda_mcp.server")
+            get_mcp_server = getattr(m, "get_mcp_server", None)
+            if callable(get_mcp_server):
+                mcp_server = get_mcp_server()
+        except Exception:
+            # If module or attribute isn't present, we treat MCP as unavailable
+            mcp_server = None
 
         # Check service availability
         entity_service = get_entity_service()
         auth_service = get_auth_service()
-        mcp_server = get_mcp_server()
 
-        status = {
-            "overall_status": "healthy",
-            "components": {
-                "entity_service": {
-                    "status": "healthy" if entity_service else "unhealthy",
-                    "available": bool(entity_service),
-                },
-                "auth_service": {
-                    "status": "healthy" if auth_service else "unhealthy",
-                    "available": bool(auth_service),
-                },
-                "mcp_server": {
-                    "status": "healthy" if mcp_server else "unhealthy",
-                    "available": bool(mcp_server),
-                    "name": mcp_server.name if mcp_server else None,
-                },
+        components: Components = {
+            "entity_service": {
+                "status": "healthy" if entity_service else "unhealthy",
+                "available": bool(entity_service),
             },
+            "auth_service": {
+                "status": "healthy" if auth_service else "unhealthy",
+                "available": bool(auth_service),
+            },
+            "mcp_server": {
+                "status": "healthy" if mcp_server else "unhealthy",
+                "available": bool(mcp_server),
+                "name": getattr(mcp_server, "name", None) if mcp_server else None,
+            },
+        }
+
+        status: StatusPayload = {
+            "overall_status": "healthy",
+            "components": components,
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
-        # Determine overall status
-        unhealthy_components = [
+        unhealthy_components: List[str] = [
             name
-            for name, component in status["components"].items()
-            if component["status"] != "healthy"
+            for name, component in components.items()
+            if component["status"] != "healthy"  # type: ignore[index]
         ]
 
         if unhealthy_components:
             status["overall_status"] = (
                 "degraded"
-                if len(unhealthy_components) < len(status["components"])
+                if len(unhealthy_components) < len(components)
                 else "unhealthy"
             )
             status["unhealthy_components"] = unhealthy_components

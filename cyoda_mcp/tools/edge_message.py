@@ -6,23 +6,26 @@ This module provides FastMCP tools for edge message operations.
 
 import os
 import sys
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from fastmcp import Context, FastMCP
+
+from service.services import get_edge_message_service
 
 # Add the parent directory to the path so we can import from the main app
 sys.path.insert(
     0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 )
 
-from service.services import get_edge_message_service
 
 # Create the MCP server for edge message operations
 mcp = FastMCP("Edge Message")
 
 
 @mcp.tool
-async def get_edge_message_tool(message_id: str, ctx: Optional[Context] = None) -> Dict[str, Any]:
+async def get_edge_message_tool(
+    message_id: str, ctx: Optional[Context] = None
+) -> Dict[str, Any]:
     """
     Retrieve an edge message by ID.
 

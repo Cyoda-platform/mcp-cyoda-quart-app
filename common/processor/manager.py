@@ -6,14 +6,19 @@ import importlib
 import inspect
 import logging
 import pkgutil
+from types import ModuleType
 from typing import Any, Dict, List, Optional, Type
 
 from common.interfaces.services import IProcessorManager
 from entity.cyoda_entity import CyodaEntity
 
 from .base import CyodaCriteriaChecker, CyodaProcessor
-from .errors import (CriteriaError, CriteriaNotFoundError, ProcessorError,
-                     ProcessorNotFoundError)
+from .errors import (
+    CriteriaError,
+    CriteriaNotFoundError,
+    ProcessorError,
+    ProcessorNotFoundError,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +31,7 @@ class ProcessorManager(IProcessorManager):
     from specified modules using OOP-friendly discovery methods.
     """
 
-    def __init__(self, modules: Optional[List[str]] = None):
+    def __init__(self, modules: Optional[List[str]] = None) -> None:
         """
         Initialize the processor manager.
 
@@ -35,12 +40,12 @@ class ProcessorManager(IProcessorManager):
         """
         self.processors: Dict[str, CyodaProcessor] = {}
         self.criteria: Dict[str, CyodaCriteriaChecker] = {}
-        self.modules = modules or []
+        self.modules: List[str] = modules or []
 
         # Automatically discover and register processors and criteria
         self._discover_and_register()
 
-    def _discover_and_register(self):
+    def _discover_and_register(self) -> None:
         """Discover and register all processors and criteria from specified modules."""
         for module_name in self.modules:
             try:
@@ -48,7 +53,7 @@ class ProcessorManager(IProcessorManager):
             except Exception as e:
                 logger.warning(f"Failed to discover from module '{module_name}': {e}")
 
-    def _discover_from_module(self, module_name: str):
+    def _discover_from_module(self, module_name: str) -> None:
         """
         Discover processors and criteria from a specific module.
 
@@ -61,14 +66,15 @@ class ProcessorManager(IProcessorManager):
 
             # Check if it's a package and scan submodules
             if hasattr(module, "__path__"):
-                self._discover_from_package(module)
+                # mypy: treat as a package module
+                self._discover_from_package(module)  # type: ignore[arg-type]
             else:
                 self._discover_from_single_module(module)
 
         except ImportError as e:
             logger.warning(f"Could not import module '{module_name}': {e}")
 
-    def _discover_from_package(self, package):
+    def _discover_from_package(self, package: ModuleType) -> None:
         """
         Discover processors and criteria from a package by scanning all submodules.
 
@@ -78,8 +84,8 @@ class ProcessorManager(IProcessorManager):
         package_name = package.__name__
 
         # Walk through all modules in the package
-        for importer, modname, ispkg in pkgutil.walk_packages(
-            package.__path__, package_name + "."
+        for _importer, modname, _ispkg in pkgutil.walk_packages(
+            getattr(package, "__path__", []), package_name + "."
         ):
             try:
                 module = importlib.import_module(modname)
@@ -87,7 +93,7 @@ class ProcessorManager(IProcessorManager):
             except Exception as e:
                 logger.warning(f"Failed to import submodule '{modname}': {e}")
 
-    def _discover_from_single_module(self, module):
+    def _discover_from_single_module(self, module: ModuleType) -> None:
         """
         Discover processors and criteria from a single module.
 
@@ -95,9 +101,9 @@ class ProcessorManager(IProcessorManager):
             module: The module to scan
         """
         # Get all classes from the module
-        for name, obj in inspect.getmembers(module, inspect.isclass):
+        for _name, obj in inspect.getmembers(module, inspect.isclass):
             # Skip if the class is not defined in this module
-            if obj.__module__ != module.__name__:
+            if getattr(obj, "__module__", None) != module.__name__:
                 continue
 
             # Check if it's a processor
@@ -116,7 +122,7 @@ class ProcessorManager(IProcessorManager):
             ):
                 self._register_criteria_class(obj)
 
-    def _register_processor_class(self, processor_class: Type[CyodaProcessor]):
+    def _register_processor_class(self, processor_class: Type[CyodaProcessor]) -> None:
         """
         Register a processor class by instantiating it.
 
@@ -127,10 +133,10 @@ class ProcessorManager(IProcessorManager):
             # Try to instantiate with default parameters
             # First try without arguments (for processors that provide defaults)
             try:
-                processor = processor_class()  # type: ignore
+                processor = processor_class()  # type: ignore[call-arg]
             except TypeError:
                 # If that fails, try with a default name based on class name
-                processor = processor_class(name=processor_class.__name__)
+                processor = processor_class(name=processor_class.__name__)  # type: ignore[call-arg]
 
             self.register_processor(processor)
             logger.info(
@@ -141,7 +147,9 @@ class ProcessorManager(IProcessorManager):
                 f"Failed to instantiate processor {processor_class.__name__}: {e}"
             )
 
-    def _register_criteria_class(self, criteria_class: Type[CyodaCriteriaChecker]):
+    def _register_criteria_class(
+        self, criteria_class: Type[CyodaCriteriaChecker]
+    ) -> None:
         """
         Register a criteria checker class by instantiating it.
 
@@ -152,10 +160,10 @@ class ProcessorManager(IProcessorManager):
             # Try to instantiate with default parameters
             # First try without arguments (for criteria that provide defaults)
             try:
-                criteria = criteria_class()  # type: ignore
+                criteria = criteria_class()  # type: ignore[call-arg]
             except TypeError:
                 # If that fails, try with a default name based on class name
-                criteria = criteria_class(name=criteria_class.__name__)
+                criteria = criteria_class(name=criteria_class.__name__)  # type: ignore[call-arg]
 
             self.register_criteria(criteria)
             logger.info(
@@ -166,7 +174,7 @@ class ProcessorManager(IProcessorManager):
                 f"Failed to instantiate criteria {criteria_class.__name__}: {e}"
             )
 
-    def register_processor(self, processor: CyodaProcessor):
+    def register_processor(self, processor: CyodaProcessor) -> None:
         """
         Manually register a processor instance.
 
@@ -176,7 +184,7 @@ class ProcessorManager(IProcessorManager):
         self.processors[processor.name] = processor
         logger.debug(f"Registered processor: {processor.name}")
 
-    def register_criteria(self, criteria: CyodaCriteriaChecker):
+    def register_criteria(self, criteria: CyodaCriteriaChecker) -> None:
         """
         Manually register a criteria checker instance.
 
@@ -187,7 +195,7 @@ class ProcessorManager(IProcessorManager):
         logger.debug(f"Registered criteria: {criteria.name}")
 
     async def process_entity(
-        self, processor_name: str, entity: CyodaEntity, **kwargs
+        self, processor_name: str, entity: CyodaEntity, **kwargs: Any
     ) -> CyodaEntity:
         """
         Process an entity using the specified processor.
@@ -222,7 +230,7 @@ class ProcessorManager(IProcessorManager):
             )
 
     async def check_criteria(
-        self, criteria_name: str, entity: CyodaEntity, **kwargs
+        self, criteria_name: str, entity: CyodaEntity, **kwargs: Any
     ) -> bool:
         """
         Check if entity meets the specified criteria.

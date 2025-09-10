@@ -4,7 +4,7 @@ import queue
 import re
 import time
 import uuid
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 import aiofiles
 import httpx
@@ -25,7 +25,7 @@ class ValidationErrorException(Exception):
         super().__init__(message)
 
 
-def get_user_history_answer(response):
+def get_user_history_answer(response: Any) -> str:
     answer = (
         response.get("message", "") if response and isinstance(response, dict) else ""
     )
@@ -34,11 +34,11 @@ def get_user_history_answer(response):
     return answer
 
 
-def generate_uuid() -> uuid:
-    return uuid.uuid1()
+def generate_uuid() -> str:
+    return str(uuid.uuid1())
 
 
-def _normalize_boolean_json(json_data):
+def _normalize_boolean_json(json_data: Any) -> Any:
     if isinstance(json_data, dict):
         for key, value in json_data.items():
             if isinstance(value, str):
@@ -209,7 +209,7 @@ def parse_workflow_json(result: str) -> str:
     return result
 
 
-def main():
+def main() -> None:
     # Example input
     input_data = """
 Here is an example JSON data structure for the entity `data_analysis_job`, reflecting the business app_init based on the user's requirement to analyze London Houses data using pandas:
@@ -322,11 +322,12 @@ if __name__ == "__main__":
 
 
 async def validate_result(data: str, file_path: str, schema: Optional[str]) -> str:
+    schema_dict: Optional[dict[str, Any]] = None
     if file_path:
         try:
             async with aiofiles.open(file_path, "r") as schema_file:
                 content = await schema_file.read()
-                schema = json.load(content)
+                schema_dict = json.loads(content)
         except (FileNotFoundError, json.JSONDecodeError) as e:
             logger.error(f"Error reading schema file {file_path}: {e}")
             raise
@@ -335,7 +336,8 @@ async def validate_result(data: str, file_path: str, schema: Optional[str]) -> s
         parsed_data = parse_json(data)
         json_data = json.loads(parsed_data)
         normalized_json_data = _normalize_boolean_json(json_data)
-        validate(instance=normalized_json_data, schema=schema)
+        if schema_dict is not None:
+            validate(instance=normalized_json_data, schema=schema_dict)
         logger.info("JSON validation successful.")
         return normalized_json_data
     except jsonschema.exceptions.ValidationError as err:
@@ -361,12 +363,12 @@ async def validate_result(data: str, file_path: str, schema: Optional[str]) -> s
         )
 
 
-def consolidate_json_errors(json_str):
+def consolidate_json_errors(json_str: str) -> List[str]:
     errors = []
 
     # Try to parse the JSON string
     try:
-        json_data = json.loads(json_str)
+        json.loads(json_str)
     except json.JSONDecodeError as e:
         errors.append(f"JSONDecodeError: {e}")
 
@@ -388,9 +390,9 @@ def consolidate_json_errors(json_str):
         fixed_json_str = re.sub(r'(?<!\\)"', r"\"", json_str)
 
         try:
-            json_data = json.loads(fixed_json_str)
+            json.loads(fixed_json_str)
             errors.append("JSON was successfully parsed after fixing unescaped quotes.")
-        except json.JSONDecodeError as e:
+        except json.JSONDecodeError:
             errors.append(
                 "Failed to fix JSON after attempting to fix unescaped quotes."
             )
@@ -398,7 +400,7 @@ def consolidate_json_errors(json_str):
     return errors
 
 
-async def read_file(file_path: str):
+async def read_file(file_path: str) -> str:
     """Read and return JSON entity from a file."""
     try:
         async with aiofiles.open(file_path, "r") as file:
@@ -409,7 +411,7 @@ async def read_file(file_path: str):
         raise  # Re-raise the exception for further handling
 
 
-async def read_json_file(file_path: str):
+async def read_json_file(file_path: str) -> Any:
     try:
         async with aiofiles.open(file_path, "r") as file:
             content = await file.read()  # Read the file content asynchronously
@@ -446,7 +448,13 @@ async def send_get_request(token: str, api_url: str, path: str) -> Dict[str, Any
         raise
 
 
-async def send_request(headers, url, method, data=None, json=None):
+async def send_request(
+    headers: Dict[str, str],
+    url: str,
+    method: str,
+    data: Optional[Any] = None,
+    json: Optional[Any] = None,
+) -> Any:
     async with httpx.AsyncClient(timeout=150.0) as client:
         method = method.upper()
         if method == "GET":
@@ -488,7 +496,11 @@ async def send_request(headers, url, method, data=None, json=None):
 
 
 async def send_post_request(
-    token: str, api_url: str, path: str, data=None, json=None
+    token: str,
+    api_url: str,
+    path: str,
+    data: Optional[Any] = None,
+    json: Optional[Any] = None,
 ) -> Dict[str, Any]:
     url = f"{api_url}/{path}" if path else api_url
     token = f"Bearer {token}" if not token.startswith("Bearer") else token
@@ -505,7 +517,11 @@ async def send_post_request(
 
 
 async def send_put_request(
-    token: str, api_url: str, path: str, data=None, json=None
+    token: str,
+    api_url: str,
+    path: str,
+    data: Optional[Any] = None,
+    json: Optional[Any] = None,
 ) -> Dict[str, Any]:
     url = f"{api_url}/{path}"
     token = f"Bearer {token}" if not token.startswith("Bearer") else token
@@ -542,7 +558,7 @@ def expiration_date(seconds: int) -> int:
     return int((time.time() + seconds) * 1000.0)
 
 
-def now():
+def now() -> int:
     timestamp = int(time.time() * 1000.0)
     return timestamp
 
@@ -551,7 +567,7 @@ def timestamp_before(seconds: int) -> int:
     return int((time.time() - seconds) * 1000.0)
 
 
-def clean_formatting(text):
+def clean_formatting(text: str) -> str:
     """
     Convert multi-line text into a single line, preserving all other content.
     """
@@ -559,7 +575,7 @@ def clean_formatting(text):
     return re.sub(r"[\r\n]+", " ", text)
 
 
-def format_json_if_needed(data, key):
+def format_json_if_needed(data: Dict[str, Any], key: str) -> Dict[str, Any]:
     value = data.get(key)
     if isinstance(value, dict):
         # Pretty print the JSON object
@@ -572,7 +588,7 @@ def format_json_if_needed(data, key):
     return data
 
 
-def _invalidate_tokens(cyoda_auth_service: CyodaAuthService):
+def _invalidate_tokens(cyoda_auth_service: CyodaAuthService) -> None:
     """Delegate token invalidation to the provided token service."""
     cyoda_auth_service.invalidate_tokens()
 
@@ -624,7 +640,7 @@ async def send_cyoda_request(
     raise RuntimeError(f"Failed request {method.upper()} {path} after retry")
 
 
-def custom_serializer(obj):
+def custom_serializer(obj: Any) -> Any:
     if isinstance(obj, queue.Queue):
         # Convert queue to list
         return list(obj.queue)
@@ -634,7 +650,7 @@ def custom_serializer(obj):
     raise TypeError(f"Type {type(obj)} not serializable")
 
 
-def parse_entity(model_cls, resp: Any) -> Any:
+def parse_entity(model_cls: Any, resp: Any) -> Any:
     try:
         if model_cls:
             if isinstance(resp, list):

@@ -2,10 +2,16 @@ import json
 import uuid
 from typing import Dict
 
-from common.grpc_client.constants import (CALC_RESP_EVENT_TYPE,
-                                          CRITERIA_CALC_RESP_EVENT_TYPE,
-                                          EVENT_ACK_TYPE, JOIN_EVENT_TYPE,
-                                          OWNER, SOURCE, SPEC_VERSION, TAGS)
+from common.grpc_client.constants import (
+    CALC_RESP_EVENT_TYPE,
+    CRITERIA_CALC_RESP_EVENT_TYPE,
+    EVENT_ACK_TYPE,
+    JOIN_EVENT_TYPE,
+    OWNER,
+    SOURCE,
+    SPEC_VERSION,
+    TAGS,
+)
 from common.grpc_client.responses.spec import ResponseSpec
 from proto.cloudevents_pb2 import CloudEvent
 
@@ -16,7 +22,7 @@ class ResponseBuilder:
 
 
 class ResponseBuilderRegistry:
-    def __init__(self):
+    def __init__(self) -> None:
         self._builders: Dict[str, ResponseBuilder] = {}
 
     def register(self, response_type: str, builder: ResponseBuilder) -> None:

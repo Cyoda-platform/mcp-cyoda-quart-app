@@ -1,3 +1,5 @@
+# entity/example_entity.py
+
 """
 ExampleEntity for Cyoda Client Application
 
@@ -6,7 +8,7 @@ with processing and validation capabilities as specified in functional requireme
 """
 
 from datetime import datetime, timezone
-from typing import Any, ClassVar, Dict, Optional
+from typing import Any, ClassVar, Dict, List, Optional
 
 from pydantic import Field, validator
 
@@ -62,7 +64,7 @@ class ExampleEntity(CyodaEntity):
     )
 
     # Validation rules from criteria requirements
-    ALLOWED_CATEGORIES: ClassVar[list] = [
+    ALLOWED_CATEGORIES: ClassVar[List[str]] = [
         "ELECTRONICS",
         "CLOTHING",
         "BOOKS",
@@ -71,7 +73,7 @@ class ExampleEntity(CyodaEntity):
     ]
 
     @validator("name")
-    def validate_name(cls, v):
+    def validate_name(cls, v: str) -> str:
         """Validate name field according to criteria requirements"""
         if not v or len(v.strip()) == 0:
             raise ValueError("Name must be non-empty")
@@ -82,7 +84,7 @@ class ExampleEntity(CyodaEntity):
         return v.strip()
 
     @validator("description")
-    def validate_description(cls, v):
+    def validate_description(cls, v: str) -> str:
         """Validate description field according to criteria requirements"""
         if not v or len(v.strip()) == 0:
             raise ValueError("Description must be non-empty")
@@ -91,21 +93,21 @@ class ExampleEntity(CyodaEntity):
         return v.strip()
 
     @validator("value")
-    def validate_value(cls, v):
+    def validate_value(cls, v: float) -> float:
         """Validate value field according to criteria requirements"""
         if v <= 0:
             raise ValueError("Value must be a positive number (greater than 0)")
         return v
 
     @validator("category")
-    def validate_category(cls, v):
+    def validate_category(cls, v: str) -> str:
         """Validate category field according to criteria requirements"""
         if v not in cls.ALLOWED_CATEGORIES:
             raise ValueError(f"Category must be one of: {cls.ALLOWED_CATEGORIES}")
         return v
 
     @validator("value")
-    def validate_business_logic(cls, v, values):
+    def validate_business_logic(cls, v: float, values: Dict[str, Any]) -> float:
         """Validate business logic rules according to criteria requirements"""
         category = values.get("category")
         is_active = values.get("is_active")

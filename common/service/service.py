@@ -12,9 +12,13 @@ from typing import Any, Dict, List, Optional
 
 from common.config.config import CHAT_REPOSITORY
 from common.repository.crud_repository import CrudRepository
-from common.service.entity_service import (EntityMetadata, EntityResponse,
-                                           EntityService, SearchCondition,
-                                           SearchConditionRequest)
+from common.service.entity_service import (
+    EntityMetadata,
+    EntityResponse,
+    EntityService,
+    SearchCondition,
+    SearchConditionRequest,
+)
 from common.utils.utils import parse_entity
 
 logger = logging.getLogger("quart")
@@ -23,7 +27,12 @@ logger = logging.getLogger("quart")
 class EntityServiceError(Exception):
     """Custom exception for entity service operations."""
 
-    def __init__(self, message: str, entity_class: Optional[str] = None, entity_id: Optional[str] = None):
+    def __init__(
+        self,
+        message: str,
+        entity_class: Optional[str] = None,
+        entity_id: Optional[str] = None,
+    ) -> None:
         super().__init__(message)
         self.entity_class = entity_class
         self.entity_id = entity_id
@@ -42,11 +51,13 @@ class EntityServiceImpl(EntityService):
     """
 
     _instance: Optional["EntityServiceImpl"] = None
-    _lock = threading.Lock()
+    _lock: threading.Lock = threading.Lock()
 
     def __init__(
-        self, repository: CrudRepository, model_registry: Optional[Dict[str, Any]] = None
-    ):
+        self,
+        repository: CrudRepository[Any],
+        model_registry: Optional[Dict[str, Any]] = None,
+    ) -> None:
         """
         Initialize EntityService implementation.
 
@@ -54,13 +65,15 @@ class EntityServiceImpl(EntityService):
             repository: CRUD repository for data operations
             model_registry: Registry of entity model classes
         """
-        self._repository = repository
-        self._model_registry = model_registry or {}
+        self._repository: CrudRepository[Any] = repository
+        self._model_registry: Dict[str, Any] = model_registry or {}
         logger.info("EntityServiceImpl initialized")
 
     @classmethod
     def get_instance(
-        cls, repository: Optional[CrudRepository] = None, model_registry: Optional[Dict[str, Any]] = None
+        cls,
+        repository: Optional[CrudRepository[Any]] = None,
+        model_registry: Optional[Dict[str, Any]] = None,
     ) -> "EntityServiceImpl":
         """
         Get singleton instance of EntityServiceImpl.
@@ -79,31 +92,20 @@ class EntityServiceImpl(EntityService):
                         raise ValueError(
                             "Repository is required for first initialization"
                         )
-                    # Create instance directly to avoid infinite recursion
-                    cls._instance = super(EntityServiceImpl, cls).__new__(cls)
-                    cls._instance.__init__(repository, model_registry)
+                    # Create instance without calling __init__, then set fields safely
+                    instance = super().__new__(cls)  # type: ignore[call-arg]
+                    # Attach attributes directly to avoid calling __init__ on an existing instance
+                    instance._repository = repository  # type: ignore[attr-defined]
+                    instance._model_registry = model_registry or {}  # type: ignore[attr-defined]
                     logger.info("EntityServiceImpl singleton created")
+                    cls._instance = instance  # type: ignore[assignment]
         elif repository is not None:
             # If instance exists but repository is provided, log a warning
             logger.warning(
                 "EntityServiceImpl instance already exists. Ignoring provided repository."
             )
 
-        return cls._instance
-
-    def __new__(
-        cls, repository: Optional[CrudRepository] = None, model_registry: Optional[Dict[str, Any]] = None
-    ):
-        """Maintain backward compatibility with old constructor."""
-        if repository is not None:
-            return cls.get_instance(repository, model_registry)
-        elif cls._instance is not None:
-            return cls._instance
-        else:
-            # If no repository and no instance, raise error
-            raise ValueError(
-                "Repository is required for EntityServiceImpl initialization. Use get_instance() or provide repository."
-            )
+        return cls._instance  # type: ignore[return-value]
 
     # ========================================
     # HELPER METHODS
@@ -160,7 +162,11 @@ class EntityServiceImpl(EntityService):
         return data
 
     def _handle_repository_error(
-        self, data: Any, operation: str, entity_class: Optional[str] = None, entity_id: Optional[str] = None
+        self,
+        data: Any,
+        operation: str,
+        entity_class: Optional[str] = None,
+        entity_id: Optional[str] = None,
     ) -> Any:
         """
         Handle repository response errors.
@@ -274,7 +280,7 @@ class EntityServiceImpl(EntityService):
         """
         try:
             # Create search condition for business ID
-            condition = {business_id_field: business_id}
+            _ = {business_id_field: business_id}  # kept for clarity; not used directly
 
             # Use search to find by business ID
             search_request = (
@@ -318,7 +324,7 @@ class EntityServiceImpl(EntityService):
                 return []
 
             # Parse and create responses
-            results = []
+            results: List[EntityResponse] = []
             for item in data if isinstance(data, list) else [data]:
                 parsed_item = self._parse_entity_data(item, entity_class)
                 response = self._create_entity_response(parsed_item)
@@ -365,7 +371,7 @@ class EntityServiceImpl(EntityService):
                 return []
 
             # Parse and create responses
-            results = []
+            results: List[EntityResponse] = []
             for item in data if isinstance(data, list) else [data]:
                 parsed_item = self._parse_entity_data(item, entity_class)
                 response = self._create_entity_response(parsed_item)
@@ -398,14 +404,14 @@ class EntityServiceImpl(EntityService):
         """
         if len(condition.conditions) == 1:
             # Single condition - simple format
-            cond = condition.conditions[0]
+            cond: SearchCondition = condition.conditions[0]
             if cond.operator == "eq":
                 return {cond.field: cond.value}
             else:
                 return {cond.field: {cond.operator: cond.value}}
         else:
             # Multiple conditions - complex format
-            criteria = {condition.operator: []}
+            criteria: Dict[str, List[Dict[str, Any]]] = {condition.operator: []}
             for cond in condition.conditions:
                 if cond.operator == "eq":
                     criteria[condition.operator].append({cond.field: cond.value})
@@ -444,13 +450,15 @@ class EntityServiceImpl(EntityService):
                 )
 
             # Add technical_id to entity data
-            entity_with_id = {**entity, "technical_id": entity_id}
+            entity_with_id = {**entity, "technical_id": str(entity_id)}
 
             # Parse entity data
             parsed_entity = self._parse_entity_data(entity_with_id, entity_class)
 
             # Create response
-            response = self._create_entity_response(parsed_entity, entity_id, "active")
+            response = self._create_entity_response(
+                parsed_entity, str(entity_id), "active"
+            )
 
             logger.debug(f"Saved entity {entity_id} of type {entity_class}")
             return response
@@ -483,7 +491,7 @@ class EntityServiceImpl(EntityService):
             EntityResponse with updated entity and metadata
         """
         try:
-            additional_meta = {}
+            additional_meta: Dict[str, Any] = {}
             if transition:
                 additional_meta["update_transition"] = transition
 
@@ -499,13 +507,13 @@ class EntityServiceImpl(EntityService):
                 )
 
             # Add technical_id to entity data
-            entity_with_id = {**entity, "technical_id": updated_id}
+            entity_with_id = {**entity, "technical_id": str(updated_id)}
 
             # Parse entity data
             parsed_entity = self._parse_entity_data(entity_with_id, entity_class)
 
             # Create response
-            response = self._create_entity_response(parsed_entity, updated_id)
+            response = self._create_entity_response(parsed_entity, str(updated_id))
 
             logger.debug(f"Updated entity {entity_id} of type {entity_class}")
             return response
@@ -551,13 +559,13 @@ class EntityServiceImpl(EntityService):
 
             # Find existing entity
             existing = await self.find_by_business_id(
-                entity_class, business_id, business_id_field, entity_version
+                entity_class, str(business_id), business_id_field, entity_version
             )
             if not existing:
                 raise EntityServiceError(
                     f"Entity not found with {business_id_field}={business_id}",
                     entity_class,
-                    business_id,
+                    str(business_id),
                 )
 
             # Update using technical ID
@@ -671,12 +679,13 @@ class EntityServiceImpl(EntityService):
 
             # Use repository batch save if available, otherwise save individually
             if hasattr(self._repository, "save_all"):
-                entity_id = await self._repository.save_all(meta, entities)
-                # For batch operations, we might only get the first ID
-                results = []
+                batch_base_id = await self._repository.save_all(meta, entities)
+                # For batch operations, we might only get a base ID
+                results: List[EntityResponse] = []
                 for i, entity in enumerate(entities):
-                    # Generate or use returned ID
-                    current_id = f"{entity_id}_{i}" if entity_id else f"batch_{i}"
+                    current_id = (
+                        f"{batch_base_id}_{i}" if batch_base_id else f"batch_{i}"
+                    )
                     entity_with_id = {**entity, "technical_id": current_id}
                     parsed_entity = self._parse_entity_data(
                         entity_with_id, entity_class
@@ -755,9 +764,9 @@ class EntityServiceImpl(EntityService):
             if hasattr(self._repository, "get_transitions"):
                 transitions = await self._repository.get_transitions(meta, entity_id)
                 if isinstance(transitions, list):
-                    return transitions
+                    return [str(t) for t in transitions]
                 elif isinstance(transitions, dict):
-                    return list(transitions.keys())
+                    return [str(k) for k in transitions.keys()]
                 else:
                     return []
             else:
@@ -818,14 +827,14 @@ class EntityServiceImpl(EntityService):
     # LEGACY COMPATIBILITY METHODS
     # ========================================
 
-    async def get_item(
+    async def get_item(  # deprecated
         self,
         token: str,
         entity_model: str,
         entity_version: str,
         technical_id: str,
-        meta=None,
-    ) -> Any:
+        meta: Optional[Dict[str, Any]] = None,
+    ) -> Optional[Any]:
         """
         @deprecated Use get_by_id() instead for better clarity
 
@@ -848,7 +857,7 @@ class EntityServiceImpl(EntityService):
             logger.exception(f"Legacy get_item failed: {e}")
             return None
 
-    async def get_items(
+    async def get_items(  # deprecated
         self, token: str, entity_model: str, entity_version: str
     ) -> List[Any]:
         """
@@ -873,9 +882,9 @@ class EntityServiceImpl(EntityService):
             logger.exception(f"Legacy get_items failed: {e}")
             return []
 
-    async def get_single_item_by_condition(
+    async def get_single_item_by_condition(  # deprecated
         self, token: str, entity_model: str, entity_version: str, condition: Any
-    ) -> Any:
+    ) -> Optional[Any]:
         """
         @deprecated Use search() instead for better clarity
 
@@ -902,7 +911,7 @@ class EntityServiceImpl(EntityService):
             logger.exception(f"Legacy get_single_item_by_condition failed: {e}")
             return None
 
-    async def get_items_by_condition(
+    async def get_items_by_condition(  # deprecated
         self, token: str, entity_model: str, entity_version: str, condition: Any
     ) -> List[Any]:
         """
@@ -936,14 +945,14 @@ class EntityServiceImpl(EntityService):
             logger.exception(f"Legacy get_items_by_condition failed: {e}")
             return []
 
-    async def add_item(
+    async def add_item(  # deprecated
         self,
         token: str,
         entity_model: str,
         entity_version: str,
         entity: Any,
-        meta: Any = None,
-    ) -> Any:
+        meta: Optional[Dict[str, Any]] = None,
+    ) -> Optional[str]:
         """
         @deprecated Use save() instead for better clarity
 
@@ -966,15 +975,15 @@ class EntityServiceImpl(EntityService):
             logger.exception(f"Legacy add_item failed: {e}")
             return None
 
-    async def update_item(
+    async def update_item(  # deprecated
         self,
         token: str,
         entity_model: str,
         entity_version: str,
         technical_id: str,
         entity: Any,
-        meta: Any,
-    ) -> Any:
+        meta: Optional[Dict[str, Any]],
+    ) -> Optional[str]:
         """
         @deprecated Use update() instead for better clarity
 
@@ -1002,14 +1011,14 @@ class EntityServiceImpl(EntityService):
             logger.exception(f"Legacy update_item failed: {e}")
             return None
 
-    async def delete_item(
+    async def delete_item(  # deprecated
         self,
         token: str,
         entity_model: str,
         entity_version: str,
         technical_id: str,
-        meta: Any,
-    ) -> Any:
+        meta: Optional[Dict[str, Any]],
+    ) -> Optional[str]:
         """
         @deprecated Use delete_by_id() instead for better clarity
 
@@ -1024,7 +1033,10 @@ class EntityServiceImpl(EntityService):
         )
 
         try:
-            return await self.delete_by_id(technical_id, entity_model, entity_version)
+            deleted_id = await self.delete_by_id(
+                technical_id, entity_model, entity_version
+            )
+            return deleted_id
         except EntityServiceError:
             return None
         except Exception as e:
@@ -1052,8 +1064,9 @@ class EntityServiceImpl(EntityService):
 
         return builder.build()
 
-    # Keep the original _find_by_criteria for internal use
-    async def _find_by_criteria(self, token, entity_model, entity_version, condition):
+    async def _find_by_criteria(
+        self, token: str, entity_model: str, entity_version: str, condition: Any
+    ) -> List[Any]:
         """Internal method for legacy compatibility."""
         try:
             search_request = self._convert_legacy_condition(condition)
@@ -1062,124 +1075,3 @@ class EntityServiceImpl(EntityService):
         except Exception as e:
             logger.exception(f"Internal _find_by_criteria failed: {e}")
             return []
-
-    async def get_item(
-        self,
-        token: str,
-        entity_model: str,
-        entity_version: str,
-        technical_id: str,
-        meta=None,
-    ) -> Any:
-        """Retrieve a single item based on its ID."""
-        repository_meta = await self._repository.get_meta(
-            token, entity_model, entity_version
-        )
-        if meta:
-            repository_meta.update(meta)
-        resp = await self._repository.find_by_id(meta, technical_id)
-        if resp and isinstance(resp, dict) and resp.get("errorMessage"):
-            return []
-        if entity_model:
-            model_cls = self._model_registry.get(entity_model.lower())
-            resp = parse_entity(model_cls, resp)
-        return resp
-
-    async def get_items(
-        self, token: str, entity_model: str, entity_version: str
-    ) -> List[Any]:
-        """Retrieve multiple items based on their IDs."""
-        meta = await self._repository.get_meta(token, entity_model, entity_version)
-        resp = await self._repository.find_all(meta)
-        if resp and isinstance(resp, dict) and resp.get("errorMessage"):
-            return []
-        model_cls = self._model_registry.get(entity_model.lower())
-        resp = parse_entity(model_cls, resp)
-        return resp
-
-    async def get_single_item_by_condition(
-        self, token: str, entity_model: str, entity_version: str, condition: Any
-    ) -> List[Any]:
-        """Retrieve multiple items based on their IDs."""
-        resp = await self._find_by_criteria(
-            token, entity_model, entity_version, condition
-        )
-        if resp and isinstance(resp, dict) and resp.get("errorMessage"):
-            return []
-        model_cls = self._model_registry.get(entity_model.lower())
-        resp = parse_entity(model_cls, resp)
-        return resp
-
-    async def get_items_by_condition(
-        self, token: str, entity_model: str, entity_version: str, condition: Any
-    ) -> List[Any]:
-        """Retrieve multiple items based on their IDs."""
-        resp = await self._find_by_criteria(
-            token, entity_model, entity_version, condition.get(CHAT_REPOSITORY)
-        )
-        if resp and isinstance(resp, dict) and resp.get("errorMessage"):
-            return []
-        model_cls = self._model_registry.get(entity_model.lower())
-        resp = parse_entity(model_cls, resp)
-        return resp
-
-    async def add_item(
-        self,
-        token: str,
-        entity_model: str,
-        entity_version: str,
-        entity: Any,
-        meta: Any = None,
-    ) -> Any:
-        """Add a new item to the repository."""
-        repository_meta = await self._repository.get_meta(
-            token, entity_model, entity_version
-        )
-        if meta:
-            repository_meta.update(meta)
-        resp = await self._repository.save(repository_meta, entity)
-        return resp
-
-    async def update_item(
-        self,
-        token: str,
-        entity_model: str,
-        entity_version: str,
-        technical_id: str,
-        entity: Any,
-        meta: Any,
-    ) -> Any:
-        """Update an existing item in the repository."""
-        repository_meta = await self._repository.get_meta(
-            token, entity_model, entity_version
-        )
-        meta.update(repository_meta)
-        resp = await self._repository.update(
-            meta=meta, entity_id=technical_id, entity=entity
-        )
-        return resp
-
-    async def _find_by_criteria(self, token, entity_model, entity_version, condition):
-        meta = await self._repository.get_meta(token, entity_model, entity_version)
-        resp = await self._repository.find_all_by_criteria(meta, condition)
-        model_cls = self._model_registry.get(entity_model.lower())
-        resp = parse_entity(model_cls, resp)
-        return resp
-
-    async def delete_item(
-        self,
-        token: str,
-        entity_model: str,
-        entity_version: str,
-        technical_id: str,
-        meta: Any,
-    ) -> Any:
-        """Update an existing item in the repository."""
-        repository_meta = await self._repository.get_meta(
-            token, entity_model, entity_version
-        )
-        meta.update(repository_meta)
-        resp = await self._repository.delete_by_id(meta, technical_id)
-        return resp
-
-

@@ -1,11 +1,15 @@
 import json
 import logging
+from typing import Any
 
-from common.grpc_client.constants import (CALC_REQ_EVENT_TYPE,
-                                          CRITERIA_CALC_REQ_EVENT_TYPE,
-                                          ERROR_EVENT_TYPE, EVENT_ACK_TYPE,
-                                          GREET_EVENT_TYPE,
-                                          KEEP_ALIVE_EVENT_TYPE)
+from common.grpc_client.constants import (
+    CALC_REQ_EVENT_TYPE,
+    CRITERIA_CALC_REQ_EVENT_TYPE,
+    ERROR_EVENT_TYPE,
+    EVENT_ACK_TYPE,
+    GREET_EVENT_TYPE,
+    KEEP_ALIVE_EVENT_TYPE,
+)
 from common.grpc_client.middleware.base import MiddlewareLink
 from proto.cloudevents_pb2 import CloudEvent
 
@@ -13,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 class LoggingMiddleware(MiddlewareLink):
-    async def handle(self, event: CloudEvent):
+    async def handle(self, event: CloudEvent) -> Any:
         # replicate log_incoming_event
         try:
             data = json.loads(event.text_data) if event.text_data else {}

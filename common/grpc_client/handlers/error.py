@@ -1,5 +1,6 @@
 import json
 import logging
+from typing import Any
 
 from common.grpc_client.handlers.base import Handler
 from proto.cloudevents_pb2 import CloudEvent
@@ -8,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 class ErrorHandler(Handler):
-    async def handle(self, request: CloudEvent, services=None):
+    async def handle(self, request: CloudEvent, services: Any = None) -> None:
         data = json.loads(request.text_data)
         error_message = data.get("message", "Unknown error")
         error_code = data.get("code", "UNKNOWN")

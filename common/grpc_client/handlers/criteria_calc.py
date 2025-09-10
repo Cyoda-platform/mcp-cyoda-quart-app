@@ -1,8 +1,11 @@
 import json
 import logging
+from typing import Any, Optional
 
-from common.grpc_client.constants import (CRITERIA_CALC_REQ_EVENT_TYPE,
-                                          CRITERIA_CALC_RESP_EVENT_TYPE)
+from common.grpc_client.constants import (
+    CRITERIA_CALC_REQ_EVENT_TYPE,
+    CRITERIA_CALC_RESP_EVENT_TYPE,
+)
 from common.grpc_client.handlers.base import Handler
 from common.grpc_client.responses.spec import ResponseSpec
 from entity import create_entity
@@ -12,7 +15,9 @@ logger = logging.getLogger(__name__)
 
 
 class CriteriaCalcRequestHandler(Handler):
-    async def handle(self, request: CloudEvent, services=None):
+    async def handle(
+        self, request: CloudEvent, services: Any = None
+    ) -> Optional[ResponseSpec]:
         data = json.loads(request.text_data)
         criteria_name = data.get("criteriaName")
 

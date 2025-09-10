@@ -9,8 +9,7 @@ import logging
 import os
 from typing import Any, Dict
 
-from common.config.config import (CYODA_CLIENT_ID, CYODA_CLIENT_SECRET,
-                                  CYODA_TOKEN_URL)
+from common.config.config import CYODA_CLIENT_ID, CYODA_CLIENT_SECRET, CYODA_TOKEN_URL
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +23,7 @@ def get_service_config() -> Dict[str, Any]:
     Returns:
         Dictionary containing service configuration
     """
-    config = {
+    config: Dict[str, Any] = {
         "authentication": {
             "client_id": CYODA_CLIENT_ID,
             "client_secret": CYODA_CLIENT_SECRET,

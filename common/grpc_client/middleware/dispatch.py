@@ -1,5 +1,6 @@
 import json
 import logging
+from typing import Any
 
 from common.grpc_client.constants import EVENT_ACK_TYPE
 from common.grpc_client.middleware.base import MiddlewareLink
@@ -18,15 +19,15 @@ class DispatchMiddleware(MiddlewareLink):
         router: EventRouter,
         builders: ResponseBuilderRegistry,
         outbox: Outbox,
-        services=None,
-    ):
+        services: Any = None,
+    ) -> None:
         super().__init__()
         self._router = router
         self._builders = builders
         self._outbox = outbox
         self._services = services
 
-    async def handle(self, event: CloudEvent):
+    async def handle(self, event: CloudEvent) -> None:
         handler = self._router.route(event)
         if not handler:
             logger.error(f"Unhandled event type: {event.type}")
