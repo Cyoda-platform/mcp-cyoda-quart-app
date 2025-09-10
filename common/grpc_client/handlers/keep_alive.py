@@ -4,7 +4,7 @@ from typing import Any
 from common.grpc_client.constants import EVENT_ACK_TYPE
 from common.grpc_client.handlers.base import Handler
 from common.grpc_client.responses.spec import ResponseSpec
-from proto.cloudevents_pb2 import CloudEvent
+from common.proto.cloudevents_pb2 import CloudEvent
 
 
 class KeepAliveHandler(Handler):

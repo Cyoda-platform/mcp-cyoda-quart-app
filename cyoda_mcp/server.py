@@ -33,8 +33,8 @@ def initialize_mcp_services() -> bool:
     Returns:
         bool: True if services initialized successfully, False otherwise.
     """
-    from service.config import get_service_config, validate_configuration
-    from service.services import initialize_services
+    from services.config import get_service_config, validate_configuration
+    from services.services import initialize_services
 
     try:
         # Validate configuration first

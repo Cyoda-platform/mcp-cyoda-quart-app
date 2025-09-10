@@ -29,6 +29,7 @@ dependencies = [
     "PyJWT>=2.10.1",
     "Authlib>=1.6.0",
     "dependency_injector>=4.48.1",
+    "psutil>=7.0.0"
 ]
 
 authors = [
@@ -59,12 +60,13 @@ Issues = "https://github.com/Cyoda-platform/quart-client-template/issues"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["cyoda_mcp*", "common*", "entity*", "service*", "workflow*", "proto*", "routes*"]
+include = ["cyoda_mcp*", "common*", "application*"]
 
 [tool.setuptools.package-data]
 # Include non-py files shipped with the package
 cyoda_mcp = ["*.json", "*.yaml", "*.yml"]
-proto = ["*.proto"]
+"common.proto" = ["*.proto"]
+application = ["*.json", "*.yaml", "*.yml"]
 
 [tool.setuptools]
 package-dir = {"" = "."}
@@ -121,11 +123,11 @@ ignore_missing_imports = false
 # Per-module overrides for proto files (additional safety net)
 [[tool.mypy.overrides]]
 module = [
-    "proto.*",
-    "proto.cloudevents_pb2",
-    "proto.cloudevents_pb2_grpc",
-    "proto.cyoda_cloud_api_pb2",
-    "proto.cyoda_cloud_api_pb2_grpc",
+    "common.proto.*",
+    "common.proto.cloudevents_pb2",
+    "common.proto.cloudevents_pb2_grpc",
+    "common.proto.cyoda_cloud_api_pb2",
+    "common.proto.cyoda_cloud_api_pb2_grpc",
     "tests.*",
 ]
 ignore_errors = true
@@ -165,7 +167,7 @@ exclude = '''
   | buck-out
   | build
   | dist
-  | proto
+  | common/proto
 )/
 '''
 
@@ -174,8 +176,8 @@ exclude = '''
 profile = "black"
 multi_line_output = 3
 line_length = 88
-known_first_party = ["cyoda_mcp", "common", "entity", "service", "workflow", "routes"]
-skip_glob = ["proto/*"]
+known_first_party = ["cyoda_mcp", "common", "application"]
+skip_glob = ["common/proto/*"]
 
 # pytest configuration
 [tool.pytest.ini_options]

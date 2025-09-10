@@ -13,7 +13,7 @@ from common.grpc_client.constants import (
     TAGS,
 )
 from common.grpc_client.responses.spec import ResponseSpec
-from proto.cloudevents_pb2 import CloudEvent
+from common.proto.cloudevents_pb2 import CloudEvent
 
 
 class ResponseBuilder:

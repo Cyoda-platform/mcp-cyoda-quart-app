@@ -13,7 +13,7 @@ from typing import Any, Dict, List, Optional
 
 from fastmcp import Context, FastMCP
 
-from service.services import get_workflow_management_service
+from services.services import get_workflow_management_service
 
 # Add the parent directory to the path so we can import from the main app
 sys.path.insert(
@@ -157,7 +157,8 @@ async def import_workflows_from_file_tool(
         # Read workflows from file
         try:
             with open(full_path, "r", encoding="utf-8") as f:
-                workflows = json.load(f)
+                workflow = json.load(f)
+                workflows = workflow if isinstance(workflow, list) else [workflow]
         except json.JSONDecodeError as e:
             return {
                 "success": False,
@@ -215,7 +216,7 @@ async def import_workflows_from_file_tool(
 
 @mcp.tool
 async def list_workflow_files_tool(
-    base_path: str = "resources/workflow",
+    base_path: str = "application/resources/workflow",
     ctx: Optional[Context] = None,
 ) -> Dict[str, Any]:
     """

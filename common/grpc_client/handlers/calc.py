@@ -2,6 +2,7 @@ import json
 import logging
 from typing import Any, Optional
 
+from example_application.entity import create_entity
 from common.exception.grpc_exceptions import (
     HandlerError,
     ProcessingError,
@@ -10,8 +11,7 @@ from common.exception.grpc_exceptions import (
 from common.grpc_client.constants import CALC_REQ_EVENT_TYPE, CALC_RESP_EVENT_TYPE
 from common.grpc_client.handlers.base import Handler
 from common.grpc_client.responses.spec import ResponseSpec
-from entity import create_entity
-from proto.cloudevents_pb2 import CloudEvent
+from common.proto.cloudevents_pb2 import CloudEvent
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +33,7 @@ class CalcRequestHandler(Handler):
         except ValueError:
             logger.error(f"Unknown entity type: {entity_type}")
             # Fallback: create a generic CyodaEntity
-            from entity.cyoda_entity import CyodaEntity
+            from common.entity.cyoda_entity import CyodaEntity
 
             entity = CyodaEntity(**data["payload"]["data"])
         except Exception as e:

@@ -49,7 +49,7 @@ class GrpcStreamingFacadeFactory:
         """Create a fully configured GrpcStreamingFacade with all components."""
 
         # Import here to avoid circular imports
-        from service.services import get_processor_manager
+        from services.services import get_processor_manager
 
         # Create services object for handlers with processor manager
         services = types.SimpleNamespace(

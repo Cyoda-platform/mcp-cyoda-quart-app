@@ -8,7 +8,7 @@ enabling proper dependency inversion and testability.
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional, Protocol, TypeVar
 
-from entity.cyoda_entity import CyodaEntity
+from common.entity.cyoda_entity import CyodaEntity
 
 # Generic type for repository entities
 T = TypeVar("T")

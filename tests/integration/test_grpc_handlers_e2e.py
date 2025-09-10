@@ -12,12 +12,12 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 
+from example_application.entity import create_entity
 from common.grpc_client.handlers.calc import CalcRequestHandler
 from common.grpc_client.handlers.criteria_calc import CriteriaCalcRequestHandler
 from common.processor import get_processor_manager
-from entity import create_entity
-from proto.cloudevents_pb2 import CloudEvent
-from service.services import get_entity_service
+from common.proto.cloudevents_pb2 import CloudEvent
+from services.services import get_entity_service
 
 
 class TestGrpcHandlersE2E:
@@ -185,14 +185,14 @@ class TestGrpcHandlersE2E:
             )
 
             # Initialize services first to avoid the initialization error
-            from service.config import get_service_config
-            from service.services import initialize_services
+            from services.config import get_service_config
+            from services.services import initialize_services
 
             initialize_services(get_service_config())
 
             # Patch the get_entity_service function
             m.setattr(
-                "service.services.get_entity_service", lambda: mock_entity_service
+                "services.services.get_entity_service", lambda: mock_entity_service
             )
 
             # Execute the handler
@@ -253,13 +253,13 @@ class TestGrpcHandlersE2E:
             )
 
             # Initialize services first
-            from service.config import get_service_config
-            from service.services import initialize_services
+            from services.config import get_service_config
+            from services.services import initialize_services
 
             initialize_services(get_service_config())
 
             m.setattr(
-                "service.services.get_entity_service", lambda: mock_entity_service
+                "services.services.get_entity_service", lambda: mock_entity_service
             )
 
             processed_entity = await processor_manager.process_entity(
@@ -377,13 +377,13 @@ class TestGrpcHandlersE2E:
             )
 
             # Initialize services
-            from service.config import get_service_config
-            from service.services import initialize_services
+            from services.config import get_service_config
+            from services.services import initialize_services
 
             initialize_services(get_service_config())
 
             m.setattr(
-                "service.services.get_entity_service", lambda: mock_entity_service
+                "services.services.get_entity_service", lambda: mock_entity_service
             )
 
             processed_entity = await processor_manager.process_entity(
@@ -506,13 +506,13 @@ class TestGrpcHandlersE2E:
             )
 
             # Initialize services
-            from service.config import get_service_config
-            from service.services import initialize_services
+            from services.config import get_service_config
+            from services.services import initialize_services
 
             initialize_services(get_service_config())
 
             m.setattr(
-                "service.services.get_entity_service", lambda: mock_entity_service
+                "services.services.get_entity_service", lambda: mock_entity_service
             )
 
             # Set entities to validated state for processing
@@ -579,13 +579,13 @@ class TestGrpcHandlersE2E:
             )
 
             # Initialize services
-            from service.config import get_service_config
-            from service.services import initialize_services
+            from services.config import get_service_config
+            from services.services import initialize_services
 
             initialize_services(get_service_config())
 
             m.setattr(
-                "service.services.get_entity_service", lambda: mock_entity_service
+                "services.services.get_entity_service", lambda: mock_entity_service
             )
 
             calc_handler = CalcRequestHandler()

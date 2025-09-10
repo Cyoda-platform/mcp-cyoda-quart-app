@@ -34,7 +34,10 @@ def get_service_config() -> Dict[str, Any]:
             "use_in_memory": os.getenv("CHAT_REPOSITORY", "cyoda").lower() != "cyoda",
         },
         "processor": {
-            "modules": ["workflow.processors", "workflow.criteria"],
+            "modules": [
+                "example_application.processor",
+                "example_application.criterion",
+            ],
         },
     }
 

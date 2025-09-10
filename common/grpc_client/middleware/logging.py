@@ -11,7 +11,7 @@ from common.grpc_client.constants import (
     KEEP_ALIVE_EVENT_TYPE,
 )
 from common.grpc_client.middleware.base import MiddlewareLink
-from proto.cloudevents_pb2 import CloudEvent
+from common.proto.cloudevents_pb2 import CloudEvent
 
 logger = logging.getLogger(__name__)
 

@@ -11,7 +11,7 @@ from common.grpc_client.constants import (
 )
 from common.grpc_client.responses.builders import JoinResponseBuilder
 from common.grpc_client.responses.spec import ResponseSpec
-from proto.cloudevents_pb2 import CloudEvent
+from common.proto.cloudevents_pb2 import CloudEvent
 
 logger = logging.getLogger(__name__)
 

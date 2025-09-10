@@ -8,15 +8,14 @@ include pyproject.toml
 include requirements.txt
 
 # Include proto files and generated code
-recursive-include proto *.proto
-recursive-include proto *.py
-recursive-include proto *.pyi
+recursive-include common/proto *.proto
+recursive-include common/proto *.py
+recursive-include common/proto *.pyi
 
 # Include any JSON/YAML configuration files
 recursive-include cyoda_mcp *.json *.yaml *.yml
 recursive-include common *.json *.yaml *.yml
-recursive-include service *.json *.yaml *.yml
-recursive-include workflow *.json *.yaml *.yml
+recursive-include application *.json *.yaml *.yml
 
 # Include documentation
 recursive-include docs *.md *.txt *.rst

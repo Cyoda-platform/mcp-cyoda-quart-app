@@ -3,7 +3,7 @@ from typing import Any, Dict, Optional
 
 from common.exception.grpc_exceptions import ErrorHandler, GrpcClientError, HandlerError
 from common.grpc_client.middleware.base import MiddlewareLink
-from proto.cloudevents_pb2 import CloudEvent
+from common.proto.cloudevents_pb2 import CloudEvent
 
 logger = logging.getLogger(__name__)
 

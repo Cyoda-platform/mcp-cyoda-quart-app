@@ -1,7 +1,7 @@
 from typing import Any, Optional
 
 from common.grpc_client.responses.spec import ResponseSpec
-from proto.cloudevents_pb2 import CloudEvent
+from common.proto.cloudevents_pb2 import CloudEvent
 
 
 class Handler:

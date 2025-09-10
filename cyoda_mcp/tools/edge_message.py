@@ -10,7 +10,7 @@ from typing import Any, Dict, Optional
 
 from fastmcp import Context, FastMCP
 
-from service.services import get_edge_message_service
+from services.services import get_edge_message_service
 
 # Add the parent directory to the path so we can import from the main app
 sys.path.insert(

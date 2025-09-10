@@ -9,8 +9,8 @@ import pkgutil
 from types import ModuleType
 from typing import Any, Dict, List, Optional, Type
 
+from common.entity.cyoda_entity import CyodaEntity
 from common.interfaces.services import IProcessorManager
-from entity.cyoda_entity import CyodaEntity
 
 from .base import CyodaCriteriaChecker, CyodaProcessor
 from .errors import (
@@ -305,7 +305,10 @@ def get_processor_manager(modules: Optional[List[str]] = None) -> ProcessorManag
     if _processor_manager is None:
         # Use provided modules or default ones
         if modules is None:
-            modules = ["workflow.processors", "workflow.criteria"]
+            modules = [
+                "example_application.processor",
+                "example_application.criterion",
+            ]
         _processor_manager = ProcessorManager(modules)
 
     return _processor_manager

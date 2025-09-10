@@ -12,8 +12,8 @@ from common.grpc_client.middleware.base import MiddlewareLink
 from common.grpc_client.outbox import Outbox
 from common.grpc_client.responses.builders import ResponseBuilderRegistry
 from common.grpc_client.router import EventRouter
-from proto.cloudevents_pb2 import CloudEvent
-from proto.cyoda_cloud_api_pb2_grpc import CloudEventsServiceStub
+from common.proto.cloudevents_pb2 import CloudEvent
+from common.proto.cyoda_cloud_api_pb2_grpc import CloudEventsServiceStub
 
 logger = logging.getLogger(__name__)
 

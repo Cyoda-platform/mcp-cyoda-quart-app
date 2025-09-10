@@ -5,7 +5,7 @@ Simplified metrics middleware - no-op for simplicity.
 import logging
 from typing import Any
 
-from proto.cloudevents_pb2 import CloudEvent
+from common.proto.cloudevents_pb2 import CloudEvent
 
 from .base import MiddlewareLink
 

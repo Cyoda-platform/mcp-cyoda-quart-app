@@ -3,7 +3,7 @@ import logging
 from typing import Any
 
 from common.grpc_client.handlers.base import Handler
-from proto.cloudevents_pb2 import CloudEvent
+from common.proto.cloudevents_pb2 import CloudEvent
 
 logger = logging.getLogger(__name__)
 

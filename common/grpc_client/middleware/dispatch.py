@@ -8,7 +8,7 @@ from common.grpc_client.outbox import Outbox
 from common.grpc_client.responses.builders import ResponseBuilderRegistry
 from common.grpc_client.responses.spec import ResponseSpec
 from common.grpc_client.router import EventRouter
-from proto.cloudevents_pb2 import CloudEvent
+from common.proto.cloudevents_pb2 import CloudEvent
 
 logger = logging.getLogger(__name__)
 

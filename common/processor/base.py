@@ -6,7 +6,7 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Any, Dict
 
-from entity.cyoda_entity import CyodaEntity
+from common.entity.cyoda_entity import CyodaEntity
 
 logger = logging.getLogger(__name__)
 

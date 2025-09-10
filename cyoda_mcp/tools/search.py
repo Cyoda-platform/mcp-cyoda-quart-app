@@ -13,7 +13,7 @@ from fastmcp import Context, FastMCP
 
 from common.config.config import ENTITY_VERSION
 from common.service.entity_service import SearchConditionRequest
-from service.services import get_entity_service
+from services.services import get_entity_service
 
 # Add the parent directory to the path so we can import from the main app
 sys.path.insert(
