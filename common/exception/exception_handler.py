@@ -1,17 +1,20 @@
 # errors.py
 import logging
+
 from quart import jsonify
 
-from common.exception.exceptions import UnauthorizedAccessException, ChatNotFoundException
+from common.exception.exceptions import (ChatNotFoundError,
+                                         UnauthorizedAccessError)
 
 logger = logging.getLogger(__name__)
 
+
 def register_error_handlers(app):
-    @app.errorhandler(UnauthorizedAccessException)
+    @app.errorhandler(UnauthorizedAccessError)
     async def handle_unauthorized_exception(error):
         return jsonify({"error": str(error)}), 401
 
-    @app.errorhandler(ChatNotFoundException)
+    @app.errorhandler(ChatNotFoundError)
     async def handle_chat_not_found_exception(error):
         return jsonify({"error": str(error)}), 404
 

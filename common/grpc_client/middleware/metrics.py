@@ -1,8 +1,11 @@
 """
 Simplified metrics middleware - no-op for simplicity.
 """
+
 import logging
+
 from proto.cloudevents_pb2 import CloudEvent
+
 from .base import MiddlewareLink
 
 logger = logging.getLogger(__name__)

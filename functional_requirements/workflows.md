@@ -52,8 +52,8 @@ The ExampleEntity workflow demonstrates a complete business process with validat
 stateDiagram-v2
     [*] --> none
     none --> created : transition_to_created (automatic)
-    created --> validated : transition_to_validated (manual, ExampleEntityValidationCriterion)
-    validated --> processed : transition_to_processed (manual, ExampleEntityProcessor)
+    created --> validated : transition_to_validated (automatic, ExampleEntityValidationCriterion)
+    validated --> processed : transition_to_processed (automatic, ExampleEntityProcessor)
     processed --> completed : transition_to_completed (automatic)
     completed --> [*]
 ```
@@ -101,7 +101,7 @@ The OtherEntity workflow represents a simple lifecycle for entities that are upd
 stateDiagram-v2
     [*] --> none
     none --> pending : transition_to_pending (automatic)
-    pending --> active : transition_to_active (manual)
-    active --> archived : transition_to_archived (manual)
+    pending --> active : transition_to_active (automatic)
+    active --> archived : transition_to_archived (automatic)
     archived --> [*]
 ```

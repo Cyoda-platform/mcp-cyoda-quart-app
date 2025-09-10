@@ -19,7 +19,7 @@
                 {
                     "name": "transition_to_validated",
                     "next": "validated",
-                    "manual": true,
+                    "manual": false,
                     "criterion": {
                         "type": "function",
                         "function": {
@@ -37,7 +37,7 @@
                 {
                     "name": "transition_to_processed",
                     "next": "processed",
-                    "manual": true,
+                    "manual": false,
                     "processors": [
                         {
                             "name": "ExampleEntityProcessor",

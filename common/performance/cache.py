@@ -1,6 +1,7 @@
 """
 Simple cache manager stub.
 """
+
 import logging
 from typing import Any, Optional
 

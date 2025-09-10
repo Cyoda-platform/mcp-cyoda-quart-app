@@ -1,0 +1,29 @@
+[
+  {
+    "version": "1.0",
+    "name": "Default for 'ExampleEntity.1'",
+    "initialState": "CREATED",
+    "active": true,
+    "states": {
+      "CREATED": {
+        "transitions": [
+          {
+            "name": "UPDATE",
+            "next": "CREATED",
+            "manual": true,
+            "disabled": false
+          },
+          {
+            "name": "DELETE",
+            "next": "DELETED",
+            "manual": true,
+            "disabled": false
+          }
+        ]
+      },
+      "DELETED": {
+        "transitions": []
+      }
+    }
+  }
+]
