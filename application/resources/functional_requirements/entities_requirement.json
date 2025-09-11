@@ -1,0 +1,15 @@
+{
+    "entities": [
+        {
+            "Mail": {
+                "entity_data_example": {
+                    "content": "Hello, this is a test mail!",
+                    "createdAt": "2023-10-01T12:00:00Z",
+                    "mailList": "example1@example.com,example2@example.com",
+                    "sentAt": null,
+                    "subject": "Test Mail"
+                }
+            }
+        }
+    ]
+}
