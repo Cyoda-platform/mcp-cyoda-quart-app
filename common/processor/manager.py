@@ -306,6 +306,8 @@ def get_processor_manager(modules: Optional[List[str]] = None) -> ProcessorManag
         # Use provided modules or default ones
         if modules is None:
             modules = [
+                "application.processor",
+                "application.criterion",
                 "example_application.processor",
                 "example_application.criterion",
             ]

@@ -8,14 +8,9 @@ from quart_schema import QuartSchema, ResponseSchemaValidationError, hide
 from common.exception.exception_handler import (
     register_error_handlers as _register_error_handlers,
 )
-
-# Import Cyoda Example Entity blueprints
-from example_application.routes.example_entities import example_entities_bp
-from example_application.routes.other_entities import other_entities_bp
 from services.services import get_grpc_client, initialize_services
 
 # Import blueprints for different route groups
-
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -42,11 +37,6 @@ QuartSchema(
         }
     },
 )
-
-
-# Register Cyoda Example Entity blueprints
-app.register_blueprint(example_entities_bp)
-app.register_blueprint(other_entities_bp)
 
 # Global holder for the background task to satisfy mypy (avoid setting arbitrary attrs on app)
 _background_task: Optional[asyncio.Task[None]] = None

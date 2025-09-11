@@ -143,10 +143,10 @@ def smart_cast_entity(
     if search_modules is None:
         # Default search paths for entity classes
         search_modules = [
-            "example_application.entity.example_entity",
-            "example_application.entity.other_entity",
-            "application.entity.example_entity",
-            "application.entity.other_entity",
+            "application.entity",
+            "application.entity",
+            "example_application.entity",
+            "example_application.entity",
         ]
 
     # Generate possible class names from the hint
