@@ -5,12 +5,15 @@ from typing import Callable, Dict, Optional
 from quart import Quart, Response
 from quart_schema import QuartSchema, ResponseSchemaValidationError, hide
 
+from application.routes.comment_analysis_reports import comment_analysis_reports_bp
+
+# Import blueprints for different route groups
+from application.routes.comment_analysis_requests import comment_analysis_requests_bp
+from application.routes.comments import comments_bp
 from common.exception.exception_handler import (
     register_error_handlers as _register_error_handlers,
 )
 from services.services import get_grpc_client, initialize_services
-
-# Import blueprints for different route groups
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -23,10 +26,11 @@ QuartSchema(
     info={"title": "Cyoda Client Application", "version": "1.0.0"},
     tags=[
         {
-            "name": "ExampleEntities",
-            "description": "ExampleEntity management endpoints",
+            "name": "CommentAnalysisRequests",
+            "description": "Comment analysis request management endpoints",
         },
-        {"name": "OtherEntities", "description": "OtherEntity management endpoints"},
+        {"name": "Comments", "description": "Comment data endpoints"},
+        {"name": "CommentAnalysisReports", "description": "Analysis report endpoints"},
         {"name": "System", "description": "System and health endpoints"},
     ],
     security=[{"bearerAuth": []}],
@@ -37,6 +41,11 @@ QuartSchema(
         }
     },
 )
+
+# Register application blueprints
+app.register_blueprint(comment_analysis_requests_bp)
+app.register_blueprint(comments_bp)
+app.register_blueprint(comment_analysis_reports_bp)
 
 # Global holder for the background task to satisfy mypy (avoid setting arbitrary attrs on app)
 _background_task: Optional[asyncio.Task[None]] = None
