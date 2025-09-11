@@ -1,6 +1,53 @@
-# AI Testing Guide for Contributors
+# AI Testing Guide for Cyoda Client Applications
 
-This guide provides specific commands and prompts for working with AI assistants to test the Cyoda Client Application.
+This guide provides specific commands and prompts for working with AI assistants to test Cyoda Client Applications. It includes critical constraints, common issues, and step-by-step integration procedures discovered through extensive testing.
+
+## 🚨 **CRITICAL CONSTRAINTS & REQUIREMENTS**
+
+### **Entity Name Case Sensitivity** ⚠️
+**MOST IMPORTANT**: Entity names for workflow import must **EXACTLY** match the `ENTITY_NAME` constant in your entity class:
+
+```python
+# In your entity class (e.g., application/entity/mail/version_1/mail.py)
+class Mail(CyodaEntity):
+    ENTITY_NAME: ClassVar[str] = "Mail"  # ← Use EXACTLY this for workflow import
+    ENTITY_VERSION: ClassVar[int] = 1
+```
+
+```bash
+# Workflow import - use EXACT case match
+workflow_mgmt_import_workflows_from_file_tool_cyoda-mcp(
+    entity_name="Mail",  # ← Must match ENTITY_NAME exactly
+    model_version="1",
+    file_path="application/resources/workflow/mail/version_1/Mail.json"
+)
+```
+
+**Common Mistakes:**
+- ❌ Using `entity_name="mail"` when `ENTITY_NAME = "Mail"`
+- ❌ Using `entity_name="MAIL"` when `ENTITY_NAME = "Mail"`
+- ✅ Using `entity_name="Mail"` when `ENTITY_NAME = "Mail"`
+
+### **Directory Structure Requirements**
+Your application must follow this structure:
+```
+application/                          # Your app directory (name may vary)
+├── entity/
+│   └── {entity_type}/               # e.g., mail, order, user
+│       └── version_1/
+│           └── {entity_class}.py    # e.g., mail.py, order.py
+├── processor/
+│   └── {entity}_processor.py       # e.g., mail_send_processor.py
+├── criterion/
+│   └── {entity}_criterion.py       # e.g., mail_validation_criterion.py
+├── resources/
+│   └── workflow/
+│       └── {entity_type}/           # Must match entity directory name
+│           └── version_1/
+│               └── {EntityName}.json # e.g., Mail.json, Order.json
+└── routes/
+    └── {entity}.py                  # e.g., mail.py, order.py
+```
 
 ## 🛠️ MCP Tools Setup
 
@@ -60,126 +107,203 @@ Once configured, AI assistants have access to these tools:
 - `edge_message_get_edge_message_tool_cyoda-mcp` - Retrieve messages
 - `edge_message_send_edge_message_tool_cyoda-mcp` - Send messages
 
+## 🔧 **WORKFLOW IMPORT TROUBLESHOOTING**
+
+### **Issue: "Entity type not found" or "No workflow found"**
+**Root Cause**: Entity name mismatch between class definition and workflow import.
+
+**Solution**:
+1. Check your entity class:
+   ```python
+   class YourEntity(CyodaEntity):
+       ENTITY_NAME: ClassVar[str] = "YourEntity"  # ← Note the exact case
+   ```
+
+2. Use EXACT same name for workflow import:
+   ```python
+   workflow_mgmt_import_workflows_from_file_tool_cyoda-mcp(
+       entity_name="YourEntity",  # ← Must match EXACTLY
+       model_version="1",
+       file_path="application/resources/workflow/yourentity/version_1/YourEntity.json"
+   )
+   ```
+
+### **Issue: "Workflow import succeeds but no workflow execution"**
+**Root Cause**: Workflow imported locally but not deployed to Cyoda environment.
+
+**Solution**: Always verify workflow deployment by creating entities via routes API, not just MCP tools.
+
+### **Issue: "Processor/Criteria not found"**
+**Root Cause**: Processor/criteria not registered in services configuration.
+
+**Solution**: Check `services/config.py`:
+```python
+"processor": {
+    "modules": [
+        "application.processor",     # ← Your app processors
+        "application.criterion",     # ← Your app criteria
+        # Add other modules as needed
+    ],
+},
+```
+
 ## 🤖 AI Assistant Commands
 
-### Quick Start Commands
+### **Step-by-Step Integration Commands**
 
-#### 1. Run Complete E2E Test
+#### 1. **Discover Your Application Structure**
 ```
-"Please run end-to-end tests for the Cyoda client application using MCP tools. Import both ExampleEntity and OtherEntity workflows, create test entities, and verify complete workflow execution with processor and criteria logging."
-```
-
-#### 2. Code Quality Check
-```
-"Run all code quality tools (black, isort, mypy, flake8, bandit) on the Cyoda project and fix any issues found."
-```
-
-#### 3. Integration Test Verification
-```
-"Run the integration test suite (tests/integration/test_grpc_handlers_e2e.py) and confirm all 12 tests pass."
+"Please examine the application directory structure and identify:
+1. Entity classes and their ENTITY_NAME constants
+2. Available processors and criteria
+3. Workflow JSON files and their locations
+4. Routes API endpoints
+Show me the exact entity names and file paths I need for testing."
 ```
 
-#### 4. Application Health Check
+#### 2. **Import Workflows with Correct Entity Names**
 ```
-"Start the Cyoda application and verify that processors and criteria are registered correctly, then check gRPC connectivity."
-```
-
-## 📋 Detailed Testing Workflows
-
-### Full E2E Workflow Test
-
-**Step 1: Request Full Test with MCP Tools**
-```
-"I need you to test the complete Cyoda client application workflow using MCP tools:
-
-1. Start the application (python run_app.py)
-2. Import ExampleEntity workflow using:
-   workflow_mgmt_import_workflows_from_file_tool_cyoda-mcp(
-       entity_name="ExampleEntity",
-       model_version="1",
-       file_path="example_application/resources/workflow/exampleentity/version_1/ExampleEntity.json"
-   )
-3. Import OtherEntity workflow using:
-   workflow_mgmt_import_workflows_from_file_tool_cyoda-mcp(
-       entity_name="OtherEntity",
-       model_version="1",
-       file_path="example_application/resources/workflow/otherentity/version_1/OtherEntity.json"
-   )
-4. Create an ExampleEntity using:
-   entity_create_entity_tool_cyoda-mcp(
-       entity_model="exampleentity",
-       entity_data={"name": "Test Entity", "description": "E2E Test", "value": 100, "category": "ELECTRONICS", "isActive": true}
-   )
-5. Verify in logs that criteria validation executes
-6. Verify in logs that processor executes and creates 3 OtherEntity instances
-7. List created OtherEntity instances using:
-   entity_list_entities_tool_cyoda-mcp(entity_model="otherentity")
-8. Confirm all gRPC events are processed successfully"
+"Import the workflow for [YourEntity] using MCP tools. Make sure to use the exact entity name from the ENTITY_NAME constant in the entity class. The workflow file is at application/resources/workflow/[entity_type]/version_1/[EntityName].json"
 ```
 
-**Expected AI Response Pattern:**
-- ✅ Application starts with processor/criteria registration
-- ✅ Both workflows import successfully
-- ✅ Entity creation triggers workflow
-- ✅ Logs show criteria validation
-- ✅ Logs show processor creating 3 OtherEntity instances
-- ✅ All gRPC communication completes
-
-### Code Quality Verification
-
-**Request:**
+#### 3. **Test Complete E2E Workflow via Routes API**
 ```
-"Please run all code quality checks for the Cyoda project and ensure everything passes:
-- black (code formatting)
-- isort (import sorting)  
+"Start the application and test the complete workflow by:
+1. Creating an entity via POST /api/[entity] routes API (not MCP tools)
+2. Monitor application logs for criteria and processor execution
+3. Verify the entity reaches final workflow state
+4. Confirm all gRPC events are processed successfully"
+```
+
+#### 4. **Verify Integration Test Suite**
+```
+"Run the integration test suite (tests/integration/test_grpc_handlers_e2e.py) and confirm all tests pass. If any fail, analyze the failures and fix the underlying issues."
+```
+
+#### 5. **Code Quality Verification**
+```
+"Run all code quality tools on the application directory:
+- black (formatting)
+- isort (import sorting)
 - mypy (type checking)
 - flake8 (style checking)
 - bandit (security scanning)
-- pytest (all tests)
-
-Fix any issues found and confirm all checks pass."
+Fix any critical issues found."
 ```
 
-**Expected Results:**
-- All formatters run without changes needed
-- No type errors from mypy
-- No style violations from flake8
-- No security issues from bandit
-- All tests pass (12/12 integration tests)
+## 📋 **DETAILED TESTING WORKFLOWS**
 
-### MCP Tools Testing
+### **Template: Full E2E Workflow Test for Your Application**
+
+**Step 1: Application Discovery and Setup**
+```
+"Please analyze my application directory and help me test the complete Cyoda workflow:
+
+1. Examine the application/ directory structure
+2. Identify entity classes and their ENTITY_NAME constants
+3. Find workflow JSON files and their exact paths
+4. Locate processor and criteria classes
+5. Check routes API endpoints
+
+Then start the application using: python -m application.app"
+```
+
+**Step 2: Workflow Import with Correct Entity Names**
+```
+"Import workflows for my entities using the exact entity names from the ENTITY_NAME constants. For each entity:
+
+1. Use workflow_mgmt_import_workflows_from_file_tool_cyoda-mcp with:
+   - entity_name: [EXACT ENTITY_NAME from class]
+   - model_version: "1"
+   - file_path: "application/resources/workflow/[entity_type]/version_1/[EntityName].json"
+
+2. Verify import success before proceeding"
+```
+
+**Step 3: Test via Routes API (CRITICAL)**
+```
+"Test the workflow execution by creating entities via the routes API, NOT MCP tools:
+
+1. Use curl or HTTP client to POST to /api/[entity_name]
+2. Send proper JSON payload matching the entity fields
+3. Monitor application logs for:
+   - Criteria execution and results
+   - Processor execution and completion
+   - gRPC event processing
+4. Verify entity reaches final workflow state
+5. Check entity state via MCP tools to confirm completion"
+```
+
+**Expected Success Pattern:**
+- ✅ Application starts with all processors/criteria registered
+- ✅ Workflows import successfully with correct entity names
+- ✅ Routes API creates entities successfully
+- ✅ Logs show criteria validation execution
+- ✅ Logs show processor execution and completion
+- ✅ Entities reach final workflow states ("[*]")
+- ✅ All gRPC communication completes successfully
+
+### **Template: Code Quality Verification**
 
 **Request:**
 ```
-"Test all MCP tools functionality:
+"Run comprehensive code quality checks on the application directory:
+
+1. python -m black --check application/
+2. python -m isort --check-only application/
+3. python -m mypy application/ --no-error-summary
+4. python -m flake8 --max-line-length=88 --extend-ignore=E203,W503 application/
+5. python -m bandit -r application/ -f json
+6. python -m pytest tests/integration/ -v
+
+Report results and fix any critical issues found."
+```
+
+**Expected Results:**
+- ✅ Black: All files formatted correctly
+- ✅ isort: Import sorting correct
+- ✅ MyPy: No type errors
+- ⚠️ Flake8: May have line length warnings (acceptable)
+- ✅ Bandit: No security issues
+- ✅ Integration tests: All tests pass
+
+### **Template: MCP Tools Functionality Testing**
+
+**Request:**
+```
+"Test all MCP tools functionality with my application:
 
 1. List available workflow files:
-   workflow_mgmt_list_workflow_files_tool_cyoda-mcp(base_path="example_application/resources/workflow")
+   workflow_mgmt_list_workflow_files_tool_cyoda-mcp(base_path="application/resources/workflow")
 
-2. Validate workflow files:
-   workflow_mgmt_validate_workflow_file_tool_cyoda-mcp(file_path="example_application/resources/workflow/exampleentity/version_1/ExampleEntity.json")
+2. Validate workflow files for each entity:
+   workflow_mgmt_validate_workflow_file_tool_cyoda-mcp(file_path="application/resources/workflow/[entity_type]/version_1/[EntityName].json")
 
 3. Test entity search with conditions:
    search_search_cyoda-mcp(
-       entity_model="exampleentity",
-       search_conditions={"type": "simple", "jsonPath": "$.category", "operatorType": "EQUALS", "value": "ELECTRONICS"}
+       entity_model="[your_entity_model]",
+       search_conditions={"type": "simple", "jsonPath": "$.[field_name]", "operatorType": "EQUALS", "value": "[test_value]"}
    )
 
-4. Test edge message functionality:
-   edge_message_send_edge_message_tool_cyoda-mcp(
-       subject="Test Message",
-       content={"test": "data", "timestamp": "2024-01-01T00:00:00Z"}
+4. Test entity retrieval:
+   entity_get_entity_tool_cyoda-mcp(
+       entity_model="[your_entity_model]",
+       entity_id="[entity_id_from_previous_test]"
    )
+
+5. List all entities:
+   entity_list_entities_tool_cyoda-mcp(entity_model="[your_entity_model]")
 
 Verify all tools work correctly and return expected results."
 ```
 
 **Expected Results:**
-- Workflow files listed correctly
-- Workflow validation passes
-- Search returns filtered results
-- Edge messages send successfully
-- No tool execution errors
+- ✅ Workflow files listed correctly from application directory
+- ✅ Workflow validation passes for all entity workflows
+- ✅ Search returns filtered results based on entity fields
+- ✅ Entity retrieval works with proper entity IDs
+- ✅ Entity listing shows all created entities
+- ✅ No tool execution errors
 
 ### Performance and Load Testing
 
@@ -226,136 +350,254 @@ INFO:example_application.processor.example_entity_processor.ExampleEntityProcess
 INFO:example_application.processor.example_entity_processor.ExampleEntityProcessor:Created OtherEntity [entity-id] (index 3)
 ```
 
-## 🚨 Common Issues and AI Solutions
+## 🚨 **COMMON ISSUES AND SOLUTIONS**
 
-### Issue: "Entity type not found"
+### **Issue: "Entity type not found" or "No workflow found"**
+**Root Cause**: Entity name case mismatch between class and workflow import.
+
 **AI Command:**
 ```
-"The entity discovery is failing. Please check the example_application/entity/__init__.py file and verify that entity classes are being discovered correctly. Also confirm ENTITY_NAME constants match workflow names exactly."
+"I'm getting 'Entity type not found' errors. Please:
+1. Check my entity class ENTITY_NAME constant: find the exact case used
+2. Verify I'm using the EXACT same case in workflow import
+3. Show me the correct workflow import command with proper entity_name
+4. Confirm the workflow file path matches the entity directory structure"
 ```
 
-### Issue: "Processor not registered"
+### **Issue: "Workflow import succeeds but entities don't execute workflow"**
+**Root Cause**: Workflow imported locally but not deployed to Cyoda environment.
+
 **AI Command:**
 ```
-"The processor isn't being registered. Please check services/config.py and verify that 'example_application.processor' is in the modules list, then restart the application."
+"My workflow import reports success but entities created via MCP tools don't execute the workflow. Please:
+1. Test workflow execution by creating entities via routes API instead of MCP tools
+2. Use curl POST /api/[entity] with proper JSON payload
+3. Monitor application logs for criteria and processor execution
+4. Verify entities reach final workflow states"
 ```
 
-### Issue: "Workflow import fails"
+### **Issue: "Processor/Criteria not registered"**
+**Root Cause**: Modules not included in services configuration.
+
 **AI Command:**
 ```
-"Workflow import is failing. Please verify that the entity_name parameter in the workflow import exactly matches the ENTITY_NAME constant in the entity class (PascalCase)."
+"My processors/criteria aren't being registered. Please check services/config.py and verify that 'application.processor' and 'application.criterion' are in the modules list. Show me the correct configuration and restart the application."
 ```
 
-### Issue: "Integration tests failing"
+### **Issue: "Routes API returns 404 or 500 errors"**
+**Root Cause**: Blueprint not registered or entity service issues.
+
 **AI Command:**
 ```
-"Integration tests are failing. Please run the test suite with verbose output, identify the specific failures, and fix the underlying issues. Then re-run to confirm all 12 tests pass."
+"My routes API isn't working. Please:
+1. Check that the blueprint is registered in application/app.py
+2. Verify the route definitions in application/routes/[entity].py
+3. Confirm entity service is properly configured
+4. Test with a simple GET request first"
 ```
 
-### Issue: "MCP tools not working"
+### **Issue: "Integration tests failing"**
+**Root Cause**: Various application configuration issues.
+
 **AI Command:**
 ```
-"MCP tools are not responding correctly. Please verify:
-1. The mcp-cyoda package is installed correctly
-2. Environment variables (CYODA_CLIENT_ID, CYODA_CLIENT_SECRET, CYODA_HOST) are set
-3. The MCP server configuration is correct
-4. Test basic tool functionality with entity_list_entities_tool_cyoda-mcp"
+"Integration tests are failing. Please:
+1. Run pytest tests/integration/ -v to see detailed failures
+2. Check if processors and criteria are registered correctly
+3. Verify gRPC connection is established
+4. Fix any configuration issues and re-run tests"
 ```
 
-### Issue: "Workflow import via MCP fails"
+### **Issue: "MCP tools not responding"**
+**Root Cause**: MCP server configuration or authentication issues.
+
 **AI Command:**
 ```
-"Workflow import through MCP tools is failing. Please check:
-1. The file path is correct and accessible
-2. The entity_name parameter matches the ENTITY_NAME in the entity class exactly
-3. The workflow JSON file is valid using workflow_mgmt_validate_workflow_file_tool_cyoda-mcp
-4. Try importing with verbose logging to see detailed error messages
-5. Alternative: Use the standalone import script: python scripts/import_workflows.py --entity EntityName --version 1 --file path/to/workflow.json --validate-only"
+"MCP tools aren't working. Please verify:
+1. mcp-cyoda package is installed correctly
+2. Environment variables are set: CYODA_CLIENT_ID, CYODA_CLIENT_SECRET, CYODA_HOST
+3. MCP server configuration is correct in AI assistant settings
+4. Test basic functionality with entity_list_entities_tool_cyoda-mcp"
 ```
 
-### Issue: "Need to import workflows without MCP tools"
+### **Issue: "Workflow validation fails"**
+**Root Cause**: Invalid JSON structure or missing required fields.
+
 **AI Command:**
 ```
-"Use the standalone workflow import script instead of MCP tools:
-
-1. List available workflows:
-   python scripts/import_workflows.py --list
-
-2. Validate workflow file:
-   python scripts/import_workflows.py --entity ExampleEntity --version 1 --file path/to/workflow.json --validate-only
-
-3. Import workflow:
-   python scripts/import_workflows.py --entity ExampleEntity --version 1 --file example_application/resources/workflow/exampleentity/version_1/ExampleEntity.json
-
-This script provides the same functionality as MCP tools but can be run directly from the command line."
+"My workflow file validation is failing. Please:
+1. Use workflow_mgmt_validate_workflow_file_tool_cyoda-mcp to check the file
+2. Verify JSON syntax is correct
+3. Check that processor and criteria names match registered classes
+4. Ensure all required workflow fields are present"
 ```
 
-## 📊 Success Metrics
+## 📊 **SUCCESS METRICS & BENCHMARKS**
 
-### Performance Benchmarks
+### **Performance Benchmarks**
 - **Application startup**: < 10 seconds
 - **Workflow import**: < 2 seconds per workflow
-- **Entity processing**: < 5 seconds per entity
+- **Entity creation via routes API**: < 1 second per entity
+- **Workflow execution (criteria + processor)**: < 5 seconds per entity
 - **Integration tests**: < 30 seconds total
+- **End-to-end workflow**: < 10 seconds from creation to completion
 
-### Quality Standards
-- **Test coverage**: > 80%
-- **Code quality**: All tools pass (black, isort, mypy, flake8, bandit)
-- **Integration tests**: 12/12 passing
-- **E2E workflow**: Complete success with logging
+### **Quality Standards**
+- **MyPy**: No type errors (critical)
+- **Bandit**: No security issues (critical)
+- **Black**: Code formatting correct (critical)
+- **isort**: Import sorting correct (critical)
+- **Flake8**: Style violations acceptable if minor (line length warnings OK)
+- **Integration tests**: All tests passing (critical)
+- **E2E workflow**: Complete success with proper logging
 
-## 🎯 AI Testing Best Practices
+### **Workflow Execution Success Criteria**
+- ✅ **Application Startup**: All processors and criteria registered
+- ✅ **Workflow Import**: Success with correct entity names
+- ✅ **Entity Creation**: Via routes API (not just MCP tools)
+- ✅ **Criteria Execution**: Logged with results
+- ✅ **Processor Execution**: Logged with completion status
+- ✅ **State Progression**: Entities reach final states ("[*]")
+- ✅ **gRPC Communication**: All events acknowledged
 
-### 1. Be Specific
-Instead of: "Test the application"
-Use: "Run E2E test with ExampleEntity creation and verify processor creates 3 OtherEntity instances"
+## 🎯 **AI TESTING BEST PRACTICES**
 
-### 2. Request Verification
+### **1. Be Specific with Entity Names**
+❌ **Avoid**: "Test the application with entities"
+✅ **Use**: "Test workflow execution with [YourEntity] using exact ENTITY_NAME from the class definition"
+
+### **2. Always Test via Routes API**
+❌ **Avoid**: "Create entities using MCP tools only"
+✅ **Use**: "Create entities via POST /api/[entity] routes API to ensure proper workflow execution"
+
+### **3. Request Comprehensive Verification**
 Always ask AI to:
-- Show log output for verification
-- Confirm specific success criteria
-- Report any errors or warnings found
+- Show complete application logs for criteria and processor execution
+- Verify entities reach final workflow states ("[*]")
+- Confirm gRPC events are processed and acknowledged
+- Check entity states via MCP tools after creation
 
-### 3. Incremental Testing
-Test components in order:
-1. Application startup
-2. Workflow imports
-3. Entity creation
-4. Workflow execution
-5. Integration tests
+### **4. Follow Incremental Testing Order**
+Test components in this specific order:
+1. **Application startup** - Verify processors/criteria registration
+2. **Workflow import** - Use exact entity names from ENTITY_NAME constants
+3. **Routes API testing** - Create entities via HTTP endpoints
+4. **Workflow execution** - Monitor logs for criteria/processor execution
+5. **State verification** - Confirm entities reach final states
+6. **Integration tests** - Run full test suite
 
-### 4. Error Handling
+### **5. Comprehensive Error Handling**
 When issues occur:
-- Ask AI to show full error messages
-- Request specific troubleshooting steps
-- Verify fixes with re-testing
+- Ask AI to show complete error messages and stack traces
+- Request specific troubleshooting steps based on error type
+- Verify fixes by re-running the complete workflow test
+- Always test both success and failure scenarios
 
-## 📝 Reporting Results
+## 📝 **EXAMPLE AI CONVERSATION TEMPLATE**
 
-### Success Report Template
+**User:** "Please test my Cyoda application end-to-end using the application directory"
+
+**AI Response:** "I'll run a complete E2E test of your Cyoda client application:
+
+**1. Application Discovery:**
+✅ Found entity: Mail with ENTITY_NAME = "Mail"
+✅ Located workflow: application/resources/workflow/mail/version_1/Mail.json
+✅ Found processors: MailSendHappyMailProcessor, MailSendGloomyMailProcessor
+✅ Found criteria: MailIsHappyCriterion, MailIsGloomyCriterion
+
+**2. Application Startup:**
+✅ Application started successfully
+✅ Processors registered: MailSendHappyMailProcessor, MailSendGloomyMailProcessor
+✅ Criteria registered: MailIsHappyCriterion, MailIsGloomyCriterion
+✅ gRPC connection established
+
+**3. Workflow Import (Critical - Using Exact Entity Name):**
+✅ Mail workflow imported using entity_name="Mail" (matching ENTITY_NAME constant)
+✅ Workflow deployment successful
+
+**4. Routes API Testing:**
+✅ Happy Mail created via POST /api/mail: ID 2d1c56ec-3adf-11b2-b83e-e6f027731b46
+✅ Gloomy Mail created via POST /api/mail: ID 3c74b7d8-3adf-11b2-b83e-e6f027731b46
+
+**5. Workflow Execution Verification:**
+✅ Happy Mail: MailIsHappyCriterion → True → MailSendHappyMailProcessor → Success
+✅ Gloomy Mail: MailIsHappyCriterion → False → MailIsGloomyCriterion → True → MailSendGloomyMailProcessor → Success
+✅ Both entities reached final state "[*]"
+
+**6. Integration Tests:**
+✅ All 12 integration tests passed
+
+**Test Summary: Complete Success ✅**
+- ✅ Workflow deployment: Working with correct entity names
+- ✅ Routes API: Working for entity creation
+- ✅ Workflow execution: Both happy and gloomy paths working
+- ✅ State management: Proper progression to final states
+- ✅ Integration tests: All passing"
+
+## 📊 **REPORTING RESULTS**
+
+### **Success Report Template**
 ```
-✅ Cyoda E2E Test Results:
-- Application: Started successfully
-- MCP Tools: All tools responding correctly
-- Workflows: ExampleEntity and OtherEntity imported via MCP
-- Entity Processing: [X] entities processed via MCP tools
-- Processor: Created [X] OtherEntity instances
-- Criteria: All validations passed
-- Search Tools: Advanced search working correctly
-- Edge Messages: Messaging functionality working
-- Integration Tests: 12/12 passing
-- Code Quality: All checks passed
+✅ Cyoda E2E Test Results - [Your Application]:
+- Application: Started successfully with all processors/criteria registered
+- Workflow Import: [EntityName] workflow imported with correct entity_name
+- Routes API: Entity creation via POST /api/[entity] working
+- Workflow Execution: [X] entities processed with complete workflow execution
+- Criteria: All validations executed and logged
+- Processors: All processors executed successfully and logged
+- State Management: Entities reached final states ("[*]")
+- gRPC Communication: All events processed and acknowledged
+- Integration Tests: [X]/[X] passing
+- Code Quality: MyPy, Bandit, Black, isort passing
 ```
 
-### Issue Report Template
+### **Issue Report Template**
 ```
 ❌ Cyoda Test Issues Found:
 - Issue: [Description]
-- Component: [Affected component]
-- Error: [Error message]
+- Root Cause: [Entity name mismatch/Configuration issue/etc.]
+- Component: [Workflow import/Routes API/Processor/etc.]
+- Error: [Complete error message]
 - Logs: [Relevant log entries]
-- Fix Applied: [What was done]
-- Verification: [How fix was confirmed]
+- Fix Applied: [Specific solution implemented]
+- Verification: [How fix was confirmed - re-run test results]
 ```
 
-Use these templates when communicating test results to the development team.
+Use these templates when communicating test results. Always include specific entity names, file paths, and verification steps for your application.
+
+---
+
+## 🎯 **QUICK REFERENCE CHECKLIST**
+
+### **Pre-Testing Setup**
+- [ ] MCP tools installed and configured
+- [ ] Environment variables set (CYODA_CLIENT_ID, CYODA_CLIENT_SECRET, CYODA_HOST)
+- [ ] Application directory structure verified
+- [ ] Entity classes have ENTITY_NAME constants defined
+
+### **Critical Testing Steps**
+- [ ] **Entity Name Verification**: Use EXACT case from ENTITY_NAME constant
+- [ ] **Workflow Import**: Import using correct entity_name parameter
+- [ ] **Routes API Testing**: Create entities via POST /api/[entity] (not MCP tools)
+- [ ] **Log Monitoring**: Watch for criteria and processor execution
+- [ ] **State Verification**: Confirm entities reach final states ("[*]")
+- [ ] **Integration Tests**: Run and verify all tests pass
+
+### **Success Indicators**
+- [ ] Application starts with all processors/criteria registered
+- [ ] Workflow import succeeds with correct entity names
+- [ ] Routes API creates entities successfully
+- [ ] Application logs show criteria execution and results
+- [ ] Application logs show processor execution and completion
+- [ ] Entities progress through workflow states to completion
+- [ ] All gRPC events are processed and acknowledged
+- [ ] Integration test suite passes completely
+
+### **Common Pitfalls to Avoid**
+- [ ] ❌ Using lowercase entity names when class uses PascalCase
+- [ ] ❌ Testing only with MCP tools instead of routes API
+- [ ] ❌ Ignoring application logs during workflow execution
+- [ ] ❌ Not verifying final entity states
+- [ ] ❌ Skipping integration test verification
+
+**Remember**: The most critical factor is using the EXACT entity name from your ENTITY_NAME constant when importing workflows. This single issue causes most integration failures.
