@@ -1,0 +1,97 @@
+{
+    "version": "1.0",
+    "name": "OrderItem Workflow",
+    "desc": "Workflow design for OrderItem entity",
+    "initialState": "initial_state",
+    "active": true,
+    "states": {
+        "initial_state": {
+            "transitions": [
+                {
+                    "name": "transition_to_pending",
+                    "next": "pending",
+                    "manual": false
+                }
+            ]
+        },
+        "pending": {
+            "transitions": [
+                {
+                    "name": "transition_to_confirmed",
+                    "next": "confirmed",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "OrderItemConfirmationProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ],
+                    "criterion": {
+                        "type": "function",
+                        "function": {
+                            "name": "OrderItemValidationCriterion",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "transition_to_cancelled",
+                    "next": "cancelled",
+                    "manual": true,
+                    "processors": [
+                        {
+                            "name": "OrderItemCancellationProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "confirmed": {
+            "transitions": [
+                {
+                    "name": "transition_to_delivered",
+                    "next": "delivered",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "OrderItemDeliveryProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "transition_to_cancelled",
+                    "next": "cancelled",
+                    "manual": true,
+                    "processors": [
+                        {
+                            "name": "OrderItemCancellationProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "delivered": {
+            "transitions": []
+        },
+        "cancelled": {
+            "transitions": []
+        }
+    }
+}

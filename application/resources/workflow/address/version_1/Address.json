@@ -1,0 +1,54 @@
+{
+    "version": "1.0",
+    "name": "Address Workflow",
+    "desc": "Workflow for managing Address entity states and transitions.",
+    "initialState": "initial_state",
+    "active": true,
+    "states": {
+        "initial_state": {
+            "transitions": [
+                {
+                    "name": "transition_to_active",
+                    "next": "active",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "AddressValidationProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "active": {
+            "transitions": [
+                {
+                    "name": "transition_to_inactive",
+                    "next": "inactive",
+                    "manual": true
+                }
+            ]
+        },
+        "inactive": {
+            "transitions": [
+                {
+                    "name": "transition_to_active",
+                    "next": "active",
+                    "manual": true,
+                    "processors": [
+                        {
+                            "name": "AddressValidationProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}

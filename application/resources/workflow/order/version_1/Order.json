@@ -1,0 +1,106 @@
+{
+    "version": "1.0",
+    "name": "Order Workflow",
+    "desc": "Description of the workflow for Order",
+    "initialState": "initial_state",
+    "active": true,
+    "states": {
+        "initial_state": {
+            "transitions": [
+                {
+                    "name": "transition_to_01",
+                    "next": "placed",
+                    "manual": false
+                }
+            ]
+        },
+        "placed": {
+            "transitions": [
+                {
+                    "name": "transition_to_02",
+                    "next": "approved",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "OrderApprovalProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ],
+                    "criterion": {
+                        "type": "function",
+                        "function": {
+                            "name": "OrderValidationCriterion",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "transition_to_03",
+                    "next": "cancelled",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "OrderCancellationProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "approved": {
+            "transitions": [
+                {
+                    "name": "transition_to_04",
+                    "next": "delivered",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "OrderDeliveryProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "transition_to_05",
+                    "next": "cancelled",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "OrderCancellationProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ],
+                    "criterion": {
+                        "type": "function",
+                        "function": {
+                            "name": "OrderCancellationCriterion",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "delivered": {
+            "transitions": []
+        },
+        "cancelled": {
+            "transitions": []
+        }
+    }
+}
