@@ -5,12 +5,12 @@ from typing import Callable, Dict, Optional
 from quart import Quart, Response
 from quart_schema import QuartSchema, ResponseSchemaValidationError, hide
 
+# Import blueprints for different route groups
+from application.routes.mails import mails_bp
 from common.exception.exception_handler import (
     register_error_handlers as _register_error_handlers,
 )
 from services.services import get_grpc_client, initialize_services
-
-# Import blueprints for different route groups
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -27,6 +27,7 @@ QuartSchema(
             "description": "ExampleEntity management endpoints",
         },
         {"name": "OtherEntities", "description": "OtherEntity management endpoints"},
+        {"name": "Mails", "description": "Mail management endpoints"},
         {"name": "System", "description": "System and health endpoints"},
     ],
     security=[{"bearerAuth": []}],
@@ -54,6 +55,9 @@ async def handle_response_validation_error(
 # Give mypy a typed view of the external function (if it lacks type hints)
 _register_error_handlers_typed: Callable[[Quart], None] = _register_error_handlers  # type: ignore[assignment]
 _register_error_handlers_typed(app)
+
+# Register blueprints
+app.register_blueprint(mails_bp)
 
 
 @app.route("/favicon.ico")
