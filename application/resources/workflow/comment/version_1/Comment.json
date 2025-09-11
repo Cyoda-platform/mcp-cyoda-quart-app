@@ -1,0 +1,36 @@
+{
+    "version": "1.0",
+    "name": "Comment Workflow",
+    "desc": "Manages the lifecycle of individual comments from fetching to analysis.",
+    "initialState": "initial_state",
+    "active": true,
+    "states": {
+        "initial_state": {
+            "transitions": [
+                {
+                    "name": "transition_to_fetched",
+                    "next": "fetched",
+                    "manual": false
+                }
+            ]
+        },
+        "fetched": {
+            "transitions": [
+                {
+                    "name": "transition_to_analyzed",
+                    "next": "analyzed",
+                    "manual": false
+                }
+            ]
+        },
+        "analyzed": {
+            "transitions": [
+                {
+                    "name": "transition_to_end",
+                    "next": "end",
+                    "manual": false
+                }
+            ]
+        }
+    }
+}

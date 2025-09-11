@@ -1,0 +1,77 @@
+{
+    "version": "1.0",
+    "name": "CommentAnalysisReport Workflow",
+    "desc": "Manages the lifecycle of analysis reports from generation to email delivery.",
+    "initialState": "initial_state",
+    "active": true,
+    "states": {
+        "initial_state": {
+            "transitions": [
+                {
+                    "name": "transition_to_generated",
+                    "next": "generated",
+                    "manual": false
+                }
+            ]
+        },
+        "generated": {
+            "transitions": [
+                {
+                    "name": "transition_to_sent",
+                    "next": "sent",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "CommentAnalysisReportSendProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "transition_to_failed_to_send",
+                    "next": "failed_to_send",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "CommentAnalysisReportFailProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "sent": {
+            "transitions": [
+                {
+                    "name": "transition_complete",
+                    "next": "complete",
+                    "manual": false
+                }
+            ]
+        },
+        "failed_to_send": {
+            "transitions": [
+                {
+                    "name": "transition_retry",
+                    "next": "generated",
+                    "manual": true,
+                    "processors": [
+                        {
+                            "name": "CommentAnalysisReportRetryProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}
