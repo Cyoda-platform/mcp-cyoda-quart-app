@@ -1,0 +1,114 @@
+{
+    "entities": [
+        {
+            "Pet": {
+                "entity_data_example": {
+                    "birthDate": "2021-01-01",
+                    "breed": "Siamese",
+                    "category": "Cats",
+                    "description": "A friendly cat.",
+                    "id": 1,
+                    "name": "Fluffy",
+                    "neutered": true,
+                    "photoUrls": [
+                        "http://example.com/photo1.jpg",
+                        "http://example.com/photo2.jpg"
+                    ],
+                    "price": 150.0,
+                    "tags": [
+                        "friendly",
+                        "playful"
+                    ],
+                    "vaccinated": true,
+                    "weight": 4.5
+                }
+            }
+        },
+        {
+            "Category": {
+                "entity_data_example": {
+                    "description": "Feline pets",
+                    "id": 1,
+                    "name": "Cats"
+                }
+            }
+        },
+        {
+            "Tag": {
+                "entity_data_example": {
+                    "color": "#FF5733",
+                    "id": 1,
+                    "name": "friendly"
+                }
+            }
+        },
+        {
+            "User": {
+                "entity_data_example": {
+                    "address": {
+                        "city": "Anytown",
+                        "country": "USA",
+                        "id": 1,
+                        "state": "CA",
+                        "street": "123 Main St",
+                        "zipCode": "12345"
+                    },
+                    "email": "john@example.com",
+                    "firstName": "John",
+                    "id": 1,
+                    "lastName": "Doe",
+                    "password": "encrypted_password",
+                    "phone": "123-456-7890",
+                    "registrationDate": "2023-01-01T10:00:00",
+                    "role": "CUSTOMER",
+                    "username": "john_doe"
+                }
+            }
+        },
+        {
+            "Order": {
+                "entity_data_example": {
+                    "id": 1,
+                    "notes": "Please handle with care.",
+                    "orderDate": "2023-01-01T12:00:00",
+                    "paymentMethod": "Credit Card",
+                    "shipDate": "2023-01-02T12:00:00",
+                    "shippingAddress": {
+                        "city": "Anytown",
+                        "country": "USA",
+                        "id": 1,
+                        "state": "CA",
+                        "street": "123 Main St",
+                        "zipCode": "12345"
+                    },
+                    "totalAmount": 150.0,
+                    "userId": 1
+                }
+            }
+        },
+        {
+            "OrderItem": {
+                "entity_data_example": {
+                    "id": 1,
+                    "orderId": 1,
+                    "petId": 1,
+                    "quantity": 1,
+                    "totalPrice": 150.0,
+                    "unitPrice": 150.0
+                }
+            }
+        },
+        {
+            "Address": {
+                "entity_data_example": {
+                    "city": "Anytown",
+                    "country": "USA",
+                    "id": 1,
+                    "state": "CA",
+                    "street": "123 Main St",
+                    "zipCode": "12345"
+                }
+            }
+        }
+    ]
+}
