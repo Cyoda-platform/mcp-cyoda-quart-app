@@ -1,4 +1,4 @@
-"""Application entities module."""
+"""Mail entity version 1 module."""
 
 from .mail import Mail
 
