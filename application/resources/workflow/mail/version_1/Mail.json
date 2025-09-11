@@ -1,0 +1,118 @@
+{
+    "version": "1.0",
+    "name": "Mail Workflow",
+    "desc": "The Mail workflow manages the lifecycle of mail entities from creation to sending based on whether the mail is happy or gloomy.",
+    "initialState": "initial_state",
+    "active": true,
+    "states": {
+        "initial_state": {
+            "transitions": [
+                {
+                    "name": "transition_to_pending",
+                    "next": "pending",
+                    "manual": false
+                }
+            ]
+        },
+        "pending": {
+            "transitions": [
+                {
+                    "name": "transition_to_happy_sent",
+                    "next": "happy_sent",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "MailSendHappyMailProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ],
+                    "criterion": {
+                        "type": "function",
+                        "function": {
+                            "name": "MailIsHappyCriterion",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "transition_to_gloomy_sent",
+                    "next": "gloomy_sent",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "MailSendGloomyMailProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ],
+                    "criterion": {
+                        "type": "function",
+                        "function": {
+                            "name": "MailIsGloomyCriterion",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "transition_to_failed",
+                    "next": "failed",
+                    "manual": false
+                }
+            ]
+        },
+        "happy_sent": {
+            "transitions": [
+                {
+                    "name": "transition_to_pending_resend",
+                    "next": "pending",
+                    "manual": true
+                }
+            ]
+        },
+        "gloomy_sent": {
+            "transitions": [
+                {
+                    "name": "transition_to_pending_resend",
+                    "next": "pending",
+                    "manual": true
+                }
+            ]
+        },
+        "failed": {
+            "transitions": [
+                {
+                    "name": "transition_to_end",
+                    "next": "[*]",
+                    "manual": false
+                }
+            ]
+        },
+        "happy_sent_end": {
+            "transitions": [
+                {
+                    "name": "transition_to_end",
+                    "next": "[*]",
+                    "manual": false
+                }
+            ]
+        },
+        "gloomy_sent_end": {
+            "transitions": [
+                {
+                    "name": "transition_to_end",
+                    "next": "[*]",
+                    "manual": false
+                }
+            ]
+        }
+    }
+}
