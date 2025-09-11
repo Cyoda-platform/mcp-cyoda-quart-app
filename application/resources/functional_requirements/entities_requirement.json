@@ -1,0 +1,70 @@
+{
+    "entities": [
+        {
+            "Subscriber": {
+                "entity_data_example": {
+                    "email": "example@example.com",
+                    "firstName": "John",
+                    "id": 1,
+                    "isActive": true,
+                    "lastName": "Doe",
+                    "subscriptionDate": "2023-10-01T10:00:00",
+                    "unsubscribeToken": "123e4567-e89b-12d3-a456-426614174000"
+                }
+            }
+        },
+        {
+            "CatFact": {
+                "entity_data_example": {
+                    "externalFactId": "fact-123",
+                    "factLength": 37,
+                    "factText": "Cats sleep for 70% of their lives.",
+                    "id": 1,
+                    "retrievedDate": "2023-10-01T10:00:00",
+                    "scheduledSendDate": "2023-10-07"
+                }
+            }
+        },
+        {
+            "EmailDelivery": {
+                "entity_data_example": {
+                    "catFactId": 1,
+                    "deliveryAttempts": 1,
+                    "errorMessage": null,
+                    "id": 1,
+                    "lastAttemptDate": "2023-10-07T10:00:00",
+                    "sentDate": "2023-10-07T10:00:00",
+                    "subscriberId": 1
+                }
+            }
+        },
+        {
+            "Interaction": {
+                "entity_data_example": {
+                    "additionalData": null,
+                    "emailDeliveryId": 1,
+                    "id": 1,
+                    "interactionDate": "2023-10-07T10:05:00",
+                    "interactionType": "EMAIL_OPEN",
+                    "ipAddress": "192.168.1.1",
+                    "subscriberId": 1,
+                    "userAgent": "Mozilla/5.0"
+                }
+            }
+        },
+        {
+            "WeeklySchedule": {
+                "entity_data_example": {
+                    "catFactId": 1,
+                    "emailsFailed": 10,
+                    "emailsSent": 90,
+                    "id": 1,
+                    "scheduledSendDate": "2023-10-07",
+                    "totalSubscribers": 100,
+                    "weekEndDate": "2023-10-08",
+                    "weekStartDate": "2023-10-02"
+                }
+            }
+        }
+    ]
+}
