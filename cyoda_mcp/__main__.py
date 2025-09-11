@@ -4,10 +4,15 @@ Console entrypoint for `mcp-cyoda`.
 Keep this minimal so users get a reliable one-liner.
 """
 
-import argparse
-import logging
+# Add the parent directory to the path so we can import from the main app
+# This MUST be done before any other imports that depend on the main app modules
 import os
 import sys
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+import argparse  # noqa: E402
+import logging  # noqa: E402
 
 
 def setup_logging(level: str = "INFO") -> None:
@@ -36,9 +41,9 @@ def print_version() -> None:
         from importlib.metadata import version
 
         pkg_version = version("mcp-cyoda")
-        print(f"mcp-cyoda version {pkg_version}")
+        print(f"mcp-cyoda version {pkg_version}")  # noqa: T201
     except Exception:
-        print("mcp-cyoda (version unknown)")
+        print("mcp-cyoda (version unknown)")  # noqa: T201
 
 
 def start_server(
@@ -82,8 +87,8 @@ def start_server(
         return 0
 
     except ImportError as e:
-        print(f"Failed to import server components: {e}", file=sys.stderr)
-        print("Is the package installed correctly?", file=sys.stderr)
+        print(f"Failed to import server components: {e}", file=sys.stderr)  # noqa: T201
+        print("Is the package installed correctly?", file=sys.stderr)  # noqa: T201
         return 1
     except Exception as e:
         logger.error(f"Failed to start Cyoda MCP server: {e}")
