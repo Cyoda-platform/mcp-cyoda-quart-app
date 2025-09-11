@@ -8,45 +8,45 @@ This guide provides specific commands and prompts for working with AI assistants
 **MOST IMPORTANT**: Entity names for workflow import must **EXACTLY** match the `ENTITY_NAME` constant in your entity class:
 
 ```python
-# In your entity class (e.g., application/entity/mail/version_1/mail.py)
-class Mail(CyodaEntity):
-    ENTITY_NAME: ClassVar[str] = "Mail"  # ← Use EXACTLY this for workflow import
+# In your entity class (e.g., application/entity/ your_entity/version_1/ your_entity.py)
+class YourEntity(CyodaEntity):
+    ENTITY_NAME: ClassVar[str] = "YourEntity"  # ← Use EXACTLY this for workflow import
     ENTITY_VERSION: ClassVar[int] = 1
 ```
 
 ```bash
 # Workflow import - use EXACT case match
 workflow_mgmt_import_workflows_from_file_tool_cyoda-mcp(
-    entity_name="Mail",  # ← Must match ENTITY_NAME exactly
+    entity_name="YourEntity",  # ← Must match ENTITY_NAME exactly
     model_version="1",
-    file_path="application/resources/workflow/mail/version_1/Mail.json"
+    file_path="application/resources/workflow/ your_entity/version_1/YourEntity.json"
 )
 ```
 
 **Common Mistakes:**
-- ❌ Using `entity_name="mail"` when `ENTITY_NAME = "Mail"`
-- ❌ Using `entity_name="MAIL"` when `ENTITY_NAME = "Mail"`
-- ✅ Using `entity_name="Mail"` when `ENTITY_NAME = "Mail"`
+- ❌ Using `entity_name=" your_entity"` when `ENTITY_NAME = "YourEntity"`
+- ❌ Using `entity_name="MAIL"` when `ENTITY_NAME = "YourEntity"`
+- ✅ Using `entity_name="YourEntity"` when `ENTITY_NAME = "YourEntity"`
 
 ### **Directory Structure Requirements**
 Your application must follow this structure:
 ```
 application/                          # Your app directory (name may vary)
 ├── entity/
-│   └── {entity_type}/               # e.g., mail, order, user
+│   └── {entity_type}/               # e.g.,  your_entity, order, user
 │       └── version_1/
-│           └── {entity_class}.py    # e.g., mail.py, order.py
+│           └── {entity_class}.py    # e.g.,  your_entity.py, order.py
 ├── processor/
-│   └── {entity}_processor.py       # e.g., mail_send_processor.py
+│   └── {entity}_processor.py       # e.g.,  your_entity_send_processor.py
 ├── criterion/
-│   └── {entity}_criterion.py       # e.g., mail_validation_criterion.py
+│   └── {entity}_criterion.py       # e.g.,  your_entity_validation_criterion.py
 ├── resources/
 │   └── workflow/
 │       └── {entity_type}/           # Must match entity directory name
 │           └── version_1/
-│               └── {EntityName}.json # e.g., Mail.json, Order.json
+│               └── {EntityName}.json # e.g., YourEntity.json, Order.json
 └── routes/
-    └── {entity}.py                  # e.g., mail.py, order.py
+    └── {entity}.py                  # e.g.,  your_entity.py, order.py
 ```
 
 ## 🛠️ MCP Tools Setup
@@ -500,28 +500,28 @@ When issues occur:
 **AI Response:** "I'll run a complete E2E test of your Cyoda client application:
 
 **1. Application Discovery:**
-✅ Found entity: Mail with ENTITY_NAME = "Mail"
-✅ Located workflow: application/resources/workflow/mail/version_1/Mail.json
-✅ Found processors: MailSendHappyMailProcessor, MailSendGloomyMailProcessor
-✅ Found criteria: MailIsHappyCriterion, MailIsGloomyCriterion
+✅ Found entity: YourEntity with ENTITY_NAME = "YourEntity"
+✅ Located workflow: application/resources/workflow/ your_entity/version_1/YourEntity.json
+✅ Found processors: YourEntityProcessor
+✅ Found criteria: YourEntityCriterion
 
 **2. Application Startup:**
 ✅ Application started successfully
-✅ Processors registered: MailSendHappyMailProcessor, MailSendGloomyMailProcessor
-✅ Criteria registered: MailIsHappyCriterion, MailIsGloomyCriterion
+✅ Processors registered: YourEntityProcessor
+✅ Criteria registered: YourEntityIsHappyCriterion, YourEntityCriterion
 ✅ gRPC connection established
 
 **3. Workflow Import (Critical - Using Exact Entity Name):**
-✅ Mail workflow imported using entity_name="Mail" (matching ENTITY_NAME constant)
+✅ YourEntity workflow imported using entity_name="YourEntity" (matching ENTITY_NAME constant)
 ✅ Workflow deployment successful
 
 **4. Routes API Testing:**
-✅ Happy Mail created via POST /api/mail: ID 2d1c56ec-3adf-11b2-b83e-e6f027731b46
-✅ Gloomy Mail created via POST /api/mail: ID 3c74b7d8-3adf-11b2-b83e-e6f027731b46
+✅ Happy YourEntity created via POST /api/ your_entity: ID 2d1c56ec-3adf-11b2-b83e-e6f027731b46
+✅ Gloomy YourEntity created via POST /api/ your_entity: ID 3c74b7d8-3adf-11b2-b83e-e6f027731b46
 
 **5. Workflow Execution Verification:**
-✅ Happy Mail: MailIsHappyCriterion → True → MailSendHappyMailProcessor → Success
-✅ Gloomy Mail: MailIsHappyCriterion → False → MailIsGloomyCriterion → True → MailSendGloomyMailProcessor → Success
+✅ Happy YourEntity: YourEntityIsHappyCriterion → True → YourEntityProcessor → Success
+✅ Gloomy YourEntity: YourEntityIsHappyCriterion → False → YourEntityCriterion → True →   → Success
 ✅ Both entities reached final state "[*]"
 
 **6. Integration Tests:**
