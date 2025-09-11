@@ -1,6 +1,13 @@
 # cyoda_mcp/server.py
 from __future__ import annotations
 
+# Add the parent directory to the path so we can import from the main app
+# This MUST be done before any other imports that depend on the main app modules
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 """
 Main MCP Server for Cyoda Integration
 
@@ -8,21 +15,16 @@ This module provides a unified FastMCP server that composes all category servers
 with proper prefixes for organized tool catalogs.
 """
 
-import asyncio
-import logging
-import os
-import sys
-from typing import Literal
+import asyncio  # noqa: E402
+import logging  # noqa: E402
+from typing import Literal  # noqa: E402
 
-from fastmcp import FastMCP
+from fastmcp import FastMCP  # noqa: E402
 
-from cyoda_mcp.tools.edge_message import mcp as mcp_edge_message
-from cyoda_mcp.tools.entity_management import mcp as mcp_entity
-from cyoda_mcp.tools.search import mcp as mcp_search
-from cyoda_mcp.tools.workflow_management import mcp as mcp_workflow_management
-
-# Add the parent directory to the path so we can import from the main app
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from cyoda_mcp.tools.edge_message import mcp as mcp_edge_message  # noqa: E402
+from cyoda_mcp.tools.entity_management import mcp as mcp_entity  # noqa: E402
+from cyoda_mcp.tools.search import mcp as mcp_search  # noqa: E402
+from cyoda_mcp.tools.workflow_management import mcp as mcp_workflow_management  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
@@ -58,17 +60,17 @@ def initialize_mcp_services() -> bool:
 _services_initialized: bool = initialize_mcp_services()
 
 # Single, unified server
-main: FastMCP = FastMCP("Cyoda Client Tools 🚀")
+mcp: FastMCP = FastMCP("Cyoda Client Tools 🚀")
 
 
 async def setup() -> None:
     """Setup the main server by importing all category servers with prefixes."""
     try:
         # Namespace each category to keep the catalog tidy
-        await main.import_server(mcp_entity, prefix="entity")
-        await main.import_server(mcp_search, prefix="search")
-        await main.import_server(mcp_edge_message, prefix="edge_message")
-        await main.import_server(mcp_workflow_management, prefix="workflow_mgmt")
+        await mcp.import_server(mcp_entity, prefix="entity")
+        await mcp.import_server(mcp_search, prefix="search")
+        await mcp.import_server(mcp_edge_message, prefix="edge_message")
+        await mcp.import_server(mcp_workflow_management, prefix="workflow_mgmt")
 
         logger.info("All MCP category servers imported successfully")
     except Exception as e:
@@ -89,7 +91,7 @@ def get_mcp() -> FastMCP:
     Returns:
         FastMCP: The FastMCP server instance.
     """
-    return main
+    return mcp
 
 
 def run_mcp(
@@ -107,13 +109,13 @@ def run_mcp(
     """
     if transport == "stdio":
         logger.info("Starting FastMCP server with STDIO transport")
-        main.run()
+        mcp.run()
     elif transport == "http":
         logger.info(f"Starting FastMCP server with HTTP transport on {host}:{port}")
-        main.run(transport="http", host=host, port=port)
+        mcp.run(transport="http", host=host, port=port)
     elif transport == "sse":
         logger.info(f"Starting FastMCP server with SSE transport on {host}:{port}")
-        main.run(transport="sse", host=host, port=port)
+        mcp.run(transport="sse", host=host, port=port)
     else:
         raise ValueError(f"Unsupported transport: {transport}")
 
