@@ -5,12 +5,18 @@ from typing import Callable, Dict, Optional
 from quart import Quart, Response
 from quart_schema import QuartSchema, ResponseSchemaValidationError, hide
 
+from application.routes.catfact_routes import catfact_routes_bp
+from application.routes.emaildelivery_routes import emaildelivery_routes_bp
+from application.routes.interaction_routes import interaction_routes_bp
+from application.routes.reporting_routes import reporting_routes_bp
+
+# Import blueprints for different route groups
+from application.routes.subscriber_routes import subscriber_routes_bp
+from application.routes.weeklyschedule_routes import weeklyschedule_routes_bp
 from common.exception.exception_handler import (
     register_error_handlers as _register_error_handlers,
 )
 from services.services import get_grpc_client, initialize_services
-
-# Import blueprints for different route groups
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -37,6 +43,14 @@ QuartSchema(
         }
     },
 )
+
+# Register all route blueprints
+app.register_blueprint(subscriber_routes_bp)
+app.register_blueprint(catfact_routes_bp)
+app.register_blueprint(emaildelivery_routes_bp)
+app.register_blueprint(interaction_routes_bp)
+app.register_blueprint(weeklyschedule_routes_bp)
+app.register_blueprint(reporting_routes_bp)
 
 # Global holder for the background task to satisfy mypy (avoid setting arbitrary attrs on app)
 _background_task: Optional[asyncio.Task[None]] = None
