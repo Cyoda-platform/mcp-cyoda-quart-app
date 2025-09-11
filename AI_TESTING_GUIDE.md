@@ -10,10 +10,10 @@ The Cyoda MCP Client provides tools that AI assistants can use directly. Install
 
 ```bash
 # Install globally with pipx (recommended)
-pipx install mcp-cyoda-client
+pipx install mcp-cyoda
 
 # Or install with pip
-pip install mcp-cyoda-client
+pip install mcp-cyoda
 ```
 
 ### AI Assistant Configuration
@@ -24,7 +24,7 @@ Add this configuration to your AI assistant's MCP settings:
 {
   "mcpServers": {
     "cyoda": {
-      "command": "mcp-cyoda-client",
+      "command": "mcp-cyoda",
       "env": {
         "CYODA_CLIENT_ID": "your-client-id-here",
         "CYODA_CLIENT_SECRET": "your-client-secret-here",
@@ -256,7 +256,7 @@ INFO:example_application.processor.example_entity_processor.ExampleEntityProcess
 **AI Command:**
 ```
 "MCP tools are not responding correctly. Please verify:
-1. The mcp-cyoda-client package is installed correctly
+1. The mcp-cyoda package is installed correctly
 2. Environment variables (CYODA_CLIENT_ID, CYODA_CLIENT_SECRET, CYODA_HOST) are set
 3. The MCP server configuration is correct
 4. Test basic tool functionality with entity_list_entities_tool_cyoda-mcp"

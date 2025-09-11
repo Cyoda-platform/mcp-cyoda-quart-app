@@ -3,8 +3,8 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "mcp-cyoda-client"
-version = "0.1.4"
+name = "mcp-cyoda"
+version = "0.1.5"
 description = "Model Context Protocol server for Cyoda platform - enables AI assistants to interact with Cyoda's entity management, search, workflow, and deployment capabilities"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -48,9 +48,9 @@ classifiers = [
     "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
 ]
 
-# This creates the console command `mcp-cyoda-client`
+# This creates the console command `mcp-cyoda`
 [project.scripts]
-mcp-cyoda-client = "cyoda_mcp.__main__:main"
+mcp-cyoda = "cyoda_mcp.__main__:main"
 
 [project.urls]
 Homepage = "https://ai.cyoda.net"

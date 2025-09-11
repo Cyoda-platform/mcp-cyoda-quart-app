@@ -12,20 +12,20 @@ export CYODA_CLIENT_SECRET="your-client-secret"
 export CYODA_HOST="client-<id>.eu.cyoda.net"
 
 # Run immediately with pipx
-pipx run mcp-cyoda-client
+pipx run mcp-cyoda
 ```
 
 ### Install once and run repeatedly
 ```bash
 # Install the package
-pipx install mcp-cyoda-client
+pipx install mcp-cyoda
 
 # Run the server
-mcp-cyoda-client
+mcp-cyoda
 
 # Or with custom options
-mcp-cyoda-client --transport http --port 9000
-mcp-cyoda-client --help
+mcp-cyoda --transport http --port 9000
+mcp-cyoda --help
 ```
 
 ## Getting Your Cyoda Environment
@@ -61,7 +61,7 @@ Add this to your MCP configuration (e.g., in Cursor, Claude Desktop, or other MC
 {
   "mcpServers": {
     "cyoda": {
-      "command": "mcp-cyoda-client",
+      "command": "mcp-cyoda",
       "env": {
         "CYODA_CLIENT_ID": "your-client-id-here",
         "CYODA_CLIENT_SECRET": "your-client-secret-here",
@@ -252,10 +252,10 @@ pip install build twine
 python -m build
 
 # Install locally for testing
-pipx install dist/mcp_cyoda_client-0.1.2-py3-none-any.whl
+pipx install dist/mcp_cyoda-0.1.2-py3-none-any.whl
 
 # Test the installed package
-mcp-cyoda-client --version
+mcp-cyoda --version
 ```
 
 ## Project Structure Overview

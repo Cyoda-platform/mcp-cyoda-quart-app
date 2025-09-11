@@ -246,7 +246,7 @@ The project provides MCP (Model Context Protocol) tools that AI assistants can u
 
 **Installation for AI Assistants:**
 ```bash
-pipx install mcp-cyoda-client
+pipx install mcp-cyoda
 ```
 
 **Configuration for AI Assistants:**
@@ -254,7 +254,7 @@ pipx install mcp-cyoda-client
 {
   "mcpServers": {
     "cyoda": {
-      "command": "mcp-cyoda-client",
+      "command": "mcp-cyoda",
       "env": {
         "CYODA_CLIENT_ID": "your-client-id-here",
         "CYODA_CLIENT_SECRET": "your-client-secret-here",

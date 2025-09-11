@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Console entrypoint for `mcp-cyoda-client`.
+Console entrypoint for `mcp-cyoda`.
 Keep this minimal so users get a reliable one-liner.
 """
 
@@ -35,10 +35,10 @@ def print_version() -> None:
     try:
         from importlib.metadata import version
 
-        pkg_version = version("mcp-cyoda-client")
-        print(f"mcp-cyoda-client version {pkg_version}")
+        pkg_version = version("mcp-cyoda")
+        print(f"mcp-cyoda version {pkg_version}")
     except Exception:
-        print("mcp-cyoda-client (version unknown)")
+        print("mcp-cyoda (version unknown)")
 
 
 def start_server(
@@ -92,18 +92,18 @@ def start_server(
 
 def main() -> None:
     """
-    Console entrypoint for `mcp-cyoda-client`.
+    Console entrypoint for `mcp-cyoda`.
     """
     parser = argparse.ArgumentParser(
         description="Cyoda MCP Server - Model Context Protocol integration for Cyoda platform",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  mcp-cyoda-client                    # Start with stdio transport (default)
-  mcp-cyoda-client --transport http   # Start with HTTP transport
-  mcp-cyoda-client --transport sse    # Start with SSE transport
-  mcp-cyoda-client --port 9000        # Use custom port
-  mcp-cyoda-client --version          # Show version information
+  mcp-cyoda                  # Start with stdio transport (default)
+  mcp-cyoda --transport http   # Start with HTTP transport
+  mcp-cyoda --transport sse    # Start with SSE transport
+  mcp-cyoda --port 9000        # Use custom port
+  mcp-cyoda --version          # Show version information
 
 Environment Variables:
   CYODA_CLIENT_ID      - Cyoda client ID (required)

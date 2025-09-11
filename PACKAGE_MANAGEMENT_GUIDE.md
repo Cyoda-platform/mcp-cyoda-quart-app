@@ -179,11 +179,11 @@ from common.service import EntityService
 ### As a Command Line Tool
 ```bash
 # The package provides a CLI command:
-mcp-cyoda-client --help
+mcp-cyoda --help
 
 # This is defined in pyproject.toml:
 # [project.scripts]
-# mcp-cyoda-client = "cyoda_mcp.__main__:main"
+# mcp-cyoda = "cyoda_mcp.__main__:main"
 ```
 
 ## Building and Distribution
@@ -197,8 +197,8 @@ pip install build
 python -m build
 
 # Output in dist/:
-# - mcp_cyoda_client-0.1.2-py3-none-any.whl
-# - mcp_cyoda_client-0.1.2.tar.gz
+# - mcp_cyoda-0.1.2-py3-none-any.whl
+# - mcp_cyoda-0.1.2.tar.gz
 ```
 
 ### Upload to PyPI (if applicable)
@@ -258,8 +258,8 @@ python -m pytest --cov             # Tests with coverage
 python -m flake8 cyoda_mcp/ common/ # Check only main source directories
 
 # 4. Use the CLI tool
-mcp-cyoda-client --help             # Show help
-mcp-cyoda-client --version          # Show version
+mcp-cyoda --help             # Show help
+mcp-cyoda --version          # Show version
 ```
 
 ## Migration Complete! 🎉
@@ -271,7 +271,7 @@ mcp-cyoda-client --version          # Show version
   - mypy==1.17.1, flake8==7.1.1, bandit==1.8.6
 - ✅ Proto files properly excluded from all tools
 - ✅ Modern Python packaging standards followed
-- ✅ CLI command `mcp-cyoda-client` available
+- ✅ CLI command `mcp-cyoda` available
 - ✅ Type stubs installed for better mypy support
 
 **Ready to develop!** Use `pip install -e ".[dev]"` and you're all set! 🚀
