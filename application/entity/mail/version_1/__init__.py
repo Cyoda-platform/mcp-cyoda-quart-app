@@ -1,0 +1,1 @@
+# Mail entity version 1 package
