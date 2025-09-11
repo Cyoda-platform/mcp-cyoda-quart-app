@@ -1,0 +1,90 @@
+{
+    "version": "1.0",
+    "name": "WeeklySchedule Workflow",
+    "desc": "Manages the weekly schedule for cat fact distribution.",
+    "initialState": "initial_state",
+    "active": true,
+    "states": {
+        "initial_state": {
+            "transitions": [
+                {
+                    "name": "transition_to_created",
+                    "next": "created",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "WeeklyScheduleCreationProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "created": {
+            "transitions": [
+                {
+                    "name": "transition_to_fact_assigned",
+                    "next": "fact_assigned",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "WeeklyScheduleFactAssignmentProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "fact_assigned": {
+            "transitions": [
+                {
+                    "name": "transition_to_emails_sent",
+                    "next": "emails_sent",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "WeeklyScheduleEmailDistributionProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "emails_sent": {
+            "transitions": [
+                {
+                    "name": "transition_to_completed",
+                    "next": "completed",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "WeeklyScheduleCompletionProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "completed": {
+            "transitions": [
+                {
+                    "name": "transition_to_initial",
+                    "next": "initial_state",
+                    "manual": false
+                }
+            ]
+        }
+    }
+}

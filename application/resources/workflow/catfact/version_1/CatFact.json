@@ -1,0 +1,102 @@
+{
+    "version": "1.0",
+    "name": "CatFact Workflow",
+    "desc": "Manages the lifecycle of cat facts from retrieval to archival.",
+    "initialState": "initial_state",
+    "active": true,
+    "states": {
+        "initial_state": {
+            "transitions": [
+                {
+                    "name": "transition_to_retrieved",
+                    "next": "retrieved",
+                    "manual": false
+                }
+            ]
+        },
+        "retrieved": {
+            "transitions": [
+                {
+                    "name": "transition_to_scheduled",
+                    "next": "scheduled",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "CatFactSchedulingProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ],
+                    "criterion": {
+                        "type": "function",
+                        "function": {
+                            "name": "CatFactSchedulingCriterion",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "scheduled": {
+            "transitions": [
+                {
+                    "name": "transition_to_sent",
+                    "next": "sent",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "CatFactDistributionProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "sent": {
+            "transitions": [
+                {
+                    "name": "transition_to_archived",
+                    "next": "archived",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "CatFactArchivalProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ],
+                    "criterion": {
+                        "type": "function",
+                        "function": {
+                            "name": "CatFactArchivalCriterion",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "archived": {
+            "transitions": [
+                {
+                    "name": "transition_to_end",
+                    "next": "end",
+                    "manual": false
+                }
+            ]
+        },
+        "end": {
+            "transitions": []
+        }
+    }
+}

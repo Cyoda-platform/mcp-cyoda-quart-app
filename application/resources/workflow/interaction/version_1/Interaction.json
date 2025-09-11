@@ -1,0 +1,48 @@
+{
+    "version": "1.0",
+    "name": "Interaction Workflow",
+    "desc": "Manages the lifecycle of user interactions with cat fact emails.",
+    "initialState": "initial_state",
+    "active": true,
+    "states": {
+        "initial_state": {
+            "transitions": [
+                {
+                    "name": "transition_to_recorded",
+                    "next": "recorded",
+                    "manual": false
+                }
+            ]
+        },
+        "recorded": {
+            "transitions": [
+                {
+                    "name": "transition_to_processed",
+                    "next": "processed",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "InteractionProcessingProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "processed": {
+            "transitions": [
+                {
+                    "name": "transition_to_end",
+                    "next": "end",
+                    "manual": false
+                }
+            ]
+        },
+        "end": {
+            "transitions": []
+        }
+    }
+}
