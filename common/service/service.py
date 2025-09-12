@@ -8,7 +8,7 @@ with proper error handling, type safety, and performance optimizations.
 import logging
 import threading
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, cast
 
 from common.config.config import CHAT_REPOSITORY
 from common.repository.crud_repository import CrudRepository
@@ -819,8 +819,14 @@ class EntityServiceImpl(EntityService):
                 )
 
             # Execute transition by updating with transition
+            if hasattr(current_entity.data, "model_dump"):
+                entity_data: Dict[str, Any] = current_entity.data.model_dump(
+                    by_alias=True
+                )
+            else:
+                entity_data = cast(Dict[str, Any], current_entity.data)
             return await self.update(
-                entity_id, current_entity.data, entity_class, transition, entity_version
+                entity_id, entity_data, entity_class, transition, entity_version
             )
 
         except EntityServiceError:

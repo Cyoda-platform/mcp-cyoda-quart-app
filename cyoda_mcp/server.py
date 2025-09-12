@@ -24,7 +24,9 @@ from fastmcp import FastMCP  # noqa: E402
 from cyoda_mcp.tools.edge_message import mcp as mcp_edge_message  # noqa: E402
 from cyoda_mcp.tools.entity_management import mcp as mcp_entity  # noqa: E402
 from cyoda_mcp.tools.search import mcp as mcp_search  # noqa: E402
-from cyoda_mcp.tools.workflow_management import mcp as mcp_workflow_management  # noqa: E402
+from cyoda_mcp.tools.workflow_management import (  # noqa: E402
+    mcp as mcp_workflow_management,
+)
 
 logger = logging.getLogger(__name__)
 

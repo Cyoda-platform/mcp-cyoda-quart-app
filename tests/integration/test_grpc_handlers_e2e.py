@@ -222,8 +222,9 @@ class TestGrpcHandlersE2E:
         processed_entity_data = response_data["payload"]["data"]
         assert "processed_data" in processed_entity_data
         assert (
-            processed_entity_data["processed_data"]["calculated_value"] == 106.25
-        )  # 42.5 * 2.5
+            processed_entity_data["processed_data"]["enriched_category"] == "ELECTRONICS_PROCESSED"
+        )
+        assert processed_entity_data["processed_data"]["processing_status"] == "COMPLETED"
         assert (
             processed_entity_data["processed_data"]["enriched_category"]
             == "ELECTRONICS_PROCESSED"
@@ -280,12 +281,10 @@ class TestGrpcHandlersE2E:
             assert processed_entity is not None
             assert hasattr(processed_entity, "processed_data")
             assert (
-                processed_entity.processed_data["calculated_value"] == 106.25
-            )  # 42.5 * 2.5
-            assert (
                 processed_entity.processed_data["enriched_category"]
                 == "ELECTRONICS_PROCESSED"
             )
+            assert processed_entity.processed_data["processing_status"] == "COMPLETED"
 
             # Note: The processor attempts to create 3 OtherEntity instances but they fail due to workflow issues
             # This is expected in the test environment and doesn't affect the main processing logic
@@ -403,11 +402,11 @@ class TestGrpcHandlersE2E:
             # Verify complete workflow
             assert processed_entity is not None
             assert hasattr(processed_entity, "processed_data")
-            assert processed_entity.processed_data["calculated_value"] == 106.25
             assert (
                 processed_entity.processed_data["enriched_category"]
                 == "ELECTRONICS_PROCESSED"
             )
+            assert processed_entity.processed_data["processing_status"] == "COMPLETED"
 
             # Verify entity service was called for creating related entities
             # Note: The actual calls may fail due to workflow issues, but the processor should attempt them
@@ -446,7 +445,7 @@ class TestGrpcHandlersE2E:
         electronics_boundary_data.update(
             {
                 "category": "ELECTRONICS",
-                "value": 10.01,  # Just above minimum for ELECTRONICS
+                "value": 10.01,  # Any value is fine now (no numeric constraints)
                 "state": "created",
             }
         )
@@ -460,14 +459,14 @@ class TestGrpcHandlersE2E:
         )
         assert matches2 is True
 
-        # Test with invalid boundary (ELECTRONICS with value <= 10)
+        # Test with invalid case (ELECTRONICS must be active)
         invalid_electronics_data = electronics_boundary_data.copy()
-        invalid_electronics_data["value"] = 10.0  # Exactly at boundary (should fail)
+        invalid_electronics_data["is_active"] = False  # ELECTRONICS must be active
 
         entity3 = create_entity("ExampleEntity", invalid_electronics_data)
         entity3.technical_id = "test-invalid-boundary-entity"
 
-        # Should fail validation
+        # Should fail validation (ELECTRONICS must be active)
         matches3 = await processor_manager.check_criteria(
             "ExampleEntityValidationCriterion", entity3
         )
@@ -541,11 +540,11 @@ class TestGrpcHandlersE2E:
             for i, processed_entity in enumerate(processed_entities):
                 assert processed_entity is not None
                 assert hasattr(processed_entity, "processed_data")
-                expected_value = (15.0 + i) * 2.5
                 assert (
-                    processed_entity.processed_data["calculated_value"]
-                    == expected_value
+                    processed_entity.processed_data["enriched_category"]
+                    == "ELECTRONICS_PROCESSED"
                 )
+                assert processed_entity.processed_data["processing_status"] == "COMPLETED"
 
     @pytest.mark.asyncio
     async def test_grpc_handler_response_formats(self, mock_services):

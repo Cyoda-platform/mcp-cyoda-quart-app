@@ -638,6 +638,23 @@ async def send_cyoda_request(
     raise RuntimeError(f"Failed request {method.upper()} {path} after retry")
 
 
+def preprocess_for_cyoda(data: Any) -> Any:
+    """
+    Preprocess data for Cyoda API compatibility.
+    Converts floats to BigDecimal-compatible strings recursively.
+    """
+    if isinstance(data, dict):
+        return {key: preprocess_for_cyoda(value) for key, value in data.items()}
+    elif isinstance(data, list):
+        return [preprocess_for_cyoda(item) for item in data]
+    elif isinstance(data, float):
+        # Convert floats to strings for BigDecimal compatibility with Cyoda
+        from decimal import Decimal
+        return str(Decimal(str(data)))
+    else:
+        return data
+
+
 def custom_serializer(obj: Any) -> Any:
     if isinstance(obj, queue.Queue):
         # Convert queue to list

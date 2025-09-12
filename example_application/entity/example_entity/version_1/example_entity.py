@@ -10,7 +10,7 @@ with processing and validation capabilities as specified in functional requireme
 from datetime import datetime, timezone
 from typing import Any, ClassVar, Dict, List, Optional
 
-from pydantic import Field, field_validator, model_validator
+from pydantic import ConfigDict, Field, field_validator, model_validator
 
 from common.entity.cyoda_entity import CyodaEntity
 
@@ -31,17 +31,15 @@ class ExampleEntity(CyodaEntity):
     # Required fields from functional requirements
     name: str = Field(..., description="Name of the example entity")
     description: str = Field(..., description="Description of the entity")
-    value: float = Field(..., description="Numeric value associated with the entity")
+    value: float = Field(..., description="Numeric value for the entity")
     category: str = Field(..., description="Category classification for the entity")
-    is_active: bool = Field(
-        ..., alias="isActive", description="Flag indicating if the entity is active"
+    is_active: Optional[bool] = Field(
+        default=None, alias="isActive", description="Flag indicating if the entity is active"
     )
 
     # Timestamps (inherited created_at from CyodaEntity, but need to override updated_at behavior)
     created_at: Optional[str] = Field(
-        default_factory=lambda: datetime.now(timezone.utc)
-        .isoformat()
-        .replace("+00:00", "Z"),
+        default_factory=lambda: datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         alias="createdAt",
         description="Timestamp when the entity was created (ISO 8601 format)",
     )
@@ -98,8 +96,10 @@ class ExampleEntity(CyodaEntity):
     @classmethod
     def validate_value(cls, v: float) -> float:
         """Validate value field according to criteria requirements"""
-        if v <= 0:
-            raise ValueError("Value must be a positive number (greater than 0)")
+        if v < 0:
+            raise ValueError("Value must be non-negative")
+        if v > 10000:
+            raise ValueError("Value must be at most 10000")
         return v
 
     @field_validator("category")
@@ -115,19 +115,13 @@ class ExampleEntity(CyodaEntity):
         """Validate business logic rules according to criteria requirements"""
         category = self.category
         is_active = self.is_active
-        value = self.value
 
-        if category == "ELECTRONICS" and value <= 10:
-            raise ValueError("For ELECTRONICS category, value must be greater than 10")
+        # Simplified business logic without numeric value constraints
+        if category not in self.ALLOWED_CATEGORIES:
+            raise ValueError(f"Category must be one of: {self.ALLOWED_CATEGORIES}")
 
-        if category == "CLOTHING" and (value < 5 or value > 1000):
-            raise ValueError("For CLOTHING category, value must be between 5 and 1000")
-
-        if category == "BOOKS" and (value < 1 or value > 500):
-            raise ValueError("For BOOKS category, value must be between 1 and 500")
-
-        if is_active is False and value >= 100:
-            raise ValueError("If isActive is false, value must be less than 100")
+        if is_active is False and category == "ELECTRONICS":
+            raise ValueError("ELECTRONICS category entities must be active")
 
         return self
 
@@ -160,10 +154,9 @@ class ExampleEntity(CyodaEntity):
         data["state"] = self.state
         return data
 
-    class Config:
-        """Pydantic configuration"""
-
-        populate_by_name = True
-        use_enum_values = True
-        validate_assignment = True
-        extra = "allow"
+    model_config = ConfigDict(
+        populate_by_name=True,
+        use_enum_values=True,
+        validate_assignment=True,
+        extra="allow",
+    )

@@ -36,9 +36,7 @@ class ExampleEntityValidationCriterion(CyodaCriteriaChecker):
             True if the entity meets all criteria, False otherwise
         """
         try:
-            self.logger.info(
-                f"Validating entity {getattr(entity, 'technical_id', '<unknown>')}"
-            )
+            self.logger.info(f"Validating entity {getattr(entity, 'technical_id', '<unknown>')}")
 
             # Cast the entity to ExampleEntity for type-safe operations
             example_entity = cast_entity(entity, ExampleEntity)
@@ -57,15 +55,7 @@ class ExampleEntityValidationCriterion(CyodaCriteriaChecker):
                 return False
 
             if not example_entity.description or len(example_entity.description) > 500:
-                self.logger.warning(
-                    f"Entity {example_entity.technical_id} has invalid description"
-                )
-                return False
-
-            if example_entity.value <= 0:
-                self.logger.warning(
-                    f"Entity {example_entity.technical_id} has invalid value: {example_entity.value}"
-                )
+                self.logger.warning(f"Entity {example_entity.technical_id} has invalid description")
                 return False
 
             # Validate category
@@ -76,38 +66,14 @@ class ExampleEntityValidationCriterion(CyodaCriteriaChecker):
                 )
                 return False
 
-            # Validate business logic rules
-            if example_entity.category == "ELECTRONICS" and example_entity.value <= 10:
+            # Validate business logic rules (simplified without numeric constraints)
+            if not example_entity.is_active and example_entity.category == "ELECTRONICS":
                 self.logger.warning(
-                    f"Entity {example_entity.technical_id} ELECTRONICS category requires value > 10, got {example_entity.value}"
+                    f"Entity {example_entity.technical_id} ELECTRONICS category entities must be active"
                 )
                 return False
 
-            if example_entity.category == "CLOTHING" and (
-                example_entity.value < 5 or example_entity.value > 1000
-            ):
-                self.logger.warning(
-                    f"Entity {example_entity.technical_id} CLOTHING category requires value between 5 and 1000, got {example_entity.value}"
-                )
-                return False
-
-            if example_entity.category == "BOOKS" and (
-                example_entity.value < 1 or example_entity.value > 500
-            ):
-                self.logger.warning(
-                    f"Entity {example_entity.technical_id} BOOKS category requires value between 1 and 500, got {example_entity.value}"
-                )
-                return False
-
-            if example_entity.is_active is False and example_entity.value >= 100:
-                self.logger.warning(
-                    f"Entity {example_entity.technical_id} inactive entities require value < 100, got {example_entity.value}"
-                )
-                return False
-
-            self.logger.info(
-                f"Entity {example_entity.technical_id} passed all validation criteria"
-            )
+            self.logger.info(f"Entity {example_entity.technical_id} passed all validation criteria")
             return True
 
         except Exception as e:

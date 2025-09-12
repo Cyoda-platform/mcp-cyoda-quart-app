@@ -9,35 +9,59 @@ import logging
 from typing import Any, Dict, Optional, Tuple
 
 from pydantic import BaseModel, Field
-from quart import Blueprint, Response, jsonify, request
-from quart_schema import validate_querystring, validate_request
+from quart import Blueprint, request
+from quart_schema import (
+    operation_id,
+    tag,
+    validate,
+    validate_querystring,
+)
 
 from common.service.entity_service import (
-    CYODA_OPERATOR_MAPPING,
-    EntityService,
-    LogicalOperator,
     SearchConditionRequest,
-    SearchConditionRequestBuilder,
-    SearchOperator,
 )
 from services.services import get_entity_service
 
-logger = logging.getLogger(__name__)
-
-other_entities_bp = Blueprint(
-    "other_entities", __name__, url_prefix="/api/other-entities"
+# Imported for entity constants
+from ..entity.other_entity import OtherEntity  # noqa: F401
+from ..models.request_models import (
+    OtherEntitySearchRequest,
+    OtherEntityUpdateQueryParams,
+    TransitionRequest,
+)
+from ..models.response_models import (
+    CountResponse,
+    DeleteResponse,
+    ErrorResponse,
+    ExistsResponse,
+    OtherEntityListResponse,
+    OtherEntityResponse,
+    TransitionResponse,
+    TransitionsResponse,
+    ValidationErrorResponse,
 )
 
-# Services will be accessed through the registry
-entity_service: Optional[EntityService] = None
+logger = logging.getLogger(__name__)
+
+other_entities_bp = Blueprint("other_entities", __name__, url_prefix="/api/other-entities")
+# Module-level service instance to avoid repeated lookups
+# Lazy proxy to avoid initializing services at import time
 
 
-def get_services() -> EntityService:
-    """Get services from the registry lazily."""
-    global entity_service
-    if entity_service is None:
-        entity_service = get_entity_service()
-    return entity_service
+class _ServiceProxy:
+    def __getattr__(self, name: str) -> Any:
+        return getattr(get_entity_service(), name)
+
+
+service = _ServiceProxy()
+
+
+# Helper to normalize entity data from service (Pydantic model or dict)
+def _to_entity_dict(data: Any) -> Dict[str, Any]:
+    return data.model_dump(by_alias=True) if hasattr(data, "model_dump") else data
+
+
+# Removed unnecessary wrapper - use get_entity_service() directly
 
 
 class OtherEntityQueryParams(BaseModel):
@@ -46,124 +70,99 @@ class OtherEntityQueryParams(BaseModel):
     source_entity_id: Optional[str] = Field(
         default=None, alias="sourceEntityId", description="Filter by source entity ID"
     )
-    priority: Optional[str] = Field(
-        default=None, description="Filter by priority level"
-    )
+    priority: Optional[str] = Field(default=None, description="Filter by priority level")
     state: Optional[str] = Field(default=None, description="Filter by workflow state")
     limit: int = Field(default=50, description="Number of results")
     offset: int = Field(default=0, description="Pagination offset")
 
 
-class OtherEntityCreateRequest(BaseModel):
-    """Request model for creating an OtherEntity"""
-
-    title: str = Field(..., description="Title of the other entity")
-    content: str = Field(..., description="Content or data of the entity")
-    priority: str = Field(..., description="Priority level (LOW, MEDIUM, HIGH)")
-    source_entity_id: Optional[str] = Field(
-        default=None,
-        alias="sourceEntityId",
-        description="Reference to the ExampleEntity",
-    )
-    last_updated_by: Optional[str] = Field(
-        default=None,
-        alias="lastUpdatedBy",
-        description="Identifier of the entity that last updated this one",
-    )
-    metadata: Optional[Dict[str, Any]] = Field(
-        default_factory=dict, description="Additional metadata"
-    )
-
-
-class OtherEntityUpdateRequest(BaseModel):
-    """Request model for updating an OtherEntity"""
-
-    title: Optional[str] = Field(default=None, description="Title of the other entity")
-    content: Optional[str] = Field(
-        default=None, description="Content or data of the entity"
-    )
-    priority: Optional[str] = Field(
-        default=None, description="Priority level (LOW, MEDIUM, HIGH)"
-    )
-    last_updated_by: Optional[str] = Field(
-        default=None,
-        alias="lastUpdatedBy",
-        description="Identifier of the entity that last updated this one",
-    )
-    metadata: Optional[Dict[str, Any]] = Field(
-        default=None, description="Additional metadata"
-    )
-    transition: Optional[str] = Field(
-        default=None, description="Workflow transition to trigger"
-    )
-
-
 @other_entities_bp.route("", methods=["POST"])
-@validate_request(OtherEntityCreateRequest)
-async def create_other_entity(json: OtherEntityCreateRequest) -> Tuple[Response, int]:
-    """Create a new OtherEntity"""
+@tag(["other-entities"])
+@operation_id("create_other_entity")
+@validate(
+    request=OtherEntity,
+    responses={
+        201: (OtherEntityResponse, None),
+        400: (ValidationErrorResponse, None),
+        500: (ErrorResponse, None),
+    },
+)
+async def create_other_entity(data: OtherEntity) -> Tuple[Dict[str, Any], int]:
+    """Create a new OtherEntity with comprehensive validation"""
     try:
-        service = get_services()
-
-        # Convert request to entity data
-        entity_data = json.dict(by_alias=True)
+        # Convert request to entity data (entity model as-is)
+        entity_data = data.model_dump(by_alias=True)
 
         # Save the entity
         response = await service.save(
-            entity=entity_data, entity_class="OtherEntity", entity_version="1"
+            entity=entity_data,
+            entity_class=OtherEntity.ENTITY_NAME,
+            entity_version=str(OtherEntity.ENTITY_VERSION),
         )
 
-        logger.info(f"Created OtherEntity with ID: {response.metadata.id}")
+        logger.info("Created OtherEntity with ID: %s", response.metadata.id)
 
-        return (
-            jsonify(
-                {
-                    "id": response.metadata.id,
-                    "message": "OtherEntity created successfully",
-                }
-            ),
-            201,
-        )
+        # Return created entity directly (thin proxy)
+        return _to_entity_dict(response.data), 201
 
-    except Exception as e:
-        logger.error(f"Error creating OtherEntity: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+    except ValueError as e:
+        logger.warning("Validation error creating OtherEntity: %s", str(e))
+        return {"error": str(e), "code": "VALIDATION_ERROR"}, 400
+    except Exception as e:  # pragma: no cover - keep robust error handling
+        logger.exception("Error creating OtherEntity: %s", str(e))
+        return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
 
 
 @other_entities_bp.route("/<entity_id>", methods=["GET"])
-async def get_other_entity(entity_id: str) -> Tuple[Response, int]:
-    """Get OtherEntity by ID"""
+@tag(["other-entities"])
+@operation_id("get_other_entity")
+@validate(
+    responses={
+        200: (OtherEntityResponse, None),
+        404: (ErrorResponse, None),
+        400: (ErrorResponse, None),
+        500: (ErrorResponse, None),
+    }
+)
+async def get_other_entity(entity_id: str) -> Tuple[Dict[str, Any], int]:
+    """Get OtherEntity by ID with validation"""
     try:
-        service = get_services()
-
         response = await service.get_by_id(
-            entity_id=entity_id, entity_class="OtherEntity", entity_version="1"
+            entity_id=entity_id,
+            entity_class=OtherEntity.ENTITY_NAME,
+            entity_version=str(OtherEntity.ENTITY_VERSION),
         )
 
         if not response:
-            return jsonify({"error": "OtherEntity not found"}), 404
+            return {"error": "OtherEntity not found", "code": "NOT_FOUND"}, 404
 
-        # Convert to API response format
-        entity_data = response.data
-        entity_data["id"] = response.metadata.id
-        entity_data["state"] = response.metadata.state
+        # Thin proxy: return the entity directly
+        return _to_entity_dict(response.data), 200
 
-        return jsonify(entity_data), 200
-
-    except Exception as e:
-        logger.error(f"Error getting OtherEntity {entity_id}: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+    except ValueError as e:
+        logger.warning("Invalid entity ID %s: %s", entity_id, str(e))
+        return {"error": str(e), "code": "INVALID_ID"}, 400
+    except Exception as e:  # pragma: no cover
+        logger.exception("Error getting OtherEntity %s: %s", entity_id, str(e))
+        return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
 
 
 @other_entities_bp.route("", methods=["GET"])
 @validate_querystring(OtherEntityQueryParams)
+@tag(["other-entities"])
+@operation_id("list_other_entities")
+@validate(
+    responses={
+        200: (OtherEntityListResponse, None),
+        400: (ValidationErrorResponse, None),
+        500: (ErrorResponse, None),
+    }
+)
 async def list_other_entities(
     query_args: OtherEntityQueryParams,
-) -> Tuple[Response, int]:
-    """List OtherEntities with optional filtering"""
+) -> Tuple[Dict[str, Any], int]:
+    """List OtherEntities with optional filtering and validation"""
     try:
-        service = get_services()
-
         # Build search conditions based on query parameters
         search_conditions = {}
 
@@ -185,306 +184,321 @@ async def list_other_entities(
             condition = condition_builder.build()
 
             entities = await service.search(
-                entity_class="OtherEntity",
+                entity_class=OtherEntity.ENTITY_NAME,
                 condition=condition,
-                entity_version="1",
+                entity_version=str(OtherEntity.ENTITY_VERSION),
             )
         else:
             entities = await service.find_all(
-                entity_class="OtherEntity", entity_version="1"
+                entity_class=OtherEntity.ENTITY_NAME,
+                entity_version=str(OtherEntity.ENTITY_VERSION),
             )
 
-        # Convert to API response format
-        entity_list = []
-        for entity in entities:
-            entity_data = {
-                "id": entity.get_id(),
-                "title": entity.data.get("title"),
-                "priority": entity.data.get("priority"),
-                "state": entity.get_state(),
-            }
-            entity_list.append(entity_data)
+        # Thin proxy: return entities directly
+        entity_list = [_to_entity_dict(r.data) for r in entities]
 
         # Apply pagination
         start = query_args.offset
         end = start + query_args.limit
         paginated_entities = entity_list[start:end]
 
-        return jsonify({"entities": paginated_entities, "total": len(entity_list)}), 200
+        return {"entities": paginated_entities, "total": len(entity_list)}, 200
 
     except Exception as e:
-        logger.error(f"Error listing OtherEntities: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+        logger.exception("Error listing OtherEntities: %s", str(e))
+        return {"error": str(e)}, 500
 
 
 @other_entities_bp.route("/<entity_id>", methods=["PUT"])
-@validate_request(OtherEntityUpdateRequest)
+@validate_querystring(OtherEntityUpdateQueryParams)
+@tag(["other-entities"])
+@operation_id("update_other_entity")
+@validate(
+    request=OtherEntity,
+    responses={
+        200: (OtherEntityResponse, None),
+        404: (ErrorResponse, None),
+        400: (ValidationErrorResponse, None),
+        500: (ErrorResponse, None),
+    },
+)
 async def update_other_entity(
-    entity_id: str, json: OtherEntityUpdateRequest
-) -> Tuple[Response, int]:
-    """Update OtherEntity and optionally trigger workflow transition"""
+    entity_id: str, data: OtherEntity, query_args: OtherEntityUpdateQueryParams
+) -> Tuple[Dict[str, Any], int]:
+    """Update OtherEntity and optionally trigger workflow transition with validation"""
     try:
-        service = get_services()
-
-        # Get transition from request body or query parameter
-        transition = json.transition or request.args.get("transition")
-
-        # Convert request to entity data (exclude None values)
-        entity_data = {
-            k: v
-            for k, v in json.dict(by_alias=True, exclude_none=True).items()
-            if k != "transition"
-        }
+        # Convert request to entity data (entity model as-is)
+        entity_data = data.model_dump(by_alias=True)
 
         # Update the entity
         response = await service.update(
             entity_id=entity_id,
             entity=entity_data,
-            entity_class="OtherEntity",
-            transition=transition,
-            entity_version="1",
+            entity_class=OtherEntity.ENTITY_NAME,
+            transition=query_args.transition,
+            entity_version=str(OtherEntity.ENTITY_VERSION),
         )
 
-        logger.info(f"Updated OtherEntity {entity_id}")
+        logger.info("Updated OtherEntity %s", entity_id)
 
-        result = {
-            "id": response.metadata.id,
-            "message": "OtherEntity updated successfully",
-        }
+        # Return updated entity directly (thin proxy)
+        return _to_entity_dict(response.data), 200
 
-        if transition:
-            result["newState"] = response.metadata.state or "unknown"
-
-        return jsonify(result), 200
-
-    except Exception as e:
-        logger.error(f"Error updating OtherEntity {entity_id}: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+    except ValueError as e:
+        logger.warning("Validation error updating OtherEntity %s: %s", entity_id, str(e))
+        return {"error": str(e), "code": "VALIDATION_ERROR"}, 400
+    except Exception as e:  # pragma: no cover
+        logger.exception("Error updating OtherEntity %s: %s", entity_id, str(e))
+        return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
 
 
 @other_entities_bp.route("/<entity_id>", methods=["DELETE"])
-async def delete_other_entity(entity_id: str) -> Tuple[Response, int]:
-    """Delete OtherEntity"""
+@tag(["other-entities"])
+@operation_id("delete_other_entity")
+@validate(
+    responses={
+        200: (DeleteResponse, None),
+        404: (ErrorResponse, None),
+        400: (ErrorResponse, None),
+        500: (ErrorResponse, None),
+    }
+)
+async def delete_other_entity(entity_id: str) -> Tuple[Dict[str, Any], int]:
+    """Delete OtherEntity with validation"""
     try:
-        service = get_services()
-
         await service.delete_by_id(
-            entity_id=entity_id, entity_class="OtherEntity", entity_version="1"
+            entity_id=entity_id,
+            entity_class=OtherEntity.ENTITY_NAME,
+            entity_version=str(OtherEntity.ENTITY_VERSION),
         )
 
-        logger.info(f"Deleted OtherEntity {entity_id}")
+        logger.info("Deleted OtherEntity %s", entity_id)
 
-        return jsonify({"message": "OtherEntity deleted successfully"}), 200
+        # Thin proxy: return success message
+        response = DeleteResponse(
+            success=True, message="OtherEntity deleted successfully", entity_id=entity_id
+        )
+        return response.model_dump(), 200
 
-    except Exception as e:
-        logger.error(f"Error deleting OtherEntity {entity_id}: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+    except ValueError as e:
+        logger.warning("Invalid entity ID %s: %s", entity_id, str(e))
+        return {"error": str(e), "code": "INVALID_ID"}, 400
+    except Exception as e:  # pragma: no cover
+        logger.exception("Error deleting OtherEntity %s: %s", entity_id, str(e))
+        return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
 
 
 # ---- Additional Entity Service Endpoints ----------------------------------------
 
 
 @other_entities_bp.route("/by-business-id/<business_id>", methods=["GET"])
-async def get_by_business_id(business_id: str) -> Tuple[Response, int]:
-    """Get OtherEntity by business ID"""
+@tag(["other-entities"])
+@operation_id("get_other_entity_by_business_id")
+@validate(
+    responses={
+        200: (OtherEntityResponse, None),
+        404: (ErrorResponse, None),
+        500: (ErrorResponse, None),
+    }
+)
+async def get_by_business_id(business_id: str) -> Tuple[Dict[str, Any], int]:
+    """Get OtherEntity by business ID (title field by default)"""
     try:
-        service = get_entity_service()
         business_id_field = request.args.get("field", "title")  # Default to title field
 
         result = await service.find_by_business_id(
-            entity_class="OtherEntity",
+            entity_class=OtherEntity.ENTITY_NAME,
             business_id=business_id,
             business_id_field=business_id_field,
-            entity_version="1",
+            entity_version=str(OtherEntity.ENTITY_VERSION),
         )
 
         if not result:
-            return jsonify({"error": "OtherEntity not found"}), 404
+            return {"error": "OtherEntity not found", "code": "NOT_FOUND"}, 404
 
-        entity_data = {
-            "id": result.get_id(),
-            "data": result.data,
-            "state": result.metadata.state,
-            "created_at": result.metadata.created_at,
-            "updated_at": result.metadata.updated_at,
-        }
-
-        return jsonify(entity_data), 200
+        # Thin proxy: return the entity directly
+        return _to_entity_dict(result.data), 200
 
     except Exception as e:
-        logger.error(
-            f"Error getting OtherEntity by business ID {business_id}: {str(e)}"
-        )
-        return jsonify({"error": str(e)}), 500
+        logger.exception("Error getting OtherEntity by business ID %s: %s", business_id, str(e))
+        return {"error": str(e)}, 500
 
 
 @other_entities_bp.route("/<entity_id>/exists", methods=["GET"])
-async def check_exists(entity_id: str) -> Tuple[Response, int]:
+@tag(["other-entities"])
+@operation_id("check_other_entity_exists")
+@validate(responses={200: (ExistsResponse, None), 500: (ErrorResponse, None)})
+async def check_exists(entity_id: str) -> Tuple[Dict[str, Any], int]:
     """Check if OtherEntity exists by ID"""
     try:
-        service = get_entity_service()
-
         exists = await service.exists_by_id(
-            entity_id=entity_id, entity_class="OtherEntity", entity_version="1"
+            entity_id=entity_id,
+            entity_class=OtherEntity.ENTITY_NAME,
+            entity_version=str(OtherEntity.ENTITY_VERSION),
         )
 
-        return jsonify({"exists": exists, "entity_id": entity_id}), 200
+        response = ExistsResponse(exists=exists, entity_id=entity_id)
+        return response.model_dump(), 200
 
     except Exception as e:
-        logger.error(f"Error checking OtherEntity existence {entity_id}: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+        logger.exception("Error checking OtherEntity existence %s: %s", entity_id, str(e))
+        return {"error": str(e)}, 500
 
 
 @other_entities_bp.route("/count", methods=["GET"])
-async def count_entities() -> Tuple[Response, int]:
-    """Count OtherEntities"""
+@tag(["other-entities"])
+@operation_id("count_other_entities")
+@validate(responses={200: (CountResponse, None), 500: (ErrorResponse, None)})
+async def count_entities() -> Tuple[Dict[str, Any], int]:
+    """Count total number of OtherEntities"""
     try:
-        service = get_entity_service()
+        count = await service.count(
+            entity_class=OtherEntity.ENTITY_NAME,
+            entity_version=str(OtherEntity.ENTITY_VERSION),
+        )
 
-        count = await service.count(entity_class="OtherEntity", entity_version="1")
-
-        return jsonify({"count": count}), 200
+        response = CountResponse(count=count)
+        return response.model_dump(), 200
 
     except Exception as e:
-        logger.error(f"Error counting OtherEntities: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+        logger.exception("Error counting OtherEntities: %s", str(e))
+        return {"error": str(e)}, 500
 
 
 @other_entities_bp.route("/<entity_id>/transitions", methods=["GET"])
-async def get_available_transitions(entity_id: str) -> Tuple[Response, int]:
-    """Get available transitions for OtherEntity"""
+@tag(["other-entities"])
+@operation_id("get_other_entity_transitions")
+@validate(
+    responses={
+        200: (TransitionsResponse, None),
+        404: (ErrorResponse, None),
+        500: (ErrorResponse, None),
+    }
+)
+async def get_available_transitions(entity_id: str) -> Tuple[Dict[str, Any], int]:
+    """Get available workflow transitions for OtherEntity"""
     try:
-        service = get_entity_service()
-
         transitions = await service.get_transitions(
-            entity_id=entity_id, entity_class="OtherEntity", entity_version="1"
+            entity_id=entity_id,
+            entity_class=OtherEntity.ENTITY_NAME,
+            entity_version=str(OtherEntity.ENTITY_VERSION),
         )
 
-        return jsonify({"transitions": transitions, "entity_id": entity_id}), 200
+        # Get current entity to determine state
+        entity_response = await service.get_by_id(
+            entity_id=entity_id,
+            entity_class=OtherEntity.ENTITY_NAME,
+            entity_version=str(OtherEntity.ENTITY_VERSION),
+        )
+        current_state = entity_response.data.state if entity_response else None
+
+        response = TransitionsResponse(
+            entity_id=entity_id, available_transitions=transitions, current_state=current_state
+        )
+        return response.model_dump(), 200
 
     except Exception as e:
-        logger.error(f"Error getting transitions for OtherEntity {entity_id}: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+        logger.exception("Error getting transitions for OtherEntity %s: %s", entity_id, str(e))
+        return {"error": str(e)}, 500
+
+
+@other_entities_bp.route("/<entity_id>/transitions", methods=["POST"])
+@tag(["other-entities"])
+@operation_id("trigger_other_entity_transition")
+@validate(
+    request=TransitionRequest,
+    responses={
+        200: (TransitionResponse, None),
+        404: (ErrorResponse, None),
+        400: (ValidationErrorResponse, None),
+        500: (ErrorResponse, None),
+    },
+)
+async def trigger_transition(entity_id: str, data: TransitionRequest) -> Tuple[Dict[str, Any], int]:
+    """Trigger workflow transition for OtherEntity with validation"""
+    try:
+        # Trigger the transition
+        response = await service.trigger_transition(
+            entity_id=entity_id,
+            transition_name=data.transition_name,
+            entity_class=OtherEntity.ENTITY_NAME,
+            entity_version=str(OtherEntity.ENTITY_VERSION),
+        )
+
+        logger.info("Triggered transition %s for OtherEntity %s", data.transition_name, entity_id)
+
+        # Return transition result directly (thin proxy)
+        return _to_entity_dict(response.data), 200
+
+    except ValueError as e:
+        logger.warning(
+            "Validation error triggering transition for OtherEntity %s: %s", entity_id, str(e)
+        )
+        return {"error": str(e), "code": "VALIDATION_ERROR"}, 400
+    except Exception as e:  # pragma: no cover
+        logger.exception("Error triggering transition for OtherEntity %s: %s", entity_id, str(e))
+        return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
 
 
 # ---- Search Endpoints -----------------------------------------------------------
 
 
 @other_entities_bp.route("/search", methods=["POST"])
-async def search_entities() -> Tuple[Response, int]:
-    """Search OtherEntities using Cyoda search format"""
+@tag(["other-entities"])
+@operation_id("search_other_entities")
+@validate(
+    request=OtherEntitySearchRequest,
+    responses={
+        200: (OtherEntityListResponse, None),
+        400: (ValidationErrorResponse, None),
+        500: (ErrorResponse, None),
+    },
+)
+async def search_entities(data: OtherEntitySearchRequest) -> Tuple[Dict[str, Any], int]:
+    """Search OtherEntities using simple field-value search with validation"""
     try:
-        service = get_entity_service()
-        search_data = await request.get_json()
+        # Convert Pydantic model to dict for search
+        search_data = data.model_dump(by_alias=True, exclude_none=True)
 
         if not search_data:
-            return jsonify({"error": "Search conditions required"}), 400
+            return {"error": "Search conditions required", "code": "EMPTY_SEARCH"}, 400
 
-        # Convert Cyoda search format to SearchConditionRequest
+        # KISS: Simple field-value search only
         builder = SearchConditionRequest.builder()
-
-        # Check if this is a Cyoda-style search condition
-        if isinstance(search_data, dict) and search_data.get("type") == "group":
-            # Handle complex Cyoda search structure (multiple conditions)
-            operator = search_data.get("operator", "AND").upper()
-            if operator == "AND":
-                builder.operator(LogicalOperator.AND)
-            elif operator == "OR":
-                builder.operator(LogicalOperator.OR)
-
-            conditions = search_data.get("conditions", [])
-            for condition in conditions:
-                _process_cyoda_condition(condition, builder)
-
-        elif isinstance(search_data, dict) and search_data.get("type") in [
-            "simple",
-            "lifecycle",
-        ]:
-            # Handle single Cyoda condition (not wrapped in group)
-            _process_cyoda_condition(search_data, builder)
-
-        else:
-            # Handle simple field-value pairs (backward compatibility)
-            for field, value in search_data.items():
-                builder.equals(field, value)
+        for field, value in search_data.items():
+            builder.equals(field, value)
 
         search_request = builder.build()
         results = await service.search(
-            entity_class="OtherEntity", condition=search_request, entity_version="1"
+            entity_class=OtherEntity.ENTITY_NAME,
+            condition=search_request,
+            entity_version=str(OtherEntity.ENTITY_VERSION),
         )
 
-        # Convert to simple format for API response
-        entities = [
-            {
-                "id": r.get_id(),
-                "data": r.data,
-                "state": r.metadata.state,
-                "created_at": r.metadata.created_at,
-                "updated_at": r.metadata.updated_at,
-            }
-            for r in results
-        ]
-
-        return (
-            jsonify(
-                {
-                    "entities": entities,
-                    "total": len(entities),
-                    "search_conditions": search_data,
-                }
-            ),
-            200,
-        )
+        # Thin proxy: return list of entities directly
+        entities = [_to_entity_dict(r.data) for r in results]
+        return {"entities": entities, "total": len(entities)}, 200
 
     except Exception as e:
-        logger.error(f"Error searching OtherEntities: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+        logger.exception("Error searching OtherEntities: %s", str(e))
+        return {"error": str(e)}, 500
 
 
 @other_entities_bp.route("/find-all", methods=["GET"])
-async def find_all_entities() -> Tuple[Response, int]:
+@tag(["other-entities"])
+@operation_id("find_all_other_entities")
+@validate(responses={200: (OtherEntityListResponse, None), 500: (ErrorResponse, None)})
+async def find_all_entities() -> Tuple[Dict[str, Any], int]:
     """Find all OtherEntities"""
     try:
-        service = get_entity_service()
+        results = await service.find_all(
+            entity_class=OtherEntity.ENTITY_NAME,
+            entity_version=str(OtherEntity.ENTITY_VERSION),
+        )
 
-        results = await service.find_all(entity_class="OtherEntity", entity_version="1")
-
-        return jsonify({"entities": results, "total": len(results)}), 200
+        entities = [_to_entity_dict(r.data) for r in results]
+        return {"entities": entities, "total": len(entities)}, 200
 
     except Exception as e:
-        logger.error(f"Error finding all OtherEntities: {str(e)}")
-        return jsonify({"error": str(e)}), 500
-
-
-def _process_cyoda_condition(
-    condition: Dict[str, Any], builder: SearchConditionRequestBuilder
-) -> None:
-    """Process a single Cyoda condition and add it to the builder."""
-    condition_type = condition.get("type")
-
-    if condition_type == "lifecycle":
-        # Handle lifecycle conditions (entity state)
-        field = condition.get("field", "state")
-        operator_type = condition.get("operatorType", "EQUALS")
-        value = condition.get("value")
-
-        # Map Cyoda operators to internal operators using enum mapping
-        search_operator = CYODA_OPERATOR_MAPPING.get(
-            operator_type, SearchOperator.EQUALS
-        )
-        builder.add_condition(field, search_operator, value)
-
-    elif condition_type == "simple":
-        # Handle simple JSON path conditions
-        json_path = condition.get("jsonPath", "")
-        operator_type = condition.get("operatorType", "EQUALS")
-        value = condition.get("value")
-
-        # Convert JSON path to field name (remove $. prefix)
-        field = json_path.replace("$.", "") if json_path.startswith("$.") else json_path
-
-        # Map Cyoda operators to internal operators using enum mapping
-        search_operator = CYODA_OPERATOR_MAPPING.get(
-            operator_type, SearchOperator.EQUALS
-        )
-        builder.add_condition(field, search_operator, value)
+        logger.exception("Error finding all OtherEntities: %s", str(e))
+        return {"error": str(e)}, 500

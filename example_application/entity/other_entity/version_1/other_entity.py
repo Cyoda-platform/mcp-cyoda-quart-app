@@ -8,7 +8,7 @@ and has its own simple workflow as specified in functional requirements.
 from datetime import datetime, timezone
 from typing import Any, ClassVar, Dict, List, Optional
 
-from pydantic import Field, field_validator
+from pydantic import ConfigDict, Field, field_validator
 
 from common.entity.cyoda_entity import CyodaEntity
 
@@ -43,9 +43,7 @@ class OtherEntity(CyodaEntity):
 
     # Timestamps (inherited created_at from CyodaEntity, but need to override updated_at behavior)
     created_at: Optional[str] = Field(
-        default_factory=lambda: datetime.now(timezone.utc)
-        .isoformat()
-        .replace("+00:00", "Z"),
+        default_factory=lambda: datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         alias="createdAt",
         description="Timestamp when the entity was created (ISO 8601 format)",
     )
@@ -53,11 +51,6 @@ class OtherEntity(CyodaEntity):
         default=None,
         alias="updatedAt",
         description="Timestamp when the entity was last updated (ISO 8601 format)",
-    )
-
-    # Additional metadata
-    metadata: Optional[Dict[str, Any]] = Field(
-        default_factory=dict, description="Additional metadata about the entity"
     )
 
     # Priority validation
@@ -95,27 +88,12 @@ class OtherEntity(CyodaEntity):
         """Update the updated_at timestamp to current time"""
         self.updated_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
-    def set_source_entity(
-        self, source_entity_id: str, updated_by: Optional[str] = None
-    ) -> None:
+    def set_source_entity(self, source_entity_id: str, updated_by: Optional[str] = None) -> None:
         """Set source entity information and update timestamp"""
         self.source_entity_id = source_entity_id
         if updated_by:
             self.last_updated_by = updated_by
         self.update_timestamp()
-
-    def add_metadata(self, key: str, value: Any) -> None:
-        """Add or update metadata field"""
-        if self.metadata is None:
-            self.metadata = {}
-        self.metadata[key] = value
-        self.update_timestamp()
-
-    def get_metadata(self, key: str, default: Any = None) -> Any:
-        """Get metadata field value"""
-        if self.metadata is None:
-            return default
-        return self.metadata.get(key, default)
 
     def is_pending(self) -> bool:
         """Check if entity is in pending state"""
@@ -141,35 +119,9 @@ class OtherEntity(CyodaEntity):
         data["state"] = self.state
         return data
 
-    @classmethod
-    def create_from_example_entity(
-        cls,
-        title: str,
-        content: str,
-        priority: str,
-        source_entity_id: str,
-        updated_by: str = "ExampleEntityProcessor",
-        metadata: Optional[Dict[str, Any]] = None,
-    ) -> "OtherEntity":
-        """
-        Factory method to create OtherEntity from ExampleEntity processing.
-        Used by ExampleEntityProcessor to create related entities.
-        """
-        entity = cls(
-            title=title,
-            content=content,
-            priority=priority,
-            sourceEntityId=source_entity_id,
-            lastUpdatedBy=updated_by,
-            metadata=metadata or {},
-        )
-        entity.update_timestamp()
-        return entity
-
-    class Config:
-        """Pydantic configuration"""
-
-        populate_by_name = True
-        use_enum_values = True
-        validate_assignment = True
-        extra = "allow"
+    model_config = ConfigDict(
+        populate_by_name=True,
+        use_enum_values=True,
+        validate_assignment=True,
+        extra="allow",
+    )

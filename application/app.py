@@ -38,7 +38,8 @@ QuartSchema(
     },
 )
 
-# Global holder for the background task to satisfy mypy (avoid setting arbitrary attrs on app)
+# Global holder for the background task to satisfy mypy
+# (avoid setting arbitrary attrs on app)
 _background_task: Optional[asyncio.Task[None]] = None
 
 
@@ -52,7 +53,9 @@ async def handle_response_validation_error(
 
 
 # Give mypy a typed view of the external function (if it lacks type hints)
-_register_error_handlers_typed: Callable[[Quart], None] = _register_error_handlers  # type: ignore[assignment]
+_register_error_handlers_typed: Callable[[Quart], None] = (  # type: ignore[assignment]
+    _register_error_handlers
+)
 _register_error_handlers_typed(app)
 
 

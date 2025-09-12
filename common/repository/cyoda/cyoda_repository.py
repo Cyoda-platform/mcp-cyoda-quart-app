@@ -346,11 +346,13 @@ class CyodaRepository(CrudRepository[Any]):  # type: ignore[type-arg]
                 "meta-data": {"source": "cyoda_client"},
                 "payload": {"edge_message_content": entity},
             }
-            data = json.dumps(payload, default=custom_serializer)
+            preprocessed_payload = preprocess_for_cyoda(payload)
+            data = json.dumps(preprocessed_payload, default=custom_serializer)
             path = f"message/new/{meta['entity_model']}_{meta['entity_version']}"
         else:
             data = json.dumps(entity, default=custom_serializer)
             path = f"entity/JSON/{meta['entity_model']}/{meta['entity_version']}"
+            logger.info(f"DEBUG: Sending payload to Cyoda: {data}")  # Debug logging
 
         resp: Dict[str, Any] = await send_cyoda_request(
             cyoda_auth_service=self._cyoda_auth_service,
@@ -358,6 +360,11 @@ class CyodaRepository(CrudRepository[Any]):  # type: ignore[type-arg]
             path=path,
             data=data,
         )
+        status = resp.get("status") if isinstance(resp, dict) else None
+        if status != 200:
+            logger.error(
+                "Cyoda save failed: status=%s, body=%s", status, resp.get("json")
+            )
         result = resp.get("json", [])
         technical_id = self._extract_technical_id_from_result(result)
 
@@ -370,7 +377,8 @@ class CyodaRepository(CrudRepository[Any]):  # type: ignore[type-arg]
         self, meta: Dict[str, Any], entities: List[Any]
     ) -> Optional[str]:
         """Save multiple entities in batch."""
-        data = json.dumps(entities, default=custom_serializer)
+        preprocessed_entities = preprocess_for_cyoda(entities)
+        data = json.dumps(preprocessed_entities, default=custom_serializer)
         path = f"entity/JSON/{meta['entity_model']}/{meta['entity_version']}"
         resp: Dict[str, Any] = await send_cyoda_request(
             cyoda_auth_service=self._cyoda_auth_service,
@@ -395,13 +403,19 @@ class CyodaRepository(CrudRepository[Any]):  # type: ignore[type-arg]
             f"entity/JSON/{technical_id}/{transition}"
             "?transactional=true&waitForConsistencyAfter=true"
         )
-        data = json.dumps(entity, default=custom_serializer)
+        preprocessed_entity = preprocess_for_cyoda(entity)
+        data = json.dumps(preprocessed_entity, default=custom_serializer)
         resp: Dict[str, Any] = await send_cyoda_request(
             cyoda_auth_service=self._cyoda_auth_service,
             method="put",
             path=path,
             data=data,
         )
+        status = resp.get("status") if isinstance(resp, dict) else None
+        if status != 200:
+            logger.error(
+                "Cyoda update failed: status=%s, body=%s", status, resp.get("json")
+            )
         result = resp.get("json", {})
         if not isinstance(result, dict):
             logger.exception(result)
@@ -409,6 +423,7 @@ class CyodaRepository(CrudRepository[Any]):  # type: ignore[type-arg]
         ids = result.get("entityIds", [None])
         if isinstance(ids, list) and ids and ids[0] is not None:
             return str(ids[0])
+        logger.error("Cyoda update returned no entityIds. Body=%s", result)
         return None
 
     async def delete_by_id(self, meta: Dict[str, Any], technical_id: Any) -> None:

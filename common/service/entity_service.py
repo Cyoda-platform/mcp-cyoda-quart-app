@@ -30,6 +30,8 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
+from common.entity.cyoda_entity import CyodaEntity
+
 
 class SearchOperator(Enum):
     """Search operators for entity queries."""
@@ -187,7 +189,7 @@ class EntityMetadata:
 class EntityResponse:
     """Response wrapper containing entity data and metadata."""
 
-    data: Any  # The actual entity data
+    data: CyodaEntity  # The actual entity data as a Pydantic model
     metadata: EntityMetadata
 
     def get_id(self) -> str:

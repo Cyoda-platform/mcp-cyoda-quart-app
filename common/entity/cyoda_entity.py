@@ -36,7 +36,7 @@ class CyodaEntity(BaseModel):
     version: Optional[str] = Field(default="1.0", description="Entity version")
 
     # Workflow-related fields
-    state: Optional[str] = Field(default="none", description="Current workflow state")
+    state: Optional[str] = Field(default="initial_state", description="Current workflow state")
 
     # Metadata
     metadata: Optional[Dict[str, Any]] = Field(
@@ -90,11 +90,11 @@ class CyodaEntity(BaseModel):
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert entity to dictionary"""
-        return self.dict()
+        return self.model_dump()
 
     def to_json(self) -> str:
         """Convert entity to JSON string"""
-        return self.json()
+        return self.model_dump_json()
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "CyodaEntity":
@@ -109,4 +109,4 @@ class CyodaEntity(BaseModel):
 
     def __repr__(self) -> str:
         """Detailed string representation of the entity"""
-        return f"{self.__class__.__name__}({self.dict()})"
+        return f"{self.__class__.__name__}({self.model_dump()})"
