@@ -1,0 +1,89 @@
+{
+    "version": "1.0",
+    "name": "CatFactWorkflow",
+    "desc": "Manages the lifecycle of cat facts from retrieval to distribution.",
+    "initialState": "initial_state",
+    "active": true,
+    "states": {
+        "initial_state": {
+            "transitions": [
+                {
+                    "name": "transition_to_retrieved",
+                    "next": "retrieved",
+                    "manual": false
+                }
+            ]
+        },
+        "retrieved": {
+            "transitions": [
+                {
+                    "name": "transition_to_scheduled",
+                    "next": "scheduled",
+                    "manual": false
+                }
+            ]
+        },
+        "scheduled": {
+            "transitions": [
+                {
+                    "name": "transition_to_sent",
+                    "next": "sent",
+                    "manual": false,
+                    "criterion": {
+                        "type": "function",
+                        "function": {
+                            "name": "CatFactReadyCriterion",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "transition_to_failed",
+                    "next": "failed",
+                    "manual": false,
+                    "criterion": {
+                        "type": "function",
+                        "function": {
+                            "name": "CatFactFailureCriterion",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "failed": {
+            "transitions": [
+                {
+                    "name": "transition_retry_scheduled",
+                    "next": "scheduled",
+                    "manual": true,
+                    "processors": [
+                        {
+                            "name": "CatFactRetryProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "sent": {
+            "transitions": [
+                {
+                    "name": "transition_to_end",
+                    "next": "end",
+                    "manual": false
+                }
+            ]
+        },
+        "end": {
+            "transitions": []
+        }
+    }
+}

@@ -1,0 +1,57 @@
+{
+    "version": "1.0",
+    "name": "SubscriberInteraction Workflow",
+    "desc": "Manages the lifecycle of subscriber interactions for tracking and reporting.",
+    "initialState": "initial_state",
+    "active": true,
+    "states": {
+        "initial_state": {
+            "transitions": [
+                {
+                    "name": "transition_to_recorded",
+                    "next": "recorded",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "SubscriberInteractionRecordingProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "recorded": {
+            "transitions": [
+                {
+                    "name": "transition_to_processed",
+                    "next": "processed",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "SubscriberInteractionProcessingProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "processed": {
+            "transitions": [
+                {
+                    "name": "transition_to_end",
+                    "next": "final_state",
+                    "manual": false
+                }
+            ]
+        },
+        "final_state": {
+            "transitions": []
+        }
+    }
+}
