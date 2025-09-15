@@ -1,0 +1,58 @@
+{
+    "entities": [
+        {
+            "Subscriber": {
+                "entity_data_example": {
+                    "email": "subscriber@example.com",
+                    "firstName": "John",
+                    "id": 1,
+                    "isActive": true,
+                    "lastName": "Doe",
+                    "subscriptionDate": "2023-10-10T10:00:00",
+                    "unsubscribeToken": "abc123"
+                }
+            }
+        },
+        {
+            "CatFact": {
+                "entity_data_example": {
+                    "actualSendDate": null,
+                    "externalApiId": "fact_123",
+                    "fact": "Cats sleep for 70% of their lives.",
+                    "id": 1,
+                    "length": 38,
+                    "retrievedDate": "2023-10-10T10:00:00",
+                    "scheduledSendDate": "2023-10-11T10:00:00"
+                }
+            }
+        },
+        {
+            "SubscriberInteraction": {
+                "entity_data_example": {
+                    "catFactId": 1,
+                    "id": 1,
+                    "interactionDate": "2023-10-11T10:00:00",
+                    "interactionType": "EMAIL_SENT",
+                    "metadata": "{\"openRate\": 0.5, \"clicked\": true}",
+                    "subscriberId": 1
+                }
+            }
+        },
+        {
+            "EmailCampaign": {
+                "entity_data_example": {
+                    "campaignName": "Weekly Cat Facts - Week 1",
+                    "catFactId": 1,
+                    "completedDate": null,
+                    "emailsFailed": 10,
+                    "emailsSent": 90,
+                    "errorMessage": null,
+                    "id": 1,
+                    "scheduledDate": "2023-10-11T09:00:00",
+                    "startedDate": null,
+                    "totalSubscribers": 100
+                }
+            }
+        }
+    ]
+}
