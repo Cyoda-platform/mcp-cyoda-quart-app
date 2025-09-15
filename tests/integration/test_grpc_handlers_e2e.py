@@ -40,7 +40,6 @@ class TestGrpcHandlersE2E:
         return {
             "name": "Test Entity",
             "description": "A test entity for integration testing",
-            "value": 42.5,
             "category": "ELECTRONICS",
             "is_active": True,  # Use snake_case field name
             "created_at": datetime.now(timezone.utc).isoformat(),
@@ -112,7 +111,6 @@ class TestGrpcHandlersE2E:
         assert type(entity).__name__ == "CyodaEntity"  # Always creates generic entity
         assert entity.name == "Test Entity"
         assert entity.category == "ELECTRONICS"
-        assert entity.value == 42.5
         assert entity.is_active is True
 
         # Test dynamic casting to specific type
@@ -120,7 +118,6 @@ class TestGrpcHandlersE2E:
         assert type(example_entity).__name__ == "ExampleEntity"
         assert example_entity.name == "Test Entity"
         assert example_entity.category == "ELECTRONICS"
-        assert example_entity.value == 42.5
         assert example_entity.is_active is True
 
         # Test case insensitive creation (still creates generic entity)

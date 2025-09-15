@@ -31,7 +31,6 @@ class ExampleEntity(CyodaEntity):
     # Required fields from functional requirements
     name: str = Field(..., description="Name of the example entity")
     description: str = Field(..., description="Description of the entity")
-    value: float = Field(..., description="Numeric value for the entity")
     category: str = Field(..., description="Category classification for the entity")
     is_active: Optional[bool] = Field(
         default=None, alias="isActive", description="Flag indicating if the entity is active"
@@ -92,15 +91,7 @@ class ExampleEntity(CyodaEntity):
             raise ValueError("Description must be at most 500 characters long")
         return v.strip()
 
-    @field_validator("value")
-    @classmethod
-    def validate_value(cls, v: float) -> float:
-        """Validate value field according to criteria requirements"""
-        if v < 0:
-            raise ValueError("Value must be non-negative")
-        if v > 10000:
-            raise ValueError("Value must be at most 10000")
-        return v
+
 
     @field_validator("category")
     @classmethod
