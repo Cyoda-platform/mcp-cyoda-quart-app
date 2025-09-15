@@ -1,0 +1,63 @@
+{
+    "entities": [
+        {
+            "Subscriber": {
+                "entity_data_example": {
+                    "confirmationToken": "uuid-5678",
+                    "confirmedAt": "2023-10-02T12:00:00",
+                    "email": "subscriber@example.com",
+                    "firstName": "John",
+                    "id": 1,
+                    "isActive": true,
+                    "lastName": "Doe",
+                    "subscriptionDate": "2023-10-01T12:00:00",
+                    "unsubscribeToken": "uuid-1234"
+                }
+            }
+        },
+        {
+            "CatFact": {
+                "entity_data_example": {
+                    "externalId": "fact-123",
+                    "factText": "Cats sleep for 70% of their lives.",
+                    "id": 1,
+                    "retrievedAt": "2023-10-01T12:00:00",
+                    "scheduledSendDate": "2023-10-08",
+                    "sentAt": null,
+                    "source": "catfact.ninja"
+                }
+            }
+        },
+        {
+            "SubscriberInteraction": {
+                "entity_data_example": {
+                    "catFactId": 1,
+                    "emailDeliveryStatus": "SENT",
+                    "id": 1,
+                    "interactionDate": "2023-10-01T12:00:00",
+                    "interactionType": "EMAIL_SENT",
+                    "ipAddress": "192.168.1.1",
+                    "subscriberId": 1,
+                    "userAgent": "Mozilla/5.0"
+                }
+            }
+        },
+        {
+            "EmailCampaign": {
+                "entity_data_example": {
+                    "campaignDate": "2023-10-08",
+                    "catFactId": 1,
+                    "completedAt": null,
+                    "emailsFailed": 10,
+                    "emailsSent": 90,
+                    "id": 1,
+                    "scheduledAt": "2023-10-01T12:00:00",
+                    "startedAt": null,
+                    "subject": "Weekly Cat Facts",
+                    "templateVersion": "1.0",
+                    "totalSubscribers": 100
+                }
+            }
+        }
+    ]
+}
