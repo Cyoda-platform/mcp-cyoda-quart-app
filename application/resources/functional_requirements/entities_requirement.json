@@ -1,0 +1,12 @@
+{
+    "entities": [
+        {
+            "EntityName": {
+                "entity_data_example": {
+                    "field1": "value1",
+                    "field2": "value2"
+                }
+            }
+        }
+    ]
+}
