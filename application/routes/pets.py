@@ -114,30 +114,113 @@ async def create_pet() -> ResponseReturnValue:
     try:
         service = get_entity_service()
         data = await request.get_json()
-        
+
         # Create Pet entity from request data
         pet = Pet(**data)
         entity_data = pet.model_dump(by_alias=True)
-        
+
         # Save the entity (will trigger automatic transition to available)
         response = await service.save(
             entity=entity_data,
             entity_class=Pet.ENTITY_NAME,
             entity_version=str(Pet.ENTITY_VERSION),
         )
-        
+
         logger.info("Created Pet with ID: %s", response.metadata.id)
-        
+
         return jsonify({
             "id": response.metadata.id,
             "name": pet.name,
             "status": response.metadata.state,
             "message": "Pet added successfully"
         }), 201
-        
+
     except ValueError as e:
         logger.warning("Validation error creating pet: %s", str(e))
         return jsonify({"error": str(e)}), 400
     except Exception as e:
         logger.exception("Error creating pet: %s", str(e))
+        return jsonify({"error": str(e)}), 500
+
+@pets_bp.route("/<pet_id>", methods=["PUT"])
+@tag(["pets"])
+@operation_id("update_pet")
+async def update_pet(pet_id: str) -> ResponseReturnValue:
+    """Update pet information"""
+    try:
+        service = get_entity_service()
+        data = await request.get_json()
+
+        # Get transition from query parameters
+        transition = request.args.get("transition")
+
+        # Map transition names to workflow transition names
+        transition_map = {
+            "reserve": "transition_to_pending",
+            "release": "transition_to_available",
+            "sell": "transition_to_sold",
+            "make_unavailable": "transition_to_unavailable",
+            "make_available": "transition_to_available",
+            "return": "transition_to_available"
+        }
+
+        workflow_transition = None
+        if transition:
+            workflow_transition = transition_map.get(transition)
+            if not workflow_transition:
+                return jsonify({"error": f"Invalid transition: {transition}"}), 400
+
+        # Create Pet entity from request data for validation
+        pet = Pet(**data)
+        entity_data = pet.model_dump(by_alias=True)
+
+        # Update the entity
+        response = await service.update(
+            entity_id=pet_id,
+            entity=entity_data,
+            entity_class=Pet.ENTITY_NAME,
+            transition=workflow_transition,
+            entity_version=str(Pet.ENTITY_VERSION),
+        )
+
+        logger.info("Updated Pet %s", pet_id)
+
+        return jsonify({
+            "id": response.metadata.id,
+            "name": pet.name,
+            "status": response.metadata.state,
+            "message": f"Pet updated{' and ' + transition if transition else ''} successfully"
+        }), 200
+
+    except ValueError as e:
+        logger.warning("Validation error updating pet %s: %s", pet_id, str(e))
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        logger.exception("Error updating pet %s: %s", pet_id, str(e))
+        return jsonify({"error": str(e)}), 500
+
+@pets_bp.route("/<pet_id>", methods=["DELETE"])
+@tag(["pets"])
+@operation_id("delete_pet")
+async def delete_pet(pet_id: str) -> ResponseReturnValue:
+    """Delete pet"""
+    try:
+        service = get_entity_service()
+
+        await service.delete_by_id(
+            entity_id=pet_id,
+            entity_class=Pet.ENTITY_NAME,
+            entity_version=str(Pet.ENTITY_VERSION),
+        )
+
+        logger.info("Deleted Pet %s", pet_id)
+
+        return jsonify({
+            "success": True,
+            "message": "Pet deleted successfully",
+            "entity_id": pet_id
+        }), 200
+
+    except Exception as e:
+        logger.exception("Error deleting pet %s: %s", pet_id, str(e))
         return jsonify({"error": str(e)}), 500
