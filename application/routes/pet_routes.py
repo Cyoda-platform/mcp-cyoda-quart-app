@@ -5,7 +5,7 @@ Provides RESTful endpoints for managing pets.
 """
 
 import logging
-from typing import Any, Dict, Optional
+
 
 from quart import Blueprint, jsonify, request
 
