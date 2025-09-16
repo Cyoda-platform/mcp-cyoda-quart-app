@@ -6,9 +6,9 @@ Validates that an order meets all requirements before approval.
 
 from typing import Any
 
+from application.entity.order.version_1.order import Order
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.order.version_1.order import Order
 
 
 class OrderValidationCriterion(CyodaCriteriaChecker):
@@ -90,7 +90,12 @@ class OrderValidationCriterion(CyodaCriteriaChecker):
                 )
                 return False
 
-            valid_payment_methods = ["credit_card", "debit_card", "paypal", "bank_transfer"]
+            valid_payment_methods = [
+                "credit_card",
+                "debit_card",
+                "paypal",
+                "bank_transfer",
+            ]
             if order.payment_method not in valid_payment_methods:
                 self.logger.warning(
                     f"Invalid payment method '{order.payment_method}' for Order {order.technical_id}"
@@ -114,7 +119,10 @@ class OrderValidationCriterion(CyodaCriteriaChecker):
 
             # Check if calculated total matches expected total
             calculated_total = order.metadata.get("total_calculated")
-            if calculated_total and abs(float(calculated_total) - order.total_amount) > 0.01:
+            if (
+                calculated_total
+                and abs(float(calculated_total) - order.total_amount) > 0.01
+            ):
                 self.logger.warning(
                     f"Total amount mismatch for Order {order.technical_id}: expected ${calculated_total}, got ${order.total_amount}"
                 )

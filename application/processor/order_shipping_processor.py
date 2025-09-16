@@ -9,9 +9,9 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.order.version_1.order import Order
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.order.version_1.order import Order
 
 
 class OrderShippingProcessor(CyodaProcessor):
@@ -56,7 +56,9 @@ class OrderShippingProcessor(CyodaProcessor):
             updated_address = kwargs.get("updated_shipping_address")
             if updated_address:
                 order.shipping_address = updated_address
-                self.logger.info(f"Shipping address updated for Order {order.technical_id}")
+                self.logger.info(
+                    f"Shipping address updated for Order {order.technical_id}"
+                )
 
             # Set ship_date
             current_time = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
@@ -65,20 +67,24 @@ class OrderShippingProcessor(CyodaProcessor):
             # Add shipping metadata
             if not order.metadata:
                 order.metadata = {}
-            
-            order.metadata.update({
-                "shipping_date": current_time,
-                "shipping_label_id": shipping_label_id,
-                "tracking_number": tracking_number,
-                "shipping_status": "shipped",
-                "tracking_info_sent": True
-            })
+
+            order.metadata.update(
+                {
+                    "shipping_date": current_time,
+                    "shipping_label_id": shipping_label_id,
+                    "tracking_number": tracking_number,
+                    "shipping_status": "shipped",
+                    "tracking_info_sent": True,
+                }
+            )
 
             # Update timestamp
             order.update_timestamp()
 
             # Send tracking information (would normally integrate with email service)
-            self.logger.info(f"Tracking information sent for Order {order.technical_id}: {tracking_number}")
+            self.logger.info(
+                f"Tracking information sent for Order {order.technical_id}: {tracking_number}"
+            )
 
             self.logger.info(
                 f"Order {order.technical_id} shipped successfully with tracking number {tracking_number}"

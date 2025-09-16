@@ -8,9 +8,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.orderitem.version_1.orderitem import OrderItem
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.orderitem.version_1.orderitem import OrderItem
 from services.services import get_entity_service
 
 
@@ -50,14 +50,18 @@ class OrderItemInitializationProcessor(CyodaProcessor):
 
             # Validate pet availability (would normally check Pet entity)
             entity_service = get_entity_service()
-            
+
             # For demonstration, we'll assume pet availability is validated
-            self.logger.info(f"Pet availability validated for pet_id: {order_item.pet_id}")
+            self.logger.info(
+                f"Pet availability validated for pet_id: {order_item.pet_id}"
+            )
 
             # Set unit_price from current pet price (would normally fetch from Pet entity)
             # For now, we'll use the provided unit_price
             current_pet_price = order_item.unit_price
-            self.logger.info(f"Unit price set from current pet price: ${current_pet_price}")
+            self.logger.info(
+                f"Unit price set from current pet price: ${current_pet_price}"
+            )
 
             # Calculate total_price (quantity * unit_price)
             calculated_total = order_item.quantity * order_item.unit_price
@@ -71,13 +75,15 @@ class OrderItemInitializationProcessor(CyodaProcessor):
             # Add initialization metadata
             if not order_item.metadata:
                 order_item.metadata = {}
-            
-            order_item.metadata.update({
-                "initialization_date": current_time,
-                "pet_availability_validated": True,
-                "price_calculated": True,
-                "initialization_status": "pending"
-            })
+
+            order_item.metadata.update(
+                {
+                    "initialization_date": current_time,
+                    "pet_availability_validated": True,
+                    "price_calculated": True,
+                    "initialization_status": "pending",
+                }
+            )
 
             # Update timestamp
             order_item.update_timestamp()

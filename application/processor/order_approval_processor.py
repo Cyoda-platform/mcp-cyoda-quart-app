@@ -8,9 +8,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.order.version_1.order import Order
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.order.version_1.order import Order
 
 
 class OrderApprovalProcessor(CyodaProcessor):
@@ -48,10 +48,14 @@ class OrderApprovalProcessor(CyodaProcessor):
             order = cast_entity(entity, Order)
 
             # Verify payment method (would normally integrate with payment service)
-            self.logger.info(f"Payment method verified for Order {order.technical_id}: {order.payment_method}")
+            self.logger.info(
+                f"Payment method verified for Order {order.technical_id}: {order.payment_method}"
+            )
 
             # Confirm pet availability (would normally check Pet entities)
-            self.logger.info(f"Pet availability confirmed for Order {order.technical_id}")
+            self.logger.info(
+                f"Pet availability confirmed for Order {order.technical_id}"
+            )
 
             # Set approval timestamp
             current_time = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
@@ -59,24 +63,26 @@ class OrderApprovalProcessor(CyodaProcessor):
             # Add approval metadata
             if not order.metadata:
                 order.metadata = {}
-            
-            order.metadata.update({
-                "approval_date": current_time,
-                "approval_status": "approved",
-                "payment_verified": True,
-                "pets_confirmed": True,
-                "approval_notification_sent": True
-            })
+
+            order.metadata.update(
+                {
+                    "approval_date": current_time,
+                    "approval_status": "approved",
+                    "payment_verified": True,
+                    "pets_confirmed": True,
+                    "approval_notification_sent": True,
+                }
+            )
 
             # Update timestamp
             order.update_timestamp()
 
             # Send approval notification (would normally integrate with email service)
-            self.logger.info(f"Approval notification sent for Order {order.technical_id}")
-
             self.logger.info(
-                f"Order {order.technical_id} approved successfully"
+                f"Approval notification sent for Order {order.technical_id}"
             )
+
+            self.logger.info(f"Order {order.technical_id} approved successfully")
 
             return order
 

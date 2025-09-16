@@ -16,7 +16,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class User(CyodaEntity):
     """
     User entity representing system users.
-    
+
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     The state field manages workflow states: initial_state -> active -> inactive/suspended
     """
@@ -86,12 +86,12 @@ class User(CyodaEntity):
         """Validate email field"""
         if not v or len(v.strip()) == 0:
             raise ValueError("Email must be non-empty")
-        
+
         # Basic email validation
-        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
         if not re.match(email_pattern, v.strip()):
             raise ValueError("Email must be in valid format")
-        
+
         return v.strip().lower()
 
     @field_validator("password")

@@ -16,7 +16,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class Pet(CyodaEntity):
     """
     Pet entity representing pets available for adoption.
-    
+
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     The state field manages workflow states: initial_state -> available -> pending -> sold/unavailable
     """

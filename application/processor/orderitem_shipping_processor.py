@@ -8,9 +8,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.orderitem.version_1.orderitem import OrderItem
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.orderitem.version_1.orderitem import OrderItem
 from services.services import get_entity_service
 
 
@@ -49,11 +49,13 @@ class OrderItemShippingProcessor(CyodaProcessor):
             order_item = cast_entity(entity, OrderItem)
 
             # Prepare item for shipping
-            self.logger.info(f"Preparing OrderItem {order_item.technical_id} for shipping")
+            self.logger.info(
+                f"Preparing OrderItem {order_item.technical_id} for shipping"
+            )
 
             # Update pet ownership (would normally update Pet entity to sold state)
             entity_service = get_entity_service()
-            
+
             # For demonstration, we'll log this action
             # In a real implementation, we would transition the Pet to sold state
             self.logger.info(f"Pet ownership updated for pet_id: {order_item.pet_id}")
@@ -64,13 +66,15 @@ class OrderItemShippingProcessor(CyodaProcessor):
             # Add shipping metadata
             if not order_item.metadata:
                 order_item.metadata = {}
-            
-            order_item.metadata.update({
-                "shipping_date": current_time,
-                "item_prepared": True,
-                "pet_ownership_updated": True,
-                "shipping_status": "shipped"
-            })
+
+            order_item.metadata.update(
+                {
+                    "shipping_date": current_time,
+                    "item_prepared": True,
+                    "pet_ownership_updated": True,
+                    "shipping_status": "shipped",
+                }
+            )
 
             # Update confirmation status
             order_item.metadata["confirmation_status"] = "shipped"

@@ -9,9 +9,9 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.pet.version_1.pet import Pet
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.pet.version_1.pet import Pet
 
 
 class PetSaleProcessor(CyodaProcessor):
@@ -50,7 +50,9 @@ class PetSaleProcessor(CyodaProcessor):
 
             # Check if pet is currently pending (reserved)
             if not pet.is_pending():
-                raise ValueError(f"Pet {pet.technical_id} is not in pending state for sale")
+                raise ValueError(
+                    f"Pet {pet.technical_id} is not in pending state for sale"
+                )
 
             # Validate payment completion (this would normally check external payment service)
             # For now, we'll assume payment is validated by the criterion
@@ -63,19 +65,21 @@ class PetSaleProcessor(CyodaProcessor):
             # Add sale metadata
             if not pet.metadata:
                 pet.metadata = {}
-            
-            pet.metadata.update({
-                "sale_date": current_time,
-                "sale_id": sale_id,
-                "sale_status": "completed",
-                "ownership_transferred": True
-            })
+
+            pet.metadata.update(
+                {
+                    "sale_date": current_time,
+                    "sale_id": sale_id,
+                    "sale_status": "completed",
+                    "ownership_transferred": True,
+                }
+            )
 
             # Clear reservation metadata since sale is complete
             reservation_keys = [
                 "reservation_time",
-                "reservation_expiry", 
-                "reservation_status"
+                "reservation_expiry",
+                "reservation_status",
             ]
             for key in reservation_keys:
                 pet.metadata.pop(key, None)
@@ -86,9 +90,9 @@ class PetSaleProcessor(CyodaProcessor):
                 "pet_id": pet.technical_id,
                 "pet_name": pet.name,
                 "sale_price": pet.price,
-                "sale_date": current_time
+                "sale_date": current_time,
             }
-            
+
             pet.metadata["sale_receipt"] = receipt_data
 
             # Update inventory count (would normally update external inventory system)

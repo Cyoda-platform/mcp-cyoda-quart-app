@@ -15,7 +15,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class Category(CyodaEntity):
     """
     Category entity representing pet categories.
-    
+
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     The state field manages workflow states: initial_state -> active -> inactive
     """

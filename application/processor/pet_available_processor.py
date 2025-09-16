@@ -8,9 +8,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.pet.version_1.pet import Pet
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.pet.version_1.pet import Pet
 
 
 class PetAvailableProcessor(CyodaProcessor):
@@ -57,31 +57,30 @@ class PetAvailableProcessor(CyodaProcessor):
             # Update availability metadata
             if not pet.metadata:
                 pet.metadata = {}
-            
+
             # Clear unavailability metadata
             unavailability_keys = [
                 "unavailable_since",
                 "unavailability_reason",
-                "unavailability_status"
+                "unavailability_status",
             ]
             for key in unavailability_keys:
                 pet.metadata.pop(key, None)
 
             # Add availability metadata
-            pet.metadata.update({
-                "available_since": current_time,
-                "availability_status": "active"
-            })
+            pet.metadata.update(
+                {"available_since": current_time, "availability_status": "active"}
+            )
 
             # Update timestamp
             pet.update_timestamp()
 
-            self.logger.info(
-                f"Pet {pet.technical_id} is now available again"
-            )
+            self.logger.info(f"Pet {pet.technical_id} is now available again")
 
             # Note: Customer notifications would be handled by external service
-            self.logger.info(f"Availability notification sent for Pet {pet.technical_id}")
+            self.logger.info(
+                f"Availability notification sent for Pet {pet.technical_id}"
+            )
 
             return pet
 

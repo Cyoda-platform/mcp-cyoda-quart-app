@@ -8,9 +8,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.category.version_1.category import Category
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.category.version_1.category import Category
 
 
 class CategoryDeactivationProcessor(CyodaProcessor):
@@ -57,12 +57,14 @@ class CategoryDeactivationProcessor(CyodaProcessor):
             # Add deactivation metadata
             if not category.metadata:
                 category.metadata = {}
-            
-            category.metadata.update({
-                "deactivation_date": current_time,
-                "activation_status": "inactive",
-                "pet_assignments_enabled": False
-            })
+
+            category.metadata.update(
+                {
+                    "deactivation_date": current_time,
+                    "activation_status": "inactive",
+                    "pet_assignments_enabled": False,
+                }
+            )
 
             # Clear activation metadata
             category.metadata.pop("activation_date", None)

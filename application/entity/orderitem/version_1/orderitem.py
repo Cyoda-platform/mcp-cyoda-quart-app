@@ -15,7 +15,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class OrderItem(CyodaEntity):
     """
     OrderItem entity representing items within an order.
-    
+
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     The state field manages workflow states: initial_state -> pending -> confirmed -> shipped
     """
@@ -63,8 +63,12 @@ class OrderItem(CyodaEntity):
     def validate_total_price(self) -> "OrderItem":
         """Validate that total_price equals quantity * unit_price"""
         expected_total = self.quantity * self.unit_price
-        if abs(self.total_price - expected_total) > 0.01:  # Allow for small floating point differences
-            raise ValueError(f"Total price must equal quantity * unit_price (expected {expected_total}, got {self.total_price})")
+        if (
+            abs(self.total_price - expected_total) > 0.01
+        ):  # Allow for small floating point differences
+            raise ValueError(
+                f"Total price must equal quantity * unit_price (expected {expected_total}, got {self.total_price})"
+            )
         return self
 
     def update_timestamp(self) -> None:

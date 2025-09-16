@@ -8,9 +8,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.order.version_1.order import Order
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.order.version_1.order import Order
 
 
 class OrderDeliveryProcessor(CyodaProcessor):
@@ -56,13 +56,15 @@ class OrderDeliveryProcessor(CyodaProcessor):
             # Add delivery metadata
             if not order.metadata:
                 order.metadata = {}
-            
-            order.metadata.update({
-                "delivery_date": current_time,
-                "delivery_status": "delivered",
-                "delivery_confirmation_sent": True,
-                "feedback_request_sent": True
-            })
+
+            order.metadata.update(
+                {
+                    "delivery_date": current_time,
+                    "delivery_status": "delivered",
+                    "delivery_confirmation_sent": True,
+                    "feedback_request_sent": True,
+                }
+            )
 
             # Add delivery confirmation details if provided
             if delivery_confirmation:
@@ -72,10 +74,14 @@ class OrderDeliveryProcessor(CyodaProcessor):
             order.update_timestamp()
 
             # Send delivery confirmation (would normally integrate with email service)
-            self.logger.info(f"Delivery confirmation sent for Order {order.technical_id}")
+            self.logger.info(
+                f"Delivery confirmation sent for Order {order.technical_id}"
+            )
 
             # Request customer feedback (would normally integrate with feedback service)
-            self.logger.info(f"Customer feedback request sent for Order {order.technical_id}")
+            self.logger.info(
+                f"Customer feedback request sent for Order {order.technical_id}"
+            )
 
             self.logger.info(
                 f"Order {order.technical_id} delivery confirmed successfully"

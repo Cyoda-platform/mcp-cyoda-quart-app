@@ -6,9 +6,9 @@ Validates that payment has been completed for pet purchase.
 
 from typing import Any
 
+from application.entity.pet.version_1.pet import Pet
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.pet.version_1.pet import Pet
 
 
 class PetPaymentCriterion(CyodaCriteriaChecker):
@@ -66,10 +66,14 @@ class PetPaymentCriterion(CyodaCriteriaChecker):
             # Validate payment amount matches pet price
             payment_amount = pet.metadata.get("payment_amount")
             if payment_amount is None:
-                self.logger.warning(f"No payment amount found for Pet {pet.technical_id}")
+                self.logger.warning(
+                    f"No payment amount found for Pet {pet.technical_id}"
+                )
                 return False
 
-            if abs(float(payment_amount) - pet.price) > 0.01:  # Allow for small floating point differences
+            if (
+                abs(float(payment_amount) - pet.price) > 0.01
+            ):  # Allow for small floating point differences
                 self.logger.warning(
                     f"Payment amount ${payment_amount} does not match pet price ${pet.price} for Pet {pet.technical_id}"
                 )
@@ -77,7 +81,12 @@ class PetPaymentCriterion(CyodaCriteriaChecker):
 
             # Confirm payment method is valid
             payment_method = pet.metadata.get("payment_method")
-            valid_payment_methods = ["credit_card", "debit_card", "paypal", "bank_transfer"]
+            valid_payment_methods = [
+                "credit_card",
+                "debit_card",
+                "paypal",
+                "bank_transfer",
+            ]
             if payment_method not in valid_payment_methods:
                 self.logger.warning(
                     f"Invalid payment method '{payment_method}' for Pet {pet.technical_id}"

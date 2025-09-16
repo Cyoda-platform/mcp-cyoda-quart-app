@@ -8,9 +8,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.order.version_1.order import Order
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.order.version_1.order import Order
 from services.services import get_entity_service
 
 
@@ -49,7 +49,9 @@ class OrderCancellationProcessor(CyodaProcessor):
             order = cast_entity(entity, Order)
 
             # Get cancellation reason from kwargs or use default
-            cancellation_reason = kwargs.get("cancellation_reason", "Order cancelled by customer")
+            cancellation_reason = kwargs.get(
+                "cancellation_reason", "Order cancelled by customer"
+            )
 
             # Record cancellation reason and timestamp
             current_time = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
@@ -57,13 +59,15 @@ class OrderCancellationProcessor(CyodaProcessor):
             # Process refund if payment was made (would normally integrate with payment service)
             refund_processed = False
             if order.metadata and order.metadata.get("payment_verified"):
-                self.logger.info(f"Processing refund for Order {order.technical_id}: ${order.total_amount}")
+                self.logger.info(
+                    f"Processing refund for Order {order.technical_id}: ${order.total_amount}"
+                )
                 refund_processed = True
 
             # Release reserved pets (would normally update Pet entities back to available state)
             # This would be done by updating related Pet entities via EntityService
             entity_service = get_entity_service()
-            
+
             # For demonstration, we'll log this action
             # In a real implementation, we would:
             # 1. Get all pets from order items
@@ -73,21 +77,25 @@ class OrderCancellationProcessor(CyodaProcessor):
             # Add cancellation metadata
             if not order.metadata:
                 order.metadata = {}
-            
-            order.metadata.update({
-                "cancellation_date": current_time,
-                "cancellation_reason": cancellation_reason,
-                "cancellation_status": "cancelled",
-                "refund_processed": refund_processed,
-                "pets_released": True,
-                "cancellation_notification_sent": True
-            })
+
+            order.metadata.update(
+                {
+                    "cancellation_date": current_time,
+                    "cancellation_reason": cancellation_reason,
+                    "cancellation_status": "cancelled",
+                    "refund_processed": refund_processed,
+                    "pets_released": True,
+                    "cancellation_notification_sent": True,
+                }
+            )
 
             # Update timestamp
             order.update_timestamp()
 
             # Send cancellation notification (would normally integrate with email service)
-            self.logger.info(f"Cancellation notification sent for Order {order.technical_id}")
+            self.logger.info(
+                f"Cancellation notification sent for Order {order.technical_id}"
+            )
 
             self.logger.info(
                 f"Order {order.technical_id} cancelled successfully. Reason: {cancellation_reason}"

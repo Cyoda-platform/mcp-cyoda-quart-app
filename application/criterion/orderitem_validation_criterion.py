@@ -6,9 +6,9 @@ Validates that an order item meets all requirements before confirmation.
 
 from typing import Any
 
+from application.entity.orderitem.version_1.orderitem import OrderItem
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.orderitem.version_1.orderitem import OrderItem
 
 
 class OrderItemValidationCriterion(CyodaCriteriaChecker):
@@ -51,7 +51,9 @@ class OrderItemValidationCriterion(CyodaCriteriaChecker):
 
             # Check pet still exists and is available (would normally check Pet entity)
             if not order_item.metadata:
-                self.logger.warning(f"No metadata found for OrderItem {order_item.technical_id}")
+                self.logger.warning(
+                    f"No metadata found for OrderItem {order_item.technical_id}"
+                )
                 return False
 
             pet_exists = order_item.metadata.get("pet_exists", False)
@@ -77,7 +79,10 @@ class OrderItemValidationCriterion(CyodaCriteriaChecker):
 
             # Validate unit_price matches current pet price (would normally check Pet entity)
             current_pet_price = order_item.metadata.get("current_pet_price")
-            if current_pet_price and abs(float(current_pet_price) - order_item.unit_price) > 0.01:
+            if (
+                current_pet_price
+                and abs(float(current_pet_price) - order_item.unit_price) > 0.01
+            ):
                 self.logger.warning(
                     f"Unit price ${order_item.unit_price} does not match current pet price ${current_pet_price} for OrderItem {order_item.technical_id}"
                 )

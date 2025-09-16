@@ -8,9 +8,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.pet.version_1.pet import Pet
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.pet.version_1.pet import Pet
 
 
 class PetUnavailableProcessor(CyodaProcessor):
@@ -52,7 +52,9 @@ class PetUnavailableProcessor(CyodaProcessor):
                 raise ValueError(f"Pet {pet.technical_id} is not in available state")
 
             # Get unavailability reason from kwargs or use default
-            unavailability_reason = kwargs.get("unavailability_reason", "Temporarily unavailable")
+            unavailability_reason = kwargs.get(
+                "unavailability_reason", "Temporarily unavailable"
+            )
 
             # Record unavailability reason and timestamp
             current_time = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
@@ -60,12 +62,14 @@ class PetUnavailableProcessor(CyodaProcessor):
             # Add unavailability metadata
             if not pet.metadata:
                 pet.metadata = {}
-            
-            pet.metadata.update({
-                "unavailable_since": current_time,
-                "unavailability_reason": unavailability_reason,
-                "unavailability_status": "active"
-            })
+
+            pet.metadata.update(
+                {
+                    "unavailable_since": current_time,
+                    "unavailability_reason": unavailability_reason,
+                    "unavailability_status": "active",
+                }
+            )
 
             # Update timestamp
             pet.update_timestamp()
@@ -75,7 +79,9 @@ class PetUnavailableProcessor(CyodaProcessor):
             )
 
             # Note: Customer notifications would be handled by external service
-            self.logger.info(f"Unavailability notification sent for Pet {pet.technical_id}")
+            self.logger.info(
+                f"Unavailability notification sent for Pet {pet.technical_id}"
+            )
 
             return pet
 

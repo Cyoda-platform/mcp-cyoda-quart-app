@@ -8,9 +8,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.pet.version_1.pet import Pet
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.pet.version_1.pet import Pet
 
 
 class PetInitializationProcessor(CyodaProcessor):
@@ -56,7 +56,9 @@ class PetInitializationProcessor(CyodaProcessor):
 
             # Set created_at timestamp if not already set
             if not pet.created_at:
-                pet.created_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+                pet.created_at = (
+                    datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+                )
 
             # Initialize photo_urls as empty list if not provided
             if pet.photo_urls is None:
@@ -75,9 +77,7 @@ class PetInitializationProcessor(CyodaProcessor):
             # Update timestamp
             pet.update_timestamp()
 
-            self.logger.info(
-                f"Pet {pet.technical_id} initialized successfully"
-            )
+            self.logger.info(f"Pet {pet.technical_id} initialized successfully")
 
             return pet
 

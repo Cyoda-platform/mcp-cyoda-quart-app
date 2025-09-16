@@ -15,7 +15,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class Order(CyodaEntity):
     """
     Order entity representing customer orders.
-    
+
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     The state field manages workflow states: initial_state -> placed -> approved -> shipped -> delivered/cancelled
     """
@@ -32,7 +32,9 @@ class Order(CyodaEntity):
         .replace("+00:00", "Z"),
         description="Order date (ISO 8601 format)",
     )
-    ship_date: Optional[str] = Field(None, description="Estimated shipping date (ISO 8601 format)")
+    ship_date: Optional[str] = Field(
+        None, description="Estimated shipping date (ISO 8601 format)"
+    )
     total_amount: float = Field(..., description="Total order amount", ge=0)
     shipping_address: str = Field(..., description="Shipping address", max_length=300)
     payment_method: str = Field(..., description="Payment method used")

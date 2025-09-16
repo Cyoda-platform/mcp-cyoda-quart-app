@@ -8,9 +8,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.user.version_1.user import User
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.user.version_1.user import User
 
 
 class UserDeactivationProcessor(CyodaProcessor):
@@ -56,13 +56,15 @@ class UserDeactivationProcessor(CyodaProcessor):
             # Add deactivation metadata
             if not user.metadata:
                 user.metadata = {}
-            
-            user.metadata.update({
-                "deactivation_date": current_time,
-                "activation_status": "inactive",
-                "sessions_invalidated": True,
-                "deactivation_notification_sent": True
-            })
+
+            user.metadata.update(
+                {
+                    "deactivation_date": current_time,
+                    "activation_status": "inactive",
+                    "sessions_invalidated": True,
+                    "deactivation_notification_sent": True,
+                }
+            )
 
             # Clear activation metadata
             user.metadata.pop("activation_date", None)

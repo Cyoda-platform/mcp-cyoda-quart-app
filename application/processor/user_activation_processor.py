@@ -9,9 +9,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.user.version_1.user import User
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.user.version_1.user import User
 
 
 class UserActivationProcessor(CyodaProcessor):
@@ -63,12 +63,14 @@ class UserActivationProcessor(CyodaProcessor):
             # Add activation metadata
             if not user.metadata:
                 user.metadata = {}
-            
-            user.metadata.update({
-                "activation_date": current_time,
-                "activation_status": "active",
-                "welcome_email_sent": True
-            })
+
+            user.metadata.update(
+                {
+                    "activation_date": current_time,
+                    "activation_status": "active",
+                    "welcome_email_sent": True,
+                }
+            )
 
             # Update timestamp
             user.update_timestamp()
@@ -91,7 +93,9 @@ class UserActivationProcessor(CyodaProcessor):
     def _is_password_hashed(self, password: str) -> bool:
         """Check if password is already hashed (simple heuristic)"""
         # Simple check: if password is longer than 32 chars and contains only hex chars, assume it's hashed
-        return len(password) >= 32 and all(c in '0123456789abcdef' for c in password.lower())
+        return len(password) >= 32 and all(
+            c in "0123456789abcdef" for c in password.lower()
+        )
 
     def _hash_password(self, password: str) -> str:
         """Hash password using SHA-256 (in production, use bcrypt or similar)"""

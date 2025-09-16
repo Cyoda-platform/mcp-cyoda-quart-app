@@ -7,9 +7,9 @@ Handles the release of Pet entities when reservations are cancelled or expired.
 import logging
 from typing import Any
 
+from application.entity.pet.version_1.pet import Pet
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.pet.version_1.pet import Pet
 
 
 class PetReleaseProcessor(CyodaProcessor):
@@ -55,8 +55,8 @@ class PetReleaseProcessor(CyodaProcessor):
                 # Clear reservation-related metadata
                 reservation_keys = [
                     "reservation_time",
-                    "reservation_expiry", 
-                    "reservation_status"
+                    "reservation_expiry",
+                    "reservation_status",
                 ]
                 for key in reservation_keys:
                     pet.metadata.pop(key, None)
@@ -64,9 +64,7 @@ class PetReleaseProcessor(CyodaProcessor):
             # Update timestamp
             pet.update_timestamp()
 
-            self.logger.info(
-                f"Pet {pet.technical_id} released successfully"
-            )
+            self.logger.info(f"Pet {pet.technical_id} released successfully")
 
             # Note: Release notification would be handled by external service
             self.logger.info(f"Release notification sent for Pet {pet.technical_id}")
