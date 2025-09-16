@@ -9,6 +9,13 @@ from common.exception.exception_handler import register_error_handlers
 # Import blueprints for different route groups
 from routes import jobs_bp, laureates_bp, subscribers_bp, health_bp, system_bp
 
+# Import Purrfect Pets API blueprints
+try:
+    from routes import pets_bp, owners_bp, orders_bp, categories_bp
+    PURRFECT_PETS_AVAILABLE = True
+except ImportError:
+    PURRFECT_PETS_AVAILABLE = False
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -32,6 +39,16 @@ app.register_blueprint(laureates_bp)
 app.register_blueprint(subscribers_bp)
 app.register_blueprint(health_bp)
 app.register_blueprint(system_bp)
+
+# Register Purrfect Pets API blueprints if available
+if PURRFECT_PETS_AVAILABLE:
+    app.register_blueprint(pets_bp)
+    app.register_blueprint(owners_bp)
+    app.register_blueprint(orders_bp)
+    app.register_blueprint(categories_bp)
+    logger.info("Registered Purrfect Pets API blueprints")
+else:
+    logger.warning("Purrfect Pets API blueprints not available")
 
 
 

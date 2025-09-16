@@ -177,7 +177,115 @@ async def create_category(data: CategoryRequest):
         
         logger.info(f"Created category {category_id}")
         return jsonify(response), 201
-        
+
     except Exception as e:
         logger.exception(f"Failed to create category: {e}")
         return jsonify({"error": f"Failed to create category: {str(e)}"}), 500
+
+
+@categories_bp.route("/<int:category_id>", methods=["PUT"])
+@validate_request(CategoryUpdateRequest)
+async def update_category(category_id: int, data: CategoryUpdateRequest):
+    """Update category."""
+    entity_service, cyoda_auth_service = get_services()
+
+    try:
+        # Find existing category
+        category_response = await entity_service.find_by_business_id(
+            "Category", str(category_id), "id", ENTITY_VERSION
+        )
+
+        if not category_response:
+            return jsonify({"error": "Category not found"}), 404
+
+        # Update fields if provided
+        update_data = {}
+        if data.name is not None:
+            update_data["name"] = data.name
+        if data.description is not None:
+            update_data["description"] = data.description
+        if data.imageUrl is not None:
+            update_data["imageUrl"] = data.imageUrl
+        if data.isActive is not None:
+            update_data["isActive"] = data.isActive
+
+        # Add timestamp
+        update_data["updatedAt"] = datetime.now(timezone.utc).isoformat()
+
+        # Update with transition if provided
+        transition = data.transitionName
+        if transition:
+            # Map transition names to workflow transitions
+            transition_map = {
+                "DEACTIVATE": "transition_to_inactive",
+                "ACTIVATE": "transition_to_active",
+                "ARCHIVE": "transition_to_archived"
+            }
+            workflow_transition = transition_map.get(transition)
+        else:
+            workflow_transition = None
+
+        # Update category
+        updated_response = await entity_service.update(
+            category_response.metadata.id,
+            update_data,
+            "Category",
+            workflow_transition,
+            ENTITY_VERSION
+        )
+
+        # Get updated state
+        updated_category_data = updated_response.entity
+        updated_category = Category(**updated_category_data) if isinstance(updated_category_data, dict) else updated_category_data
+
+        response = {
+            "id": category_id,
+            "name": updated_category.name,
+            "isActive": updated_category.isActive,
+            "state": updated_category.state.upper() if updated_category.state else "UNKNOWN",
+            "updatedAt": updated_category.updatedAt
+        }
+
+        logger.info(f"Updated category {category_id}")
+        return jsonify(response)
+
+    except Exception as e:
+        logger.exception(f"Failed to update category {category_id}: {e}")
+        return jsonify({"error": f"Failed to update category: {str(e)}"}), 500
+
+
+@categories_bp.route("/<int:category_id>", methods=["DELETE"])
+async def delete_category(category_id: int):
+    """Delete category (archive)."""
+    entity_service, cyoda_auth_service = get_services()
+
+    try:
+        # Find existing category
+        category_response = await entity_service.find_by_business_id(
+            "Category", str(category_id), "id", ENTITY_VERSION
+        )
+
+        if not category_response:
+            return jsonify({"error": "Category not found"}), 404
+
+        # Archive by updating state
+        delete_data = {
+            "updatedAt": datetime.now(timezone.utc).isoformat()
+        }
+
+        await entity_service.update(
+            category_response.metadata.id,
+            delete_data,
+            "Category",
+            "transition_to_archived",  # Archive transition
+            ENTITY_VERSION
+        )
+
+        response = {"message": "Category deleted successfully"}
+
+        logger.info(f"Deleted category {category_id}")
+        return jsonify(response)
+
+    except Exception as e:
+        logger.exception(f"Failed to delete category {category_id}: {e}")
+        return jsonify({"error": f"Failed to delete category: {str(e)}"}), 500
