@@ -1,0 +1,88 @@
+{
+    "entities": [
+        {
+            "Pet": {
+                "entity_data_example": {
+                    "age": 3,
+                    "breed": "Labrador",
+                    "category_id": 2,
+                    "color": "Yellow",
+                    "created_at": "2023-01-01T00:00:00Z",
+                    "description": "A friendly labrador looking for a home.",
+                    "id": 1,
+                    "name": "Fluffy",
+                    "photo_urls": [
+                        "http://example.com/photo1.jpg",
+                        "http://example.com/photo2.jpg"
+                    ],
+                    "price": 300.0,
+                    "tags": [
+                        "cute",
+                        "friendly"
+                    ],
+                    "updated_at": "2023-01-01T00:00:00Z",
+                    "vaccination_status": true,
+                    "weight": 25.0
+                }
+            }
+        },
+        {
+            "Category": {
+                "entity_data_example": {
+                    "created_at": "2023-01-01T00:00:00Z",
+                    "description": "All kinds of dogs available for adoption.",
+                    "id": 1,
+                    "name": "Dogs",
+                    "updated_at": "2023-01-01T00:00:00Z"
+                }
+            }
+        },
+        {
+            "User": {
+                "entity_data_example": {
+                    "address": "123 Main St, Hometown, USA",
+                    "created_at": "2023-01-01T00:00:00Z",
+                    "email": "john.doe@example.com",
+                    "first_name": "John",
+                    "id": 1,
+                    "last_name": "Doe",
+                    "password": "hashed_password",
+                    "phone": "1234567890",
+                    "updated_at": "2023-01-01T00:00:00Z",
+                    "user_type": "customer",
+                    "username": "john_doe"
+                }
+            }
+        },
+        {
+            "Order": {
+                "entity_data_example": {
+                    "created_at": "2023-01-01T00:00:00Z",
+                    "id": 1,
+                    "notes": "Please handle with care.",
+                    "order_date": "2023-01-01T00:00:00Z",
+                    "payment_method": "Credit Card",
+                    "ship_date": "2023-01-05T00:00:00Z",
+                    "shipping_address": "123 Main St, Hometown, USA",
+                    "total_amount": 300.0,
+                    "updated_at": "2023-01-01T00:00:00Z",
+                    "user_id": 1
+                }
+            }
+        },
+        {
+            "OrderItem": {
+                "entity_data_example": {
+                    "created_at": "2023-01-01T00:00:00Z",
+                    "id": 1,
+                    "order_id": 1,
+                    "pet_id": 1,
+                    "quantity": 1,
+                    "total_price": 300.0,
+                    "unit_price": 300.0,
+                    "updated_at": "2023-01-01T00:00:00Z"
+                }
+            }
+        }
+    ]
+}
