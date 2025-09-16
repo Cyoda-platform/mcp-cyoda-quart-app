@@ -5,7 +5,7 @@ Validation criteria for pet-related business rules and workflows.
 """
 
 import logging
-from typing import Any
+from typing import Any, Optional
 
 from application.entity.adoptionapplication.version_1.adoptionapplication import (
     AdoptionApplication,
