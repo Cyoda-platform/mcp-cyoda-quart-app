@@ -1,0 +1,32 @@
+{
+    "entities": [
+        {
+            "EggAlarm": {
+                "entity_data_example": {
+                    "createdAt": "2023-10-01T10:00:00Z",
+                    "duration": 300,
+                    "eggType": "SOFT_BOILED",
+                    "id": "alarm123",
+                    "isActive": true,
+                    "scheduledTime": "2023-10-01T10:05:00Z",
+                    "title": "Morning Soft Boiled Eggs",
+                    "userId": "user456"
+                }
+            }
+        },
+        {
+            "User": {
+                "entity_data_example": {
+                    "createdAt": "2023-10-01T09:00:00Z",
+                    "email": "egglover@example.com",
+                    "id": "user456",
+                    "preferences": {
+                        "defaultDuration": 600,
+                        "defaultEggType": "MEDIUM_BOILED"
+                    },
+                    "username": "egglover"
+                }
+            }
+        }
+    ]
+}
