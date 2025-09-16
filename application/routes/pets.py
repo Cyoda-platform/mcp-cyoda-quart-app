@@ -71,7 +71,7 @@ async def get_pets() -> ResponseReturnValue:
 
         return (
             jsonify(
-                {"pets": pets, "total": len(pets), "limit": limit, "offset": offset}
+                {"pets": pets, "total": total, "limit": limit, "offset": offset}
             ),
             200,
         )
@@ -96,7 +96,7 @@ async def get_pet(pet_id: str) -> ResponseReturnValue:
         if not response:
             return jsonify({"error": "Pet not found"}), 404
 
-        pet = Pet(**response.data)
+        pet = Pet(**response.data.model_dump())
         return jsonify(pet.to_api_response()), 200
 
     except Exception as e:
@@ -117,16 +117,15 @@ async def create_pet() -> ResponseReturnValue:
         # Create pet entity
         pet = Pet(**data)
 
-        # Save through entity service with intake transition
+        # Save through entity service
         response = await entity_service.save(
             entity=pet.model_dump(by_alias=True),
             entity_class=Pet.ENTITY_NAME,
             entity_version=str(Pet.ENTITY_VERSION),
-            transition="transition_to_available",  # Intake process
         )
 
         # Return created pet
-        created_pet = Pet(**response.data)
+        created_pet = Pet(**response.data.model_dump())
         return jsonify(created_pet.to_api_response()), 201
 
     except ValueError as e:
@@ -153,7 +152,7 @@ async def update_pet(pet_id: str) -> ResponseReturnValue:
         # Update pet through entity service
         response = await entity_service.update(
             entity_id=pet_id,
-            entity_data=data,
+            entity=data,
             entity_class=Pet.ENTITY_NAME,
             entity_version=str(Pet.ENTITY_VERSION),
             transition=transition,
@@ -163,7 +162,7 @@ async def update_pet(pet_id: str) -> ResponseReturnValue:
             return jsonify({"error": "Pet not found"}), 404
 
         # Return updated pet
-        updated_pet = Pet(**response.data)
+        updated_pet = Pet(**response.data.model_dump())
         return jsonify(updated_pet.to_api_response()), 200
 
     except ValueError as e:
@@ -180,13 +179,13 @@ async def delete_pet(pet_id: str) -> ResponseReturnValue:
     try:
         entity_service = get_entity_service()
 
-        success = await entity_service.delete(
+        deleted_id = await entity_service.delete_by_id(
             entity_id=pet_id,
             entity_class=Pet.ENTITY_NAME,
             entity_version=str(Pet.ENTITY_VERSION),
         )
 
-        if not success:
+        if not deleted_id:
             return jsonify({"error": "Pet not found"}), 404
 
         return jsonify({"message": "Pet deleted successfully"}), 200
@@ -214,14 +213,13 @@ async def reserve_pet(pet_id: str) -> ResponseReturnValue:
             transition="transition_to_reserved",
             entity_class=Pet.ENTITY_NAME,
             entity_version=str(Pet.ENTITY_VERSION),
-            processor_kwargs={"customer_id": customer_id},
         )
 
         if not response:
             return jsonify({"error": "Pet not found or cannot be reserved"}), 404
 
         # Return updated pet
-        updated_pet = Pet(**response.data)
+        updated_pet = Pet(**response.data.model_dump())
         return jsonify(updated_pet.to_api_response()), 200
 
     except Exception as e:
@@ -247,14 +245,13 @@ async def adopt_pet(pet_id: str) -> ResponseReturnValue:
             transition="transition_to_adopted",
             entity_class=Pet.ENTITY_NAME,
             entity_version=str(Pet.ENTITY_VERSION),
-            processor_kwargs={"application_id": application_id},
         )
 
         if not response:
             return jsonify({"error": "Pet not found or cannot be adopted"}), 404
 
         # Return updated pet
-        updated_pet = Pet(**response.data)
+        updated_pet = Pet(**response.data.model_dump())
         return jsonify(updated_pet.to_api_response()), 200
 
     except Exception as e:
