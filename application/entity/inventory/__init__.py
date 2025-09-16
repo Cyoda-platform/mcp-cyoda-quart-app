@@ -1,1 +1,1 @@
-
+# Inventory entity package

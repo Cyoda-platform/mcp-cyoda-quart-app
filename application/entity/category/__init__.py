@@ -1,1 +1,1 @@
-
+# Category entity package

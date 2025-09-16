@@ -6,7 +6,7 @@ and workflow transitions as specified in functional requirements.
 """
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from quart import Blueprint, jsonify, request
 from quart.typing import ResponseReturnValue

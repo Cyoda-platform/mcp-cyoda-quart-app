@@ -92,8 +92,6 @@ class PetSaleProcessor(CyodaProcessor):
             order_id: The completed order ID
         """
         try:
-            entity_service = get_entity_service()
-
             self.logger.info(
                 f"Updating inventory for pet sale {pet.technical_id} (order {order_id})"
             )
