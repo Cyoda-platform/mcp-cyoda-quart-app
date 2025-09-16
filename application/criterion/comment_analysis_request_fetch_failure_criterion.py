@@ -4,7 +4,7 @@ CommentAnalysisRequestFetchFailureCriterion for Cyoda Client Application
 Checks if comment fetching failed.
 """
 
-from typing import Any
+from typing import Any, List
 
 from application.entity.comment.version_1.comment import Comment
 from application.entity.comment_analysis_request.version_1.comment_analysis_request import (
@@ -79,7 +79,7 @@ class CommentAnalysisRequestFetchFailureCriterion(CyodaCriteriaChecker):
             )
             return True  # Assume failure on error
 
-    async def _find_comments_by_request_id(self, request_id: str) -> list:
+    async def _find_comments_by_request_id(self, request_id: str) -> List[Any]:
         """
         Find comments by analysis request ID.
 

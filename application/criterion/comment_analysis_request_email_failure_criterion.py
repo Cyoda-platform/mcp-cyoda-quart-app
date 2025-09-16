@@ -4,7 +4,7 @@ CommentAnalysisRequestEmailFailureCriterion for Cyoda Client Application
 Checks if email sending failed.
 """
 
-from typing import Any
+from typing import Any, Dict
 
 from application.entity.analysis_report.version_1.analysis_report import AnalysisReport
 from application.entity.comment_analysis_request.version_1.comment_analysis_request import (
@@ -118,7 +118,7 @@ class CommentAnalysisRequestEmailFailureCriterion(CyodaCriteriaChecker):
             # Convert first result to AnalysisReport entity
             report_data = results[0].data
             if hasattr(report_data, "model_dump"):
-                report_dict = report_data.model_dump()
+                report_dict: Dict[str, Any] = report_data.model_dump()
             else:
                 report_dict = report_data
 

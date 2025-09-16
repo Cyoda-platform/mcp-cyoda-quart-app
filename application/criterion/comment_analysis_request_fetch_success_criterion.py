@@ -4,7 +4,7 @@ CommentAnalysisRequestFetchSuccessCriterion for Cyoda Client Application
 Checks if comments were successfully fetched from the API.
 """
 
-from typing import Any
+from typing import Any, List
 
 from application.entity.comment.version_1.comment import Comment
 from application.entity.comment_analysis_request.version_1.comment_analysis_request import (
@@ -79,7 +79,7 @@ class CommentAnalysisRequestFetchSuccessCriterion(CyodaCriteriaChecker):
             )
             return False
 
-    async def _find_comments_by_request_id(self, request_id: str) -> list:
+    async def _find_comments_by_request_id(self, request_id: str) -> List[Any]:
         """
         Find comments by analysis request ID.
 
