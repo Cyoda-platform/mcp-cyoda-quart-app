@@ -5,7 +5,7 @@ Represents an individual item within an order, linking pets to orders with quant
 """
 
 from datetime import datetime, timezone
-from typing import ClassVar, Optional
+from typing import Any, ClassVar, Dict, Optional
 
 from pydantic import ConfigDict, Field, field_validator, model_validator
 
@@ -106,7 +106,7 @@ class OrderItem(CyodaEntity):
         """Check if order item can be cancelled"""
         return self.state in ["Added", "Confirmed"]
 
-    def to_api_response(self) -> dict:
+    def to_api_response(self) -> Dict[str, Any]:
         """Convert to API response format"""
         data = self.model_dump()
         # Add state for API compatibility

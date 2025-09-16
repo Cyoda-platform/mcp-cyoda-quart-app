@@ -5,7 +5,7 @@ Represents an order placed by a user for purchasing pets.
 """
 
 from datetime import datetime, timezone
-from typing import ClassVar, Optional
+from typing import Any, ClassVar, Dict, Optional
 
 from pydantic import ConfigDict, Field, field_validator
 
@@ -121,7 +121,7 @@ class Order(CyodaEntity):
         """Check if order can be cancelled"""
         return self.state in ["Placed", "Approved", "Preparing"]
 
-    def to_api_response(self) -> dict:
+    def to_api_response(self) -> Dict[str, Any]:
         """Convert to API response format"""
         data = self.model_dump()
         # Add state for API compatibility

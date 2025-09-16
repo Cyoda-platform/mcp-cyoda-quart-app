@@ -126,7 +126,7 @@ class Pet(CyodaEntity):
         """Check if pet has been sold"""
         return self.state == "Sold"
 
-    def to_api_response(self) -> dict:
+    def to_api_response(self) -> Dict[str, Any]:
         """Convert to API response format"""
         data = self.model_dump()
         # Add state for API compatibility

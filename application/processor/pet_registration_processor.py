@@ -112,8 +112,15 @@ class PetRegistrationProcessor(CyodaProcessor):
             entity_service = get_entity_service()
 
             # Create inventory record with initial quantity of 1
+            # Convert pet ID to integer (assuming it's a valid integer string)
+            pet_id_str = pet.technical_id or pet.entity_id or "0"
+            try:
+                pet_id_int = int(pet_id_str)
+            except (ValueError, TypeError):
+                pet_id_int = 0  # Default fallback
+
             inventory = Inventory(
-                pet_id=pet.technical_id or pet.entity_id,
+                pet_id=pet_id_int,
                 quantity=1,
                 reserved_quantity=0,
                 reorder_level=1,

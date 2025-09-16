@@ -5,7 +5,7 @@ Represents a category for classifying pets (e.g., Cats, Dogs, Birds).
 """
 
 from datetime import datetime, timezone
-from typing import ClassVar, Optional
+from typing import Any, ClassVar, Dict, Optional
 
 from pydantic import ConfigDict, Field, field_validator
 
@@ -72,7 +72,7 @@ class Category(CyodaEntity):
         """Check if category is inactive"""
         return self.state == "Inactive"
 
-    def to_api_response(self) -> dict:
+    def to_api_response(self) -> Dict[str, Any]:
         """Convert to API response format"""
         data = self.model_dump()
         # Add state for API compatibility

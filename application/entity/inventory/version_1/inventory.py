@@ -5,7 +5,7 @@ Represents inventory tracking for pets, including available and reserved quantit
 """
 
 from datetime import datetime, timezone
-from typing import ClassVar, Optional
+from typing import Any, ClassVar, Dict, Optional
 
 from pydantic import ConfigDict, Field, field_validator
 
@@ -160,7 +160,7 @@ class Inventory(CyodaEntity):
         """Check if inventory should be out of stock"""
         return self.get_available_quantity() <= 0
 
-    def to_api_response(self) -> dict:
+    def to_api_response(self) -> Dict[str, Any]:
         """Convert to API response format"""
         data = self.model_dump()
         # Add calculated fields
