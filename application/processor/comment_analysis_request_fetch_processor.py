@@ -124,14 +124,14 @@ class CommentAnalysisRequestFetchProcessor(CyodaProcessor):
             try:
                 # Create Comment using Pydantic model construction
                 comment = Comment(
-                    comment_id=comment_data.get("id"),
-                    post_id=comment_data.get("postId"),
+                    id=comment_data.get("id"),
+                    postId=comment_data.get("postId"),
                     name=comment_data.get("name", ""),
                     email=comment_data.get("email", ""),
                     body=comment_data.get("body", ""),
-                    analysis_request_id=request_entity.technical_id
+                    analysisRequestId=request_entity.technical_id
                     or request_entity.entity_id,
-                    fetched_at=current_timestamp,
+                    fetchedAt=current_timestamp,
                 )
 
                 # Convert Pydantic model to dict for EntityService.save()

@@ -72,7 +72,7 @@ class CommentAnalysisRequestAnalyzeProcessor(CyodaProcessor):
 
             # Save the report with transition to GENERATED state
             entity_service = get_entity_service()
-            report_data = report.model_dump(by_alias=True)
+            report_data: Dict[str, Any] = report.model_dump(by_alias=True)
 
             response = await entity_service.save(
                 entity=report_data,
@@ -160,7 +160,7 @@ class CommentAnalysisRequestAnalyzeProcessor(CyodaProcessor):
         average_length = total_length / total_comments if total_comments > 0 else 0.0
 
         # Find most active email domain
-        email_domains = Counter()
+        email_domains: Counter[str] = Counter()
         for comment in comments:
             domain = comment.get_email_domain()
             if domain:
@@ -171,7 +171,7 @@ class CommentAnalysisRequestAnalyzeProcessor(CyodaProcessor):
         )
 
         # Extract keywords and get top 10
-        keywords = Counter()
+        keywords: Counter[str] = Counter()
         for comment in comments:
             words = self._extract_keywords(comment.body)
             for word in words:
@@ -185,15 +185,15 @@ class CommentAnalysisRequestAnalyzeProcessor(CyodaProcessor):
 
         # Create AnalysisReport
         report = AnalysisReport(
-            analysis_request_id=request_entity.technical_id
+            analysisRequestId=request_entity.technical_id
             or request_entity.entity_id
             or "",
-            total_comments=total_comments,
-            average_comment_length=round(average_length, 2),
-            most_active_email_domain=most_active_domain,
-            sentiment_summary=sentiment_summary,
-            top_keywords=top_keywords_json,
-            generated_at=current_timestamp,
+            totalComments=total_comments,
+            averageCommentLength=round(average_length, 2),
+            mostActiveEmailDomain=most_active_domain,
+            sentimentSummary=sentiment_summary,
+            topKeywords=top_keywords_json,
+            generatedAt=current_timestamp,
         )
 
         return report

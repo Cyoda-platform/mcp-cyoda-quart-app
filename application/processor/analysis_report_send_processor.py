@@ -114,7 +114,7 @@ class AnalysisReportSendProcessor(CyodaProcessor):
             if response:
                 request_data = response.data
                 if hasattr(request_data, "model_dump"):
-                    request_dict = request_data.model_dump()
+                    request_dict: Dict[str, Any] = request_data.model_dump()
                 else:
                     request_dict = request_data
 
