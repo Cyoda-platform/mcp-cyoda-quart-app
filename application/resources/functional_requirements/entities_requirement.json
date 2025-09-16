@@ -1,0 +1,44 @@
+{
+    "entities": [
+        {
+            "CommentAnalysisRequest": {
+                "entity_data_example": {
+                    "completedAt": null,
+                    "errorMessage": null,
+                    "id": 1,
+                    "postId": 123,
+                    "recipientEmail": "example@example.com",
+                    "requestedAt": "2023-10-01T10:00:00"
+                }
+            }
+        },
+        {
+            "Comment": {
+                "entity_data_example": {
+                    "analysisRequestId": 1,
+                    "body": "This is a sample comment.",
+                    "email": "author@example.com",
+                    "fetchedAt": "2023-10-01T10:05:00",
+                    "id": 1,
+                    "name": "Sample Comment",
+                    "postId": 123
+                }
+            }
+        },
+        {
+            "AnalysisReport": {
+                "entity_data_example": {
+                    "analysisRequestId": 1,
+                    "averageCommentLength": 50.5,
+                    "emailSentAt": null,
+                    "generatedAt": "2023-10-01T10:10:00",
+                    "id": 1,
+                    "mostActiveEmailDomain": "example.com",
+                    "sentimentSummary": "Mostly positive",
+                    "topKeywords": "[\"sample\",\"comment\"]",
+                    "totalComments": 10
+                }
+            }
+        }
+    ]
+}
