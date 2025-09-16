@@ -1,0 +1,111 @@
+{
+    "version": "1.0",
+    "name": "Category Workflow",
+    "desc": "Description of the workflow for Category",
+    "initialState": "initial_state",
+    "active": true,
+    "states": {
+        "initial_state": {
+            "transitions": [
+                {
+                    "name": "transition_to_available",
+                    "next": "available",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "CategoryRegistrationProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "available": {
+            "transitions": [
+                {
+                    "name": "transition_to_pending",
+                    "next": "pending",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "CategoryReservationProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "pending": {
+            "transitions": [
+                {
+                    "name": "transition_to_available",
+                    "next": "available",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "CategoryReservationCancellationProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "transition_to_sold",
+                    "next": "sold",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "CategorySaleProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ],
+            "sold": {
+                "transitions": [
+                    {
+                        "name": "transition_to_final",
+                        "next": "final",
+                        "manual": false,
+                        "processors": [
+                            {
+                                "name": "CategoryCompletionProcessor",
+                                "executionMode": "SYNC",
+                                "config": {
+                                    "calculationNodesTags": "cyoda_application"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "name": "transition_to_category_update",
+                        "next": "category_update",
+                        "manual": false,
+                        "processors": [
+                            {
+                                "name": "CategoryUpdateProcessor",
+                                "executionMode": "SYNC",
+                                "config": {
+                                    "calculationNodesTags": "cyoda_application"
+                                }
+                            }
+                        ]
+                    },
+                    "final_state\":{\"transitions\":[{\"name\":\"transition_to_complete\",\"next\":\"complete\",\"manual\":false}]}}}}}]},"
+                ]
+            },
+            "}}}]},": "}}}]},"
+        }
+    }
+}

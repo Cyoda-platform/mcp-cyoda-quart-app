@@ -1,0 +1,98 @@
+{
+    "version": "1.0",
+    "name": "Order Workflow",
+    "desc": "Manages the lifecycle of orders from placement to delivery.",
+    "initialState": "initial_state",
+    "active": true,
+    "states": {
+        "initial_state": {
+            "transitions": [
+                {
+                    "name": "transition_to_placed",
+                    "next": "placed",
+                    "manual": false
+                }
+            ]
+        },
+        "placed": {
+            "transitions": [
+                {
+                    "name": "transition_to_approved",
+                    "next": "approved",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "OrderApprovalProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ],
+                    "criterion": {
+                        "type": "function",
+                        "function": {
+                            "name": "OrderValidationCriterion",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "transition_to_placed_update",
+                    "next": "placed",
+                    "manual": true,
+                    "processors": [
+                        {
+                            "name": "OrderUpdateProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "approved": {
+            "transitions": [
+                {
+                    "name": "transition_to_delivered",
+                    "next": "delivered",
+                    "manual": true,
+                    "processors": [
+                        {
+                            "name": "OrderDeliveryProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ],
+                    "criterion": {
+                        "type": "function",
+                        "function": {
+                            "name": "OrderDeliveryCriterion",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "delivered": {
+            "transitions": [
+                {
+                    "name": "transition_to_end",
+                    "next": "final_state",
+                    "manual": false
+                }
+            ]
+        },
+        "final_state": {
+            "transitions": []
+        }
+    }
+}
