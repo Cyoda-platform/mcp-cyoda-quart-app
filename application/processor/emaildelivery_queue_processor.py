@@ -50,7 +50,7 @@ class EmailDeliveryQueueProcessor(CyodaProcessor):
                 )
                 if not subscriber_response.data.get("isActive"):
                     raise ProcessorError(self.name, "Subscriber is not active")
-            except Exception as e:
+            except Exception:
                 raise ProcessorError(
                     self.name, f"Invalid subscriber ID: {entity.subscriberId}"
                 )
@@ -58,7 +58,7 @@ class EmailDeliveryQueueProcessor(CyodaProcessor):
             # Validate cat fact exists
             try:
                 await entity_service.get_by_id(str(entity.catFactId), "catfact", "1")
-            except Exception as e:
+            except Exception:
                 raise ProcessorError(
                     self.name, f"Invalid cat fact ID: {entity.catFactId}"
                 )

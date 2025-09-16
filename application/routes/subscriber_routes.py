@@ -7,7 +7,7 @@ from typing import Optional
 
 from pydantic import BaseModel, EmailStr
 from quart import Blueprint, abort, jsonify, request
-from quart_schema import validate_json, validate_querystring  # type: ignore
+from quart_schema import validate_request, validate_querystring
 
 from common.config.config import ENTITY_VERSION
 from service.services import get_auth_service, get_entity_service
@@ -53,7 +53,7 @@ def get_services():
 
 
 @subscriber_bp.route("", methods=["POST"])
-@validate_json(SubscriberCreateRequest)
+@validate_request(SubscriberCreateRequest)
 async def create_subscriber():
     """Create a new subscriber (sign up for weekly cat facts)."""
     entity_service, cyoda_auth_service = get_services()
@@ -119,7 +119,7 @@ async def get_subscriber(subscriber_id: str):
 
 
 @subscriber_bp.route("/<subscriber_id>", methods=["PUT"])
-@validate_json(SubscriberUpdateRequest)
+@validate_request(SubscriberUpdateRequest)
 async def update_subscriber(subscriber_id: str):
     """Update subscriber information."""
     entity_service, cyoda_auth_service = get_services()
@@ -166,7 +166,7 @@ async def update_subscriber(subscriber_id: str):
 
 
 @subscriber_bp.route("/<subscriber_id>/activate", methods=["PUT"])
-@validate_json(SubscriberTransitionRequest)
+@validate_request(SubscriberTransitionRequest)
 async def activate_subscriber(subscriber_id: str):
     """Activate a pending subscriber."""
     entity_service, cyoda_auth_service = get_services()
@@ -203,7 +203,7 @@ async def activate_subscriber(subscriber_id: str):
 
 
 @subscriber_bp.route("/<subscriber_id>/unsubscribe", methods=["PUT"])
-@validate_json(SubscriberTransitionRequest)
+@validate_request(SubscriberTransitionRequest)
 async def unsubscribe_subscriber(subscriber_id: str):
     """Unsubscribe a subscriber."""
     entity_service, cyoda_auth_service = get_services()
