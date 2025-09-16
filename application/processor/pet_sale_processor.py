@@ -7,9 +7,9 @@ Marks pet as sold when order is completed, updating inventory and logging sale d
 import logging
 from typing import Any
 
+from application.entity.pet.version_1.pet import Pet
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.pet.version_1.pet import Pet
 from services.services import get_entity_service
 
 
@@ -24,7 +24,9 @@ class PetSaleProcessor(CyodaProcessor):
             name="PetSaleProcessor",
             description="Marks pets as sold and updates inventory",
         )
-        self.logger: logging.Logger = getattr(self, "logger", logging.getLogger(__name__))
+        self.logger: logging.Logger = getattr(
+            self, "logger", logging.getLogger(__name__)
+        )
 
     async def process(self, entity: CyodaEntity, **kwargs: Any) -> CyodaEntity:
         """
@@ -47,12 +49,16 @@ class PetSaleProcessor(CyodaProcessor):
 
             # Validate pet is in Pending state
             if not pet.is_pending():
-                raise ValueError(f"Pet {pet.technical_id} is not in pending state for sale")
+                raise ValueError(
+                    f"Pet {pet.technical_id} is not in pending state for sale"
+                )
 
             # Extract order information from kwargs
             order_info = kwargs.get("order_info", {})
-            order_id = order_info.get("completed_order_id") or order_info.get("order_id")
-            
+            order_id = order_info.get("completed_order_id") or order_info.get(
+                "order_id"
+            )
+
             if not order_id:
                 raise ValueError("Order ID is required for pet sale")
 
@@ -65,7 +71,9 @@ class PetSaleProcessor(CyodaProcessor):
             # Update timestamps
             pet.update_timestamp()
 
-            self.logger.info(f"Pet {pet.technical_id} marked as sold for order {order_id}")
+            self.logger.info(
+                f"Pet {pet.technical_id} marked as sold for order {order_id}"
+            )
 
             return pet
 
@@ -96,7 +104,7 @@ class PetSaleProcessor(CyodaProcessor):
             # 3. Reduce reserved_quantity by 1 (since it was reserved)
             # 4. Save the updated inventory record
             # 5. Trigger InventoryUpdateProcessor to check stock levels
-            
+
             # For now, we'll log the inventory update action
             self.logger.info(
                 f"Inventory updated for pet sale {pet.technical_id} (order {order_id})"

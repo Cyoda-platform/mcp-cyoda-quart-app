@@ -7,9 +7,9 @@ Releases pet reservation when order is cancelled, updating inventory accordingly
 import logging
 from typing import Any
 
+from application.entity.pet.version_1.pet import Pet
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.pet.version_1.pet import Pet
 from services.services import get_entity_service
 
 
@@ -24,7 +24,9 @@ class PetReleaseProcessor(CyodaProcessor):
             name="PetReleaseProcessor",
             description="Releases pet reservations by updating inventory",
         )
-        self.logger: logging.Logger = getattr(self, "logger", logging.getLogger(__name__))
+        self.logger: logging.Logger = getattr(
+            self, "logger", logging.getLogger(__name__)
+        )
 
     async def process(self, entity: CyodaEntity, **kwargs: Any) -> CyodaEntity:
         """
@@ -47,12 +49,14 @@ class PetReleaseProcessor(CyodaProcessor):
 
             # Validate pet is in Pending state
             if not pet.is_pending():
-                raise ValueError(f"Pet {pet.technical_id} is not in pending state for release")
+                raise ValueError(
+                    f"Pet {pet.technical_id} is not in pending state for release"
+                )
 
             # Extract cancellation information from kwargs
             cancellation_info = kwargs.get("cancellation_info", {})
             order_id = cancellation_info.get("order_id")
-            
+
             if not order_id:
                 raise ValueError("Order ID is required for pet release")
 
@@ -94,7 +98,7 @@ class PetReleaseProcessor(CyodaProcessor):
             # 1. Find the inventory record by pet_id
             # 2. Reduce reserved_quantity by 1
             # 3. Save the updated inventory record
-            
+
             # For now, we'll log the release action
             self.logger.info(
                 f"Inventory reservation released for pet {pet.technical_id} (order {order_id})"

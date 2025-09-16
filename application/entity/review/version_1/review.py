@@ -15,7 +15,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class Review(CyodaEntity):
     """
     Review entity representing customer reviews for pets.
-    
+
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     The state field manages workflow states: Pending -> Approved -> Rejected
     """
@@ -29,13 +29,13 @@ class Review(CyodaEntity):
     user_id: int = Field(..., description="Foreign key to User")
     rating: int = Field(..., description="Rating from 1 to 5", ge=1, le=5)
     comment: str = Field(..., description="Review comment", max_length=1000)
-    helpful_count: int = Field(
-        default=0, description="Number of helpful votes", ge=0
-    )
+    helpful_count: int = Field(default=0, description="Number of helpful votes", ge=0)
 
     # Timestamps (inherited from CyodaEntity but override for consistency)
     created_at: Optional[str] = Field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        default_factory=lambda: datetime.now(timezone.utc)
+        .isoformat()
+        .replace("+00:00", "Z"),
         description="Timestamp when the review was created (ISO 8601 format)",
     )
     updated_at: Optional[str] = Field(

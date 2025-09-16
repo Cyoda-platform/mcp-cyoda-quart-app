@@ -43,7 +43,9 @@ class OtherEntity(CyodaEntity):
 
     # Timestamps (inherited created_at from CyodaEntity, but need to override updated_at behavior)
     created_at: Optional[str] = Field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        default_factory=lambda: datetime.now(timezone.utc)
+        .isoformat()
+        .replace("+00:00", "Z"),
         alias="createdAt",
         description="Timestamp when the entity was created (ISO 8601 format)",
     )
@@ -88,7 +90,9 @@ class OtherEntity(CyodaEntity):
         """Update the updated_at timestamp to current time"""
         self.updated_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
-    def set_source_entity(self, source_entity_id: str, updated_by: Optional[str] = None) -> None:
+    def set_source_entity(
+        self, source_entity_id: str, updated_by: Optional[str] = None
+    ) -> None:
         """Set source entity information and update timestamp"""
         self.source_entity_id = source_entity_id
         if updated_by:

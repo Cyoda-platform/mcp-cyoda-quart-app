@@ -16,7 +16,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class Pet(CyodaEntity):
     """
     Pet entity representing animals available for adoption.
-    
+
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     The state field manages workflow states: Available -> Pending -> Sold
     """
@@ -44,7 +44,9 @@ class Pet(CyodaEntity):
 
     # Timestamps (inherited from CyodaEntity but override for consistency)
     created_at: Optional[str] = Field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        default_factory=lambda: datetime.now(timezone.utc)
+        .isoformat()
+        .replace("+00:00", "Z"),
         description="Timestamp when the pet was created (ISO 8601 format)",
     )
     updated_at: Optional[str] = Field(
@@ -98,14 +100,14 @@ class Pet(CyodaEntity):
         """Validate photo URLs"""
         if not v:
             return v
-        
+
         for url in v:
             if not url or not url.strip():
                 raise ValueError("Photo URLs must be non-empty")
             # Basic URL validation
             if not (url.startswith("http://") or url.startswith("https://")):
                 raise ValueError("Photo URLs must be valid HTTP/HTTPS URLs")
-        
+
         return v
 
     def update_timestamp(self) -> None:

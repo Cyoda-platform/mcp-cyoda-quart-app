@@ -15,7 +15,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class Order(CyodaEntity):
     """
     Order entity representing customer orders.
-    
+
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     The state field manages workflow states: Placed -> Approved -> Preparing -> Shipped -> Delivered -> Cancelled
     """
@@ -27,8 +27,10 @@ class Order(CyodaEntity):
     # Required fields from functional requirements
     user_id: int = Field(..., description="Foreign key to User")
     order_date: Optional[str] = Field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
-        description="Order date (auto-generated)"
+        default_factory=lambda: datetime.now(timezone.utc)
+        .isoformat()
+        .replace("+00:00", "Z"),
+        description="Order date (auto-generated)",
     )
     ship_date: Optional[str] = Field(None, description="Shipping date")
     total_amount: float = Field(..., description="Total order amount", ge=0)
@@ -38,7 +40,9 @@ class Order(CyodaEntity):
 
     # Timestamps (inherited from CyodaEntity but override for consistency)
     created_at: Optional[str] = Field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        default_factory=lambda: datetime.now(timezone.utc)
+        .isoformat()
+        .replace("+00:00", "Z"),
         description="Timestamp when the order was created (ISO 8601 format)",
     )
     updated_at: Optional[str] = Field(
@@ -71,13 +75,13 @@ class Order(CyodaEntity):
         """Validate order notes"""
         if v is None:
             return v
-        
+
         if len(v.strip()) == 0:
             return None
-        
+
         if len(v) > 500:
             raise ValueError("Order notes must be at most 500 characters long")
-        
+
         return v.strip()
 
     def update_timestamp(self) -> None:

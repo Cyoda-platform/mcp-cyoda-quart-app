@@ -7,9 +7,9 @@ Checks if a pet is available for reservation by verifying state and inventory.
 import logging
 from typing import Any
 
+from application.entity.pet.version_1.pet import Pet
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.pet.version_1.pet import Pet
 from services.services import get_entity_service
 
 
@@ -24,7 +24,9 @@ class PetAvailabilityCriterion(CyodaCriteriaChecker):
             name="PetAvailabilityCriterion",
             description="Checks if pet is available for reservation",
         )
-        self.logger: logging.Logger = getattr(self, "logger", logging.getLogger(__name__))
+        self.logger: logging.Logger = getattr(
+            self, "logger", logging.getLogger(__name__)
+        )
 
     async def check(self, entity: CyodaEntity, **kwargs: Any) -> bool:
         """
@@ -38,14 +40,18 @@ class PetAvailabilityCriterion(CyodaCriteriaChecker):
             True if the pet is available, False otherwise
         """
         try:
-            self.logger.info(f"Checking availability for entity {getattr(entity, 'technical_id', '<unknown>')}")
+            self.logger.info(
+                f"Checking availability for entity {getattr(entity, 'technical_id', '<unknown>')}"
+            )
 
             # Cast the entity to Pet for type-safe operations
             pet = cast_entity(entity, Pet)
 
             # Check if pet state is Available
             if pet.state != "Available":
-                self.logger.info(f"Pet {pet.technical_id} is not available (state: {pet.state})")
+                self.logger.info(
+                    f"Pet {pet.technical_id} is not available (state: {pet.state})"
+                )
                 return False
 
             # Check inventory availability
@@ -80,15 +86,17 @@ class PetAvailabilityCriterion(CyodaCriteriaChecker):
             # 1. Find inventory record by pet_id
             # 2. Calculate available quantity (quantity - reserved_quantity)
             # 3. Check if available quantity > 0
-            
+
             # For now, we'll assume inventory is available if pet state is Available
             # This is a simplified implementation
-            
+
             self.logger.debug(f"Checking inventory for pet {pet.technical_id}")
-            
+
             # Simplified check - assume available if pet is in Available state
             return pet.is_available()
 
         except Exception as e:
-            self.logger.error(f"Error checking inventory for pet {pet.technical_id}: {str(e)}")
+            self.logger.error(
+                f"Error checking inventory for pet {pet.technical_id}: {str(e)}"
+            )
             return False

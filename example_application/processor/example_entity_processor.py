@@ -32,7 +32,9 @@ class ExampleEntityProcessor(CyodaProcessor):
             description="Processes ExampleEntity instances, enriches data and creates related OtherEntity instances",
         )
         # Ensure logger attribute is present for type-checkers/readers.
-        self.logger: logging.Logger = getattr(self, "logger", logging.getLogger(__name__))
+        self.logger: logging.Logger = getattr(
+            self, "logger", logging.getLogger(__name__)
+        )
 
     async def process(self, entity: CyodaEntity, **kwargs: Any) -> CyodaEntity:
         """
@@ -61,7 +63,9 @@ class ExampleEntityProcessor(CyodaProcessor):
             await self._create_related_other_entities(example_entity)
 
             # Log processing completion
-            self.logger.info(f"ExampleEntity {example_entity.technical_id} processed successfully")
+            self.logger.info(
+                f"ExampleEntity {example_entity.technical_id} processed successfully"
+            )
 
             return example_entity
 
@@ -81,7 +85,9 @@ class ExampleEntityProcessor(CyodaProcessor):
         Returns:
             Dictionary containing processed data
         """
-        current_timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        current_timestamp = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
         processing_id = str(uuid.uuid4())
 
         # Create processed data without numeric calculations

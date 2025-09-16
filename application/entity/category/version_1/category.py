@@ -15,7 +15,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class Category(CyodaEntity):
     """
     Category entity for classifying pets.
-    
+
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     The state field manages workflow states: Active -> Inactive
     """
@@ -30,7 +30,9 @@ class Category(CyodaEntity):
 
     # Timestamps (inherited from CyodaEntity but override for consistency)
     created_at: Optional[str] = Field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        default_factory=lambda: datetime.now(timezone.utc)
+        .isoformat()
+        .replace("+00:00", "Z"),
         description="Timestamp when the category was created (ISO 8601 format)",
     )
     updated_at: Optional[str] = Field(

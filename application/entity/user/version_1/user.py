@@ -16,7 +16,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class User(CyodaEntity):
     """
     User entity representing system users (customers, admins, staff).
-    
+
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     The state field manages workflow states: Active -> Inactive -> Suspended
     """
@@ -34,13 +34,14 @@ class User(CyodaEntity):
     phone: Optional[str] = Field(None, description="Phone number", max_length=20)
     address: Optional[str] = Field(None, description="User address", max_length=200)
     user_type: str = Field(
-        default="CUSTOMER", 
-        description="User type: CUSTOMER, ADMIN, STAFF"
+        default="CUSTOMER", description="User type: CUSTOMER, ADMIN, STAFF"
     )
 
     # Timestamps (inherited from CyodaEntity but override for consistency)
     created_at: Optional[str] = Field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        default_factory=lambda: datetime.now(timezone.utc)
+        .isoformat()
+        .replace("+00:00", "Z"),
         description="Timestamp when the user was created (ISO 8601 format)",
     )
     updated_at: Optional[str] = Field(
@@ -58,7 +59,9 @@ class User(CyodaEntity):
             raise ValueError("Username must be at most 50 characters long")
         # Basic username validation (alphanumeric and underscores)
         if not re.match(r"^[a-zA-Z0-9_]+$", v):
-            raise ValueError("Username must contain only letters, numbers, and underscores")
+            raise ValueError(
+                "Username must contain only letters, numbers, and underscores"
+            )
         return v.strip()
 
     @field_validator("first_name")
@@ -87,12 +90,12 @@ class User(CyodaEntity):
         """Validate email format"""
         if not v or len(v.strip()) == 0:
             raise ValueError("Email must be non-empty")
-        
+
         # Basic email validation
         email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
         if not re.match(email_pattern, v):
             raise ValueError("Email must be in valid format")
-        
+
         return v.strip().lower()
 
     @field_validator("password")
@@ -118,13 +121,13 @@ class User(CyodaEntity):
         """Validate phone number"""
         if v is None:
             return v
-        
+
         if len(v.strip()) == 0:
             return None
-        
+
         if len(v) > 20:
             raise ValueError("Phone number must be at most 20 characters long")
-        
+
         return v.strip()
 
     @field_validator("address")
@@ -133,13 +136,13 @@ class User(CyodaEntity):
         """Validate address"""
         if v is None:
             return v
-        
+
         if len(v.strip()) == 0:
             return None
-        
+
         if len(v) > 200:
             raise ValueError("Address must be at most 200 characters long")
-        
+
         return v.strip()
 
     def update_timestamp(self) -> None:

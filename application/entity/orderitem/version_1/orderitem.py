@@ -15,7 +15,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class OrderItem(CyodaEntity):
     """
     OrderItem entity representing individual items within an order.
-    
+
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     The state field manages workflow states: Added -> Confirmed -> Cancelled
     """
@@ -29,11 +29,15 @@ class OrderItem(CyodaEntity):
     pet_id: int = Field(..., description="Foreign key to Pet")
     quantity: int = Field(..., description="Quantity of pets", ge=1)
     unit_price: float = Field(..., description="Price per unit", ge=0)
-    total_price: float = Field(..., description="Total price (quantity * unit_price)", ge=0)
+    total_price: float = Field(
+        ..., description="Total price (quantity * unit_price)", ge=0
+    )
 
     # Timestamps (inherited from CyodaEntity but override for consistency)
     created_at: Optional[str] = Field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        default_factory=lambda: datetime.now(timezone.utc)
+        .isoformat()
+        .replace("+00:00", "Z"),
         description="Timestamp when the order item was created (ISO 8601 format)",
     )
     updated_at: Optional[str] = Field(
@@ -69,8 +73,12 @@ class OrderItem(CyodaEntity):
     def validate_total_price_calculation(self) -> "OrderItem":
         """Validate that total_price equals quantity * unit_price"""
         expected_total = self.quantity * self.unit_price
-        if abs(self.total_price - expected_total) > 0.01:  # Allow for small floating point differences
-            raise ValueError(f"Total price ({self.total_price}) must equal quantity ({self.quantity}) * unit_price ({self.unit_price}) = {expected_total}")
+        if (
+            abs(self.total_price - expected_total) > 0.01
+        ):  # Allow for small floating point differences
+            raise ValueError(
+                f"Total price ({self.total_price}) must equal quantity ({self.quantity}) * unit_price ({self.unit_price}) = {expected_total}"
+            )
         return self
 
     def update_timestamp(self) -> None:

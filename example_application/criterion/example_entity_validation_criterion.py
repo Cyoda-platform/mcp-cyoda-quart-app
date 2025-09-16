@@ -36,7 +36,9 @@ class ExampleEntityValidationCriterion(CyodaCriteriaChecker):
             True if the entity meets all criteria, False otherwise
         """
         try:
-            self.logger.info(f"Validating entity {getattr(entity, 'technical_id', '<unknown>')}")
+            self.logger.info(
+                f"Validating entity {getattr(entity, 'technical_id', '<unknown>')}"
+            )
 
             # Cast the entity to ExampleEntity for type-safe operations
             example_entity = cast_entity(entity, ExampleEntity)
@@ -55,7 +57,9 @@ class ExampleEntityValidationCriterion(CyodaCriteriaChecker):
                 return False
 
             if not example_entity.description or len(example_entity.description) > 500:
-                self.logger.warning(f"Entity {example_entity.technical_id} has invalid description")
+                self.logger.warning(
+                    f"Entity {example_entity.technical_id} has invalid description"
+                )
                 return False
 
             # Validate category
@@ -67,13 +71,18 @@ class ExampleEntityValidationCriterion(CyodaCriteriaChecker):
                 return False
 
             # Validate business logic rules (simplified without numeric constraints)
-            if not example_entity.is_active and example_entity.category == "ELECTRONICS":
+            if (
+                not example_entity.is_active
+                and example_entity.category == "ELECTRONICS"
+            ):
                 self.logger.warning(
                     f"Entity {example_entity.technical_id} ELECTRONICS category entities must be active"
                 )
                 return False
 
-            self.logger.info(f"Entity {example_entity.technical_id} passed all validation criteria")
+            self.logger.info(
+                f"Entity {example_entity.technical_id} passed all validation criteria"
+            )
             return True
 
         except Exception as e:

@@ -7,9 +7,9 @@ Reserves a pet for an order by updating inventory and logging reservation detail
 import logging
 from typing import Any
 
+from application.entity.pet.version_1.pet import Pet
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.pet.version_1.pet import Pet
 from services.services import get_entity_service
 
 
@@ -24,7 +24,9 @@ class PetReservationProcessor(CyodaProcessor):
             name="PetReservationProcessor",
             description="Reserves pets for orders by updating inventory",
         )
-        self.logger: logging.Logger = getattr(self, "logger", logging.getLogger(__name__))
+        self.logger: logging.Logger = getattr(
+            self, "logger", logging.getLogger(__name__)
+        )
 
     async def process(self, entity: CyodaEntity, **kwargs: Any) -> CyodaEntity:
         """
@@ -47,12 +49,14 @@ class PetReservationProcessor(CyodaProcessor):
 
             # Validate pet is in Available state
             if not pet.is_available():
-                raise ValueError(f"Pet {pet.technical_id} is not available for reservation")
+                raise ValueError(
+                    f"Pet {pet.technical_id} is not available for reservation"
+                )
 
             # Extract order information from kwargs
             order_info = kwargs.get("order_info", {})
             order_id = order_info.get("order_id")
-            
+
             if not order_id:
                 raise ValueError("Order ID is required for pet reservation")
 
@@ -89,7 +93,7 @@ class PetReservationProcessor(CyodaProcessor):
             # Find inventory record for this pet
             # Note: In a real implementation, we would search by pet_id
             # For now, we'll assume the inventory exists and can be found
-            
+
             self.logger.info(
                 f"Reserving inventory for pet {pet.technical_id} for order {order_id}"
             )
@@ -99,7 +103,7 @@ class PetReservationProcessor(CyodaProcessor):
             # 2. Check if sufficient quantity is available
             # 3. Update reserved_quantity
             # 4. Save the updated inventory record
-            
+
             # For now, we'll log the reservation action
             self.logger.info(
                 f"Inventory reserved for pet {pet.technical_id} (order {order_id})"

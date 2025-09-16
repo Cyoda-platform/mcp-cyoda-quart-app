@@ -15,7 +15,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class Inventory(CyodaEntity):
     """
     Inventory entity for tracking pet availability and stock levels.
-    
+
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     The state field manages workflow states: InStock -> LowStock -> OutOfStock -> Discontinued
     """
@@ -30,17 +30,19 @@ class Inventory(CyodaEntity):
     reserved_quantity: int = Field(
         default=0, description="Reserved for pending orders", ge=0
     )
-    reorder_level: int = Field(
-        default=1, description="Minimum stock level", ge=0
-    )
+    reorder_level: int = Field(default=1, description="Minimum stock level", ge=0)
     last_restocked: Optional[str] = Field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
-        description="Last restock date"
+        default_factory=lambda: datetime.now(timezone.utc)
+        .isoformat()
+        .replace("+00:00", "Z"),
+        description="Last restock date",
     )
 
     # Timestamps (inherited from CyodaEntity but override for consistency)
     created_at: Optional[str] = Field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        default_factory=lambda: datetime.now(timezone.utc)
+        .isoformat()
+        .replace("+00:00", "Z"),
         description="Timestamp when the inventory was created (ISO 8601 format)",
     )
     updated_at: Optional[str] = Field(
@@ -78,7 +80,9 @@ class Inventory(CyodaEntity):
 
     def update_last_restocked(self) -> None:
         """Update the last restocked timestamp to current time"""
-        self.last_restocked = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.last_restocked = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
         self.update_timestamp()
 
     def get_available_quantity(self) -> int:
@@ -89,7 +93,7 @@ class Inventory(CyodaEntity):
         """Reserve a specific quantity if available"""
         if amount <= 0:
             return False
-        
+
         available = self.get_available_quantity()
         if available >= amount:
             self.reserved_quantity += amount
@@ -101,7 +105,7 @@ class Inventory(CyodaEntity):
         """Release reserved quantity"""
         if amount <= 0:
             return False
-        
+
         if self.reserved_quantity >= amount:
             self.reserved_quantity -= amount
             self.update_timestamp()
@@ -112,7 +116,7 @@ class Inventory(CyodaEntity):
         """Reduce total quantity (for sales)"""
         if amount <= 0:
             return False
-        
+
         if self.quantity >= amount:
             self.quantity -= amount
             # Also reduce reserved quantity if necessary
@@ -126,7 +130,7 @@ class Inventory(CyodaEntity):
         """Add quantity (for restocking)"""
         if amount <= 0:
             return False
-        
+
         self.quantity += amount
         self.update_last_restocked()
         return True

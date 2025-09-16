@@ -7,10 +7,10 @@ Validates and registers a new pet in the system, creating associated inventory r
 import logging
 from typing import Any
 
+from application.entity.inventory.version_1.inventory import Inventory
+from application.entity.pet.version_1.pet import Pet
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.pet.version_1.pet import Pet
-from application.entity.inventory.version_1.inventory import Inventory
 from services.services import get_entity_service
 
 
@@ -25,7 +25,9 @@ class PetRegistrationProcessor(CyodaProcessor):
             name="PetRegistrationProcessor",
             description="Validates and registers new pets, creates inventory record",
         )
-        self.logger: logging.Logger = getattr(self, "logger", logging.getLogger(__name__))
+        self.logger: logging.Logger = getattr(
+            self, "logger", logging.getLogger(__name__)
+        )
 
     async def process(self, entity: CyodaEntity, **kwargs: Any) -> CyodaEntity:
         """

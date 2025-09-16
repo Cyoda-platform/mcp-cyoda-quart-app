@@ -650,6 +650,7 @@ def preprocess_for_cyoda(data: Any) -> Any:
     elif isinstance(data, float):
         # Convert floats to strings for BigDecimal compatibility with Cyoda
         from decimal import Decimal
+
         return str(Decimal(str(data)))
     else:
         return data
