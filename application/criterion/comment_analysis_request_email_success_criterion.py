@@ -120,7 +120,8 @@ class CommentAnalysisRequestEmailSuccessCriterion(CyodaCriteriaChecker):
             if hasattr(report_data, "model_dump"):
                 report_dict: Dict[str, Any] = report_data.model_dump()
             else:
-                report_dict = report_data
+                # If it's already a dict, use it directly
+                report_dict = dict(report_data) if not isinstance(report_data, dict) else report_data
 
             return AnalysisReport(**report_dict)
 

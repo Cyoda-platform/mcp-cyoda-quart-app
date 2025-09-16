@@ -124,8 +124,8 @@ class CommentAnalysisRequestFetchProcessor(CyodaProcessor):
             try:
                 # Create Comment using Pydantic model construction
                 comment = Comment(
-                    id=comment_data.get("id"),
-                    postId=comment_data.get("postId"),
+                    id=comment_data.get("id", 0),
+                    postId=comment_data.get("postId", 0),
                     name=comment_data.get("name", ""),
                     email=comment_data.get("email", ""),
                     body=comment_data.get("body", ""),

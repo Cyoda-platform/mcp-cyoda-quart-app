@@ -123,7 +123,7 @@ class CommentAnalysisRequestAnalyzeProcessor(CyodaProcessor):
             try:
                 comment_data = result.data
                 if hasattr(comment_data, "model_dump"):
-                    comment_dict = comment_data.model_dump()
+                    comment_dict: Dict[str, Any] = comment_data.model_dump()
                 else:
                     comment_dict = comment_data
 
