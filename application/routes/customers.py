@@ -36,25 +36,31 @@ async def get_customers() -> ResponseReturnValue:
             filters["state"] = state
 
         # Get customers from entity service
-        response = await entity_service.get_all(
+        responses = await entity_service.find_all(
             entity_class=Customer.ENTITY_NAME,
             entity_version=str(Customer.ENTITY_VERSION),
-            filters=filters,
-            limit=limit,
-            offset=offset,
         )
+
+        # Apply filters manually
+        filtered_responses = responses
+        if state:
+            filtered_responses = [r for r in filtered_responses if r.get_state() == state]
+
+        # Apply pagination
+        total = len(filtered_responses)
+        paginated_responses = filtered_responses[offset:offset + limit]
 
         # Convert to API response format
         customers = []
-        for customer_data in response.data:
-            customer = Customer(**customer_data)
+        for response in paginated_responses:
+            customer = Customer(**response.data.model_dump())
             customers.append(customer.to_api_response())
 
         return (
             jsonify(
                 {
                     "customers": customers,
-                    "total": len(customers),
+                    "total": total,
                     "limit": limit,
                     "offset": offset,
                 }
@@ -82,7 +88,7 @@ async def get_customer(customer_id: str) -> ResponseReturnValue:
         if not response:
             return jsonify({"error": "Customer not found"}), 404
 
-        customer = Customer(**response.data)
+        customer = Customer(**response.data.model_dump())
         return jsonify(customer.to_api_response()), 200
 
     except Exception as e:
@@ -108,11 +114,10 @@ async def create_customer() -> ResponseReturnValue:
             entity=customer.model_dump(by_alias=True),
             entity_class=Customer.ENTITY_NAME,
             entity_version=str(Customer.ENTITY_VERSION),
-            transition="transition_to_registered",
-        )
+            )
 
         # Return created customer
-        created_customer = Customer(**response.data)
+        created_customer = Customer(**response.data.model_dump())
         return jsonify(created_customer.to_api_response()), 201
 
     except ValueError as e:
@@ -139,7 +144,7 @@ async def update_customer(customer_id: str) -> ResponseReturnValue:
         # Update customer through entity service
         response = await entity_service.update(
             entity_id=customer_id,
-            entity_data=data,
+            entity=data,
             entity_class=Customer.ENTITY_NAME,
             entity_version=str(Customer.ENTITY_VERSION),
             transition=transition,
@@ -149,7 +154,7 @@ async def update_customer(customer_id: str) -> ResponseReturnValue:
             return jsonify({"error": "Customer not found"}), 404
 
         # Return updated customer
-        updated_customer = Customer(**response.data)
+        updated_customer = Customer(**response.data.model_dump())
         return jsonify(updated_customer.to_api_response()), 200
 
     except ValueError as e:
@@ -166,7 +171,7 @@ async def delete_customer(customer_id: str) -> ResponseReturnValue:
     try:
         entity_service = get_entity_service()
 
-        success = await entity_service.delete(
+        success = await entity_service.delete_by_id(
             entity_id=customer_id,
             entity_class=Customer.ENTITY_NAME,
             entity_version=str(Customer.ENTITY_VERSION),
@@ -197,14 +202,13 @@ async def verify_customer(customer_id: str) -> ResponseReturnValue:
             transition="transition_to_verified",
             entity_class=Customer.ENTITY_NAME,
             entity_version=str(Customer.ENTITY_VERSION),
-            processor_kwargs={"verification_documents": verification_documents},
         )
 
         if not response:
             return jsonify({"error": "Customer not found or cannot be verified"}), 404
 
         # Return updated customer
-        updated_customer = Customer(**response.data)
+        updated_customer = Customer(**response.data.model_dump())
         return jsonify(updated_customer.to_api_response()), 200
 
     except Exception as e:
@@ -230,7 +234,7 @@ async def approve_customer(customer_id: str) -> ResponseReturnValue:
             return jsonify({"error": "Customer not found or cannot be approved"}), 404
 
         # Return updated customer
-        updated_customer = Customer(**response.data)
+        updated_customer = Customer(**response.data.model_dump())
         return jsonify(updated_customer.to_api_response()), 200
 
     except Exception as e:
@@ -257,14 +261,13 @@ async def suspend_customer(customer_id: str) -> ResponseReturnValue:
             transition="transition_to_suspended",
             entity_class=Customer.ENTITY_NAME,
             entity_version=str(Customer.ENTITY_VERSION),
-            processor_kwargs={"suspension_reason": suspension_reason},
         )
 
         if not response:
             return jsonify({"error": "Customer not found or cannot be suspended"}), 404
 
         # Return updated customer
-        updated_customer = Customer(**response.data)
+        updated_customer = Customer(**response.data.model_dump())
         return jsonify(updated_customer.to_api_response()), 200
 
     except Exception as e:

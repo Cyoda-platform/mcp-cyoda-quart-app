@@ -44,7 +44,7 @@ async def get_staff() -> ResponseReturnValue:
             is_active_bool = is_active.lower() == "true"
 
         # Get staff from entity service
-        response = await entity_service.get_all(
+        response = await entity_service.find_all(
             entity_class=Staff.ENTITY_NAME,
             entity_version=str(Staff.ENTITY_VERSION),
             filters=filters,
@@ -90,7 +90,7 @@ async def get_staff_member(staff_id: str) -> ResponseReturnValue:
         if not response:
             return jsonify({"error": "Staff member not found"}), 404
 
-        staff_member = Staff(**response.data)
+        staff_member = Staff(**response.data.model_dump())
         return jsonify(staff_member.to_api_response()), 200
 
     except Exception as e:
@@ -116,11 +116,10 @@ async def create_staff_member() -> ResponseReturnValue:
             entity=staff_member.model_dump(by_alias=True),
             entity_class=Staff.ENTITY_NAME,
             entity_version=str(Staff.ENTITY_VERSION),
-            transition="transition_to_active",
-        )
+            )
 
         # Return created staff member
-        created_staff = Staff(**response.data)
+        created_staff = Staff(**response.data.model_dump())
         return jsonify(created_staff.to_api_response()), 201
 
     except ValueError as e:
@@ -147,7 +146,7 @@ async def update_staff_member(staff_id: str) -> ResponseReturnValue:
         # Update staff member through entity service
         response = await entity_service.update(
             entity_id=staff_id,
-            entity_data=data,
+            entity=data,
             entity_class=Staff.ENTITY_NAME,
             entity_version=str(Staff.ENTITY_VERSION),
             transition=transition,
@@ -157,7 +156,7 @@ async def update_staff_member(staff_id: str) -> ResponseReturnValue:
             return jsonify({"error": "Staff member not found"}), 404
 
         # Return updated staff member
-        updated_staff = Staff(**response.data)
+        updated_staff = Staff(**response.data.model_dump())
         return jsonify(updated_staff.to_api_response()), 200
 
     except ValueError as e:
@@ -174,7 +173,7 @@ async def delete_staff_member(staff_id: str) -> ResponseReturnValue:
     try:
         entity_service = get_entity_service()
 
-        success = await entity_service.delete(
+        success = await entity_service.delete_by_id(
             entity_id=staff_id,
             entity_class=Staff.ENTITY_NAME,
             entity_version=str(Staff.ENTITY_VERSION),
@@ -205,7 +204,6 @@ async def staff_leave(staff_id: str) -> ResponseReturnValue:
             transition="transition_to_on_leave",
             entity_class=Staff.ENTITY_NAME,
             entity_version=str(Staff.ENTITY_VERSION),
-            processor_kwargs={"leave_details": leave_details},
         )
 
         if not response:
@@ -215,7 +213,7 @@ async def staff_leave(staff_id: str) -> ResponseReturnValue:
             )
 
         # Return updated staff member
-        updated_staff = Staff(**response.data)
+        updated_staff = Staff(**response.data.model_dump())
         return jsonify(updated_staff.to_api_response()), 200
 
     except Exception as e:
@@ -246,7 +244,7 @@ async def staff_return(staff_id: str) -> ResponseReturnValue:
             )
 
         # Return updated staff member
-        updated_staff = Staff(**response.data)
+        updated_staff = Staff(**response.data.model_dump())
         return jsonify(updated_staff.to_api_response()), 200
 
     except Exception as e:

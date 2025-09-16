@@ -43,7 +43,7 @@ async def get_pet_care_records() -> ResponseReturnValue:
             filters["care_type"] = care_type
 
         # Get care records from entity service
-        response = await entity_service.get_all(
+        response = await entity_service.find_all(
             entity_class=PetCareRecord.ENTITY_NAME,
             entity_version=str(PetCareRecord.ENTITY_VERSION),
             filters=filters,
@@ -89,7 +89,7 @@ async def get_pet_care_record(record_id: str) -> ResponseReturnValue:
         if not response:
             return jsonify({"error": "Pet care record not found"}), 404
 
-        care_record = PetCareRecord(**response.data)
+        care_record = PetCareRecord(**response.data.model_dump())
         return jsonify(care_record.to_api_response()), 200
 
     except Exception as e:
@@ -115,11 +115,10 @@ async def create_pet_care_record() -> ResponseReturnValue:
             entity=care_record.model_dump(by_alias=True),
             entity_class=PetCareRecord.ENTITY_NAME,
             entity_version=str(PetCareRecord.ENTITY_VERSION),
-            transition="transition_to_scheduled",
-        )
+            )
 
         # Return created care record
-        created_record = PetCareRecord(**response.data)
+        created_record = PetCareRecord(**response.data.model_dump())
         return jsonify(created_record.to_api_response()), 201
 
     except ValueError as e:
@@ -146,7 +145,7 @@ async def update_pet_care_record(record_id: str) -> ResponseReturnValue:
         # Update care record through entity service
         response = await entity_service.update(
             entity_id=record_id,
-            entity_data=data,
+            entity=data,
             entity_class=PetCareRecord.ENTITY_NAME,
             entity_version=str(PetCareRecord.ENTITY_VERSION),
             transition=transition,
@@ -156,7 +155,7 @@ async def update_pet_care_record(record_id: str) -> ResponseReturnValue:
             return jsonify({"error": "Pet care record not found"}), 404
 
         # Return updated care record
-        updated_record = PetCareRecord(**response.data)
+        updated_record = PetCareRecord(**response.data.model_dump())
         return jsonify(updated_record.to_api_response()), 200
 
     except ValueError as e:
@@ -175,7 +174,7 @@ async def delete_pet_care_record(record_id: str) -> ResponseReturnValue:
     try:
         entity_service = get_entity_service()
 
-        success = await entity_service.delete(
+        success = await entity_service.delete_by_id(
             entity_id=record_id,
             entity_class=PetCareRecord.ENTITY_NAME,
             entity_version=str(PetCareRecord.ENTITY_VERSION),
@@ -206,7 +205,6 @@ async def complete_care(record_id: str) -> ResponseReturnValue:
             transition="transition_to_completed",
             entity_class=PetCareRecord.ENTITY_NAME,
             entity_version=str(PetCareRecord.ENTITY_VERSION),
-            processor_kwargs={"care_results": care_results},
         )
 
         if not response:
@@ -216,7 +214,7 @@ async def complete_care(record_id: str) -> ResponseReturnValue:
             )
 
         # Return updated care record
-        updated_record = PetCareRecord(**response.data)
+        updated_record = PetCareRecord(**response.data.model_dump())
         return jsonify(updated_record.to_api_response()), 200
 
     except Exception as e:
@@ -244,8 +242,6 @@ async def cancel_care(record_id: str) -> ResponseReturnValue:
             transition="transition_to_cancelled",
             entity_class=PetCareRecord.ENTITY_NAME,
             entity_version=str(PetCareRecord.ENTITY_VERSION),
-            processor_kwargs={
-                "cancellation_reason": cancellation_reason,
                 "reschedule_needed": reschedule_needed,
             },
         )
@@ -257,7 +253,7 @@ async def cancel_care(record_id: str) -> ResponseReturnValue:
             )
 
         # Return updated care record
-        updated_record = PetCareRecord(**response.data)
+        updated_record = PetCareRecord(**response.data.model_dump())
         return jsonify(updated_record.to_api_response()), 200
 
     except Exception as e:

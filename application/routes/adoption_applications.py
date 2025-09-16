@@ -45,7 +45,7 @@ async def get_adoption_applications() -> ResponseReturnValue:
             filters["pet_id"] = pet_id
 
         # Get applications from entity service
-        response = await entity_service.get_all(
+        response = await entity_service.find_all(
             entity_class=AdoptionApplication.ENTITY_NAME,
             entity_version=str(AdoptionApplication.ENTITY_VERSION),
             filters=filters,
@@ -91,7 +91,7 @@ async def get_adoption_application(application_id: str) -> ResponseReturnValue:
         if not response:
             return jsonify({"error": "Adoption application not found"}), 404
 
-        application = AdoptionApplication(**response.data)
+        application = AdoptionApplication(**response.data.model_dump())
         return jsonify(application.to_api_response()), 200
 
     except Exception as e:
@@ -117,11 +117,10 @@ async def create_adoption_application() -> ResponseReturnValue:
             entity=application.model_dump(by_alias=True),
             entity_class=AdoptionApplication.ENTITY_NAME,
             entity_version=str(AdoptionApplication.ENTITY_VERSION),
-            transition="transition_to_submitted",
-        )
+            )
 
         # Return created application
-        created_application = AdoptionApplication(**response.data)
+        created_application = AdoptionApplication(**response.data.model_dump())
         return jsonify(created_application.to_api_response()), 201
 
     except ValueError as e:
@@ -148,7 +147,7 @@ async def update_adoption_application(application_id: str) -> ResponseReturnValu
         # Update application through entity service
         response = await entity_service.update(
             entity_id=application_id,
-            entity_data=data,
+            entity=data,
             entity_class=AdoptionApplication.ENTITY_NAME,
             entity_version=str(AdoptionApplication.ENTITY_VERSION),
             transition=transition,
@@ -158,7 +157,7 @@ async def update_adoption_application(application_id: str) -> ResponseReturnValu
             return jsonify({"error": "Adoption application not found"}), 404
 
         # Return updated application
-        updated_application = AdoptionApplication(**response.data)
+        updated_application = AdoptionApplication(**response.data.model_dump())
         return jsonify(updated_application.to_api_response()), 200
 
     except ValueError as e:
@@ -177,7 +176,7 @@ async def delete_adoption_application(application_id: str) -> ResponseReturnValu
     try:
         entity_service = get_entity_service()
 
-        success = await entity_service.delete(
+        success = await entity_service.delete_by_id(
             entity_id=application_id,
             entity_class=AdoptionApplication.ENTITY_NAME,
             entity_version=str(AdoptionApplication.ENTITY_VERSION),
@@ -208,7 +207,6 @@ async def start_review(application_id: str) -> ResponseReturnValue:
             transition="transition_to_under_review",
             entity_class=AdoptionApplication.ENTITY_NAME,
             entity_version=str(AdoptionApplication.ENTITY_VERSION),
-            processor_kwargs={"reviewer_id": reviewer_id},
         )
 
         if not response:
@@ -220,7 +218,7 @@ async def start_review(application_id: str) -> ResponseReturnValue:
             )
 
         # Return updated application
-        updated_application = AdoptionApplication(**response.data)
+        updated_application = AdoptionApplication(**response.data.model_dump())
         return jsonify(updated_application.to_api_response()), 200
 
     except Exception as e:
@@ -253,7 +251,7 @@ async def approve_application(application_id: str) -> ResponseReturnValue:
             )
 
         # Return updated application
-        updated_application = AdoptionApplication(**response.data)
+        updated_application = AdoptionApplication(**response.data.model_dump())
         return jsonify(updated_application.to_api_response()), 200
 
     except Exception as e:
@@ -280,7 +278,6 @@ async def reject_application(application_id: str) -> ResponseReturnValue:
             transition="transition_to_rejected",
             entity_class=AdoptionApplication.ENTITY_NAME,
             entity_version=str(AdoptionApplication.ENTITY_VERSION),
-            processor_kwargs={"rejection_reason": rejection_reason},
         )
 
         if not response:
@@ -292,7 +289,7 @@ async def reject_application(application_id: str) -> ResponseReturnValue:
             )
 
         # Return updated application
-        updated_application = AdoptionApplication(**response.data)
+        updated_application = AdoptionApplication(**response.data.model_dump())
         return jsonify(updated_application.to_api_response()), 200
 
     except Exception as e:
@@ -319,7 +316,6 @@ async def withdraw_application(application_id: str) -> ResponseReturnValue:
             transition="transition_to_withdrawn",
             entity_class=AdoptionApplication.ENTITY_NAME,
             entity_version=str(AdoptionApplication.ENTITY_VERSION),
-            processor_kwargs={"withdrawal_reason": withdrawal_reason},
         )
 
         if not response:
@@ -331,7 +327,7 @@ async def withdraw_application(application_id: str) -> ResponseReturnValue:
             )
 
         # Return updated application
-        updated_application = AdoptionApplication(**response.data)
+        updated_application = AdoptionApplication(**response.data.model_dump())
         return jsonify(updated_application.to_api_response()), 200
 
     except Exception as e:
