@@ -50,16 +50,13 @@ class UserVerificationCriterion(CyodaCriteriaChecker):
                 return False
 
             # Check username uniqueness (placeholder implementation)
-            if not await self._is_username_unique(
-                user.username, user.technical_id or user.entity_id
-            ):
+            user_id = user.technical_id or user.entity_id or "unknown"
+            if not await self._is_username_unique(user.username, user_id):
                 self.logger.warning(f"Username {user.username} is no longer unique")
                 return False
 
             # Check email uniqueness (placeholder implementation)
-            if not await self._is_email_unique(
-                user.email, user.technical_id or user.entity_id
-            ):
+            if not await self._is_email_unique(user.email, user_id):
                 self.logger.warning(f"Email {user.email} is no longer unique")
                 return False
 
