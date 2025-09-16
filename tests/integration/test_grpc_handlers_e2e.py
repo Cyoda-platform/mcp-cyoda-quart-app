@@ -219,9 +219,12 @@ class TestGrpcHandlersE2E:
         processed_entity_data = response_data["payload"]["data"]
         assert "processed_data" in processed_entity_data
         assert (
-            processed_entity_data["processed_data"]["enriched_category"] == "ELECTRONICS_PROCESSED"
+            processed_entity_data["processed_data"]["enriched_category"]
+            == "ELECTRONICS_PROCESSED"
         )
-        assert processed_entity_data["processed_data"]["processing_status"] == "COMPLETED"
+        assert (
+            processed_entity_data["processed_data"]["processing_status"] == "COMPLETED"
+        )
         assert (
             processed_entity_data["processed_data"]["enriched_category"]
             == "ELECTRONICS_PROCESSED"
@@ -541,7 +544,9 @@ class TestGrpcHandlersE2E:
                     processed_entity.processed_data["enriched_category"]
                     == "ELECTRONICS_PROCESSED"
                 )
-                assert processed_entity.processed_data["processing_status"] == "COMPLETED"
+                assert (
+                    processed_entity.processed_data["processing_status"] == "COMPLETED"
+                )
 
     @pytest.mark.asyncio
     async def test_grpc_handler_response_formats(self, mock_services):

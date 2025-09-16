@@ -18,7 +18,9 @@ class ErrorResponse(BaseModel):
     """Standard error response model."""
 
     error: str = Field(..., description="Error message")
-    details: Optional[Dict[str, Any]] = Field(default=None, description="Additional error details")
+    details: Optional[Dict[str, Any]] = Field(
+        default=None, description="Additional error details"
+    )
     code: Optional[str] = Field(default=None, description="Error code")
 
 
@@ -141,7 +143,9 @@ class OtherEntityQueryParams(BaseModel):
         pattern=r"^[a-fA-F0-9-]+$",
     )
     priority: Optional[str] = Field(
-        default=None, description="Filter by priority level", pattern=r"^(LOW|MEDIUM|HIGH)$"
+        default=None,
+        description="Filter by priority level",
+        pattern=r"^(LOW|MEDIUM|HIGH)$",
     )
     state: Optional[str] = Field(
         default=None, description="Filter by workflow state", pattern=r"^[a-z_]+$"

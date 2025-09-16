@@ -8,6 +8,7 @@ from quart_schema import QuartSchema, ResponseSchemaValidationError, hide
 from common.exception.exception_handler import (
     register_error_handlers as _register_error_handlers,
 )
+
 # Import Cyoda Example Entity blueprints
 from example_application.routes.example_entities import example_entities_bp
 from example_application.routes.other_entities import other_entities_bp

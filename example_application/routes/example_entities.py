@@ -21,7 +21,6 @@ from quart_schema import (
 
 from common.service.entity_service import (
     SearchConditionRequest,
-
 )
 from services.services import get_entity_service
 
@@ -65,7 +64,9 @@ def _to_entity_dict(data: Any) -> Dict[str, Any]:
     return data.model_dump(by_alias=True) if hasattr(data, "model_dump") else data
 
 
-example_entities_bp = Blueprint("example_entities", __name__, url_prefix="/api/example-entities")
+example_entities_bp = Blueprint(
+    "example_entities", __name__, url_prefix="/api/example-entities"
+)
 
 
 # Remove duplicate models - using ones from models package
@@ -86,7 +87,7 @@ example_entities_bp = Blueprint("example_entities", __name__, url_prefix="/api/e
     },
 )
 async def create_example_entity(
-        data: ExampleEntity,
+    data: ExampleEntity,
 ) -> ResponseReturnValue:
     """Create a new ExampleEntity with comprehensive validation"""
     try:
@@ -129,7 +130,10 @@ async def get_example_entity(entity_id: str) -> ResponseReturnValue:
     try:
         # Validate entity ID format
         if not entity_id or len(entity_id.strip()) == 0:
-            return jsonify({"error": "Entity ID is required", "code": "INVALID_ID"}), 400
+            return (
+                jsonify({"error": "Entity ID is required", "code": "INVALID_ID"}),
+                400,
+            )
 
         response = await service.get_by_id(
             entity_id=entity_id,
@@ -163,7 +167,7 @@ async def get_example_entity(entity_id: str) -> ResponseReturnValue:
     }
 )
 async def list_example_entities(
-        query_args: ExampleEntityQueryParams,
+    query_args: ExampleEntityQueryParams,
 ) -> ResponseReturnValue:
     """List ExampleEntities with optional filtering and validation"""
     try:
@@ -227,13 +231,16 @@ async def list_example_entities(
     },
 )
 async def update_example_entity(
-        entity_id: str, data: ExampleEntity, query_args: ExampleEntityUpdateQueryParams
+    entity_id: str, data: ExampleEntity, query_args: ExampleEntityUpdateQueryParams
 ) -> ResponseReturnValue:
     """Update ExampleEntity and optionally trigger workflow transition with validation"""
     try:
         # Validate entity ID format
         if not entity_id or len(entity_id.strip()) == 0:
-            return jsonify({"error": "Entity ID is required", "code": "INVALID_ID"}), 400
+            return (
+                jsonify({"error": "Entity ID is required", "code": "INVALID_ID"}),
+                400,
+            )
 
         # Get transition from query parameters
         transition: Optional[str] = query_args.transition
@@ -256,7 +263,9 @@ async def update_example_entity(
         return jsonify(_to_entity_dict(response.data)), 200
 
     except ValueError as e:
-        logger.warning("Validation error updating ExampleEntity %s: %s", entity_id, str(e))
+        logger.warning(
+            "Validation error updating ExampleEntity %s: %s", entity_id, str(e)
+        )
         return jsonify({"error": str(e), "code": "VALIDATION_ERROR"}), 400
     except Exception as e:  # pragma: no cover
         logger.exception("Error updating ExampleEntity %s: %s", entity_id, str(e))
@@ -279,7 +288,10 @@ async def delete_example_entity(entity_id: str) -> ResponseReturnValue:
     try:
         # Validate entity ID format
         if not entity_id or len(entity_id.strip()) == 0:
-            return jsonify({"error": "Entity ID is required", "code": "INVALID_ID"}), 400
+            return (
+                jsonify({"error": "Entity ID is required", "code": "INVALID_ID"}),
+                400,
+            )
 
         await service.delete_by_id(
             entity_id=entity_id,
@@ -291,7 +303,9 @@ async def delete_example_entity(entity_id: str) -> ResponseReturnValue:
 
         # Thin proxy: return success message
         response = DeleteResponse(
-            success=True, message="ExampleEntity deleted successfully", entity_id=entity_id
+            success=True,
+            message="ExampleEntity deleted successfully",
+            entity_id=entity_id,
         )
         return response.model_dump(), 200
 
@@ -335,7 +349,9 @@ async def get_by_business_id(business_id: str) -> ResponseReturnValue:
         return jsonify(_to_entity_dict(result.data)), 200
 
     except Exception as e:
-        logger.exception("Error getting ExampleEntity by business ID %s: %s", business_id, str(e))
+        logger.exception(
+            "Error getting ExampleEntity by business ID %s: %s", business_id, str(e)
+        )
         return jsonify({"error": str(e)}), 500
 
 
@@ -356,7 +372,9 @@ async def check_exists(entity_id: str) -> ResponseReturnValue:
         return response.model_dump(), 200
 
     except Exception as e:
-        logger.exception("Error checking ExampleEntity existence %s: %s", entity_id, str(e))
+        logger.exception(
+            "Error checking ExampleEntity existence %s: %s", entity_id, str(e)
+        )
         return {"error": str(e)}, 500
 
 
@@ -409,7 +427,9 @@ async def get_available_transitions(entity_id: str) -> ResponseReturnValue:
         return jsonify(response.model_dump()), 200
 
     except Exception as e:
-        logger.exception("Error getting transitions for ExampleEntity %s: %s", entity_id, str(e))
+        logger.exception(
+            "Error getting transitions for ExampleEntity %s: %s", entity_id, str(e)
+        )
         return jsonify({"error": str(e)}), 500
 
 
@@ -461,7 +481,9 @@ async def search_entities(data: SearchRequest) -> ResponseReturnValue:
 @example_entities_bp.route("/find-all", methods=["GET"])
 @tag(["example-entities"])
 @operation_id("find_all_example_entities")
-@validate(responses={200: (ExampleEntityListResponse, None), 500: (ErrorResponse, None)})
+@validate(
+    responses={200: (ExampleEntityListResponse, None), 500: (ErrorResponse, None)}
+)
 async def find_all_entities() -> ResponseReturnValue:
     """Find all ExampleEntities without filtering"""
     try:
@@ -490,7 +512,9 @@ async def find_all_entities() -> ResponseReturnValue:
         500: (ErrorResponse, None),
     },
 )
-async def trigger_transition(entity_id: str, data: TransitionRequest) -> ResponseReturnValue:
+async def trigger_transition(
+    entity_id: str, data: TransitionRequest
+) -> ResponseReturnValue:
     """Trigger a specific workflow transition with validation"""
     try:
         # Get current entity state
@@ -532,5 +556,7 @@ async def trigger_transition(entity_id: str, data: TransitionRequest) -> Respons
         )
 
     except Exception as e:  # pragma: no cover
-        logger.exception("Error executing transition on ExampleEntity %s: %s", entity_id, str(e))
+        logger.exception(
+            "Error executing transition on ExampleEntity %s: %s", entity_id, str(e)
+        )
         return jsonify({"error": str(e)}), 500

@@ -33,12 +33,16 @@ class ExampleEntity(CyodaEntity):
     description: str = Field(..., description="Description of the entity")
     category: str = Field(..., description="Category classification for the entity")
     is_active: Optional[bool] = Field(
-        default=None, alias="isActive", description="Flag indicating if the entity is active"
+        default=None,
+        alias="isActive",
+        description="Flag indicating if the entity is active",
     )
 
     # Timestamps (inherited created_at from CyodaEntity, but need to override updated_at behavior)
     created_at: Optional[str] = Field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        default_factory=lambda: datetime.now(timezone.utc)
+        .isoformat()
+        .replace("+00:00", "Z"),
         alias="createdAt",
         description="Timestamp when the entity was created (ISO 8601 format)",
     )
@@ -90,8 +94,6 @@ class ExampleEntity(CyodaEntity):
         if len(v) > 500:
             raise ValueError("Description must be at most 500 characters long")
         return v.strip()
-
-
 
     @field_validator("category")
     @classmethod

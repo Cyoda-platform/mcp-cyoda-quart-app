@@ -36,7 +36,9 @@ class CyodaEntity(BaseModel):
     version: Optional[str] = Field(default="1.0", description="Entity version")
 
     # Workflow-related fields
-    state: Optional[str] = Field(default="initial_state", description="Current workflow state")
+    state: Optional[str] = Field(
+        default="initial_state", description="Current workflow state"
+    )
 
     # Metadata
     metadata: Optional[Dict[str, Any]] = Field(
