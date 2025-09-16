@@ -1,0 +1,77 @@
+{
+    "version": "1.0",
+    "name": "PetCareRecord Workflow",
+    "desc": "Description of the workflow for PetCareRecord",
+    "initialState": "initial_state",
+    "active": true,
+    "states": {
+        "initial_state": {
+            "transitions": [
+                {
+                    "name": "transition_to_scheduled",
+                    "next": "scheduled",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "CareSchedulingProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "scheduled": {
+            "transitions": [
+                {
+                    "name": "transition_to_completed",
+                    "next": "completed",
+                    "manual": true,
+                    "processors": [
+                        {
+                            "name": "CareCompletionProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "transition_to_cancelled",
+                    "next": "cancelled",
+                    "manual": true,
+                    "processors": [
+                        {
+                            "name": "CareCancellationProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "completed": {
+            "transitions": [
+                {
+                    "name": "transition_to_end",
+                    "next": "end_state",
+                    "manual": false
+                }
+            ]
+        },
+        "cancelled": {
+            "transitions": [
+                {
+                    "name": "transition_to_end",
+                    "next": "end_state",
+                    "manual": false
+                }
+            ]
+        }
+    }
+}

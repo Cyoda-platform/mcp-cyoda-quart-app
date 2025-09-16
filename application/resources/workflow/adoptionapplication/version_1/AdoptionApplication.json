@@ -1,0 +1,132 @@
+{
+    "version": "1.0",
+    "name": "AdoptionApplication Workflow",
+    "desc": "Workflow for managing adoption applications",
+    "initialState": "initial_state",
+    "active": true,
+    "states": {
+        "initial_state": {
+            "transitions": [
+                {
+                    "name": "transition_to_submitted",
+                    "next": "submitted",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "ApplicationSubmissionProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "submitted": {
+            "transitions": [
+                {
+                    "name": "transition_to_under_review",
+                    "next": "under_review",
+                    "manual": false,
+                    "criterion": {
+                        "type": "function",
+                        "function": {
+                            "name": "ApplicationCompletenessCriterion",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "transition_to_withdrawn",
+                    "next": "withdrawn",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "ApplicationWithdrawalProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "under_review": {
+            "transitions": [
+                {
+                    "name": "transition_to_approved",
+                    "next": "approved",
+                    "manual": false,
+                    "criterion": {
+                        "type": "function",
+                        "function": {
+                            "name": "ApplicationApprovalCriterion",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "transition_to_rejected",
+                    "next": "rejected",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "ApplicationRejectionProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "transition_to_withdrawn",
+                    "next": "withdrawn",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "ApplicationWithdrawalProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "approved": {
+            "transitions": [
+                {
+                    "name": "transition_to_final",
+                    "next": "final_state",
+                    "manual": false
+                }
+            ]
+        },
+        "rejected": {
+            "transitions": [
+                {
+                    "name": "transition_to_final",
+                    "next": "final_state",
+                    "manual": false
+                }
+            ]
+        },
+        "withdrawn": {
+            "transitions": [
+                {
+                    "name": "transition_to_final",
+                    "next": "final_state",
+                    "manual": false
+                }
+            ]
+        }
+    }
+}

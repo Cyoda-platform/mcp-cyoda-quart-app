@@ -1,0 +1,144 @@
+{
+    "version": "1.0",
+    "name": "Customer Workflow",
+    "desc": "Workflow for managing customer registrations and approvals",
+    "initialState": "initial_state",
+    "active": true,
+    "states": {
+        "initial_state": {
+            "transitions": [
+                {
+                    "name": "transition_to_registered",
+                    "next": "registered",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "CustomerRegistrationProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "registered": {
+            "transitions": [
+                {
+                    "name": "transition_to_verified",
+                    "next": "verified",
+                    "manual": true,
+                    "processors": [
+                        {
+                            "name": "CustomerVerificationProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ],
+                    "criterion": {
+                        "type": "function",
+                        "function": {
+                            "name": "CustomerDataValidationCriterion",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "verified": {
+            "transitions": [
+                {
+                    "name": "transition_to_approved",
+                    "next": "approved",
+                    "manual": true,
+                    "processors": [
+                        {
+                            "name": "CustomerApprovalProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ],
+                    "criterion": {
+                        "type": "function",
+                        "function": {
+                            "name": "CustomerEligibilityCriterion",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "approved": {
+            "transitions": [
+                {
+                    "name": "transition_to_suspended",
+                    "next": "suspended",
+                    "manual": true,
+                    "processors": [
+                        {
+                            "name": "CustomerSuspensionProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "suspended": {
+            "transitions": [
+                {
+                    "name": "transition_to_approved",
+                    "next": "approved",
+                    "manual": true,
+                    "processors": [
+                        {
+                            "name": "CustomerReinstateProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ],
+                    "criterion": {
+                        "type": "function",
+                        "function": {
+                            "name": "SuspensionReviewCriterion",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "inactive": {
+            "transitions": [
+                {
+                    "name": "transition_to_approved",
+                    "next": "approved",
+                    "manual": true,
+                    "processors": [
+                        {
+                            "name": "CustomerDeactivationProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}
