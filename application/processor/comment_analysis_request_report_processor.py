@@ -128,7 +128,11 @@ class CommentAnalysisRequestReportProcessor(CyodaProcessor):
                 report_dict: Dict[str, Any] = report_data.model_dump()
             else:
                 # If it's already a dict, use it directly
-                report_dict = dict(report_data) if not isinstance(report_data, dict) else report_data
+                report_dict = (
+                    dict(report_data)
+                    if not isinstance(report_data, dict)
+                    else report_data
+                )
 
             return AnalysisReport(**report_dict)
         except Exception as e:

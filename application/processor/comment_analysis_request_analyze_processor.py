@@ -126,7 +126,11 @@ class CommentAnalysisRequestAnalyzeProcessor(CyodaProcessor):
                     comment_dict: Dict[str, Any] = comment_data.model_dump()
                 else:
                     # If it's already a dict, use it directly
-                    comment_dict = dict(comment_data) if not isinstance(comment_data, dict) else comment_data
+                    comment_dict = (
+                        dict(comment_data)
+                        if not isinstance(comment_data, dict)
+                        else comment_data
+                    )
 
                 comment = Comment(**comment_dict)
                 comments.append(comment)

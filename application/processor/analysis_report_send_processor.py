@@ -14,7 +14,7 @@ from application.entity.comment_analysis_request.version_1.comment_analysis_requ
 )
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from common.service.entity_service import SearchConditionRequest
+
 from services.services import get_entity_service
 
 
@@ -117,7 +117,11 @@ class AnalysisReportSendProcessor(CyodaProcessor):
                     request_dict: Dict[str, Any] = request_data.model_dump()
                 else:
                     # If it's already a dict, use it directly
-                    request_dict = dict(request_data) if not isinstance(request_data, dict) else request_data
+                    request_dict = (
+                        dict(request_data)
+                        if not isinstance(request_data, dict)
+                        else request_data
+                    )
 
                 return CommentAnalysisRequest(**request_dict)
 
@@ -213,7 +217,7 @@ class AnalysisReportSendProcessor(CyodaProcessor):
         """
         # In a real implementation, this would integrate with an email service
         # For now, we'll simulate the email sending
-        self.logger.info(f"SIMULATED EMAIL SEND:")
+        self.logger.info("SIMULATED EMAIL SEND:")
         self.logger.info(f"To: {to}")
         self.logger.info(f"Subject: {subject}")
         self.logger.info(f"Body length: {len(body)} characters")

@@ -7,7 +7,7 @@ query parameters, request bodies, and response schemas.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -131,13 +131,7 @@ class TransitionRequest(BaseModel):
     @field_validator("transition_name")
     @classmethod
     def validate_transition_name(cls, v: str) -> str:
-        # Allow common transition patterns
-        allowed_patterns = [
-            "transition_to_pending_retry",
-            "transition_to_sending_retry",
-            "failed_to_pending",
-            "failed_to_sending",
-        ]
+        # Allow common transition patterns - validation logic below
         # Basic validation - in real implementation, this would be more comprehensive
         if (
             not v.startswith("transition_")
