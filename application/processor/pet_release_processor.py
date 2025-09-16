@@ -88,8 +88,6 @@ class PetReleaseProcessor(CyodaProcessor):
             order_id: The order ID that had the reservation
         """
         try:
-            entity_service = get_entity_service()
-
             self.logger.info(
                 f"Releasing inventory reservation for pet {pet.technical_id} from order {order_id}"
             )

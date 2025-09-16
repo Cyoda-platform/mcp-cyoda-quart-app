@@ -88,8 +88,6 @@ class PetReservationProcessor(CyodaProcessor):
             order_id: The order ID requesting the reservation
         """
         try:
-            entity_service = get_entity_service()
-
             # Find inventory record for this pet
             # Note: In a real implementation, we would search by pet_id
             # For now, we'll assume the inventory exists and can be found

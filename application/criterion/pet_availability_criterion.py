@@ -80,8 +80,6 @@ class PetAvailabilityCriterion(CyodaCriteriaChecker):
             True if inventory is sufficient, False otherwise
         """
         try:
-            entity_service = get_entity_service()
-
             # In a real implementation, we would:
             # 1. Find inventory record by pet_id
             # 2. Calculate available quantity (quantity - reserved_quantity)

@@ -88,8 +88,6 @@ class OrderCompletionCriterion(CyodaCriteriaChecker):
             True if order is delivered, False otherwise
         """
         try:
-            entity_service = get_entity_service()
-
             self.logger.debug(f"Checking status for order {order_id}")
 
             # In a real implementation, we would:
