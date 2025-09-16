@@ -1,0 +1,159 @@
+{
+    "version": "1.0",
+    "name": "EggAlarm Workflow",
+    "desc": "Description of the workflow for EggAlarm",
+    "initialState": "initial_state",
+    "active": true,
+    "states": {
+        "initial_state": {
+            "transitions": [
+                {
+                    "name": "transition_to_created",
+                    "next": "CREATED",
+                    "manual": false
+                }
+            ]
+        },
+        "CREATED": {
+            "transitions": [
+                {
+                    "name": "transition_to_active",
+                    "next": "ACTIVE",
+                    "manual": true,
+                    "processors": [
+                        {
+                            "name": "EggAlarmActivationProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ],
+                    "criterion": {
+                        "type": "function",
+                        "function": {
+                            "name": "EggAlarmValidationCriterion",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "transition_to_cancelled",
+                    "next": "CANCELLED",
+                    "manual": true,
+                    "processors": [
+                        {
+                            "name": "EggAlarmCancellationProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "ACTIVE": {
+            "transitions": [
+                {
+                    "name": "transition_to_completed",
+                    "next": "COMPLETED",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "EggAlarmCompletionProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ],
+                    "criterion": {
+                        "type": "function",
+                        "function": {
+                            "name": "EggAlarmTimerCriterion",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "transition_to_cancelled",
+                    "next": "CANCELLED",
+                    "manual": true,
+                    "processors": [
+                        {
+                            "name": "EggAlarmCancellationProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "transition_to_expired",
+                    "next": "EXPIRED",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "EggAlarmExpirationProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ],
+                    "criterion": {
+                        "type": "function",
+                        "function": {
+                            "name": "EggAlarmExpirationCriterion",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "COMPLETED": {
+            "transitions": [
+                {
+                    "name": "transition_to_created",
+                    "next": "CREATED",
+                    "manual": true,
+                    "processors": [
+                        {
+                            "name": "EggAlarmResetProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "CANCELLED": {
+            "transitions": [
+                {
+                    "name": "transition_to_initial",
+                    "next": "initial_state",
+                    "manual": false
+                }
+            ]
+        },
+        "EXPIRED": {
+            "transitions": [
+                {
+                    "name": "transition_to_initial",
+                    "next": "initial_state",
+                    "manual": false
+                }
+            ]
+        }
+    }
+}
