@@ -1,23 +1,25 @@
 """
 Subscriber routes for the cat fact subscription system.
 """
+
 import logging
 from typing import Optional
 
-from quart import Blueprint, request, jsonify, abort
-from quart_schema import validate_json, validate_querystring
 from pydantic import BaseModel, EmailStr
+from quart import Blueprint, abort, jsonify, request
+from quart_schema import validate_json, validate_querystring
 
-from service.services import get_entity_service, get_auth_service
 from common.config.config import ENTITY_VERSION
+from service.services import get_auth_service, get_entity_service
 
 logger = logging.getLogger(__name__)
 
-subscriber_bp = Blueprint('subscribers', __name__, url_prefix='/api/subscribers')
+subscriber_bp = Blueprint("subscribers", __name__, url_prefix="/api/subscribers")
 
 
 class SubscriberCreateRequest(BaseModel):
     """Request model for creating a subscriber."""
+
     email: EmailStr
     firstName: Optional[str] = None
     lastName: Optional[str] = None
@@ -25,6 +27,7 @@ class SubscriberCreateRequest(BaseModel):
 
 class SubscriberUpdateRequest(BaseModel):
     """Request model for updating a subscriber."""
+
     firstName: Optional[str] = None
     lastName: Optional[str] = None
     transitionName: Optional[str] = None
@@ -32,11 +35,13 @@ class SubscriberUpdateRequest(BaseModel):
 
 class SubscriberTransitionRequest(BaseModel):
     """Request model for subscriber transitions."""
+
     transitionName: str
 
 
 class SubscriberQuery(BaseModel):
     """Query parameters for listing subscribers."""
+
     state: Optional[str] = None
     page: int = 0
     size: int = 20
@@ -52,20 +57,22 @@ def get_services():
 async def create_subscriber():
     """Create a new subscriber (sign up for weekly cat facts)."""
     entity_service, cyoda_auth_service = get_services()
-    
+
     data = await request.get_json()
-    
+
     try:
         # Create subscriber entity data
         subscriber_data = {
             "email": data["email"],
             "firstName": data.get("firstName"),
-            "lastName": data.get("lastName")
+            "lastName": data.get("lastName"),
         }
-        
+
         # Save subscriber (triggers initial → pending transition automatically)
-        response = await entity_service.save(subscriber_data, "subscriber", ENTITY_VERSION)
-        
+        response = await entity_service.save(
+            subscriber_data, "subscriber", ENTITY_VERSION
+        )
+
         # Return response with technical ID
         result = {
             "id": response.technical_id,
@@ -74,11 +81,11 @@ async def create_subscriber():
             "lastName": response.data.get("lastName"),
             "subscriptionDate": response.data.get("subscriptionDate"),
             "isActive": response.data.get("isActive", False),
-            "state": response.state
+            "state": response.state,
         }
-        
+
         return jsonify(result), 201
-        
+
     except Exception as e:
         logger.exception(f"Failed to create subscriber: {e}")
         return jsonify({"error": "Failed to create subscriber"}), 500
@@ -90,7 +97,9 @@ async def get_subscriber(subscriber_id: str):
     entity_service, cyoda_auth_service = get_services()
 
     try:
-        response = await entity_service.get_by_id(subscriber_id, "subscriber", ENTITY_VERSION)
+        response = await entity_service.get_by_id(
+            subscriber_id, "subscriber", ENTITY_VERSION
+        )
 
         result = {
             "id": response.technical_id,
@@ -99,7 +108,7 @@ async def get_subscriber(subscriber_id: str):
             "lastName": response.data.get("lastName"),
             "subscriptionDate": response.data.get("subscriptionDate"),
             "isActive": response.data.get("isActive"),
-            "state": response.state
+            "state": response.state,
         }
 
         return jsonify(result)
@@ -119,7 +128,9 @@ async def update_subscriber(subscriber_id: str):
 
     try:
         # Get current subscriber
-        current_response = await entity_service.get_by_id(subscriber_id, "subscriber", ENTITY_VERSION)
+        current_response = await entity_service.get_by_id(
+            subscriber_id, "subscriber", ENTITY_VERSION
+        )
 
         # Update data
         updated_data = current_response.data.copy()
@@ -134,7 +145,7 @@ async def update_subscriber(subscriber_id: str):
             updated_data,
             "subscriber",
             transition=data.get("transitionName"),
-            entity_version=ENTITY_VERSION
+            entity_version=ENTITY_VERSION,
         )
 
         result = {
@@ -144,7 +155,7 @@ async def update_subscriber(subscriber_id: str):
             "lastName": response.data.get("lastName"),
             "subscriptionDate": response.data.get("subscriptionDate"),
             "isActive": response.data.get("isActive"),
-            "state": response.state
+            "state": response.state,
         }
 
         return jsonify(result)
@@ -164,7 +175,9 @@ async def activate_subscriber(subscriber_id: str):
 
     try:
         # Get current subscriber
-        current_response = await entity_service.get_by_id(subscriber_id, "subscriber", ENTITY_VERSION)
+        current_response = await entity_service.get_by_id(
+            subscriber_id, "subscriber", ENTITY_VERSION
+        )
 
         # Update with transition
         response = await entity_service.update(
@@ -172,14 +185,14 @@ async def activate_subscriber(subscriber_id: str):
             current_response.data,
             "subscriber",
             transition=data["transitionName"],
-            entity_version=ENTITY_VERSION
+            entity_version=ENTITY_VERSION,
         )
 
         result = {
             "id": response.technical_id,
             "email": response.data.get("email"),
             "isActive": response.data.get("isActive"),
-            "state": response.state
+            "state": response.state,
         }
 
         return jsonify(result)
@@ -199,7 +212,9 @@ async def unsubscribe_subscriber(subscriber_id: str):
 
     try:
         # Get current subscriber
-        current_response = await entity_service.get_by_id(subscriber_id, "subscriber", ENTITY_VERSION)
+        current_response = await entity_service.get_by_id(
+            subscriber_id, "subscriber", ENTITY_VERSION
+        )
 
         # Update with transition
         response = await entity_service.update(
@@ -207,14 +222,14 @@ async def unsubscribe_subscriber(subscriber_id: str):
             current_response.data,
             "subscriber",
             transition=data["transitionName"],
-            entity_version=ENTITY_VERSION
+            entity_version=ENTITY_VERSION,
         )
 
         result = {
             "id": response.technical_id,
             "email": response.data.get("email"),
             "isActive": response.data.get("isActive"),
-            "state": response.state
+            "state": response.state,
         }
 
         return jsonify(result)
@@ -248,12 +263,12 @@ async def unsubscribe_via_token(token: str):
             target_subscriber.data,
             "subscriber",
             transition="active_to_unsubscribed",
-            entity_version=ENTITY_VERSION
+            entity_version=ENTITY_VERSION,
         )
 
         result = {
             "message": "Successfully unsubscribed",
-            "email": response.data.get("email")
+            "email": response.data.get("email"),
         }
 
         return jsonify(result)
@@ -288,21 +303,23 @@ async def get_subscribers():
         # Format response
         content = []
         for subscriber in paginated_subscribers:
-            content.append({
-                "id": subscriber.technical_id,
-                "email": subscriber.data.get("email"),
-                "firstName": subscriber.data.get("firstName"),
-                "lastName": subscriber.data.get("lastName"),
-                "isActive": subscriber.data.get("isActive"),
-                "state": subscriber.state
-            })
+            content.append(
+                {
+                    "id": subscriber.technical_id,
+                    "email": subscriber.data.get("email"),
+                    "firstName": subscriber.data.get("firstName"),
+                    "lastName": subscriber.data.get("lastName"),
+                    "isActive": subscriber.data.get("isActive"),
+                    "state": subscriber.state,
+                }
+            )
 
         result = {
             "content": content,
             "totalElements": total_elements,
             "totalPages": (total_elements + args.size - 1) // args.size,
             "size": args.size,
-            "number": args.page
+            "number": args.page,
         }
 
         return jsonify(result)

@@ -1,28 +1,33 @@
 """
 EmailDelivery routes for the cat fact subscription system.
 """
+
 import logging
 from typing import Optional
 
-from quart import Blueprint, request, jsonify, abort
-from quart_schema import validate_json, validate_querystring
 from pydantic import BaseModel
+from quart import Blueprint, abort, jsonify, request
+from quart_schema import validate_json, validate_querystring
 
-from service.services import get_entity_service, get_auth_service
 from common.config.config import ENTITY_VERSION
+from service.services import get_auth_service, get_entity_service
 
 logger = logging.getLogger(__name__)
 
-emaildelivery_bp = Blueprint('email_deliveries', __name__, url_prefix='/api/email-deliveries')
+emaildelivery_bp = Blueprint(
+    "email_deliveries", __name__, url_prefix="/api/email-deliveries"
+)
 
 
 class EmailDeliveryTransitionRequest(BaseModel):
     """Request model for email delivery transitions."""
+
     transitionName: str
 
 
 class EmailDeliveryQuery(BaseModel):
     """Query parameters for listing email deliveries."""
+
     subscriberId: Optional[int] = None
     catFactId: Optional[int] = None
     state: Optional[str] = None
@@ -39,10 +44,12 @@ def get_services():
 async def get_emaildelivery(delivery_id: str):
     """Get email delivery details by ID."""
     entity_service, cyoda_auth_service = get_services()
-    
+
     try:
-        response = await entity_service.get_by_id(delivery_id, "emaildelivery", ENTITY_VERSION)
-        
+        response = await entity_service.get_by_id(
+            delivery_id, "emaildelivery", ENTITY_VERSION
+        )
+
         result = {
             "id": response.technical_id,
             "subscriberId": response.data.get("subscriberId"),
@@ -51,11 +58,11 @@ async def get_emaildelivery(delivery_id: str):
             "deliveryAttempts": response.data.get("deliveryAttempts"),
             "opened": response.data.get("opened"),
             "openedDate": response.data.get("openedDate"),
-            "state": response.state
+            "state": response.state,
         }
-        
+
         return jsonify(result)
-        
+
     except Exception as e:
         logger.exception(f"Failed to get email delivery {delivery_id}: {e}")
         abort(404)
@@ -66,32 +73,34 @@ async def get_emaildelivery(delivery_id: str):
 async def retry_emaildelivery(delivery_id: str):
     """Retry failed email delivery."""
     entity_service, cyoda_auth_service = get_services()
-    
+
     data = await request.get_json()
-    
+
     try:
         # Get current email delivery
-        current_response = await entity_service.get_by_id(delivery_id, "emaildelivery", ENTITY_VERSION)
-        
+        current_response = await entity_service.get_by_id(
+            delivery_id, "emaildelivery", ENTITY_VERSION
+        )
+
         # Update with retry transition
         response = await entity_service.update(
             delivery_id,
             current_response.data,
             "emaildelivery",
             transition=data["transitionName"],
-            entity_version=ENTITY_VERSION
+            entity_version=ENTITY_VERSION,
         )
-        
+
         result = {
             "id": response.technical_id,
             "subscriberId": response.data.get("subscriberId"),
             "catFactId": response.data.get("catFactId"),
             "deliveryAttempts": response.data.get("deliveryAttempts"),
-            "state": response.state
+            "state": response.state,
         }
-        
+
         return jsonify(result)
-        
+
     except Exception as e:
         logger.exception(f"Failed to retry email delivery {delivery_id}: {e}")
         return jsonify({"error": "Failed to retry email delivery"}), 500
@@ -102,29 +111,31 @@ async def retry_emaildelivery(delivery_id: str):
 async def mark_emaildelivery_opened(delivery_id: str):
     """Mark email as opened (tracking endpoint)."""
     entity_service, cyoda_auth_service = get_services()
-    
+
     data = await request.get_json()
-    
+
     try:
         # Get current email delivery
-        current_response = await entity_service.get_by_id(delivery_id, "emaildelivery", ENTITY_VERSION)
-        
+        current_response = await entity_service.get_by_id(
+            delivery_id, "emaildelivery", ENTITY_VERSION
+        )
+
         # Update with open transition
         response = await entity_service.update(
             delivery_id,
             current_response.data,
             "emaildelivery",
             transition=data["transitionName"],
-            entity_version=ENTITY_VERSION
+            entity_version=ENTITY_VERSION,
         )
-        
+
         result = {
             "id": response.technical_id,
             "opened": response.data.get("opened"),
             "openedDate": response.data.get("openedDate"),
-            "state": response.state
+            "state": response.state,
         }
-        
+
         return jsonify(result)
 
     except Exception as e:
@@ -146,10 +157,14 @@ async def get_emaildeliveries():
 
         # Apply filters
         if args.subscriberId:
-            deliveries = [d for d in deliveries if d.data.get("subscriberId") == args.subscriberId]
+            deliveries = [
+                d for d in deliveries if d.data.get("subscriberId") == args.subscriberId
+            ]
 
         if args.catFactId:
-            deliveries = [d for d in deliveries if d.data.get("catFactId") == args.catFactId]
+            deliveries = [
+                d for d in deliveries if d.data.get("catFactId") == args.catFactId
+            ]
 
         if args.state:
             deliveries = [d for d in deliveries if d.state == args.state]
@@ -163,19 +178,21 @@ async def get_emaildeliveries():
         # Format response
         content = []
         for delivery in paginated_deliveries:
-            content.append({
-                "id": delivery.technical_id,
-                "subscriberId": delivery.data.get("subscriberId"),
-                "catFactId": delivery.data.get("catFactId"),
-                "sentDate": delivery.data.get("sentDate"),
-                "opened": delivery.data.get("opened"),
-                "state": delivery.state
-            })
+            content.append(
+                {
+                    "id": delivery.technical_id,
+                    "subscriberId": delivery.data.get("subscriberId"),
+                    "catFactId": delivery.data.get("catFactId"),
+                    "sentDate": delivery.data.get("sentDate"),
+                    "opened": delivery.data.get("opened"),
+                    "state": delivery.state,
+                }
+            )
 
         result = {
             "content": content,
             "totalElements": total_elements,
-            "totalPages": (total_elements + args.size - 1) // args.size
+            "totalPages": (total_elements + args.size - 1) // args.size,
         }
 
         return jsonify(result)

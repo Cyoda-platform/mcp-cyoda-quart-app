@@ -8,6 +8,8 @@ from service.services import initialize_services, get_grpc_client
 from common.exception.exception_handler import register_error_handlers
 # Import blueprints for different route groups
 from routes import jobs_bp, laureates_bp, subscribers_bp, health_bp, system_bp
+# Import application components
+from application.app import initialize_application_components
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -26,12 +28,15 @@ QuartSchema(app,
                 }
             })
 
-# Register blueprints
+# Register existing blueprints
 app.register_blueprint(jobs_bp)
 app.register_blueprint(laureates_bp)
 app.register_blueprint(subscribers_bp)
 app.register_blueprint(health_bp)
 app.register_blueprint(system_bp)
+
+# Initialize application components (registers application blueprints)
+initialize_application_components(app)
 
 
 
