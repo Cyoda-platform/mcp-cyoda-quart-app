@@ -43,7 +43,9 @@ from ..models.response_models import (
 
 logger = logging.getLogger(__name__)
 
-other_entities_bp = Blueprint("other_entities", __name__, url_prefix="/api/other-entities")
+other_entities_bp = Blueprint(
+    "other_entities", __name__, url_prefix="/api/other-entities"
+)
 # Module-level service instance to avoid repeated lookups
 # Lazy proxy to avoid initializing services at import time
 
@@ -70,7 +72,9 @@ class OtherEntityQueryParams(BaseModel):
     source_entity_id: Optional[str] = Field(
         default=None, alias="sourceEntityId", description="Filter by source entity ID"
     )
-    priority: Optional[str] = Field(default=None, description="Filter by priority level")
+    priority: Optional[str] = Field(
+        default=None, description="Filter by priority level"
+    )
     state: Optional[str] = Field(default=None, description="Filter by workflow state")
     limit: int = Field(default=50, description="Number of results")
     offset: int = Field(default=0, description="Pagination offset")
@@ -245,7 +249,9 @@ async def update_other_entity(
         return _to_entity_dict(response.data), 200
 
     except ValueError as e:
-        logger.warning("Validation error updating OtherEntity %s: %s", entity_id, str(e))
+        logger.warning(
+            "Validation error updating OtherEntity %s: %s", entity_id, str(e)
+        )
         return {"error": str(e), "code": "VALIDATION_ERROR"}, 400
     except Exception as e:  # pragma: no cover
         logger.exception("Error updating OtherEntity %s: %s", entity_id, str(e))
@@ -276,7 +282,9 @@ async def delete_other_entity(entity_id: str) -> Tuple[Dict[str, Any], int]:
 
         # Thin proxy: return success message
         response = DeleteResponse(
-            success=True, message="OtherEntity deleted successfully", entity_id=entity_id
+            success=True,
+            message="OtherEntity deleted successfully",
+            entity_id=entity_id,
         )
         return response.model_dump(), 200
 
@@ -320,7 +328,9 @@ async def get_by_business_id(business_id: str) -> Tuple[Dict[str, Any], int]:
         return _to_entity_dict(result.data), 200
 
     except Exception as e:
-        logger.exception("Error getting OtherEntity by business ID %s: %s", business_id, str(e))
+        logger.exception(
+            "Error getting OtherEntity by business ID %s: %s", business_id, str(e)
+        )
         return {"error": str(e)}, 500
 
 
@@ -341,7 +351,9 @@ async def check_exists(entity_id: str) -> Tuple[Dict[str, Any], int]:
         return response.model_dump(), 200
 
     except Exception as e:
-        logger.exception("Error checking OtherEntity existence %s: %s", entity_id, str(e))
+        logger.exception(
+            "Error checking OtherEntity existence %s: %s", entity_id, str(e)
+        )
         return {"error": str(e)}, 500
 
 
@@ -393,12 +405,16 @@ async def get_available_transitions(entity_id: str) -> Tuple[Dict[str, Any], int
         current_state = entity_response.data.state if entity_response else None
 
         response = TransitionsResponse(
-            entity_id=entity_id, available_transitions=transitions, current_state=current_state
+            entity_id=entity_id,
+            available_transitions=transitions,
+            current_state=current_state,
         )
         return response.model_dump(), 200
 
     except Exception as e:
-        logger.exception("Error getting transitions for OtherEntity %s: %s", entity_id, str(e))
+        logger.exception(
+            "Error getting transitions for OtherEntity %s: %s", entity_id, str(e)
+        )
         return {"error": str(e)}, 500
 
 
@@ -414,7 +430,9 @@ async def get_available_transitions(entity_id: str) -> Tuple[Dict[str, Any], int
         500: (ErrorResponse, None),
     },
 )
-async def trigger_transition(entity_id: str, data: TransitionRequest) -> Tuple[Dict[str, Any], int]:
+async def trigger_transition(
+    entity_id: str, data: TransitionRequest
+) -> Tuple[Dict[str, Any], int]:
     """Trigger workflow transition for OtherEntity with validation"""
     try:
         # Trigger the transition
@@ -425,18 +443,26 @@ async def trigger_transition(entity_id: str, data: TransitionRequest) -> Tuple[D
             entity_version=str(OtherEntity.ENTITY_VERSION),
         )
 
-        logger.info("Triggered transition %s for OtherEntity %s", data.transition_name, entity_id)
+        logger.info(
+            "Triggered transition %s for OtherEntity %s",
+            data.transition_name,
+            entity_id,
+        )
 
         # Return transition result directly (thin proxy)
         return _to_entity_dict(response.data), 200
 
     except ValueError as e:
         logger.warning(
-            "Validation error triggering transition for OtherEntity %s: %s", entity_id, str(e)
+            "Validation error triggering transition for OtherEntity %s: %s",
+            entity_id,
+            str(e),
         )
         return {"error": str(e), "code": "VALIDATION_ERROR"}, 400
     except Exception as e:  # pragma: no cover
-        logger.exception("Error triggering transition for OtherEntity %s: %s", entity_id, str(e))
+        logger.exception(
+            "Error triggering transition for OtherEntity %s: %s", entity_id, str(e)
+        )
         return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
 
 

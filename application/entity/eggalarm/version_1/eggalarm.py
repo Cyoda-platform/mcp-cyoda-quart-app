@@ -18,7 +18,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class EggAlarm(CyodaEntity):
     """
     EggAlarm represents an alarm set by a user for cooking eggs.
-    
+
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     The state field manages workflow states: CREATED -> ACTIVE -> COMPLETED/CANCELLED/EXPIRED
     """
@@ -29,10 +29,14 @@ class EggAlarm(CyodaEntity):
 
     # Required fields from functional requirements
     userId: str = Field(..., description="Identifier of the user who created the alarm")
-    eggType: str = Field(..., description="Type of egg cooking (SOFT_BOILED, MEDIUM_BOILED, HARD_BOILED)")
+    eggType: str = Field(
+        ..., description="Type of egg cooking (SOFT_BOILED, MEDIUM_BOILED, HARD_BOILED)"
+    )
     duration: int = Field(..., description="Cooking duration in seconds")
     createdAt: Optional[str] = Field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        default_factory=lambda: datetime.now(timezone.utc)
+        .isoformat()
+        .replace("+00:00", "Z"),
         description="When the alarm was created (ISO 8601 format)",
     )
     scheduledTime: Optional[str] = Field(
@@ -51,15 +55,15 @@ class EggAlarm(CyodaEntity):
     # Allowed egg types from functional requirements
     ALLOWED_EGG_TYPES: ClassVar[List[str]] = [
         "SOFT_BOILED",
-        "MEDIUM_BOILED", 
+        "MEDIUM_BOILED",
         "HARD_BOILED",
     ]
 
     # Duration mapping for egg types (in seconds)
     EGG_TYPE_DURATIONS: ClassVar[Dict[str, int]] = {
-        "SOFT_BOILED": 180,    # 3 minutes
+        "SOFT_BOILED": 180,  # 3 minutes
         "MEDIUM_BOILED": 240,  # 4 minutes
-        "HARD_BOILED": 360,    # 6 minutes
+        "HARD_BOILED": 360,  # 6 minutes
     }
 
     @field_validator("userId")
@@ -108,7 +112,11 @@ class EggAlarm(CyodaEntity):
         self.isActive = True
         current_time = datetime.now(timezone.utc)
         scheduled_time = current_time.timestamp() + self.duration
-        self.scheduledTime = datetime.fromtimestamp(scheduled_time, timezone.utc).isoformat().replace("+00:00", "Z")
+        self.scheduledTime = (
+            datetime.fromtimestamp(scheduled_time, timezone.utc)
+            .isoformat()
+            .replace("+00:00", "Z")
+        )
         self.update_timestamp()
 
     def deactivate(self) -> None:
@@ -129,18 +137,22 @@ class EggAlarm(CyodaEntity):
         """Check if the timer has elapsed"""
         if not self.scheduledTime or not self.isActive:
             return False
-        
+
         current_time = datetime.now(timezone.utc)
-        scheduled_time = datetime.fromisoformat(self.scheduledTime.replace("Z", "+00:00"))
+        scheduled_time = datetime.fromisoformat(
+            self.scheduledTime.replace("Z", "+00:00")
+        )
         return current_time >= scheduled_time
 
     def is_notification_expired(self, timeout_seconds: int = 300) -> bool:
         """Check if notification has expired (default 5 minutes)"""
         if not self.scheduledTime or not self.isActive:
             return False
-        
+
         current_time = datetime.now(timezone.utc)
-        scheduled_time = datetime.fromisoformat(self.scheduledTime.replace("Z", "+00:00"))
+        scheduled_time = datetime.fromisoformat(
+            self.scheduledTime.replace("Z", "+00:00")
+        )
         expiration_time = scheduled_time.timestamp() + timeout_seconds
         return current_time.timestamp() >= expiration_time
 

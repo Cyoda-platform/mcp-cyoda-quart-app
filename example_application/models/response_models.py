@@ -16,7 +16,9 @@ class ErrorResponse(BaseModel):
     """Standard error response model."""
 
     error: str = Field(..., description="Error message")
-    details: Optional[Dict[str, Any]] = Field(default=None, description="Additional error details")
+    details: Optional[Dict[str, Any]] = Field(
+        default=None, description="Additional error details"
+    )
     code: Optional[str] = Field(default=None, description="Error code")
     timestamp: Optional[str] = Field(default=None, description="Error timestamp")
 
@@ -43,7 +45,9 @@ class ExampleEntityResponse(BaseModel):
     """Response model for ExampleEntity operations."""
 
     entity_id: str = Field(..., description="Entity ID")
-    technical_id: Optional[str] = Field(default=None, description="Technical ID from Cyoda")
+    technical_id: Optional[str] = Field(
+        default=None, description="Technical ID from Cyoda"
+    )
     name: str = Field(..., description="Entity name")
     description: str = Field(..., description="Entity description")
     value: float = Field(..., description="Numeric value")
@@ -57,7 +61,9 @@ class ExampleEntityResponse(BaseModel):
         default=None, alias="updatedAt", description="Last update timestamp"
     )
     version: str = Field(..., description="Entity version")
-    metadata: Optional[Dict[str, Any]] = Field(default=None, description="Entity metadata")
+    metadata: Optional[Dict[str, Any]] = Field(
+        default=None, description="Entity metadata"
+    )
     processed_data: Optional[Dict[str, Any]] = Field(
         default=None, alias="processedData", description="Processed data from workflows"
     )
@@ -69,7 +75,9 @@ class ExampleEntityResponse(BaseModel):
 class ExampleEntityListResponse(BaseModel):
     """Response model for ExampleEntity list operations."""
 
-    entities: List[Dict[str, Any]] = Field(..., description="List of ExampleEntity objects")
+    entities: List[Dict[str, Any]] = Field(
+        ..., description="List of ExampleEntity objects"
+    )
     total: int = Field(..., description="Total number of entities")
     limit: Optional[int] = Field(default=None, description="Applied limit")
     offset: Optional[int] = Field(default=None, description="Applied offset")
@@ -80,7 +88,9 @@ class ExampleEntitySearchResponse(BaseModel):
 
     entities: List[Dict[str, Any]] = Field(..., description="Search results")
     total: int = Field(..., description="Total number of matching entities")
-    query: Optional[Dict[str, Any]] = Field(default=None, description="Applied search query")
+    query: Optional[Dict[str, Any]] = Field(
+        default=None, description="Applied search query"
+    )
 
 
 # OtherEntity Response Models
@@ -88,7 +98,9 @@ class OtherEntityResponse(BaseModel):
     """Response model for OtherEntity operations."""
 
     entity_id: str = Field(..., description="Entity ID")
-    technical_id: Optional[str] = Field(default=None, description="Technical ID from Cyoda")
+    technical_id: Optional[str] = Field(
+        default=None, description="Technical ID from Cyoda"
+    )
     title: str = Field(..., description="Entity title")
     content: str = Field(..., description="Entity content")
     priority: str = Field(..., description="Priority level")
@@ -106,13 +118,17 @@ class OtherEntityResponse(BaseModel):
         default=None, alias="updatedAt", description="Last update timestamp"
     )
     version: str = Field(..., description="Entity version")
-    metadata: Optional[Dict[str, Any]] = Field(default=None, description="Entity metadata")
+    metadata: Optional[Dict[str, Any]] = Field(
+        default=None, description="Entity metadata"
+    )
 
 
 class OtherEntityListResponse(BaseModel):
     """Response model for OtherEntity list operations."""
 
-    entities: List[Dict[str, Any]] = Field(..., description="List of OtherEntity objects")
+    entities: List[Dict[str, Any]] = Field(
+        ..., description="List of OtherEntity objects"
+    )
     total: int = Field(..., description="Total number of entities")
     limit: Optional[int] = Field(default=None, description="Applied limit")
     offset: Optional[int] = Field(default=None, description="Applied offset")
@@ -123,11 +139,19 @@ class TransitionResponse(BaseModel):
     """Response model for workflow transition operations."""
 
     entity_id: str = Field(..., description="Entity ID")
-    transition_name: str = Field(..., alias="transitionName", description="Executed transition")
-    previous_state: str = Field(..., alias="previousState", description="Previous workflow state")
-    current_state: str = Field(..., alias="currentState", description="Current workflow state")
+    transition_name: str = Field(
+        ..., alias="transitionName", description="Executed transition"
+    )
+    previous_state: str = Field(
+        ..., alias="previousState", description="Previous workflow state"
+    )
+    current_state: str = Field(
+        ..., alias="currentState", description="Current workflow state"
+    )
     success: bool = Field(..., description="Transition success status")
-    message: Optional[str] = Field(default=None, description="Transition result message")
+    message: Optional[str] = Field(
+        default=None, description="Transition result message"
+    )
     timestamp: Optional[str] = Field(default=None, description="Transition timestamp")
 
 
@@ -135,9 +159,13 @@ class WorkflowStateResponse(BaseModel):
     """Response model for workflow state information."""
 
     entity_id: str = Field(..., description="Entity ID")
-    current_state: str = Field(..., alias="currentState", description="Current workflow state")
+    current_state: str = Field(
+        ..., alias="currentState", description="Current workflow state"
+    )
     available_transitions: List[str] = Field(
-        ..., alias="availableTransitions", description="Available transitions from current state"
+        ...,
+        alias="availableTransitions",
+        description="Available transitions from current state",
     )
     state_metadata: Optional[Dict[str, Any]] = Field(
         default=None, alias="stateMetadata", description="State-specific metadata"
@@ -162,7 +190,9 @@ class StatusResponse(BaseModel):
     service: str = Field(..., description="Service name")
     status: str = Field(..., description="Service status")
     uptime: Optional[str] = Field(default=None, description="Service uptime")
-    metrics: Optional[Dict[str, Any]] = Field(default=None, description="Service metrics")
+    metrics: Optional[Dict[str, Any]] = Field(
+        default=None, description="Service metrics"
+    )
 
 
 class DeleteResponse(BaseModel):
@@ -190,5 +220,7 @@ class TransitionsResponse(BaseModel):
     """Response model for available transitions"""
 
     entity_id: str = Field(..., description="ID of the entity")
-    available_transitions: List[str] = Field(..., description="List of available transition names")
+    available_transitions: List[str] = Field(
+        ..., description="List of available transition names"
+    )
     current_state: Optional[str] = Field(None, description="Current entity state")

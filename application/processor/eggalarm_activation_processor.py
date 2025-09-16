@@ -1,7 +1,7 @@
 """
 EggAlarmActivationProcessor for Cyoda Client Application
 
-Activates the egg alarm and starts the countdown timer as specified 
+Activates the egg alarm and starts the countdown timer as specified
 in functional requirements.
 """
 
@@ -9,9 +9,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.eggalarm.version_1.eggalarm import EggAlarm
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.eggalarm.version_1.eggalarm import EggAlarm
 
 
 class EggAlarmActivationProcessor(CyodaProcessor):
@@ -24,7 +24,9 @@ class EggAlarmActivationProcessor(CyodaProcessor):
             name="EggAlarmActivationProcessor",
             description="Activates EggAlarm entities and starts countdown timer",
         )
-        self.logger: logging.Logger = getattr(self, "logger", logging.getLogger(__name__))
+        self.logger: logging.Logger = getattr(
+            self, "logger", logging.getLogger(__name__)
+        )
 
     async def process(self, entity: CyodaEntity, **kwargs: Any) -> CyodaEntity:
         """
@@ -51,9 +53,11 @@ class EggAlarmActivationProcessor(CyodaProcessor):
             # Recalculate scheduled time from current time
             current_time = datetime.now(timezone.utc)
             scheduled_timestamp = current_time.timestamp() + egg_alarm.duration
-            egg_alarm.scheduledTime = datetime.fromtimestamp(
-                scheduled_timestamp, timezone.utc
-            ).isoformat().replace("+00:00", "Z")
+            egg_alarm.scheduledTime = (
+                datetime.fromtimestamp(scheduled_timestamp, timezone.utc)
+                .isoformat()
+                .replace("+00:00", "Z")
+            )
 
             # Update timestamp
             egg_alarm.update_timestamp()
@@ -64,7 +68,9 @@ class EggAlarmActivationProcessor(CyodaProcessor):
                 f"duration: {egg_alarm.duration}s, scheduled: {egg_alarm.scheduledTime}"
             )
 
-            self.logger.info(f"EggAlarm {egg_alarm.technical_id} activated successfully")
+            self.logger.info(
+                f"EggAlarm {egg_alarm.technical_id} activated successfully"
+            )
 
             return egg_alarm
 

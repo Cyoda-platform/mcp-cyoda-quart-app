@@ -8,9 +8,9 @@ as specified in functional requirements.
 import logging
 from typing import Any
 
+from application.entity.eggalarm.version_1.eggalarm import EggAlarm
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.eggalarm.version_1.eggalarm import EggAlarm
 
 
 class EggAlarmExpirationProcessor(CyodaProcessor):
@@ -23,7 +23,9 @@ class EggAlarmExpirationProcessor(CyodaProcessor):
             name="EggAlarmExpirationProcessor",
             description="Expires EggAlarm entities when notification timeout is reached",
         )
-        self.logger: logging.Logger = getattr(self, "logger", logging.getLogger(__name__))
+        self.logger: logging.Logger = getattr(
+            self, "logger", logging.getLogger(__name__)
+        )
 
     async def process(self, entity: CyodaEntity, **kwargs: Any) -> CyodaEntity:
         """
@@ -67,7 +69,7 @@ class EggAlarmExpirationProcessor(CyodaProcessor):
         try:
             # In a real implementation, this would stop actual sound playback
             self.logger.info("Stopping alarm sound")
-            
+
         except Exception as e:
             self.logger.error(f"Failed to stop alarm sound: {str(e)}")
             # Don't raise - sound stop failure shouldn't prevent expiration

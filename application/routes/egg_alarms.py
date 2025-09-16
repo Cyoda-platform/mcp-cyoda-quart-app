@@ -41,22 +41,27 @@ from ..models import (
     ValidationErrorResponse,
 )
 
+
 # Module-level service instance to avoid repeated lookups
 class _ServiceProxy:
     def __getattr__(self, name: str) -> Any:
         return getattr(get_entity_service(), name)
 
+
 service = _ServiceProxy()
 
 logger = logging.getLogger(__name__)
+
 
 # Helper to normalize entity data from service (Pydantic model or dict)
 def _to_entity_dict(data: Any) -> Dict[str, Any]:
     return data.model_dump(by_alias=True) if hasattr(data, "model_dump") else data
 
+
 egg_alarms_bp = Blueprint("egg_alarms", __name__, url_prefix="/api/egg-alarms")
 
 # ---- Routes -----------------------------------------------------------------
+
 
 @egg_alarms_bp.route("", methods=["POST"])
 @tag(["egg-alarms"])
@@ -111,7 +116,10 @@ async def get_egg_alarm(entity_id: str) -> ResponseReturnValue:
     try:
         # Validate entity ID format
         if not entity_id or len(entity_id.strip()) == 0:
-            return jsonify({"error": "Entity ID is required", "code": "INVALID_ID"}), 400
+            return (
+                jsonify({"error": "Entity ID is required", "code": "INVALID_ID"}),
+                400,
+            )
 
         response = await service.get_by_id(
             entity_id=entity_id,
@@ -210,13 +218,16 @@ async def list_egg_alarms(query_args: EggAlarmQueryParams) -> ResponseReturnValu
     },
 )
 async def update_egg_alarm(
-        entity_id: str, data: EggAlarm, query_args: EggAlarmUpdateQueryParams
+    entity_id: str, data: EggAlarm, query_args: EggAlarmUpdateQueryParams
 ) -> ResponseReturnValue:
     """Update EggAlarm and optionally trigger workflow transition with validation"""
     try:
         # Validate entity ID format
         if not entity_id or len(entity_id.strip()) == 0:
-            return jsonify({"error": "Entity ID is required", "code": "INVALID_ID"}), 400
+            return (
+                jsonify({"error": "Entity ID is required", "code": "INVALID_ID"}),
+                400,
+            )
 
         # Get transition from query parameters
         transition: Optional[str] = query_args.transition
@@ -262,7 +273,10 @@ async def delete_egg_alarm(entity_id: str) -> ResponseReturnValue:
     try:
         # Validate entity ID format
         if not entity_id or len(entity_id.strip()) == 0:
-            return jsonify({"error": "Entity ID is required", "code": "INVALID_ID"}), 400
+            return (
+                jsonify({"error": "Entity ID is required", "code": "INVALID_ID"}),
+                400,
+            )
 
         await service.delete_by_id(
             entity_id=entity_id,
@@ -288,6 +302,7 @@ async def delete_egg_alarm(entity_id: str) -> ResponseReturnValue:
 
 # ---- Workflow Action Endpoints ----------------------------------------
 
+
 @egg_alarms_bp.route("/<entity_id>/start", methods=["POST"])
 @tag(["egg-alarms"])
 @operation_id("start_egg_alarm")
@@ -300,7 +315,9 @@ async def delete_egg_alarm(entity_id: str) -> ResponseReturnValue:
         500: (ErrorResponse, None),
     },
 )
-async def start_egg_alarm(entity_id: str, data: TransitionRequest) -> ResponseReturnValue:
+async def start_egg_alarm(
+    entity_id: str, data: TransitionRequest
+) -> ResponseReturnValue:
     """Start/activate an egg alarm"""
     try:
         # Execute the transition
@@ -333,7 +350,9 @@ async def start_egg_alarm(entity_id: str, data: TransitionRequest) -> ResponseRe
         500: (ErrorResponse, None),
     },
 )
-async def cancel_egg_alarm(entity_id: str, data: TransitionRequest) -> ResponseReturnValue:
+async def cancel_egg_alarm(
+    entity_id: str, data: TransitionRequest
+) -> ResponseReturnValue:
     """Cancel an egg alarm"""
     try:
         # Execute the transition
@@ -366,7 +385,9 @@ async def cancel_egg_alarm(entity_id: str, data: TransitionRequest) -> ResponseR
         500: (ErrorResponse, None),
     },
 )
-async def reset_egg_alarm(entity_id: str, data: TransitionRequest) -> ResponseReturnValue:
+async def reset_egg_alarm(
+    entity_id: str, data: TransitionRequest
+) -> ResponseReturnValue:
     """Reset a completed alarm to create a new one"""
     try:
         # Execute the transition

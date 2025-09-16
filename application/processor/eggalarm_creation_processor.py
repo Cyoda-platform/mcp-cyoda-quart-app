@@ -1,7 +1,7 @@
 """
 EggAlarmCreationProcessor for Cyoda Client Application
 
-Creates a new egg alarm with the specified parameters and calculates the cooking 
+Creates a new egg alarm with the specified parameters and calculates the cooking
 duration based on egg type as specified in functional requirements.
 """
 
@@ -10,10 +10,10 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict
 
-from common.entity.entity_casting import cast_entity
-from common.processor.base import CyodaEntity, CyodaProcessor
 from application.entity.eggalarm.version_1.eggalarm import EggAlarm
 from application.entity.user.version_1.user import User
+from common.entity.entity_casting import cast_entity
+from common.processor.base import CyodaEntity, CyodaProcessor
 from services.services import get_entity_service
 
 
@@ -28,7 +28,9 @@ class EggAlarmCreationProcessor(CyodaProcessor):
             name="EggAlarmCreationProcessor",
             description="Creates new EggAlarm entities with calculated duration and scheduled time",
         )
-        self.logger: logging.Logger = getattr(self, "logger", logging.getLogger(__name__))
+        self.logger: logging.Logger = getattr(
+            self, "logger", logging.getLogger(__name__)
+        )
 
     async def process(self, entity: CyodaEntity, **kwargs: Any) -> CyodaEntity:
         """
@@ -53,7 +55,7 @@ class EggAlarmCreationProcessor(CyodaProcessor):
             await self._validate_user(egg_alarm.userId)
 
             # Set duration based on egg type if not already set
-            if not hasattr(egg_alarm, 'duration') or egg_alarm.duration == 0:
+            if not hasattr(egg_alarm, "duration") or egg_alarm.duration == 0:
                 egg_alarm.duration = self._get_duration_for_egg_type(egg_alarm.eggType)
 
             # Set creation time
@@ -62,9 +64,11 @@ class EggAlarmCreationProcessor(CyodaProcessor):
 
             # Calculate scheduled time (creation time + duration)
             scheduled_timestamp = current_time.timestamp() + egg_alarm.duration
-            egg_alarm.scheduledTime = datetime.fromtimestamp(
-                scheduled_timestamp, timezone.utc
-            ).isoformat().replace("+00:00", "Z")
+            egg_alarm.scheduledTime = (
+                datetime.fromtimestamp(scheduled_timestamp, timezone.utc)
+                .isoformat()
+                .replace("+00:00", "Z")
+            )
 
             # Set default title if not provided
             egg_alarm.ensure_title()
@@ -90,21 +94,21 @@ class EggAlarmCreationProcessor(CyodaProcessor):
             user_id: The user ID to validate
         """
         entity_service = get_entity_service()
-        
+
         try:
             user_response = await entity_service.get_by_id(
                 entity_id=user_id,
                 entity_class=User.ENTITY_NAME,
                 entity_version=str(User.ENTITY_VERSION),
             )
-            
+
             if not user_response:
                 raise ValueError(f"User {user_id} not found")
-            
+
             user = cast_entity(user_response.data, User)
             if user.state != "ACTIVE":
                 raise ValueError(f"User {user_id} must be in ACTIVE state")
-                
+
         except Exception as e:
             self.logger.error(f"User validation failed for {user_id}: {str(e)}")
             raise
@@ -120,12 +124,12 @@ class EggAlarmCreationProcessor(CyodaProcessor):
             Duration in seconds
         """
         durations = {
-            "SOFT_BOILED": 180,    # 3 minutes
+            "SOFT_BOILED": 180,  # 3 minutes
             "MEDIUM_BOILED": 240,  # 4 minutes
-            "HARD_BOILED": 360,    # 6 minutes
+            "HARD_BOILED": 360,  # 6 minutes
         }
-        
+
         if egg_type not in durations:
             raise ValueError(f"Invalid egg type: {egg_type}")
-        
+
         return durations[egg_type]

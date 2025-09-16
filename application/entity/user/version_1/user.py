@@ -19,7 +19,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class User(CyodaEntity):
     """
     User represents a user of the Egg Alarm application.
-    
+
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     The state field manages workflow states: REGISTERED -> ACTIVE -> SUSPENDED/DELETED
     """
@@ -32,7 +32,9 @@ class User(CyodaEntity):
     username: str = Field(..., description="User's chosen username")
     email: str = Field(..., description="User's email address")
     createdAt: Optional[str] = Field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        default_factory=lambda: datetime.now(timezone.utc)
+        .isoformat()
+        .replace("+00:00", "Z"),
         description="When the user account was created (ISO 8601 format)",
     )
     preferences: Optional[Dict[str, Any]] = Field(
@@ -41,7 +43,7 @@ class User(CyodaEntity):
     )
 
     # Email validation regex
-    EMAIL_REGEX: ClassVar[str] = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    EMAIL_REGEX: ClassVar[str] = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
 
     @field_validator("username")
     @classmethod
@@ -54,8 +56,10 @@ class User(CyodaEntity):
         if len(v.strip()) > 50:
             raise ValueError("Username must be at most 50 characters long")
         # Check for valid characters (alphanumeric, underscore, hyphen)
-        if not re.match(r'^[a-zA-Z0-9_-]+$', v.strip()):
-            raise ValueError("Username can only contain letters, numbers, underscores, and hyphens")
+        if not re.match(r"^[a-zA-Z0-9_-]+$", v.strip()):
+            raise ValueError(
+                "Username can only contain letters, numbers, underscores, and hyphens"
+            )
         return v.strip()
 
     @field_validator("email")
@@ -77,7 +81,7 @@ class User(CyodaEntity):
         """Validate and set default preferences if needed"""
         if v is None:
             v = {}
-        
+
         # Set default preferences if not provided
         defaults = {
             "defaultEggType": "MEDIUM_BOILED",
@@ -85,24 +89,32 @@ class User(CyodaEntity):
             "autoStart": False,
             "reminderMinutes": 1,
         }
-        
+
         for key, default_value in defaults.items():
             if key not in v:
                 v[key] = default_value
-        
+
         # Validate specific preference values
-        if "defaultEggType" in v and v["defaultEggType"] not in ["SOFT_BOILED", "MEDIUM_BOILED", "HARD_BOILED"]:
-            raise ValueError("defaultEggType must be one of: SOFT_BOILED, MEDIUM_BOILED, HARD_BOILED")
-        
+        if "defaultEggType" in v and v["defaultEggType"] not in [
+            "SOFT_BOILED",
+            "MEDIUM_BOILED",
+            "HARD_BOILED",
+        ]:
+            raise ValueError(
+                "defaultEggType must be one of: SOFT_BOILED, MEDIUM_BOILED, HARD_BOILED"
+            )
+
         if "notificationSound" in v and not isinstance(v["notificationSound"], str):
             raise ValueError("notificationSound must be a string")
-        
+
         if "autoStart" in v and not isinstance(v["autoStart"], bool):
             raise ValueError("autoStart must be a boolean")
-        
-        if "reminderMinutes" in v and (not isinstance(v["reminderMinutes"], int) or v["reminderMinutes"] < 0):
+
+        if "reminderMinutes" in v and (
+            not isinstance(v["reminderMinutes"], int) or v["reminderMinutes"] < 0
+        ):
             raise ValueError("reminderMinutes must be a non-negative integer")
-        
+
         return v
 
     def update_timestamp(self) -> None:

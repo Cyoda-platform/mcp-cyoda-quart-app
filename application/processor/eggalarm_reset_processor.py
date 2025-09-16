@@ -10,9 +10,9 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.eggalarm.version_1.eggalarm import EggAlarm
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.eggalarm.version_1.eggalarm import EggAlarm
 
 
 class EggAlarmResetProcessor(CyodaProcessor):
@@ -25,7 +25,9 @@ class EggAlarmResetProcessor(CyodaProcessor):
             name="EggAlarmResetProcessor",
             description="Resets completed EggAlarm entities with same settings",
         )
-        self.logger: logging.Logger = getattr(self, "logger", logging.getLogger(__name__))
+        self.logger: logging.Logger = getattr(
+            self, "logger", logging.getLogger(__name__)
+        )
 
     async def process(self, entity: CyodaEntity, **kwargs: Any) -> CyodaEntity:
         """
@@ -48,7 +50,7 @@ class EggAlarmResetProcessor(CyodaProcessor):
 
             # Create new alarm with same settings
             current_time = datetime.now(timezone.utc)
-            
+
             # Create new EggAlarm with same settings
             new_alarm = EggAlarm(
                 entity_id=str(uuid.uuid4()),
@@ -63,9 +65,11 @@ class EggAlarmResetProcessor(CyodaProcessor):
 
             # Calculate scheduled time (creation time + duration)
             scheduled_timestamp = current_time.timestamp() + new_alarm.duration
-            new_alarm.scheduledTime = datetime.fromtimestamp(
-                scheduled_timestamp, timezone.utc
-            ).isoformat().replace("+00:00", "Z")
+            new_alarm.scheduledTime = (
+                datetime.fromtimestamp(scheduled_timestamp, timezone.utc)
+                .isoformat()
+                .replace("+00:00", "Z")
+            )
 
             # Ensure title is set
             new_alarm.ensure_title()

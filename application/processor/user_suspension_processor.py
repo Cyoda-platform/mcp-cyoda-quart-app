@@ -7,10 +7,10 @@ Suspends an active user account as specified in functional requirements.
 import logging
 from typing import Any
 
+from application.entity.eggalarm.version_1.eggalarm import EggAlarm
+from application.entity.user.version_1.user import User
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.user.version_1.user import User
-from application.entity.eggalarm.version_1.eggalarm import EggAlarm
 from services.services import get_entity_service
 
 
@@ -24,7 +24,9 @@ class UserSuspensionProcessor(CyodaProcessor):
             name="UserSuspensionProcessor",
             description="Suspends active User entities and cancels their alarms",
         )
-        self.logger: logging.Logger = getattr(self, "logger", logging.getLogger(__name__))
+        self.logger: logging.Logger = getattr(
+            self, "logger", logging.getLogger(__name__)
+        )
 
     async def process(self, entity: CyodaEntity, **kwargs: Any) -> CyodaEntity:
         """
@@ -49,7 +51,9 @@ class UserSuspensionProcessor(CyodaProcessor):
             reason = kwargs.get("reason", "Policy violation")
 
             # Cancel all active alarms for this user
-            await self._cancel_all_active_alarms(user.technical_id or user.entity_id or "unknown")
+            await self._cancel_all_active_alarms(
+                user.technical_id or user.entity_id or "unknown"
+            )
 
             # Send suspension notification
             await self._send_suspension_notification(user.email, reason)
@@ -76,16 +80,16 @@ class UserSuspensionProcessor(CyodaProcessor):
         """
         try:
             entity_service = get_entity_service()
-            
+
             # Find all alarms for this user
             # In a real implementation, we would search for alarms by userId
             # For now, we'll just log the action
             self.logger.info(f"Cancelling all active alarms for user {user_id}")
-            
+
             # This would involve:
             # 1. Search for all EggAlarms with userId = user_id and state = ACTIVE
             # 2. For each alarm, trigger cancellation transition
-            
+
         except Exception as e:
             self.logger.error(f"Failed to cancel alarms for user {user_id}: {str(e)}")
             # Don't raise - alarm cancellation failure shouldn't prevent suspension
@@ -100,10 +104,14 @@ class UserSuspensionProcessor(CyodaProcessor):
         """
         try:
             # In a real implementation, this would send actual suspension notification
-            self.logger.info(f"Sending suspension notification to {email} - Reason: {reason}")
-            
+            self.logger.info(
+                f"Sending suspension notification to {email} - Reason: {reason}"
+            )
+
             # Could integrate with email service like SendGrid, AWS SES, etc.
-            
+
         except Exception as e:
-            self.logger.error(f"Failed to send suspension notification to {email}: {str(e)}")
+            self.logger.error(
+                f"Failed to send suspension notification to {email}: {str(e)}"
+            )
             # Don't raise - email failure shouldn't prevent suspension

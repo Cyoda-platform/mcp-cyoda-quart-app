@@ -7,9 +7,9 @@ Activates a registered user account as specified in functional requirements.
 import logging
 from typing import Any
 
+from application.entity.user.version_1.user import User
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.user.version_1.user import User
 
 
 class UserActivationProcessor(CyodaProcessor):
@@ -22,7 +22,9 @@ class UserActivationProcessor(CyodaProcessor):
             name="UserActivationProcessor",
             description="Activates registered User entities after verification",
         )
-        self.logger: logging.Logger = getattr(self, "logger", logging.getLogger(__name__))
+        self.logger: logging.Logger = getattr(
+            self, "logger", logging.getLogger(__name__)
+        )
 
     async def process(self, entity: CyodaEntity, **kwargs: Any) -> CyodaEntity:
         """
@@ -69,9 +71,9 @@ class UserActivationProcessor(CyodaProcessor):
         try:
             # In a real implementation, this would send actual welcome email
             self.logger.info(f"Sending welcome email to {email}")
-            
+
             # Could integrate with email service like SendGrid, AWS SES, etc.
-            
+
         except Exception as e:
             self.logger.error(f"Failed to send welcome email to {email}: {str(e)}")
             # Don't raise - email failure shouldn't prevent activation

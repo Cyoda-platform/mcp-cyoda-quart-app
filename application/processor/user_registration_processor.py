@@ -8,9 +8,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.user.version_1.user import User
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.user.version_1.user import User
 
 
 class UserRegistrationProcessor(CyodaProcessor):
@@ -23,7 +23,9 @@ class UserRegistrationProcessor(CyodaProcessor):
             name="UserRegistrationProcessor",
             description="Registers new User entities and sends verification email",
         )
-        self.logger: logging.Logger = getattr(self, "logger", logging.getLogger(__name__))
+        self.logger: logging.Logger = getattr(
+            self, "logger", logging.getLogger(__name__)
+        )
 
     async def process(self, entity: CyodaEntity, **kwargs: Any) -> CyodaEntity:
         """
@@ -48,7 +50,9 @@ class UserRegistrationProcessor(CyodaProcessor):
             await self._validate_user_data(user)
 
             # Set creation time
-            user.createdAt = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            user.createdAt = (
+                datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            )
 
             # Ensure default preferences are set
             if not user.preferences:
@@ -106,9 +110,9 @@ class UserRegistrationProcessor(CyodaProcessor):
         try:
             # In a real implementation, this would send actual verification email
             self.logger.info(f"Sending verification email to {email}")
-            
+
             # Could integrate with email service like SendGrid, AWS SES, etc.
-            
+
         except Exception as e:
             self.logger.error(f"Failed to send verification email to {email}: {str(e)}")
             # Don't raise - email failure shouldn't prevent registration

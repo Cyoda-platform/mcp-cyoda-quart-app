@@ -7,9 +7,9 @@ Cancels an active or created alarm as specified in functional requirements.
 import logging
 from typing import Any
 
+from application.entity.eggalarm.version_1.eggalarm import EggAlarm
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.eggalarm.version_1.eggalarm import EggAlarm
 
 
 class EggAlarmCancellationProcessor(CyodaProcessor):
@@ -22,7 +22,9 @@ class EggAlarmCancellationProcessor(CyodaProcessor):
             name="EggAlarmCancellationProcessor",
             description="Cancels EggAlarm entities and stops timers",
         )
-        self.logger: logging.Logger = getattr(self, "logger", logging.getLogger(__name__))
+        self.logger: logging.Logger = getattr(
+            self, "logger", logging.getLogger(__name__)
+        )
 
     async def process(self, entity: CyodaEntity, **kwargs: Any) -> CyodaEntity:
         """
@@ -45,12 +47,16 @@ class EggAlarmCancellationProcessor(CyodaProcessor):
 
             # Stop timer if alarm was active
             if egg_alarm.isActive:
-                self._stop_timer(egg_alarm.technical_id or egg_alarm.entity_id or "unknown")
+                self._stop_timer(
+                    egg_alarm.technical_id or egg_alarm.entity_id or "unknown"
+                )
 
             # Deactivate the alarm
             egg_alarm.deactivate()
 
-            self.logger.info(f"EggAlarm {egg_alarm.technical_id} cancelled successfully")
+            self.logger.info(
+                f"EggAlarm {egg_alarm.technical_id} cancelled successfully"
+            )
 
             return egg_alarm
 
@@ -70,7 +76,7 @@ class EggAlarmCancellationProcessor(CyodaProcessor):
         try:
             # In a real implementation, this would stop actual timer/scheduler
             self.logger.info(f"Stopping timer for alarm {alarm_id}")
-            
+
         except Exception as e:
             self.logger.error(f"Failed to stop timer for alarm {alarm_id}: {str(e)}")
             # Don't raise - timer stop failure shouldn't prevent cancellation

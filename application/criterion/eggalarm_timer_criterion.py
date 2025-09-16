@@ -8,9 +8,9 @@ as specified in functional requirements.
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.eggalarm.version_1.eggalarm import EggAlarm
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.eggalarm.version_1.eggalarm import EggAlarm
 
 
 class EggAlarmTimerCriterion(CyodaCriteriaChecker):
@@ -36,7 +36,9 @@ class EggAlarmTimerCriterion(CyodaCriteriaChecker):
             True if the timer has elapsed, False otherwise
         """
         try:
-            self.logger.info(f"Checking timer for EggAlarm {getattr(entity, 'technical_id', '<unknown>')}")
+            self.logger.info(
+                f"Checking timer for EggAlarm {getattr(entity, 'technical_id', '<unknown>')}"
+            )
 
             # Cast the entity to EggAlarm for type-safe operations
             egg_alarm = cast_entity(entity, EggAlarm)
@@ -48,15 +50,21 @@ class EggAlarmTimerCriterion(CyodaCriteriaChecker):
 
             # Check if scheduled time is set
             if not egg_alarm.scheduledTime:
-                self.logger.warning(f"EggAlarm {egg_alarm.technical_id} has no scheduled time")
+                self.logger.warning(
+                    f"EggAlarm {egg_alarm.technical_id} has no scheduled time"
+                )
                 return False
 
             # Check if timer has elapsed
             current_time = datetime.now(timezone.utc)
-            scheduled_time = datetime.fromisoformat(egg_alarm.scheduledTime.replace("Z", "+00:00"))
-            
+            scheduled_time = datetime.fromisoformat(
+                egg_alarm.scheduledTime.replace("Z", "+00:00")
+            )
+
             if current_time >= scheduled_time:
-                self.logger.info(f"Timer has elapsed for EggAlarm {egg_alarm.technical_id}")
+                self.logger.info(
+                    f"Timer has elapsed for EggAlarm {egg_alarm.technical_id}"
+                )
                 return True
             else:
                 remaining_seconds = (scheduled_time - current_time).total_seconds()

@@ -6,10 +6,10 @@ Validates that an egg alarm can be activated as specified in functional requirem
 
 from typing import Any
 
-from common.entity.entity_casting import cast_entity
-from common.processor.base import CyodaCriteriaChecker, CyodaEntity
 from application.entity.eggalarm.version_1.eggalarm import EggAlarm
 from application.entity.user.version_1.user import User
+from common.entity.entity_casting import cast_entity
+from common.processor.base import CyodaCriteriaChecker, CyodaEntity
 from services.services import get_entity_service
 
 
@@ -37,7 +37,9 @@ class EggAlarmValidationCriterion(CyodaCriteriaChecker):
             True if the alarm meets all criteria, False otherwise
         """
         try:
-            self.logger.info(f"Validating EggAlarm {getattr(entity, 'technical_id', '<unknown>')}")
+            self.logger.info(
+                f"Validating EggAlarm {getattr(entity, 'technical_id', '<unknown>')}"
+            )
 
             # Cast the entity to EggAlarm for type-safe operations
             egg_alarm = cast_entity(entity, EggAlarm)
@@ -62,14 +64,18 @@ class EggAlarmValidationCriterion(CyodaCriteriaChecker):
                 return False
 
             # Check user doesn't have more than 5 active alarms
-            active_alarms_count = await self._count_active_alarms_by_user(egg_alarm.userId)
+            active_alarms_count = await self._count_active_alarms_by_user(
+                egg_alarm.userId
+            )
             if active_alarms_count >= 5:
                 self.logger.warning(
                     f"User {egg_alarm.userId} already has {active_alarms_count} active alarms (max 5)"
                 )
                 return False
 
-            self.logger.info(f"EggAlarm {egg_alarm.technical_id} passed all validation criteria")
+            self.logger.info(
+                f"EggAlarm {egg_alarm.technical_id} passed all validation criteria"
+            )
             return True
 
         except Exception as e:
@@ -90,24 +96,26 @@ class EggAlarmValidationCriterion(CyodaCriteriaChecker):
         """
         try:
             entity_service = get_entity_service()
-            
+
             user_response = await entity_service.get_by_id(
                 entity_id=user_id,
                 entity_class=User.ENTITY_NAME,
                 entity_version=str(User.ENTITY_VERSION),
             )
-            
+
             if not user_response:
                 self.logger.warning(f"User {user_id} not found")
                 return False
-            
+
             user = cast_entity(user_response.data, User)
             if user.state != "ACTIVE":
-                self.logger.warning(f"User {user_id} is not in ACTIVE state (current: {user.state})")
+                self.logger.warning(
+                    f"User {user_id} is not in ACTIVE state (current: {user.state})"
+                )
                 return False
-            
+
             return True
-                
+
         except Exception as e:
             self.logger.error(f"Failed to validate user {user_id}: {str(e)}")
             return False
@@ -127,7 +135,9 @@ class EggAlarmValidationCriterion(CyodaCriteriaChecker):
             # For now, we'll return 0 to allow testing
             self.logger.info(f"Counting active alarms for user {user_id}")
             return 0
-                
+
         except Exception as e:
-            self.logger.error(f"Failed to count active alarms for user {user_id}: {str(e)}")
+            self.logger.error(
+                f"Failed to count active alarms for user {user_id}: {str(e)}"
+            )
             return 0  # Assume 0 on error to allow processing

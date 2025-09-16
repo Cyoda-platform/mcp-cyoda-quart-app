@@ -41,22 +41,27 @@ from ..models import (
     ValidationErrorResponse,
 )
 
+
 # Module-level service instance to avoid repeated lookups
 class _ServiceProxy:
     def __getattr__(self, name: str) -> Any:
         return getattr(get_entity_service(), name)
 
+
 service = _ServiceProxy()
 
 logger = logging.getLogger(__name__)
+
 
 # Helper to normalize entity data from service (Pydantic model or dict)
 def _to_entity_dict(data: Any) -> Dict[str, Any]:
     return data.model_dump(by_alias=True) if hasattr(data, "model_dump") else data
 
+
 users_bp = Blueprint("users", __name__, url_prefix="/api/users")
 
 # ---- Routes -----------------------------------------------------------------
+
 
 @users_bp.route("", methods=["POST"])
 @tag(["users"])
@@ -111,7 +116,10 @@ async def get_user(entity_id: str) -> ResponseReturnValue:
     try:
         # Validate entity ID format
         if not entity_id or len(entity_id.strip()) == 0:
-            return jsonify({"error": "Entity ID is required", "code": "INVALID_ID"}), 400
+            return (
+                jsonify({"error": "Entity ID is required", "code": "INVALID_ID"}),
+                400,
+            )
 
         response = await service.get_by_id(
             entity_id=entity_id,
@@ -207,13 +215,16 @@ async def list_users(query_args: UserQueryParams) -> ResponseReturnValue:
     },
 )
 async def update_user(
-        entity_id: str, data: User, query_args: UserUpdateQueryParams
+    entity_id: str, data: User, query_args: UserUpdateQueryParams
 ) -> ResponseReturnValue:
     """Update User and optionally trigger workflow transition with validation"""
     try:
         # Validate entity ID format
         if not entity_id or len(entity_id.strip()) == 0:
-            return jsonify({"error": "Entity ID is required", "code": "INVALID_ID"}), 400
+            return (
+                jsonify({"error": "Entity ID is required", "code": "INVALID_ID"}),
+                400,
+            )
 
         # Get transition from query parameters
         transition: Optional[str] = query_args.transition
@@ -253,14 +264,17 @@ async def update_user(
         404: (ErrorResponse, None),
         400: (ErrorResponse, None),
         500: (ErrorResponse, None),
-    }
+    },
 )
 async def delete_user(entity_id: str, data: TransitionRequest) -> ResponseReturnValue:
     """Delete a user account"""
     try:
         # Validate entity ID format
         if not entity_id or len(entity_id.strip()) == 0:
-            return jsonify({"error": "Entity ID is required", "code": "INVALID_ID"}), 400
+            return (
+                jsonify({"error": "Entity ID is required", "code": "INVALID_ID"}),
+                400,
+            )
 
         # Execute the transition for deletion
         await service.execute_transition(
@@ -284,6 +298,7 @@ async def delete_user(entity_id: str, data: TransitionRequest) -> ResponseReturn
 
 
 # ---- Workflow Action Endpoints ----------------------------------------
+
 
 @users_bp.route("/<entity_id>/activate", methods=["POST"])
 @tag(["users"])
@@ -363,7 +378,9 @@ async def suspend_user(entity_id: str, data: TransitionRequest) -> ResponseRetur
         500: (ErrorResponse, None),
     },
 )
-async def reactivate_user(entity_id: str, data: TransitionRequest) -> ResponseReturnValue:
+async def reactivate_user(
+    entity_id: str, data: TransitionRequest
+) -> ResponseReturnValue:
     """Reactivate a suspended user"""
     try:
         # Execute the transition

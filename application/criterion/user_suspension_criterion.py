@@ -6,9 +6,9 @@ Validates that a user can be suspended as specified in functional requirements.
 
 from typing import Any
 
+from application.entity.user.version_1.user import User
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.user.version_1.user import User
 
 
 class UserSuspensionCriterion(CyodaCriteriaChecker):
@@ -34,7 +34,9 @@ class UserSuspensionCriterion(CyodaCriteriaChecker):
             True if the user can be suspended, False otherwise
         """
         try:
-            self.logger.info(f"Validating User suspension {getattr(entity, 'technical_id', '<unknown>')}")
+            self.logger.info(
+                f"Validating User suspension {getattr(entity, 'technical_id', '<unknown>')}"
+            )
 
             # Cast the entity to User for type-safe operations
             user = cast_entity(entity, User)
@@ -42,7 +44,9 @@ class UserSuspensionCriterion(CyodaCriteriaChecker):
             # Get suspension reason from kwargs
             reason = kwargs.get("reason")
             if not reason or not reason.strip():
-                self.logger.warning(f"Suspension reason must be provided for user {user.technical_id}")
+                self.logger.warning(
+                    f"Suspension reason must be provided for user {user.technical_id}"
+                )
                 return False
 
             # Check if user is admin (admins cannot be suspended)
