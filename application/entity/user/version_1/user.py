@@ -6,7 +6,7 @@ Represents a user in the system with authentication and profile information.
 
 import re
 from datetime import datetime, timezone
-from typing import ClassVar, Optional
+from typing import Any, ClassVar, Dict, Optional
 
 from pydantic import ConfigDict, Field, field_validator
 
@@ -173,7 +173,7 @@ class User(CyodaEntity):
         """Check if user is a customer"""
         return self.user_type == "CUSTOMER"
 
-    def to_api_response(self) -> dict:
+    def to_api_response(self) -> Dict[str, Any]:
         """Convert to API response format (excluding password)"""
         data = self.model_dump()
         # Remove password from API response

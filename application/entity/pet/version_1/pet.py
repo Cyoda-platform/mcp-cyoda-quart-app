@@ -6,7 +6,7 @@ including category, photos, tags, breed information, and pricing.
 """
 
 from datetime import datetime, timezone
-from typing import ClassVar, List, Optional
+from typing import Any, ClassVar, Dict, List, Optional
 
 from pydantic import ConfigDict, Field, field_validator
 

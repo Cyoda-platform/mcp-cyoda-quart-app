@@ -5,7 +5,7 @@ Represents a customer review for a pet with rating and comments.
 """
 
 from datetime import datetime, timezone
-from typing import ClassVar, Optional
+from typing import Any, ClassVar, Dict, Optional
 
 from pydantic import ConfigDict, Field, field_validator
 
@@ -108,7 +108,7 @@ class Review(CyodaEntity):
         """Check if review has been marked as helpful by others"""
         return self.helpful_count > 0
 
-    def to_api_response(self) -> dict:
+    def to_api_response(self) -> Dict[str, Any]:
         """Convert to API response format"""
         data = self.model_dump()
         # Add state for API compatibility
