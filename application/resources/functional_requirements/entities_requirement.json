@@ -1,0 +1,81 @@
+{
+    "entities": [
+        {
+            "Pet": {
+                "entity_data_example": {
+                    "birthDate": "2020-01-01",
+                    "breed": "Golden Retriever",
+                    "category": "Dogs",
+                    "color": "Golden",
+                    "description": "A friendly dog",
+                    "id": 1,
+                    "name": "Buddy",
+                    "neutered": false,
+                    "photoUrls": [
+                        "http://example.com/photo1.jpg",
+                        "http://example.com/photo2.jpg"
+                    ],
+                    "price": 299.99,
+                    "status": "available",
+                    "tags": [
+                        "friendly",
+                        "trained"
+                    ],
+                    "vaccinated": true,
+                    "weight": 30.5
+                }
+            }
+        },
+        {
+            "Category": {
+                "entity_data_example": {
+                    "description": "Various breeds of dogs available.",
+                    "id": 1,
+                    "name": "Dogs"
+                }
+            }
+        },
+        {
+            "Tag": {
+                "entity_data_example": {
+                    "id": 1,
+                    "name": "friendly"
+                }
+            }
+        },
+        {
+            "Order": {
+                "entity_data_example": {
+                    "customerAddress": "123 Main St, Anytown, USA",
+                    "customerEmail": "john.doe@example.com",
+                    "customerName": "John Doe",
+                    "customerPhone": "123-456-7890",
+                    "id": 1,
+                    "notes": "Please deliver after 5 PM",
+                    "paymentMethod": "Credit Card",
+                    "petId": 1,
+                    "quantity": 1,
+                    "shipDate": "2023-10-01T10:00:00",
+                    "status": "placed",
+                    "totalAmount": 299.99
+                }
+            }
+        },
+        {
+            "User": {
+                "entity_data_example": {
+                    "email": "john.doe@example.com",
+                    "firstName": "John",
+                    "id": 1,
+                    "lastLoginDate": "2023-10-01T09:00:00",
+                    "lastName": "Doe",
+                    "phone": "123-456-7890",
+                    "registrationDate": "2023-01-01T10:00:00",
+                    "role": "CUSTOMER",
+                    "userStatus": "active",
+                    "username": "johndoe"
+                }
+            }
+        }
+    ]
+}
