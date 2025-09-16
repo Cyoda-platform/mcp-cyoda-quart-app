@@ -1,0 +1,71 @@
+{
+    "entities": [
+        {
+            "Pet": {
+                "entity_data_example": {
+                    "age": 5,
+                    "breed": "Golden Retriever",
+                    "category": "Dog",
+                    "color": "Golden",
+                    "createdAt": "2023-01-01T12:00:00",
+                    "description": "Friendly and energetic dog",
+                    "id": 1,
+                    "imageUrl": "http://example.com/buddy.jpg",
+                    "name": "Buddy",
+                    "ownerId": null,
+                    "price": 500.0,
+                    "updatedAt": "2023-01-01T12:00:00",
+                    "weight": 30.0
+                }
+            }
+        },
+        {
+            "Owner": {
+                "entity_data_example": {
+                    "address": "123 Main St",
+                    "city": "Springfield",
+                    "country": "USA",
+                    "createdAt": "2023-01-01T12:00:00",
+                    "dateOfBirth": "1990-01-01",
+                    "email": "john.doe@example.com",
+                    "firstName": "John",
+                    "id": 1,
+                    "lastName": "Doe",
+                    "phone": "123-456-7890",
+                    "updatedAt": "2023-01-01T12:00:00",
+                    "zipCode": "12345"
+                }
+            }
+        },
+        {
+            "Order": {
+                "entity_data_example": {
+                    "createdAt": "2023-01-01T12:00:00",
+                    "deliveryAddress": "123 Main St, Springfield, USA",
+                    "deliveryDate": "2023-01-05",
+                    "id": 1,
+                    "notes": "Leave at the front door",
+                    "orderDate": "2023-01-01T12:00:00",
+                    "ownerId": 1,
+                    "petId": 1,
+                    "quantity": 1,
+                    "totalAmount": 500.0,
+                    "updatedAt": "2023-01-01T12:00:00"
+                }
+            }
+        },
+        {
+            "Category": {
+                "entity_data_example": {
+                    "createdAt": "2023-01-01T12:00:00",
+                    "description": "All kinds of dogs",
+                    "id": 1,
+                    "imageUrl": "http://example.com/dogs.jpg",
+                    "isActive": true,
+                    "name": "Dogs",
+                    "updatedAt": "2023-01-01T12:00:00"
+                }
+            }
+        }
+    ]
+}
