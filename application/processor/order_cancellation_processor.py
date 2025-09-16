@@ -66,8 +66,6 @@ class OrderCancellationProcessor(CyodaProcessor):
 
             # Release reserved pets (would normally update Pet entities back to available state)
             # This would be done by updating related Pet entities via EntityService
-            entity_service = get_entity_service()
-
             # For demonstration, we'll log this action
             # In a real implementation, we would:
             # 1. Get all pets from order items

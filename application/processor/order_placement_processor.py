@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from application.entity.order.version_1.order import Order
-from application.entity.pet.version_1.pet import Pet
+
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
 from services.services import get_entity_service
@@ -63,8 +63,6 @@ class OrderPlacementProcessor(CyodaProcessor):
 
             # Reserve pets in order (would normally update Pet entities to pending state)
             # This would be done by updating related Pet entities via EntityService
-            entity_service = get_entity_service()
-
             # For demonstration, we'll log this action
             # In a real implementation, we would:
             # 1. Get all pets from order items

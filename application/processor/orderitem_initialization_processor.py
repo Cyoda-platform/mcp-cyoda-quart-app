@@ -49,8 +49,6 @@ class OrderItemInitializationProcessor(CyodaProcessor):
             order_item = cast_entity(entity, OrderItem)
 
             # Validate pet availability (would normally check Pet entity)
-            entity_service = get_entity_service()
-
             # For demonstration, we'll assume pet availability is validated
             self.logger.info(
                 f"Pet availability validated for pet_id: {order_item.pet_id}"
