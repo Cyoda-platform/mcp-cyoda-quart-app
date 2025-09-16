@@ -49,8 +49,6 @@ class OrderItemConfirmationProcessor(CyodaProcessor):
             order_item = cast_entity(entity, OrderItem)
 
             # Confirm pet is still available (would normally check Pet entity)
-            entity_service = get_entity_service()
-
             # For demonstration, we'll assume pet is still available
             self.logger.info(
                 f"Pet availability confirmed for pet_id: {order_item.pet_id}"

@@ -54,8 +54,6 @@ class OrderItemShippingProcessor(CyodaProcessor):
             )
 
             # Update pet ownership (would normally update Pet entity to sold state)
-            entity_service = get_entity_service()
-
             # For demonstration, we'll log this action
             # In a real implementation, we would transition the Pet to sold state
             self.logger.info(f"Pet ownership updated for pet_id: {order_item.pet_id}")

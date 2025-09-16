@@ -6,11 +6,11 @@ and workflow transitions as specified in functional requirements.
 """
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from quart import Blueprint, jsonify, request
 from quart.typing import ResponseReturnValue
-from quart_schema import operation_id, tag, validate, validate_querystring
+from quart_schema import operation_id, tag
 
 from application.entity.pet.version_1.pet import Pet
 from common.service.entity_service import SearchConditionRequest
