@@ -5,21 +5,22 @@ This module provides pytest fixtures and utilities for testing the gRPC client
 system and related components.
 """
 
-import pytest
 import asyncio
-import tempfile
 import json
-from typing import Dict, Any, List, Optional
+import tempfile
 from pathlib import Path
+from typing import Any, Dict, List, Optional
 
-from tests.utils.mocks import (
-    MockServices, MockAuthService, MockRepository, MockEntityService,
-    MockProcessorManager, MockEventRouter, MockGrpcClient, MockMiddleware,
-    create_mock_cloud_event, create_mock_entity
-)
-from common.di.container import DIContainer
+import pytest
+
 from common.config.manager import ConfigurationManager, Environment
+from common.di.container import DIContainer
 from entity.cyoda_entity import CyodaEntity
+from tests.utils.mocks import (MockAuthService, MockEntityService,
+                               MockEventRouter, MockGrpcClient, MockMiddleware,
+                               MockProcessorManager, MockRepository,
+                               MockServices, create_mock_cloud_event,
+                               create_mock_entity)
 
 
 @pytest.fixture
@@ -79,7 +80,7 @@ def sample_entity():
         entity_id="test-entity-123",
         entity_type="test",
         name="Test Entity",
-        status="active"
+        status="active",
     )
 
 
@@ -91,7 +92,7 @@ def sample_entities():
             entity_id=f"test-entity-{i}",
             entity_type="test",
             name=f"Test Entity {i}",
-            status="active"
+            status="active",
         )
         for i in range(1, 4)
     ]
@@ -112,15 +113,11 @@ def sample_cloud_event():
                 "data": {
                     "entity_id": "test-entity-123",
                     "name": "Test Entity",
-                    "status": "active"
+                    "status": "active",
                 },
-                "meta": {
-                    "modelKey": {
-                        "name": "TestEntity"
-                    }
-                }
-            }
-        }
+                "meta": {"modelKey": {"name": "TestEntity"}},
+            },
+        },
     )
 
 
@@ -141,15 +138,11 @@ def sample_cloud_events():
                     "data": {
                         "entity_id": f"test-entity-{i}",
                         "name": f"Test Entity {i}",
-                        "status": "active"
+                        "status": "active",
                     },
-                    "meta": {
-                        "modelKey": {
-                            "name": "TestEntity"
-                        }
-                    }
-                }
-            }
+                    "meta": {"modelKey": {"name": "TestEntity"}},
+                },
+            },
         )
         events.append(event)
     return events
@@ -178,28 +171,19 @@ def temp_config_file():
         "authentication": {
             "client_id": "test_client_id",
             "client_secret": "test_client_secret",
-            "token_url": "https://test.example.com/oauth/token"
+            "token_url": "https://test.example.com/oauth/token",
         },
-        "grpc": {
-            "address": "test.grpc.com:443",
-            "timeout": 30
-        },
-        "repository": {
-            "type": "memory"
-        },
-        "application": {
-            "name": "Test App",
-            "version": "1.0.0-test",
-            "debug": True
-        }
+        "grpc": {"address": "test.grpc.com:443", "timeout": 30},
+        "repository": {"type": "memory"},
+        "application": {"name": "Test App", "version": "1.0.0-test", "debug": True},
     }
-    
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
         json.dump(config_data, f)
         temp_file_path = f.name
-    
+
     yield temp_file_path
-    
+
     # Cleanup
     Path(temp_file_path).unlink(missing_ok=True)
 
@@ -216,13 +200,10 @@ def event_loop():
 async def async_test_context():
     """Provide an async test context."""
     # Setup
-    context = {
-        "tasks": [],
-        "cleanup_functions": []
-    }
-    
+    context = {"tasks": [], "cleanup_functions": []}
+
     yield context
-    
+
     # Cleanup
     for task in context["tasks"]:
         if not task.done():
@@ -231,7 +212,7 @@ async def async_test_context():
                 await task
             except asyncio.CancelledError:
                 pass
-    
+
     for cleanup_func in context["cleanup_functions"]:
         try:
             if asyncio.iscoroutinefunction(cleanup_func):
@@ -244,12 +225,10 @@ async def async_test_context():
 
 class TestDataBuilder:
     """Builder for creating test data."""
-    
+
     @staticmethod
     def entity_data(
-        entity_id: str = "test-entity",
-        entity_type: str = "test",
-        **kwargs
+        entity_id: str = "test-entity", entity_type: str = "test", **kwargs
     ) -> Dict[str, Any]:
         """Build entity data for testing."""
         data = {
@@ -257,16 +236,16 @@ class TestDataBuilder:
             "entity_type": entity_type,
             "created_at": "2023-01-01T00:00:00Z",
             "updated_at": "2023-01-01T00:00:00Z",
-            **kwargs
+            **kwargs,
         }
         return data
-    
+
     @staticmethod
     def cloud_event_data(
         event_type: str = "test.event",
         processor_name: str = "test_processor",
         entity_id: str = "test-entity",
-        **kwargs
+        **kwargs,
     ) -> Dict[str, Any]:
         """Build CloudEvent data for testing."""
         data = {
@@ -275,16 +254,12 @@ class TestDataBuilder:
             "requestId": f"req-{entity_id}",
             "payload": {
                 "data": TestDataBuilder.entity_data(entity_id=entity_id),
-                "meta": {
-                    "modelKey": {
-                        "name": "TestEntity"
-                    }
-                }
+                "meta": {"modelKey": {"name": "TestEntity"}},
             },
-            **kwargs
+            **kwargs,
         }
         return data
-    
+
     @staticmethod
     def middleware_chain_config() -> Dict[str, Any]:
         """Build middleware chain configuration for testing."""
@@ -294,26 +269,16 @@ class TestDataBuilder:
                     "type": "logging",
                     "enabled": True,
                     "priority": 10,
-                    "config": {"verbose": True}
+                    "config": {"verbose": True},
                 },
                 {
                     "type": "metrics",
                     "enabled": True,
                     "priority": 20,
-                    "config": {"detailed_metrics": False}
+                    "config": {"detailed_metrics": False},
                 },
-                {
-                    "type": "error",
-                    "enabled": True,
-                    "priority": 30,
-                    "config": {}
-                },
-                {
-                    "type": "dispatch",
-                    "enabled": True,
-                    "priority": 40,
-                    "config": {}
-                }
+                {"type": "error", "enabled": True, "priority": 30, "config": {}},
+                {"type": "dispatch", "enabled": True, "priority": 40, "config": {}},
             ]
         }
 
@@ -326,12 +291,10 @@ def test_data_builder():
 
 class AsyncTestHelper:
     """Helper class for async testing."""
-    
+
     @staticmethod
     async def wait_for_condition(
-        condition_func: callable,
-        timeout: float = 1.0,
-        interval: float = 0.1
+        condition_func: callable, timeout: float = 1.0, interval: float = 0.1
     ) -> bool:
         """Wait for a condition to become true."""
         elapsed = 0.0
@@ -341,23 +304,21 @@ class AsyncTestHelper:
             await asyncio.sleep(interval)
             elapsed += interval
         return False
-    
+
     @staticmethod
     async def collect_async_results(
-        async_generators: List,
-        max_items: int = 10,
-        timeout: float = 1.0
+        async_generators: List, max_items: int = 10, timeout: float = 1.0
     ) -> List[Any]:
         """Collect results from async generators."""
         results = []
         tasks = [asyncio.create_task(gen.__anext__()) for gen in async_generators]
-        
+
         try:
             done, pending = await asyncio.wait_for(
                 asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED),
-                timeout=timeout
+                timeout=timeout,
             )
-            
+
             for task in done:
                 try:
                     result = await task
@@ -366,15 +327,15 @@ class AsyncTestHelper:
                         break
                 except StopAsyncIteration:
                     pass
-            
+
             # Cancel pending tasks
             for task in pending:
                 task.cancel()
-                
+
         except asyncio.TimeoutError:
             for task in tasks:
                 task.cancel()
-        
+
         return results
 
 
@@ -404,24 +365,24 @@ def pytest_configure(config):
 # Custom assertions for testing
 class CustomAssertions:
     """Custom assertions for testing."""
-    
+
     @staticmethod
     def assert_entity_equal(entity1: CyodaEntity, entity2: CyodaEntity):
         """Assert that two entities are equal."""
         assert entity1.entity_id == entity2.entity_id
         assert entity1.entity_type == entity2.entity_type
         # Add more specific assertions as needed
-    
+
     @staticmethod
     def assert_cloud_event_valid(event):
         """Assert that a CloudEvent is valid."""
-        assert hasattr(event, 'type')
-        assert hasattr(event, 'id')
-        assert hasattr(event, 'source')
+        assert hasattr(event, "type")
+        assert hasattr(event, "id")
+        assert hasattr(event, "source")
         assert event.type is not None
         assert event.id is not None
         assert event.source is not None
-    
+
     @staticmethod
     def assert_mock_called_with_entity(mock_func, entity: CyodaEntity):
         """Assert that a mock function was called with a specific entity."""
@@ -429,8 +390,8 @@ class CustomAssertions:
         args, kwargs = mock_func.call_args
         if args:
             assert args[0].entity_id == entity.entity_id
-        elif 'entity' in kwargs:
-            assert kwargs['entity'].entity_id == entity.entity_id
+        elif "entity" in kwargs:
+            assert kwargs["entity"].entity_id == entity.entity_id
 
 
 @pytest.fixture

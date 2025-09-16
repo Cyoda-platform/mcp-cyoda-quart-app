@@ -5,15 +5,16 @@ Thread-safe repository for interacting with the Cyoda API.
 Provides CRUD operations with proper error handling and caching.
 """
 
-import threading
+import asyncio
 import json
 import logging
+import threading
 import time
-import asyncio
-from typing import List, Any, Optional, Dict
+from typing import Any, Dict, List, Optional
 
 from common.config.config import CYODA_ENTITY_TYPE_EDGE_MESSAGE
-from common.config.conts import EDGE_MESSAGE_CLASS, TREE_NODE_ENTITY_CLASS, UPDATE_TRANSITION
+from common.config.conts import (EDGE_MESSAGE_CLASS, TREE_NODE_ENTITY_CLASS,
+                                 UPDATE_TRANSITION)
 from common.repository.crud_repository import CrudRepository
 from common.utils.utils import custom_serializer, send_cyoda_request
 
@@ -41,10 +42,7 @@ class CyodaRepository(CrudRepository):
         return cls._instance
 
     async def _wait_for_search_completion(
-            self,
-            snapshot_id: str,
-            timeout: float = 60.0,
-            interval: float = 0.3
+        self, snapshot_id: str, timeout: float = 60.0, interval: float = 0.3
     ) -> None:
         """Poll the snapshot status endpoint until SUCCESSFUL or error/timeout."""
         start = time.monotonic()
@@ -54,7 +52,7 @@ class CyodaRepository(CrudRepository):
             resp = await send_cyoda_request(
                 cyoda_auth_service=self._cyoda_auth_service,
                 method="get",
-                path=status_path
+                path=status_path,
             )
             if resp.get("status") != 200:
                 return
@@ -67,7 +65,6 @@ class CyodaRepository(CrudRepository):
                 raise TimeoutError(f"Timeout exceeded after {timeout} seconds")
             await asyncio.sleep(interval)
 
-
     # CRUD Repository Implementation
     async def find_by_id(self, meta, entity_id: Any) -> Optional[Any]:
         """Find entity by ID."""
@@ -76,9 +73,7 @@ class CyodaRepository(CrudRepository):
                 return _edge_messages_cache[entity_id]
             path = f"message/get/{entity_id}"
             resp = await send_cyoda_request(
-                cyoda_auth_service=self._cyoda_auth_service,
-                method="get",
-                path=path
+                cyoda_auth_service=self._cyoda_auth_service, method="get", path=path
             )
             content = resp.get("json", {}).get("content", "{}")
             data = json.loads(content).get("edge_message_content")
@@ -88,9 +83,7 @@ class CyodaRepository(CrudRepository):
 
         path = f"entity/{entity_id}"
         resp = await send_cyoda_request(
-            cyoda_auth_service=self._cyoda_auth_service,
-            method="get",
-            path=path
+            cyoda_auth_service=self._cyoda_auth_service, method="get", path=path
         )
         payload = resp.get("json", {})
         data = payload.get("data", {})
@@ -102,9 +95,7 @@ class CyodaRepository(CrudRepository):
         """Find all entities of a specific model."""
         path = f"entity/{meta['entity_model']}/{meta['entity_version']}"
         resp = await send_cyoda_request(
-            cyoda_auth_service=self._cyoda_auth_service,
-            method="get",
-            path=path
+            cyoda_auth_service=self._cyoda_auth_service, method="get", path=path
         )
         return resp.get("json", [])
 
@@ -117,9 +108,7 @@ class CyodaRepository(CrudRepository):
         search_criteria = self._ensure_cyoda_format(criteria)
 
         resp = await self._send_search_request(
-            method="post",
-            path=search_path,
-            data=json.dumps(search_criteria)
+            method="post", path=search_path, data=json.dumps(search_criteria)
         )
 
         if resp.get("status") != 200:
@@ -142,17 +131,13 @@ class CyodaRepository(CrudRepository):
         return entities
 
     async def _send_search_request(
-        self,
-        method: str,
-        path: str,
-        data: str = None,
-        base_url: str = None
+        self, method: str, path: str, data: str = None, base_url: str = None
     ) -> dict:
         """
         Send a search request to the Cyoda API with custom headers and automatic retry on 401.
         """
-        from common.utils.utils import send_request
         from common.config.config import CYODA_API_URL
+        from common.utils.utils import send_request
 
         if base_url is None:
             base_url = CYODA_API_URL
@@ -164,7 +149,9 @@ class CyodaRepository(CrudRepository):
                 # Prepare headers for search endpoint
                 headers = {
                     "Content-Type": "application/json",
-                    "Authorization": f"Bearer {token}" if not token.startswith('Bearer') else token,
+                    "Authorization": (
+                        f"Bearer {token}" if not token.startswith("Bearer") else token
+                    ),
                 }
 
                 url = f"{base_url}/{path}"
@@ -175,7 +162,9 @@ class CyodaRepository(CrudRepository):
             except Exception as exc:
                 msg = str(exc)
                 if attempt == 0 and ("401" in msg or "Unauthorized" in msg):
-                    logger.warning(f"Request to {path} failed with 401; invalidating tokens and retrying")
+                    logger.warning(
+                        f"Request to {path} failed with 401; invalidating tokens and retrying"
+                    )
                     self._cyoda_auth_service.invalidate_tokens()
                     token = await self._cyoda_auth_service.get_access_token()
                     continue
@@ -183,7 +172,9 @@ class CyodaRepository(CrudRepository):
 
             status = response.get("status") if isinstance(response, dict) else None
             if attempt == 0 and status == 401:
-                logger.warning(f"Response from {path} returned status 401; invalidating tokens and retrying")
+                logger.warning(
+                    f"Response from {path} returned status 401; invalidating tokens and retrying"
+                )
                 self._cyoda_auth_service.invalidate_tokens()
                 token = await self._cyoda_auth_service.get_access_token()
                 continue
@@ -202,22 +193,20 @@ class CyodaRepository(CrudRepository):
 
         # If it's a single condition (simple or lifecycle), wrap it in a group
         if criteria.get("type") in ["simple", "lifecycle"]:
-            return {
-                "type": "group",
-                "operator": "AND",
-                "conditions": [criteria]
-            }
+            return {"type": "group", "operator": "AND", "conditions": [criteria]}
 
         # If it's a simple field-value dictionary, convert to Cyoda group format
         conditions = []
         for field, value in criteria.items():
             if field in ["state", "current_state"]:
-                conditions.append({
-                    "type": "lifecycle",
-                    "field": field,
-                    "operatorType": "EQUALS",
-                    "value": value
-                })
+                conditions.append(
+                    {
+                        "type": "lifecycle",
+                        "field": field,
+                        "operatorType": "EQUALS",
+                        "value": value,
+                    }
+                )
             else:
                 # Handle complex field-operator-value format
                 if isinstance(value, dict) and len(value) == 1:
@@ -238,36 +227,34 @@ class CyodaRepository(CrudRepository):
                         "startswith": "STARTS_WITH",
                         "endswith": "ENDS_WITH",
                         "in": "IN",
-                        "not_in": "NOT_IN"
+                        "not_in": "NOT_IN",
                     }
 
                     cyoda_operator = operator_mapping.get(operator, "EQUALS")
 
                     # Convert field to jsonPath format
                     json_path = f"$.{field}" if not field.startswith("$.") else field
-                    conditions.append({
-                        "type": "simple",
-                        "jsonPath": json_path,
-                        "operatorType": cyoda_operator,
-                        "value": actual_value
-                    })
+                    conditions.append(
+                        {
+                            "type": "simple",
+                            "jsonPath": json_path,
+                            "operatorType": cyoda_operator,
+                            "value": actual_value,
+                        }
+                    )
                 else:
                     # Simple field-value format: {"field": "value"}
                     json_path = f"$.{field}" if not field.startswith("$.") else field
-                    conditions.append({
-                        "type": "simple",
-                        "jsonPath": json_path,
-                        "operatorType": "EQUALS",
-                        "value": value
-                    })
+                    conditions.append(
+                        {
+                            "type": "simple",
+                            "jsonPath": json_path,
+                            "operatorType": "EQUALS",
+                            "value": value,
+                        }
+                    )
 
-        return {
-            "type": "group",
-            "operator": "AND",
-            "conditions": conditions
-        }
-
-
+        return {"type": "group", "operator": "AND", "conditions": conditions}
 
     async def save(self, meta, entity: Any) -> Any:
         """Save a single entity."""
@@ -286,7 +273,7 @@ class CyodaRepository(CrudRepository):
             cyoda_auth_service=self._cyoda_auth_service,
             method="post",
             path=path,
-            data=data
+            data=data,
         )
         result = resp.get("json", [])
 
@@ -307,7 +294,7 @@ class CyodaRepository(CrudRepository):
             cyoda_auth_service=self._cyoda_auth_service,
             method="post",
             path=path,
-            data=data
+            data=data,
         )
         result = resp.get("json", [])
 
@@ -332,7 +319,7 @@ class CyodaRepository(CrudRepository):
             cyoda_auth_service=self._cyoda_auth_service,
             method="put",
             path=path,
-            data=data
+            data=data,
         )
         result = resp.get("json", {})
         if not isinstance(result, dict):
@@ -344,9 +331,7 @@ class CyodaRepository(CrudRepository):
         """Delete entity by ID."""
         path = f"entity/{technical_id}"
         await send_cyoda_request(
-            cyoda_auth_service=self._cyoda_auth_service,
-            method="delete",
-            path=path
+            cyoda_auth_service=self._cyoda_auth_service, method="delete", path=path
         )
 
     async def count(self, meta) -> int:
@@ -368,9 +353,7 @@ class CyodaRepository(CrudRepository):
         """Delete all entities of a specific model."""
         path = f"entity/{meta['entity_model']}/{meta['entity_version']}"
         await send_cyoda_request(
-            cyoda_auth_service=self._cyoda_auth_service,
-            method="delete",
-            path=path
+            cyoda_auth_service=self._cyoda_auth_service, method="delete", path=path
         )
 
     async def get_meta(self, token, entity_model, entity_version):
@@ -378,7 +361,7 @@ class CyodaRepository(CrudRepository):
         return {
             "token": token,
             "entity_model": entity_model,
-            "entity_version": entity_version
+            "entity_version": entity_version,
         }
 
     async def _launch_transition(self, meta, technical_id):
@@ -394,10 +377,8 @@ class CyodaRepository(CrudRepository):
             f"{meta.get('update_transition', UPDATE_TRANSITION)}"
         )
         resp = await send_cyoda_request(
-            cyoda_auth_service=self._cyoda_auth_service,
-            method="put",
-            path=path
+            cyoda_auth_service=self._cyoda_auth_service, method="put", path=path
         )
-        if resp.get('status') != 200:
-            raise Exception(resp.get('json'))
+        if resp.get("status") != 200:
+            raise Exception(resp.get("json"))
         return resp.get("json")

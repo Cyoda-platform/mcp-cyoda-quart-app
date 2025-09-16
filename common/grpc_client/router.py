@@ -12,4 +12,3 @@ class EventRouter:
 
     def route(self, event: CloudEvent):
         return self._handlers.get(event.type)
-

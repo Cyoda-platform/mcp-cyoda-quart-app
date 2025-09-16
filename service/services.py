@@ -7,25 +7,29 @@ Uses dependency-injector for dependency management but with a simple interface.
 
 import asyncio
 import logging
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
 from dependency_injector import containers, providers
 
-from common.interfaces.services import IAuthService, IProcessorManager, IGrpcClient
+from common.interfaces.services import (IAuthService, IGrpcClient,
+                                        IProcessorManager)
 from common.repository.crud_repository import CrudRepository
 from common.service.entity_service import EntityService
 
 logger = logging.getLogger(__name__)
 
 
-def _create_auth_service(client_id: str, client_secret: str, token_url: str, scope: str = "read write"):
+def _create_auth_service(
+    client_id: str, client_secret: str, token_url: str, scope: str = "read write"
+):
     """Create auth service with lazy import."""
     from common.auth.cyoda_auth import CyodaAuthService
+
     return CyodaAuthService(
         client_id=client_id,
         client_secret=client_secret,
         token_url=token_url,
-        scope=scope
+        scope=scope,
     )
 
 
@@ -33,75 +37,92 @@ def _create_repository(auth_service, use_in_memory: bool):
     """Create repository with lazy import."""
     if use_in_memory:
         from common.repository.in_memory_db import InMemoryRepository
+
         return InMemoryRepository()
     else:
         from common.repository.cyoda.cyoda_repository import CyodaRepository
+
         return CyodaRepository(cyoda_auth_service=auth_service)
 
 
 def _create_entity_service(repository):
     """Create entity service with lazy import."""
     from common.service.service import EntityServiceImpl
+
     return EntityServiceImpl(repository=repository)
 
 
 def _create_grpc_client(auth_service):
     """Create gRPC client with lazy import."""
     from common.grpc_client.grpc_client import GrpcClient
+
     return GrpcClient(auth=auth_service)
 
 
 def _create_entity_management_service(entity_service):
     """Create entity management service with lazy import."""
-    from cyoda_mcp.mcp_services.entity_management import EntityManagementService
+    from cyoda_mcp.mcp_services.entity_management import \
+        EntityManagementService
+
     return EntityManagementService(entity_service=entity_service)
 
 
 def _create_search_service(entity_service):
     """Create search service with lazy import."""
     from cyoda_mcp.mcp_services.search import SearchService
+
     return SearchService(entity_service=entity_service)
 
 
 def _create_edge_message_repository(auth_service):
     """Create edge message repository with lazy import."""
-    from common.repository.cyoda.edge_message_repository import EdgeMessageRepository
+    from common.repository.cyoda.edge_message_repository import \
+        EdgeMessageRepository
+
     return EdgeMessageRepository(cyoda_auth_service=auth_service)
 
 
 def _create_edge_message_service(edge_message_repository):
     """Create edge message service with lazy import."""
     from cyoda_mcp.mcp_services.edge_message import EdgeMessageService
+
     return EdgeMessageService(edge_message_repository=edge_message_repository)
 
 
 def _create_workflow_repository(auth_service):
     """Create workflow repository with lazy import."""
     from common.repository.cyoda.workflow_repository import WorkflowRepository
+
     return WorkflowRepository(cyoda_auth_service=auth_service)
 
 
 def _create_workflow_management_service(workflow_repository):
     """Create workflow management service with lazy import."""
-    from cyoda_mcp.mcp_services.workflow_management import WorkflowManagementService
+    from cyoda_mcp.mcp_services.workflow_management import \
+        WorkflowManagementService
+
     return WorkflowManagementService(workflow_repository=workflow_repository)
 
 
 def _create_deployment_repository(auth_service):
     """Create deployment repository with lazy import."""
-    from common.repository.cyoda.deployment_repository import DeploymentRepository
+    from common.repository.cyoda.deployment_repository import \
+        DeploymentRepository
+
     return DeploymentRepository(cyoda_auth_service=auth_service)
 
 
 def _create_deployment_service(deployment_repository):
     """Create deployment service with lazy import."""
     from cyoda_mcp.mcp_services.deployment import DeploymentService
+
     return DeploymentService(deployment_repository=deployment_repository)
 
 
 def _create_processor_manager(modules):
     """Create processor manager with lazy import."""
     from common.processor import get_processor_manager
+
     return get_processor_manager(modules)
 
 
@@ -201,40 +222,40 @@ _initialized = False
 def initialize_services(config: Dict[str, Any]) -> None:
     """
     Initialize services with the provided configuration.
-    
+
     Args:
         config: Configuration dictionary
     """
     global _container, _initialized
-    
+
     if _initialized:
         logger.warning("Services already initialized")
         return
-    
+
     logger.info("Initializing services...")
-    
+
     # Create and configure container
     _container = ServiceContainer()
     _container.config.from_dict(config)
-    
+
     # Eagerly initialize all services
     logger.info("Eagerly initializing all services...")
     try:
         _ = _container.auth_service()
         logger.info("✓ Auth service initialized")
-        
+
         _ = _container.repository()
         logger.info("✓ Repository initialized")
-        
+
         _ = _container.entity_service()
         logger.info("✓ Entity service initialized")
-        
+
         _ = _container.processor_manager()
         logger.info("✓ Processor manager initialized")
-        
+
         _ = _container.grpc_client()
         logger.info("✓ gRPC client initialized")
-        
+
         _ = _container.chat_lock()
         logger.info("✓ Chat lock initialized")
 
@@ -245,7 +266,7 @@ def initialize_services(config: Dict[str, Any]) -> None:
     except Exception as e:
         logger.error(f"Failed to initialize services: {e}")
         raise
-    
+
     _initialized = True
     logger.info("Service initialization complete")
 
@@ -253,7 +274,9 @@ def initialize_services(config: Dict[str, Any]) -> None:
 def _ensure_initialized():
     """Ensure services are initialized."""
     if not _initialized or _container is None:
-        raise RuntimeError("Services not initialized. Call initialize_services() first.")
+        raise RuntimeError(
+            "Services not initialized. Call initialize_services() first."
+        )
 
 
 # Direct service access functions
@@ -297,6 +320,7 @@ def get_entity_management_service():
     """Get the entity management service."""
     _ensure_initialized()
     return _container.entity_management_service()
+
 
 def get_search_service():
     """Get the search service."""
@@ -348,7 +372,7 @@ def is_initialized() -> bool:
 def shutdown_services() -> None:
     """Shutdown services and clean up resources."""
     global _container, _initialized
-    
+
     if _initialized and _container:
         logger.info("Shutting down services...")
         _container.unwire()

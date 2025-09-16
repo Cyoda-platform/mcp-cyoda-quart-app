@@ -8,4 +8,3 @@ class ResponseSpec:
     data: dict
     source_event_id: Optional[str] = None
     success: bool = True
-

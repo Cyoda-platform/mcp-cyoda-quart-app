@@ -10,17 +10,11 @@ This package contains organized route modules for different functionalities:
 - system: System information and metrics
 """
 
+from .health import health_bp
 from .jobs import jobs_bp
 from .laureates import laureates_bp
 from .subscribers import subscribers_bp
-from .health import health_bp
 from .system import system_bp
 
 # Export all blueprints for easy import
-__all__ = [
-    'jobs_bp',
-    'laureates_bp',
-    'subscribers_bp',
-    'health_bp',
-    'system_bp'
-]
+__all__ = ["jobs_bp", "laureates_bp", "subscribers_bp", "health_bp", "system_bp"]

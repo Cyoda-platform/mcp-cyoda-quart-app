@@ -2,13 +2,12 @@ import json
 import uuid
 from typing import Dict
 
-from proto.cloudevents_pb2 import CloudEvent
-
-from common.grpc_client.constants import (
-    SPEC_VERSION, SOURCE, OWNER, TAGS,
-    CALC_RESP_EVENT_TYPE, CRITERIA_CALC_RESP_EVENT_TYPE, EVENT_ACK_TYPE, JOIN_EVENT_TYPE
-)
+from common.grpc_client.constants import (CALC_RESP_EVENT_TYPE,
+                                          CRITERIA_CALC_RESP_EVENT_TYPE,
+                                          EVENT_ACK_TYPE, JOIN_EVENT_TYPE,
+                                          OWNER, SOURCE, SPEC_VERSION, TAGS)
 from common.grpc_client.responses.spec import ResponseSpec
+from proto.cloudevents_pb2 import CloudEvent
 
 
 class ResponseBuilder:
@@ -38,12 +37,14 @@ class AckResponseBuilder(ResponseBuilder):
             source=SOURCE,
             spec_version=SPEC_VERSION,
             type=EVENT_ACK_TYPE,
-            text_data=json.dumps({
-                "id": event_id,
-                "sourceEventId": spec.source_event_id,
-                "owner": OWNER,
-                "success": True,
-            }),
+            text_data=json.dumps(
+                {
+                    "id": event_id,
+                    "sourceEventId": spec.source_event_id,
+                    "owner": OWNER,
+                    "success": True,
+                }
+            ),
         )
 
 
@@ -56,11 +57,13 @@ class JoinResponseBuilder(ResponseBuilder):
             source=SOURCE,
             spec_version=SPEC_VERSION,
             type=JOIN_EVENT_TYPE,
-            text_data=json.dumps({
-                "id": event_id,
-                "owner": OWNER,
-                "tags": TAGS,
-            }),
+            text_data=json.dumps(
+                {
+                    "id": event_id,
+                    "owner": OWNER,
+                    "tags": TAGS,
+                }
+            ),
         )
 
 
@@ -73,14 +76,16 @@ class CalcResponseBuilder(ResponseBuilder):
             source=SOURCE,
             spec_version=SPEC_VERSION,
             type=CALC_RESP_EVENT_TYPE,
-            text_data=json.dumps({
-                "id": event_id,
-                "requestId": data.get("requestId"),
-                "entityId": data.get("entityId"),
-                "owner": OWNER,
-                "payload": data.get("payload"),
-                "success": True,
-            }),
+            text_data=json.dumps(
+                {
+                    "id": event_id,
+                    "requestId": data.get("requestId"),
+                    "entityId": data.get("entityId"),
+                    "owner": OWNER,
+                    "payload": data.get("payload"),
+                    "success": True,
+                }
+            ),
         )
 
 
@@ -93,13 +98,14 @@ class CriteriaCalcResponseBuilder(ResponseBuilder):
             source=SOURCE,
             spec_version=SPEC_VERSION,
             type=CRITERIA_CALC_RESP_EVENT_TYPE,
-            text_data=json.dumps({
-                "id": event_id,
-                "requestId": data.get("requestId"),
-                "entityId": data.get("entityId"),
-                "owner": OWNER,
-                "matches": data.get("matches"),
-                "success": True,
-            }),
+            text_data=json.dumps(
+                {
+                    "id": event_id,
+                    "requestId": data.get("requestId"),
+                    "entityId": data.get("entityId"),
+                    "owner": OWNER,
+                    "matches": data.get("matches"),
+                    "success": True,
+                }
+            ),
         )
-

@@ -7,23 +7,23 @@ the gRPC client system and related components.
 
 import asyncio
 import json
-from typing import Any, Dict, List, Optional, Callable
-from unittest.mock import Mock, AsyncMock, MagicMock
 from dataclasses import dataclass
+from typing import Any, Callable, Dict, List, Optional
+from unittest.mock import AsyncMock, MagicMock, Mock
 
-from proto.cloudevents_pb2 import CloudEvent
-from entity.cyoda_entity import CyodaEntity
-from common.interfaces.services import (
-    IAuthService, IProcessorManager,
-    IGrpcClient, IEventRouter, IResponseBuilder, IMiddleware
-)
+from common.interfaces.services import (IAuthService, IEventRouter,
+                                        IGrpcClient, IMiddleware,
+                                        IProcessorManager, IResponseBuilder)
 from common.repository.crud_repository import CrudRepository
 from common.service.entity_service import EntityService
+from entity.cyoda_entity import CyodaEntity
+from proto.cloudevents_pb2 import CloudEvent
 
 
 @dataclass
 class MockEventData:
     """Mock event data for testing."""
+
     event_type: str
     event_id: str
     source: str
@@ -32,22 +32,22 @@ class MockEventData:
 
 class MockAuthService(IAuthService):
     """Mock authentication service for testing."""
-    
+
     def __init__(self, token: str = "mock_token"):
         self.token = token
         self.token_calls = 0
         self.invalidate_calls = 0
-    
+
     def get_access_token_sync(self) -> str:
         """Get access token synchronously."""
         self.token_calls += 1
         return self.token
-    
+
     async def get_access_token(self) -> str:
         """Get access token asynchronously."""
         self.token_calls += 1
         return self.token
-    
+
     def invalidate_token(self) -> None:
         """Invalidate current token."""
         self.invalidate_calls += 1
@@ -55,29 +55,29 @@ class MockAuthService(IAuthService):
 
 class MockRepository(CrudRepository):
     """Mock repository for testing."""
-    
+
     def __init__(self):
         self.entities: Dict[str, CyodaEntity] = {}
         self.save_calls = 0
         self.find_calls = 0
         self.delete_calls = 0
-    
+
     async def save(self, entity: CyodaEntity) -> CyodaEntity:
         """Save an entity."""
         self.save_calls += 1
         self.entities[entity.entity_id] = entity
         return entity
-    
+
     async def find_by_id(self, entity_id: str) -> Optional[CyodaEntity]:
         """Find entity by ID."""
         self.find_calls += 1
         return self.entities.get(entity_id)
-    
+
     async def find_all(self) -> List[CyodaEntity]:
         """Find all entities."""
         self.find_calls += 1
         return list(self.entities.values())
-    
+
     async def delete(self, entity_id: str) -> bool:
         """Delete entity by ID."""
         self.delete_calls += 1
@@ -89,7 +89,7 @@ class MockRepository(CrudRepository):
 
 class MockEntityService(EntityService):
     """Mock entity service for testing."""
-    
+
     def __init__(self, repository: Optional[MockRepository] = None):
         self.repository = repository or MockRepository()
         self.create_calls = 0
@@ -97,20 +97,22 @@ class MockEntityService(EntityService):
         self.update_calls = 0
         self.delete_calls = 0
         self.list_calls = 0
-    
+
     async def create_entity(self, entity_data: Dict[str, Any]) -> CyodaEntity:
         """Create a new entity."""
         self.create_calls += 1
         entity = CyodaEntity(**entity_data)
         await self.repository.save(entity)
         return entity
-    
+
     async def get_entity(self, entity_id: str) -> Optional[CyodaEntity]:
         """Get entity by ID."""
         self.get_calls += 1
         return await self.repository.find_by_id(entity_id)
-    
-    async def update_entity(self, entity_id: str, updates: Dict[str, Any]) -> CyodaEntity:
+
+    async def update_entity(
+        self, entity_id: str, updates: Dict[str, Any]
+    ) -> CyodaEntity:
         """Update an entity."""
         self.update_calls += 1
         entity = await self.repository.find_by_id(entity_id)
@@ -119,12 +121,12 @@ class MockEntityService(EntityService):
                 setattr(entity, key, value)
             await self.repository.save(entity)
         return entity
-    
+
     async def delete_entity(self, entity_id: str) -> bool:
         """Delete an entity."""
         self.delete_calls += 1
         return await self.repository.delete(entity_id)
-    
+
     async def list_entities(self) -> List[CyodaEntity]:
         """List all entities."""
         self.list_calls += 1
@@ -133,22 +135,24 @@ class MockEntityService(EntityService):
 
 class MockProcessorManager(IProcessorManager):
     """Mock processor manager for testing."""
-    
+
     def __init__(self):
         self.processors: Dict[str, Callable] = {}
         self.criteria: Dict[str, Callable] = {}
         self.process_calls = 0
         self.criteria_calls = 0
-    
+
     def add_processor(self, name: str, processor_func: Callable):
         """Add a mock processor."""
         self.processors[name] = processor_func
-    
+
     def add_criteria(self, name: str, criteria_func: Callable):
         """Add a mock criteria checker."""
         self.criteria[name] = criteria_func
-    
-    async def process_entity(self, processor_name: str, entity: CyodaEntity, **kwargs) -> CyodaEntity:
+
+    async def process_entity(
+        self, processor_name: str, entity: CyodaEntity, **kwargs
+    ) -> CyodaEntity:
         """Process an entity using the specified processor."""
         self.process_calls += 1
         if processor_name in self.processors:
@@ -156,8 +160,10 @@ class MockProcessorManager(IProcessorManager):
         else:
             # Default behavior: just return the entity
             return entity
-    
-    async def check_criteria(self, criteria_name: str, entity: CyodaEntity, **kwargs) -> bool:
+
+    async def check_criteria(
+        self, criteria_name: str, entity: CyodaEntity, **kwargs
+    ) -> bool:
         """Check if entity meets the specified criteria."""
         self.criteria_calls += 1
         if criteria_name in self.criteria:
@@ -165,66 +171,66 @@ class MockProcessorManager(IProcessorManager):
         else:
             # Default behavior: return True
             return True
-    
+
     def list_processors(self) -> List[str]:
         """List available processors."""
         return list(self.processors.keys())
-    
+
     def list_criteria(self) -> List[str]:
         """List available criteria."""
         return list(self.criteria.keys())
-    
+
     def get_processor_info(self, processor_name: str) -> Optional[Dict[str, Any]]:
         """Get information about a processor."""
         if processor_name in self.processors:
             return {
                 "name": processor_name,
                 "type": "mock_processor",
-                "description": f"Mock processor: {processor_name}"
+                "description": f"Mock processor: {processor_name}",
             }
         return None
 
 
 class MockEventRouter(IEventRouter):
     """Mock event router for testing."""
-    
+
     def __init__(self):
         self.handlers: Dict[str, Any] = {}
         self.register_calls = 0
         self.route_calls = 0
-    
+
     def register(self, event_type: str, handler: Any) -> None:
         """Register an event handler."""
         self.register_calls += 1
         self.handlers[event_type] = handler
-    
+
     def route(self, event: Any) -> Optional[Any]:
         """Route an event to its handler."""
         self.route_calls += 1
-        if hasattr(event, 'type') and event.type in self.handlers:
+        if hasattr(event, "type") and event.type in self.handlers:
             return self.handlers[event.type]
         return None
 
 
 class MockMiddleware(IMiddleware):
     """Mock middleware for testing."""
-    
+
     def __init__(self, name: str = "mock_middleware"):
         self.name = name
         self.handle_calls = 0
         self.successor: Optional[IMiddleware] = None
         self.should_call_successor = True
         self.return_value = None
-    
+
     async def handle(self, event: Any) -> Any:
         """Handle an event."""
         self.handle_calls += 1
-        
+
         if self.should_call_successor and self.successor:
             return await self.successor.handle(event)
-        
+
         return self.return_value
-    
+
     def set_successor(self, successor: IMiddleware) -> IMiddleware:
         """Set the next middleware in the chain."""
         self.successor = successor
@@ -233,38 +239,38 @@ class MockMiddleware(IMiddleware):
 
 class MockGrpcClient(IGrpcClient):
     """Mock gRPC client for testing."""
-    
+
     def __init__(self):
         self.stream_calls = 0
         self.stop_calls = 0
         self.is_running = False
         self.events_to_send: List[MockEventData] = []
         self.event_handler: Optional[Callable] = None
-    
+
     def add_event(self, event_data: MockEventData):
         """Add an event to be sent during streaming."""
         self.events_to_send.append(event_data)
-    
+
     def set_event_handler(self, handler: Callable):
         """Set the event handler for processing events."""
         self.event_handler = handler
-    
+
     async def grpc_stream(self) -> None:
         """Start the gRPC streaming connection."""
         self.stream_calls += 1
         self.is_running = True
-        
+
         # Send mock events if handler is set
         if self.event_handler:
             for event_data in self.events_to_send:
                 mock_event = self._create_mock_cloud_event(event_data)
                 await self.event_handler(mock_event)
-    
+
     def stop(self) -> None:
         """Stop the gRPC client."""
         self.stop_calls += 1
         self.is_running = False
-    
+
     def _create_mock_cloud_event(self, event_data: MockEventData) -> CloudEvent:
         """Create a mock CloudEvent."""
         event = CloudEvent()
@@ -277,7 +283,7 @@ class MockGrpcClient(IGrpcClient):
 
 class MockServices:
     """Mock services container for testing."""
-    
+
     def __init__(self):
         self.auth_service = MockAuthService()
         self.repository = MockRepository()
@@ -286,7 +292,7 @@ class MockServices:
         self.event_router = MockEventRouter()
         self.grpc_client = MockGrpcClient()
         self.processor_loop = Mock()
-    
+
     def reset_all(self):
         """Reset all mock services to initial state."""
         self.auth_service = MockAuthService()
@@ -302,7 +308,7 @@ def create_mock_cloud_event(
     event_type: str = "test.event",
     event_id: str = "test-id",
     source: str = "test-source",
-    data: Optional[Dict[str, Any]] = None
+    data: Optional[Dict[str, Any]] = None,
 ) -> CloudEvent:
     """Create a mock CloudEvent for testing."""
     event = CloudEvent()
@@ -314,16 +320,10 @@ def create_mock_cloud_event(
 
 
 def create_mock_entity(
-    entity_id: str = "test-entity",
-    entity_type: str = "test",
-    **kwargs
+    entity_id: str = "test-entity", entity_type: str = "test", **kwargs
 ) -> CyodaEntity:
     """Create a mock CyodaEntity for testing."""
-    data = {
-        "entity_id": entity_id,
-        "entity_type": entity_type,
-        **kwargs
-    }
+    data = {"entity_id": entity_id, "entity_type": entity_type, **kwargs}
     return CyodaEntity(**data)
 
 
@@ -339,16 +339,16 @@ async def run_async_test(coro):
 
 class AsyncContextManagerMock:
     """Mock async context manager for testing."""
-    
+
     def __init__(self, return_value=None):
         self.return_value = return_value
         self.enter_calls = 0
         self.exit_calls = 0
-    
+
     async def __aenter__(self):
         self.enter_calls += 1
         return self.return_value
-    
+
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         self.exit_calls += 1
         return False

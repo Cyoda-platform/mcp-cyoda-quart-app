@@ -15,14 +15,14 @@ Configuration:
 - Set CHAT_REPOSITORY=in_memory (or leave unset) to use this in-memory repository
 """
 
-import threading
 import logging
+import threading
 from typing import List
 
 from common.repository.crud_repository import CrudRepository
 from common.utils.utils import *
 
-logger = logging.getLogger('django')
+logger = logging.getLogger("django")
 
 # Global in-memory cache - this is where all data is stored when using in-memory repository
 # This dictionary persists for the lifetime of the application process
@@ -47,7 +47,7 @@ class InMemoryRepository(CrudRepository):
 
     def __init__(self):
         """Initialize the in-memory repository."""
-        if not hasattr(self, '_initialized'):
+        if not hasattr(self, "_initialized"):
             logger.info("InMemoryRepository initialized successfully")
             logger.info(f"Current cache size: {len(cache)} entities")
             self._initialized = True
@@ -56,7 +56,11 @@ class InMemoryRepository(CrudRepository):
         pass
 
     async def get_meta(self, token, entity_model, entity_version):
-        return {"token": token, "entity_model": entity_model, "entity_version": entity_version}
+        return {
+            "token": token,
+            "entity_model": entity_model,
+            "entity_version": entity_version,
+        }
 
     async def count(self, meta) -> int:
         pass
@@ -92,7 +96,7 @@ class InMemoryRepository(CrudRepository):
         entities = []
         for uuid in cache:
             if cache[uuid][criteria["key"]] == criteria["value"]:
-                cache[uuid]['technical_id'] = uuid
+                cache[uuid]["technical_id"] = uuid
                 entities.append(cache[uuid])
         return entities
 

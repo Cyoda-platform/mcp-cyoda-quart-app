@@ -9,16 +9,16 @@ from dataclasses import dataclass
 from typing import Optional
 
 import httpx
-from quart import Blueprint, jsonify, request, abort
+from quart import Blueprint, abort, jsonify, request
 from quart_schema import validate_querystring
 
-from service.services import get_entity_service, get_auth_service
 from common.config.config import ENTITY_VERSION
+from service.services import get_auth_service, get_entity_service
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-laureates_bp = Blueprint('laureates', __name__, url_prefix='/laureates')
+laureates_bp = Blueprint("laureates", __name__, url_prefix="/laureates")
 
 # Services will be accessed through the registry
 entity_service = None
@@ -46,10 +46,10 @@ def get_services():
 def validate_laureate(raw: dict) -> Optional[dict]:
     """Validate and transform laureate data from the Nobel API."""
     fields = raw.get("record", {}).get("fields", {})
-    
+
     if not fields.get("fullname"):
         return None
-    
+
     return {
         "fullname": fields.get("fullname"),
         "year": fields.get("year"),
@@ -61,7 +61,7 @@ def validate_laureate(raw: dict) -> Optional[dict]:
         "organization_name": fields.get("organization_name"),
         "organization_country": fields.get("organization_country"),
         "prize_share": fields.get("prize_share"),
-        "id": fields.get("id")
+        "id": fields.get("id"),
     }
 
 
@@ -72,13 +72,13 @@ async def fetch_laureates_from_api():
             response = await client.get(NOBEL_API_URL)
             response.raise_for_status()
             data = response.json()
-            
+
             laureates = []
             for result in data.get("results", []):
                 laureate = validate_laureate(result)
                 if laureate:
                     laureates.append(laureate)
-            
+
             return laureates
     except Exception as e:
         logger.exception(f"Failed to fetch laureates from API: {e}")
@@ -90,7 +90,9 @@ async def notify_subscribers_about_laureate(entity: dict):
     try:
         # This would typically notify subscribers about new laureate data
         # Implementation depends on your notification system
-        logger.info(f"Would notify subscribers about laureate: {entity.get('fullname')}")
+        logger.info(
+            f"Would notify subscribers about laureate: {entity.get('fullname')}"
+        )
         entity.setdefault("notification_sent", True)
     except Exception as e:
         logger.exception(f"Failed to notify subscribers: {e}")
@@ -106,24 +108,24 @@ async def get_laureates():
     entity_service, cyoda_auth_service = get_services()
 
     args = LaureateQuery(**request.args)
-    
+
     try:
         # Try to get from entity service first
         laureates = await entity_service.get_items("laureate", ENTITY_VERSION)
-        
+
         # If no laureates in storage, fetch from API
         if not laureates:
             laureates = await fetch_laureates_from_api()
-            
+
         # Apply filters
         if args.year:
             laureates = [l for l in laureates if str(l.get("year")) == args.year]
         if args.category:
             laureates = [l for l in laureates if l.get("category") == args.category]
-            
+
         logger.info(f"Retrieved {len(laureates)} laureates")
         return jsonify(laureates)
-        
+
     except Exception as e:
         logger.exception(e)
         abort(500, description="Failed to retrieve laureates")
@@ -142,10 +144,10 @@ async def get_laureate(technical_id):
     except Exception as e:
         logger.exception(e)
         abort(500, description="Failed to retrieve laureate")
-    
+
     if not laureate:
         abort(404, description="Laureate not found")
-    
+
     return jsonify(laureate)
 
 
@@ -166,12 +168,12 @@ async def create_laureate():
         # Add metadata
         import uuid
         from datetime import datetime, timezone
-        
+
         laureate_id = str(uuid.uuid4())
         laureate_data = {
             **data,
             "id": laureate_id,
-            "created_at": datetime.now(timezone.utc).isoformat()
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
 
         # Notify subscribers
@@ -181,7 +183,7 @@ async def create_laureate():
         await entity_service.save_item(
             laureate_data, "laureate", laureate_id, ENTITY_VERSION
         )
-        
+
         logger.info(f"Created laureate {laureate_id}")
         return jsonify(laureate_data), 201
 
@@ -215,7 +217,7 @@ async def update_laureate(technical_id):
         await entity_service.save_item(
             updated_laureate, "laureate", technical_id, ENTITY_VERSION
         )
-        
+
         logger.info(f"Updated laureate {technical_id}")
         return jsonify(updated_laureate)
 
@@ -239,9 +241,12 @@ async def delete_laureate(technical_id):
 
         # Delete laureate (implementation depends on your entity service)
         # await entity_service.delete_item(technical_id, "laureate", ENTITY_VERSION)
-        
+
         logger.info(f"Deleted laureate {technical_id}")
-        return jsonify({"message": f"Laureate {technical_id} deleted successfully"}), 200
+        return (
+            jsonify({"message": f"Laureate {technical_id} deleted successfully"}),
+            200,
+        )
 
     except Exception as e:
         logger.exception(e)
@@ -256,7 +261,7 @@ async def sync_laureates():
     try:
         # Fetch from API
         api_laureates = await fetch_laureates_from_api()
-        
+
         if not api_laureates:
             return jsonify({"message": "No laureates fetched from API"}), 200
 
@@ -267,20 +272,27 @@ async def sync_laureates():
                 laureate_id = str(uuid.uuid4())
                 laureate_data["id"] = laureate_id
                 laureate_data["synced_at"] = datetime.now(timezone.utc).isoformat()
-                
+
                 await entity_service.save_item(
                     laureate_data, "laureate", laureate_id, ENTITY_VERSION
                 )
                 saved_count += 1
             except Exception as e:
-                logger.warning(f"Failed to save laureate {laureate_data.get('fullname')}: {e}")
+                logger.warning(
+                    f"Failed to save laureate {laureate_data.get('fullname')}: {e}"
+                )
 
         logger.info(f"Synced {saved_count} laureates from API")
-        return jsonify({
-            "message": f"Successfully synced {saved_count} laureates",
-            "total_fetched": len(api_laureates),
-            "saved_count": saved_count
-        }), 200
+        return (
+            jsonify(
+                {
+                    "message": f"Successfully synced {saved_count} laureates",
+                    "total_fetched": len(api_laureates),
+                    "saved_count": saved_count,
+                }
+            ),
+            200,
+        )
 
     except Exception as e:
         logger.exception(e)

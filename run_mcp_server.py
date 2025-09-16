@@ -6,19 +6,18 @@ This script runs the Cyoda MCP server independently from the main Quart applicat
 It initializes all necessary services with dependency injection and starts the MCP server.
 """
 
+import argparse
 import asyncio
 import logging
-import sys
 import os
-import argparse
+import sys
 
 # Add the current directory to the path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 
 logger = logging.getLogger(__name__)
@@ -28,10 +27,12 @@ async def run_mcp_server_standalone(port=None):
     """Run the MCP server in standalone mode with full service initialization."""
     try:
         # Import and initialize the MCP server
-        from cyoda_mcp.server import mcp_server, _services_initialized
+        from cyoda_mcp.server import _services_initialized, mcp_server
 
         if not _services_initialized:
-            logger.error("Failed to initialize services. Check your environment configuration.")
+            logger.error(
+                "Failed to initialize services. Check your environment configuration."
+            )
             return 1
 
         logger.info("Starting Cyoda MCP Server in standalone mode...")
@@ -41,8 +42,10 @@ async def run_mcp_server_standalone(port=None):
         tools = await mcp_server.get_tools()
         logger.info(f"Available tools: {len(tools)}")
         for tool in tools:
-            if hasattr(tool, 'name'):
-                logger.info(f"  - {tool.name}: {getattr(tool, 'description', 'No description')}")
+            if hasattr(tool, "name"):
+                logger.info(
+                    f"  - {tool.name}: {getattr(tool, 'description', 'No description')}"
+                )
             else:
                 logger.info(f"  - {tool}")  # Fallback for string tools
 
@@ -84,15 +87,20 @@ async def run_mcp_server_standalone(port=None):
     except Exception as e:
         logger.error(f"Error running MCP server: {e}")
         import traceback
+
         traceback.print_exc()
         return 1
 
 
 def main():
     """Main entry point."""
-    parser = argparse.ArgumentParser(description='Cyoda MCP Server')
-    parser.add_argument('--port', type=int, help='HTTP port to run server on (default: stdio mode)')
-    parser.add_argument('--host', default='localhost', help='Host to bind to (default: localhost)')
+    parser = argparse.ArgumentParser(description="Cyoda MCP Server")
+    parser.add_argument(
+        "--port", type=int, help="HTTP port to run server on (default: stdio mode)"
+    )
+    parser.add_argument(
+        "--host", default="localhost", help="Host to bind to (default: localhost)"
+    )
     args = parser.parse_args()
 
     logger.info("Cyoda MCP Server - Standalone Mode")
@@ -104,7 +112,7 @@ def main():
         logger.info("Running in stdio mode")
 
     # Check environment variables
-    required_vars = ['CYODA_CLIENT_ID', 'CYODA_CLIENT_SECRET', 'CYODA_HOST']
+    required_vars = ["CYODA_CLIENT_ID", "CYODA_CLIENT_SECRET", "CYODA_HOST"]
     missing_vars = [var for var in required_vars if not os.getenv(var)]
 
     if missing_vars:

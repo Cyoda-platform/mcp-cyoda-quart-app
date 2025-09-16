@@ -5,8 +5,9 @@ This module provides backward compatibility with the old configuration system
 while using the new configuration manager under the hood.
 """
 
-import os
 import base64
+import os
+
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -14,14 +15,17 @@ load_dotenv()
 
 # Import new configuration system
 try:
-    from .manager import get_config_manager, get_config
+    from .manager import get_config, get_config_manager
+
     _use_new_config = True
     _config_manager = get_config_manager()
 except ImportError:
     _use_new_config = False
 
 # Legacy lambda for backward compatibility
-get_env = lambda key: os.getenv(key) or (_ for _ in ()).throw(Exception(f"{key} not found"))
+get_env = lambda key: os.getenv(key) or (_ for _ in ()).throw(
+    Exception(f"{key} not found")
+)
 
 CYODA_HOST = get_env("CYODA_HOST")
 CYODA_CLIENT_ID = get_env("CYODA_CLIENT_ID")

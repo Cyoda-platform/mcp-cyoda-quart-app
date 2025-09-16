@@ -1,13 +1,12 @@
+import json
 import logging
 import queue
-import time
 import re
+import time
+import uuid
+from typing import Any, Optional
 
 import aiofiles
-from typing import Optional, Any
-import uuid
-import json
-
 import httpx
 import jsonschema
 from jsonschema import validate
@@ -17,15 +16,19 @@ from common.config.config import CYODA_API_URL
 
 logger = logging.getLogger(__name__)
 
+
 class ValidationErrorException(Exception):
     """Custom exception for validation errors."""
+
     def __init__(self, message: str):
         self.message = message
         super().__init__(message)
 
 
 def get_user_history_answer(response):
-    answer = response.get('message', '') if response and isinstance(response, dict) else ''
+    answer = (
+        response.get("message", "") if response and isinstance(response, dict) else ""
+    )
     if isinstance(answer, dict) or isinstance(answer, list):
         answer = json.dumps(answer)
     return answer
@@ -39,9 +42,9 @@ def _normalize_boolean_json(json_data):
     if isinstance(json_data, dict):
         for key, value in json_data.items():
             if isinstance(value, str):
-                if (value in ["'true'", "'True'", 'True', "true", "True"]):
+                if value in ["'true'", "'True'", "True", "true", "True"]:
                     json_data[key] = True
-                elif (value in ["'false'", "'False'", 'False', "false", "False"]):
+                elif value in ["'false'", "'False'", "False", "false", "False"]:
                     json_data[key] = False
             elif isinstance(value, dict):
                 json_data[key] = _normalize_boolean_json(value)
@@ -71,11 +74,11 @@ def remove_js_style_comments_outside_strings(code: str) -> str:
             result.append(char)
         elif not in_string:
             # We are outside a string, so check if we have //
-            if char == '/' and i + 1 < length and code[i + 1] == '/':
+            if char == "/" and i + 1 < length and code[i + 1] == "/":
                 # Skip rest of the line
                 # Move i to the next newline or end of text
                 i += 2
-                while i < length and code[i] not in ('\n', '\r'):
+                while i < length and code[i] not in ("\n", "\r"):
                     i += 1
                 # Do NOT append the '//...' to result
                 # We effectively remove it
@@ -88,7 +91,7 @@ def remove_js_style_comments_outside_strings(code: str) -> str:
             result.append(char)
 
         # Handle escape chars inside strings
-        if char == '\\' and in_string and not escape_char:
+        if char == "\\" and in_string and not escape_char:
             # Next character is escaped
             escape_char = True
         else:
@@ -96,7 +99,7 @@ def remove_js_style_comments_outside_strings(code: str) -> str:
 
         i += 1
 
-    return ''.join(result)
+    return "".join(result)
 
 
 def parse_json(text: str) -> str:
@@ -112,8 +115,8 @@ def parse_json(text: str) -> str:
     text = text.strip()
 
     # Find earliest occurrences
-    first_curly = text.find('{')
-    first_square = text.find('[')
+    first_curly = text.find("{")
+    first_square = text.find("[")
 
     if first_curly == -1 and first_square == -1:
         # No bracket found
@@ -122,17 +125,17 @@ def parse_json(text: str) -> str:
     # Decide which bracket to use based on which occurs first
     if first_curly == -1:
         start_index = first_square
-        close_bracket = ']'
+        close_bracket = "]"
     elif first_square == -1:
         start_index = first_curly
-        close_bracket = '}'
+        close_bracket = "}"
     else:
         if first_curly < first_square:
             start_index = first_curly
-            close_bracket = '}'
+            close_bracket = "}"
         else:
             start_index = first_square
-            close_bracket = ']'
+            close_bracket = "]"
 
     # Find the last occurrence of that bracket
     end_index = text.rfind(close_bracket)
@@ -140,7 +143,7 @@ def parse_json(text: str) -> str:
         return original_text
 
     # Extract the substring
-    json_substring = text[start_index:end_index + 1]
+    json_substring = text[start_index : end_index + 1]
 
     # Remove only actual JS-style comments outside strings
     json_substring = remove_js_style_comments_outside_strings(json_substring)
@@ -153,6 +156,7 @@ def parse_json(text: str) -> str:
         # If it fails, just return the original
         return original_text
 
+
 def parse_workflow_json(result: str) -> str:
     # Function to replace single quotes with double quotes and handle True/False
     def convert_to_json_compliant_string(text: str) -> str:
@@ -162,7 +166,9 @@ def parse_workflow_json(result: str) -> str:
         # Replace single quotes with double quotes for strings
         # This replacement will happen only for string-like values (inside curly braces or key-value pairs)
         text = re.sub(r"(?<=:)\s*'(.*?)'\s*(?=\s*,|\s*\})", r'"\1"', text)  # For values
-        text = re.sub(r"(?<=,|\{|\[)\s*'(.*?)'\s*(?=\s*:|\s*,|\s*\])", r'"\1"', text)  # For keys
+        text = re.sub(
+            r"(?<=,|\{|\[)\s*'(.*?)'\s*(?=\s*:|\s*,|\s*\])", r'"\1"', text
+        )  # For keys
 
         # Ensure the surrounding quotes around strings
         text = re.sub(r"(?<=:)\s*'(.*?)'\s*(?=\s*,|\s*\})", r'"\1"', text)
@@ -188,7 +194,9 @@ def parse_workflow_json(result: str) -> str:
                 parsed_json = json.loads(json_content)
                 return json.dumps(parsed_json, ensure_ascii=False)
             except json.JSONDecodeError:
-                return json_content  # If parsing fails, return the original content as is
+                return (
+                    json_content  # If parsing fails, return the original content as is
+                )
         elif result.startswith("```"):
             # If result is a general code block, strip the backticks and return it
             return "\n".join(result.split("\n")[1:-1])
@@ -308,8 +316,10 @@ This JSON structure provides a comprehensive overview of the analysis conducted 
 
     logger.info(output_data)
 
+
 if __name__ == "__main__":
     main()
+
 
 async def validate_result(data: str, file_path: str, schema: Optional[str]) -> str:
     if file_path:
@@ -330,7 +340,9 @@ async def validate_result(data: str, file_path: str, schema: Optional[str]) -> s
         return normalized_json_data
     except jsonschema.exceptions.ValidationError as err:
         logger.error(f"JSON schema validation failed: {err.message}")
-        raise ValidationErrorException(message = f"JSON schema validation failed: {err}, {err.message}")
+        raise ValidationErrorException(
+            message=f"JSON schema validation failed: {err}, {err.message}"
+        )
     except json.JSONDecodeError as err:
         logger.error(f"Failed to decode JSON: {err}")
         try:
@@ -339,10 +351,14 @@ async def validate_result(data: str, file_path: str, schema: Optional[str]) -> s
         except Exception as e:
             logger.error(f"Failed to consolidate JSON errors: {e}")
             errors = [str(e)]
-        raise ValidationErrorException(message = f"Failed to decode JSON: {err}, {err.msg}, {errors} . Please make sure the json returned is correct and aligns with json formatting rules. make sure you're using quotes for string values, including None")
+        raise ValidationErrorException(
+            message=f"Failed to decode JSON: {err}, {err.msg}, {errors} . Please make sure the json returned is correct and aligns with json formatting rules. make sure you're using quotes for string values, including None"
+        )
     except Exception as err:
         logger.error(f"Unexpected error during JSON validation: {err}")
-        raise ValidationErrorException(message = f"Unexpected error during JSON validation: {err}")
+        raise ValidationErrorException(
+            message=f"Unexpected error during JSON validation: {err}"
+        )
 
 
 def consolidate_json_errors(json_str):
@@ -356,8 +372,8 @@ def consolidate_json_errors(json_str):
 
         # Extract the problematic part of the JSON string
         error_pos = e.pos
-        error_line = json_str.count('\n', 0, error_pos) + 1
-        error_col = error_pos - json_str.rfind('\n', 0, error_pos)
+        error_line = json_str.count("\n", 0, error_pos) + 1
+        error_col = error_pos - json_str.rfind("\n", 0, error_pos)
 
         errors.append(f"Error at line {error_line}, column {error_col}")
 
@@ -369,22 +385,23 @@ def consolidate_json_errors(json_str):
 
         # Attempt to fix common JSON issues
         # Example: Fixing unescaped quotes
-        fixed_json_str = re.sub(r'(?<!\\)"', r'\"', json_str)
+        fixed_json_str = re.sub(r'(?<!\\)"', r"\"", json_str)
 
         try:
             json_data = json.loads(fixed_json_str)
             errors.append("JSON was successfully parsed after fixing unescaped quotes.")
         except json.JSONDecodeError as e:
-            errors.append("Failed to fix JSON after attempting to fix unescaped quotes.")
+            errors.append(
+                "Failed to fix JSON after attempting to fix unescaped quotes."
+            )
 
     return errors
-
 
 
 async def read_file(file_path: str):
     """Read and return JSON entity from a file."""
     try:
-        async with aiofiles.open(file_path, 'r') as file:
+        async with aiofiles.open(file_path, "r") as file:
             content = await file.read()
             return content
     except Exception as e:
@@ -406,18 +423,21 @@ async def read_json_file(file_path: str):
         logger.error(f"JSON decoding failed for file {file_path}: {e}")
         raise
     except Exception as e:
-        logger.error(f"An unexpected error occurred while reading the file {file_path}: {e}")
+        logger.error(
+            f"An unexpected error occurred while reading the file {file_path}: {e}"
+        )
         raise
+
 
 async def send_get_request(token: str, api_url: str, path: str) -> Optional[Any]:
     url = f"{api_url}/{path}"
-    token = f"Bearer {token}" if not token.startswith('Bearer') else token
+    token = f"Bearer {token}" if not token.startswith("Bearer") else token
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"{token}",
     }
     try:
-        response = await send_request(headers, url, 'GET', None, None)
+        response = await send_request(headers, url, "GET", None, None)
         # Raise an error for bad status codes
         logger.info(f"GET request to {url} successful.")
         return response
@@ -429,59 +449,72 @@ async def send_get_request(token: str, api_url: str, path: str) -> Optional[Any]
 async def send_request(headers, url, method, data=None, json=None):
     async with httpx.AsyncClient(timeout=150.0) as client:
         method = method.upper()
-        if method == 'GET':
+        if method == "GET":
             response = await client.get(url, headers=headers)
             # Only process GET responses with status 200 or 404 as in your original code
             if response.status_code in (200, 404):
-                content = response.json() if 'application/json' in response.headers.get('Content-Type',
-                                                                                        '') else response.text
+                content = (
+                    response.json()
+                    if "application/json" in response.headers.get("Content-Type", "")
+                    else response.text
+                )
             else:
                 content = None
-        elif method == 'POST':
+        elif method == "POST":
             response = await client.post(url, headers=headers, data=data, json=json)
-            content = response.json() if 'application/json' in response.headers.get('Content-Type',
-                                                                                    '') else response.text
-        elif method == 'PUT':
+            content = (
+                response.json()
+                if "application/json" in response.headers.get("Content-Type", "")
+                else response.text
+            )
+        elif method == "PUT":
             response = await client.put(url, headers=headers, data=data, json=json)
-            content = response.json() if 'application/json' in response.headers.get('Content-Type',
-                                                                                    '') else response.text
-        elif method == 'DELETE':
+            content = (
+                response.json()
+                if "application/json" in response.headers.get("Content-Type", "")
+                else response.text
+            )
+        elif method == "DELETE":
             response = await client.delete(url, headers=headers)
-            content = response.json() if 'application/json' in response.headers.get('Content-Type',
-                                                                                    '') else response.text
+            content = (
+                response.json()
+                if "application/json" in response.headers.get("Content-Type", "")
+                else response.text
+            )
         else:
             raise ValueError("Unsupported HTTP method")
 
-        return {
-            "status": response.status_code,
-            "json": content
-        }
+        return {"status": response.status_code, "json": content}
 
 
-async def send_post_request(token: str, api_url: str, path: str, data=None, json=None) -> Optional[Any]:
+async def send_post_request(
+    token: str, api_url: str, path: str, data=None, json=None
+) -> Optional[Any]:
     url = f"{api_url}/{path}" if path else api_url
-    token = f"Bearer {token}" if not token.startswith('Bearer') else token
+    token = f"Bearer {token}" if not token.startswith("Bearer") else token
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"{token}",
     }
     try:
-        response = await send_request(headers, url, 'POST', data, json)
+        response = await send_request(headers, url, "POST", data, json)
         return response
     except Exception as err:
         logger.error(f"Error during POST request to {url}: {err}")
         raise
 
 
-async def send_put_request(token: str, api_url: str, path: str, data=None, json=None) -> Optional[Any]:
+async def send_put_request(
+    token: str, api_url: str, path: str, data=None, json=None
+) -> Optional[Any]:
     url = f"{api_url}/{path}"
-    token = f"Bearer {token}" if not token.startswith('Bearer') else token
+    token = f"Bearer {token}" if not token.startswith("Bearer") else token
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"{token}",
     }
     try:
-        response = await send_request(headers, url, 'PUT', data, json)
+        response = await send_request(headers, url, "PUT", data, json)
         logger.info(f"PUT request to {url} successful.")
         return response
     except Exception as err:
@@ -491,13 +524,13 @@ async def send_put_request(token: str, api_url: str, path: str, data=None, json=
 
 async def send_delete_request(token: str, api_url: str, path: str) -> Optional[Any]:
     url = f"{api_url}/{path}"
-    token = f"Bearer {token}" if not token.startswith('Bearer') else token
+    token = f"Bearer {token}" if not token.startswith("Bearer") else token
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"{token}",
     }
     try:
-        response = await send_request(headers, url, 'DELETE', None, None)
+        response = await send_request(headers, url, "DELETE", None, None)
         logger.info(f"GET request to {url} successful.")
         return response
     except Exception as err:
@@ -517,12 +550,14 @@ def now():
 def timestamp_before(seconds: int) -> int:
     return int((time.time() - seconds) * 1000.0)
 
+
 def clean_formatting(text):
     """
     Convert multi-line text into a single line, preserving all other content.
     """
     # Replace any sequence of newlines (and carriage returns) with a single space
-    return re.sub(r'[\r\n]+', ' ', text)
+    return re.sub(r"[\r\n]+", " ", text)
+
 
 def format_json_if_needed(data, key):
     value = data.get(key)
@@ -531,19 +566,23 @@ def format_json_if_needed(data, key):
         formatted_json = json.dumps(value, indent=4)
         data[key] = f"```json \n{formatted_json}\n```"
     else:
-        logger.error(f"Data at {key} is not a valid JSON object: {value}")  # Optionally log this or handle it
+        logger.error(
+            f"Data at {key} is not a valid JSON object: {value}"
+        )  # Optionally log this or handle it
     return data
+
 
 def _invalidate_tokens(cyoda_auth_service: CyodaAuthService):
     """Delegate token invalidation to the provided token service."""
     cyoda_auth_service.invalidate_tokens()
 
+
 async def send_cyoda_request(
-        cyoda_auth_service: CyodaAuthService,
-        method: str,
-        path: str,
-        data: Any = None,
-        base_url: str = CYODA_API_URL
+    cyoda_auth_service: CyodaAuthService,
+    method: str,
+    path: str,
+    data: Any = None,
+    base_url: str = CYODA_API_URL,
 ) -> dict:
     """
     Send an HTTP request to the Cyoda API with automatic retry on 401.
@@ -565,19 +604,24 @@ async def send_cyoda_request(
         except Exception as exc:
             msg = str(exc)
             if attempt == 0 and ("401" in msg or "Unauthorized" in msg):
-                logger.warning(f"Request to {path} failed with 401; invalidating tokens and retrying")
+                logger.warning(
+                    f"Request to {path} failed with 401; invalidating tokens and retrying"
+                )
                 _invalidate_tokens(cyoda_auth_service=cyoda_auth_service)
                 token = await cyoda_auth_service.get_access_token()
                 continue
             raise
         status = resp.get("status") if isinstance(resp, dict) else None
         if attempt == 0 and status == 401:
-            logger.warning(f"Response from {path} returned status 401; invalidating tokens and retrying")
+            logger.warning(
+                f"Response from {path} returned status 401; invalidating tokens and retrying"
+            )
             _invalidate_tokens(cyoda_auth_service=cyoda_auth_service)
             token = await cyoda_auth_service.get_access_token()
             continue
         return resp
     raise RuntimeError(f"Failed request {method.upper()} {path} after retry")
+
 
 def custom_serializer(obj):
     if isinstance(obj, queue.Queue):
@@ -587,6 +631,7 @@ def custom_serializer(obj):
         # Convert the object to a dictionary. Customize as needed.
         return obj.__dict__
     raise TypeError(f"Type {type(obj)} not serializable")
+
 
 def parse_entity(model_cls, resp: Any) -> Any:
     try:
