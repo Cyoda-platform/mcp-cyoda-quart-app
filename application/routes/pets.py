@@ -47,18 +47,26 @@ async def get_pets() -> ResponseReturnValue:
             filters["category"] = category
 
         # Get pets from entity service
-        response = await entity_service.get_all(
+        responses = await entity_service.find_all(
             entity_class=Pet.ENTITY_NAME,
             entity_version=str(Pet.ENTITY_VERSION),
-            filters=filters,
-            limit=limit,
-            offset=offset,
         )
+
+        # Apply filters manually (since find_all doesn't support filters)
+        filtered_responses = responses
+        if state:
+            filtered_responses = [r for r in filtered_responses if r.get_state() == state]
+        if category:
+            filtered_responses = [r for r in filtered_responses if getattr(r.data, 'category', None) == category]
+
+        # Apply pagination
+        total = len(filtered_responses)
+        paginated_responses = filtered_responses[offset:offset + limit]
 
         # Convert to API response format
         pets = []
-        for pet_data in response.data:
-            pet = Pet(**pet_data)
+        for response in paginated_responses:
+            pet = Pet(**response.data.model_dump())
             pets.append(pet.to_api_response())
 
         return (

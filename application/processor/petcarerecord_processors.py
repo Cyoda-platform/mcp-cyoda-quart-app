@@ -150,7 +150,7 @@ class CareCompletionProcessor(CyodaProcessor):
             raise
 
     async def _record_completion_details(
-        self, care_record: PetCareRecord, care_results: dict
+        self, care_record: PetCareRecord, care_results: Dict[str, Any]
     ) -> None:
         """Record care completion details."""
         care_record.add_metadata(
@@ -172,13 +172,13 @@ class CareCompletionProcessor(CyodaProcessor):
             care_record.next_due_date = care_results["next_due_date"]
 
     async def _update_pet_health_records(
-        self, care_record: PetCareRecord, care_results: dict
+        self, care_record: PetCareRecord, care_results: Dict[str, Any]
     ) -> None:
         """Update pet health records (simulated)."""
         self.logger.info(f"Pet health records updated for pet {care_record.pet_id}")
 
     async def _schedule_follow_up(
-        self, care_record: PetCareRecord, care_results: dict
+        self, care_record: PetCareRecord, care_results: Dict[str, Any]
     ) -> None:
         """Schedule follow-up if needed (simulated)."""
         follow_up_date = care_results.get("follow_up_date")

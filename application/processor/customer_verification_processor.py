@@ -47,7 +47,7 @@ class CustomerVerificationProcessor(CyodaProcessor):
             customer = cast_entity(entity, Customer)
 
             # Get verification documents from kwargs
-            verification_documents = kwargs.get("verification_documents", [])
+            verification_documents = kwargs.get("verification_documents", [])  # type: List[str]
 
             # 1. Validate identity documents
             await self._validate_identity_documents(customer, verification_documents)
