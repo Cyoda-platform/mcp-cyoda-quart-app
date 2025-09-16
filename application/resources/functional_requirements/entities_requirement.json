@@ -1,0 +1,116 @@
+{
+    "entities": [
+        {
+            "Pet": {
+                "entity_data_example": {
+                    "age": 3,
+                    "breed": "Golden Retriever",
+                    "category_id": 2,
+                    "color": "Golden",
+                    "created_at": "2023-10-01T12:00:00",
+                    "description": "A friendly golden retriever.",
+                    "id": 1,
+                    "name": "Buddy",
+                    "photo_urls": [
+                        "http://example.com/photo1.jpg",
+                        "http://example.com/photo2.jpg"
+                    ],
+                    "price": 500.0,
+                    "tags": [
+                        "friendly",
+                        "playful"
+                    ],
+                    "updated_at": "2023-10-01T12:00:00",
+                    "vaccination_status": true,
+                    "weight": 30.5
+                }
+            }
+        },
+        {
+            "Category": {
+                "entity_data_example": {
+                    "created_at": "2023-10-01T12:00:00",
+                    "description": "Various breeds of dogs.",
+                    "id": 1,
+                    "name": "Dogs",
+                    "updated_at": "2023-10-01T12:00:00"
+                }
+            }
+        },
+        {
+            "User": {
+                "entity_data_example": {
+                    "address": "123 Elm Street",
+                    "created_at": "2023-10-01T12:00:00",
+                    "email": "john.doe@example.com",
+                    "first_name": "John",
+                    "id": 1,
+                    "last_name": "Doe",
+                    "password": "encrypted_password",
+                    "phone": "1234567890",
+                    "updated_at": "2023-10-01T12:00:00",
+                    "user_type": "CUSTOMER",
+                    "username": "john_doe"
+                }
+            }
+        },
+        {
+            "Order": {
+                "entity_data_example": {
+                    "created_at": "2023-10-01T12:00:00",
+                    "id": 1,
+                    "notes": "Please handle with care.",
+                    "order_date": "2023-10-01T12:00:00",
+                    "payment_method": "CREDIT_CARD",
+                    "ship_date": "2023-10-02T12:00:00",
+                    "shipping_address": "123 Elm Street",
+                    "total_amount": 500.0,
+                    "updated_at": "2023-10-01T12:00:00",
+                    "user_id": 1
+                }
+            }
+        },
+        {
+            "OrderItem": {
+                "entity_data_example": {
+                    "created_at": "2023-10-01T12:00:00",
+                    "id": 1,
+                    "order_id": 1,
+                    "pet_id": 1,
+                    "quantity": 1,
+                    "total_price": 500.0,
+                    "unit_price": 500.0,
+                    "updated_at": "2023-10-01T12:00:00"
+                }
+            }
+        },
+        {
+            "Inventory": {
+                "entity_data_example": {
+                    "created_at": "2023-10-01T12:00:00",
+                    "id": 1,
+                    "last_restocked": "2023-10-01T12:00:00",
+                    "pet_id": 1,
+                    "quantity": 10,
+                    "reorder_level": 5,
+                    "reserved_quantity": 2,
+                    "updated_at": "2023-10-01T12:00:00"
+                }
+            }
+        },
+        {
+            "Review": {
+                "entity_data_example": {
+                    "comment": "Amazing pet!",
+                    "created_at": "2023-10-01T12:00:00",
+                    "helpful_count": 0,
+                    "id": 1,
+                    "pet_id": 1,
+                    "rating": 5,
+                    "updated_at": "2023-10-01T12:00:00",
+                    "user_id": 1
+                }
+            }
+        }
+    ]
+}
