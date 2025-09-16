@@ -1,0 +1,80 @@
+{
+    "version": "1.0",
+    "name": "AnalysisReport Workflow",
+    "desc": "Manages the lifecycle of an analysis report from generation to email delivery.",
+    "initialState": "initial_state",
+    "active": true,
+    "states": {
+        "initial_state": {
+            "transitions": [
+                {
+                    "name": "transition_to_generated",
+                    "next": "generated",
+                    "manual": false
+                }
+            ]
+        },
+        "generated": {
+            "transitions": [
+                {
+                    "name": "transition_to_sending",
+                    "next": "sending",
+                    "manual": false
+                }
+            ]
+        },
+        "sending": {
+            "transitions": [
+                {
+                    "name": "transition_to_sent",
+                    "next": "sent",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "AnalysisReportSentProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "transition_to_failed",
+                    "next": "failed",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "AnalysisReportFailProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "failed": {
+            "transitions": [
+                {
+                    "name": "transition_to_sending_retry",
+                    "next": "sending",
+                    "manual": true,
+                    "processors": [
+                        {
+                            "name": "AnalysisReportRetryProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "sent": {
+            "transitions": []
+        }
+    }
+}
