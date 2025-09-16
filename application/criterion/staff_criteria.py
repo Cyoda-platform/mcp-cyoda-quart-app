@@ -8,9 +8,9 @@ import logging
 from datetime import datetime
 from typing import Any
 
+from application.entity.staff.version_1.staff import Staff
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.staff.version_1.staff import Staff
 
 
 class SuspensionReviewCriterion(CyodaCriteriaChecker):

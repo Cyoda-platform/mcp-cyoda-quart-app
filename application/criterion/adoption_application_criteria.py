@@ -7,11 +7,11 @@ Validation criteria for adoption application business rules and workflows.
 import logging
 from typing import Any
 
-from common.entity.entity_casting import cast_entity
-from common.processor.base import CyodaCriteriaChecker, CyodaEntity
 from application.entity.adoptionapplication.version_1.adoptionapplication import (
     AdoptionApplication,
 )
+from common.entity.entity_casting import cast_entity
+from common.processor.base import CyodaCriteriaChecker, CyodaEntity
 
 
 class ApplicationCompletenessCriterion(CyodaCriteriaChecker):

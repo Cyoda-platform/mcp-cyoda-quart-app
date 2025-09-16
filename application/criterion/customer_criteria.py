@@ -9,9 +9,9 @@ import re
 from datetime import datetime
 from typing import Any
 
+from application.entity.customer.version_1.customer import Customer
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.customer.version_1.customer import Customer
 
 
 class CustomerDataValidationCriterion(CyodaCriteriaChecker):

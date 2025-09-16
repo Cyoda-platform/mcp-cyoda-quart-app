@@ -6,6 +6,7 @@ Routes are thin proxies to EntityService with minimal business logic.
 """
 
 import logging
+
 from quart import Blueprint, jsonify, request
 from quart.typing import ResponseReturnValue
 

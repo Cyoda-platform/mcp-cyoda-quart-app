@@ -8,11 +8,11 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
-from common.entity.entity_casting import cast_entity
-from common.processor.base import CyodaEntity, CyodaProcessor
 from application.entity.adoptionapplication.version_1.adoptionapplication import (
     AdoptionApplication,
 )
+from common.entity.entity_casting import cast_entity
+from common.processor.base import CyodaEntity, CyodaProcessor
 
 
 class ApplicationSubmissionProcessor(CyodaProcessor):
