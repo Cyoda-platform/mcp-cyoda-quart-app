@@ -8,7 +8,7 @@ from typing import Optional
 
 from pydantic import BaseModel
 from quart import Blueprint, abort, jsonify, request
-from quart_schema import validate_json, validate_querystring
+from quart_schema import validate_json, validate_querystring  # type: ignore
 
 from common.config.config import ENTITY_VERSION
 from service.services import get_auth_service, get_entity_service
