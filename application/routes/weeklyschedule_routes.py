@@ -8,7 +8,7 @@ from typing import Optional
 
 from pydantic import BaseModel
 from quart import Blueprint, abort, jsonify, request
-from quart_schema import validate_json, validate_querystring  # type: ignore
+from quart_schema import validate_request, validate_querystring
 
 from common.config.config import ENTITY_VERSION
 from service.services import get_auth_service, get_entity_service
@@ -47,7 +47,7 @@ def get_services():
 
 
 @weeklyschedule_bp.route("", methods=["POST"])
-@validate_json(WeeklyScheduleCreateRequest)
+@validate_request(WeeklyScheduleCreateRequest)
 async def create_weeklyschedule():
     """Create a new weekly schedule."""
     entity_service, cyoda_auth_service = get_services()

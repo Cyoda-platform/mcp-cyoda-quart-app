@@ -8,7 +8,7 @@ from typing import Optional
 
 from pydantic import BaseModel
 from quart import Blueprint, abort, jsonify, request
-from quart_schema import validate_json, validate_querystring  # type: ignore
+from quart_schema import validate_request, validate_querystring
 
 from common.config.config import ENTITY_VERSION
 from service.services import get_auth_service, get_entity_service
@@ -51,7 +51,7 @@ def get_services():
 
 
 @catfact_bp.route("", methods=["POST"])
-@validate_json(CatFactCreateRequest)
+@validate_request(CatFactCreateRequest)
 async def create_catfact():
     """Manually trigger cat fact retrieval."""
     entity_service, cyoda_auth_service = get_services()
@@ -102,7 +102,7 @@ async def get_catfact(catfact_id: str):
 
 
 @catfact_bp.route("/<catfact_id>/schedule", methods=["PUT"])
-@validate_json(CatFactScheduleRequest)
+@validate_request(CatFactScheduleRequest)
 async def schedule_catfact(catfact_id: str):
     """Schedule cat fact for distribution."""
     entity_service, cyoda_auth_service = get_services()
@@ -142,7 +142,7 @@ async def schedule_catfact(catfact_id: str):
 
 
 @catfact_bp.route("/<catfact_id>/distribute", methods=["PUT"])
-@validate_json(CatFactTransitionRequest)
+@validate_request(CatFactTransitionRequest)
 async def distribute_catfact(catfact_id: str):
     """Distribute cat fact to subscribers."""
     entity_service, cyoda_auth_service = get_services()

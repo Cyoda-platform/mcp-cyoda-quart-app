@@ -7,7 +7,7 @@ from typing import Optional
 
 from pydantic import BaseModel
 from quart import Blueprint, abort, jsonify, request
-from quart_schema import validate_json, validate_querystring  # type: ignore
+from quart_schema import validate_request, validate_querystring
 
 from common.config.config import ENTITY_VERSION
 from service.services import get_auth_service, get_entity_service
@@ -69,7 +69,7 @@ async def get_emaildelivery(delivery_id: str):
 
 
 @emaildelivery_bp.route("/<delivery_id>/retry", methods=["PUT"])
-@validate_json(EmailDeliveryTransitionRequest)
+@validate_request(EmailDeliveryTransitionRequest)
 async def retry_emaildelivery(delivery_id: str):
     """Retry failed email delivery."""
     entity_service, cyoda_auth_service = get_services()
@@ -107,7 +107,7 @@ async def retry_emaildelivery(delivery_id: str):
 
 
 @emaildelivery_bp.route("/<delivery_id>/mark-opened", methods=["PUT"])
-@validate_json(EmailDeliveryTransitionRequest)
+@validate_request(EmailDeliveryTransitionRequest)
 async def mark_emaildelivery_opened(delivery_id: str):
     """Mark email as opened (tracking endpoint)."""
     entity_service, cyoda_auth_service = get_services()
