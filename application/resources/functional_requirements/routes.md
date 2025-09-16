@@ -295,3 +295,301 @@ GET /api/categories
   "transition_name": "UserDeactivation"
 }
 ```
+
+---
+
+## OrderRoutes
+
+### GET /api/orders
+**Description:** Get orders for current user or all orders (admin)
+**Parameters:**
+- status (optional): Filter by order state
+- user_id (optional, admin only): Filter by user
+- page (optional): Page number
+- size (optional): Page size
+
+**Request Example:**
+```
+GET /api/orders?status=Placed&page=0&size=10
+```
+
+**Response Example:**
+```json
+{
+  "content": [
+    {
+      "id": 1,
+      "user_id": 1,
+      "order_date": "2024-01-01T10:00:00",
+      "total_amount": 1300.0,
+      "state": "Placed"
+    }
+  ],
+  "totalElements": 1
+}
+```
+
+### GET /api/orders/{id}
+**Description:** Get order by ID
+
+**Response Example:**
+```json
+{
+  "id": 1,
+  "user_id": 1,
+  "order_date": "2024-01-01T10:00:00",
+  "ship_date": null,
+  "total_amount": 1300.0,
+  "shipping_address": "123 Main St, City, State",
+  "payment_method": "CREDIT_CARD",
+  "notes": "Please handle with care",
+  "state": "Placed",
+  "items": [
+    {
+      "id": 1,
+      "pet_id": 1,
+      "quantity": 1,
+      "unit_price": 500.0,
+      "total_price": 500.0
+    }
+  ]
+}
+```
+
+### POST /api/orders
+**Description:** Create new order
+**Parameters:** transition_name: null (automatic transition to Placed)
+
+**Request Example:**
+```json
+{
+  "user_id": 1,
+  "shipping_address": "123 Main St, City, State",
+  "payment_method": "CREDIT_CARD",
+  "notes": "Please handle with care",
+  "items": [
+    {
+      "pet_id": 1,
+      "quantity": 1,
+      "unit_price": 500.0
+    },
+    {
+      "pet_id": 2,
+      "quantity": 1,
+      "unit_price": 800.0
+    }
+  ]
+}
+```
+
+### PUT /api/orders/{id}/approve
+**Description:** Approve order
+**Parameters:** transition_name: "OrderApproval"
+
+**Request Example:**
+```json
+{
+  "admin_id": 1,
+  "transition_name": "OrderApproval"
+}
+```
+
+### PUT /api/orders/{id}/cancel
+**Description:** Cancel order
+**Parameters:** transition_name: "OrderCancellation"
+
+**Request Example:**
+```json
+{
+  "reason": "Customer request",
+  "admin_approved": false,
+  "transition_name": "OrderCancellation"
+}
+```
+
+### PUT /api/orders/{id}/prepare
+**Description:** Start order preparation
+**Parameters:** transition_name: "OrderPreparation"
+
+**Request Example:**
+```json
+{
+  "fulfillment_team_id": 1,
+  "transition_name": "OrderPreparation"
+}
+```
+
+### PUT /api/orders/{id}/ship
+**Description:** Ship order
+**Parameters:** transition_name: "OrderShipping"
+
+**Request Example:**
+```json
+{
+  "tracking_number": "TRK123456789",
+  "carrier": "FedEx",
+  "estimated_delivery": "2024-01-05",
+  "transition_name": "OrderShipping"
+}
+```
+
+### PUT /api/orders/{id}/deliver
+**Description:** Mark order as delivered
+**Parameters:** transition_name: "OrderDelivery"
+
+**Request Example:**
+```json
+{
+  "delivery_confirmation": "Delivered to recipient",
+  "delivered_by": "John Delivery",
+  "transition_name": "OrderDelivery"
+}
+```
+
+---
+
+## InventoryRoutes
+
+### GET /api/inventory
+**Description:** Get all inventory records
+**Parameters:**
+- status (optional): Filter by inventory state
+- low_stock (optional): Show only low stock items
+
+**Request Example:**
+```
+GET /api/inventory?status=LowStock
+```
+
+**Response Example:**
+```json
+[
+  {
+    "id": 1,
+    "pet_id": 1,
+    "quantity": 2,
+    "reserved_quantity": 1,
+    "reorder_level": 5,
+    "state": "LowStock"
+  }
+]
+```
+
+### GET /api/inventory/{id}
+**Description:** Get inventory by ID
+
+### GET /api/inventory/pet/{petId}
+**Description:** Get inventory for specific pet
+
+### PUT /api/inventory/{id}/restock
+**Description:** Restock inventory
+**Parameters:** transition_name: null (automatic state evaluation)
+
+**Request Example:**
+```json
+{
+  "quantity": 10,
+  "supplier": "Pet Supplier Inc",
+  "cost_per_unit": 400.0
+}
+```
+
+### PUT /api/inventory/{id}/discontinue
+**Description:** Discontinue inventory
+**Parameters:** transition_name: "InventoryDiscontinuation"
+
+**Request Example:**
+```json
+{
+  "reason": "Product discontinued by supplier",
+  "transition_name": "InventoryDiscontinuation"
+}
+```
+
+---
+
+## ReviewRoutes
+
+### GET /api/reviews
+**Description:** Get reviews with filtering
+**Parameters:**
+- pet_id (optional): Filter by pet
+- user_id (optional): Filter by user
+- status (optional): Filter by review state
+- rating (optional): Filter by rating
+
+**Request Example:**
+```
+GET /api/reviews?pet_id=1&status=Approved
+```
+
+**Response Example:**
+```json
+[
+  {
+    "id": 1,
+    "pet_id": 1,
+    "user_id": 1,
+    "rating": 5,
+    "comment": "Amazing pet, very friendly!",
+    "helpful_count": 3,
+    "state": "Approved",
+    "created_at": "2024-01-01T10:00:00"
+  }
+]
+```
+
+### GET /api/reviews/{id}
+**Description:** Get review by ID
+
+### POST /api/reviews
+**Description:** Submit new review
+**Parameters:** transition_name: null (automatic transition to Pending)
+
+**Request Example:**
+```json
+{
+  "pet_id": 1,
+  "user_id": 1,
+  "rating": 5,
+  "comment": "Amazing pet, very friendly and well-trained!"
+}
+```
+
+### PUT /api/reviews/{id}/approve
+**Description:** Approve review (moderator only)
+**Parameters:** transition_name: "ReviewApproval"
+
+**Request Example:**
+```json
+{
+  "moderator_id": 1,
+  "transition_name": "ReviewApproval"
+}
+```
+
+### PUT /api/reviews/{id}/reject
+**Description:** Reject review (moderator only)
+**Parameters:** transition_name: "ReviewRejection"
+
+**Request Example:**
+```json
+{
+  "moderator_id": 1,
+  "reason": "Inappropriate content",
+  "transition_name": "ReviewRejection"
+}
+```
+
+### PUT /api/reviews/{id}/helpful
+**Description:** Mark review as helpful
+
+**Request Example:**
+```json
+{
+  "user_id": 2
+}
+```
+
+### DELETE /api/reviews/{id}
+**Description:** Delete review (author or moderator only)
