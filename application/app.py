@@ -11,6 +11,10 @@ from common.exception.exception_handler import (
 from services.services import get_grpc_client, initialize_services
 
 # Import blueprints for different route groups
+from application.routes.pets import pets_bp
+from application.routes.categories import categories_bp
+from application.routes.users import users_bp
+from application.routes.orders import orders_bp
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -20,13 +24,12 @@ app = Quart(__name__)
 
 QuartSchema(
     app,
-    info={"title": "Cyoda Client Application", "version": "1.0.0"},
+    info={"title": "Purrfect Pets API", "version": "1.0.0"},
     tags=[
-        {
-            "name": "ExampleEntities",
-            "description": "ExampleEntity management endpoints",
-        },
-        {"name": "OtherEntities", "description": "OtherEntity management endpoints"},
+        {"name": "pets", "description": "Pet management endpoints"},
+        {"name": "categories", "description": "Category management endpoints"},
+        {"name": "users", "description": "User management endpoints"},
+        {"name": "orders", "description": "Order management endpoints"},
         {"name": "System", "description": "System and health endpoints"},
     ],
     security=[{"bearerAuth": []}],
@@ -57,6 +60,12 @@ _register_error_handlers_typed: Callable[[Quart], None] = (  # type: ignore[assi
     _register_error_handlers
 )
 _register_error_handlers_typed(app)
+
+# Register blueprints
+app.register_blueprint(pets_bp)
+app.register_blueprint(categories_bp)
+app.register_blueprint(users_bp)
+app.register_blueprint(orders_bp)
 
 
 @app.route("/favicon.ico")
