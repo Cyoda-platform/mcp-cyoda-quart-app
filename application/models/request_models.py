@@ -4,7 +4,7 @@ Request models for Application API endpoints.
 Provides Pydantic models for request validation and documentation.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Optional
 
 from pydantic import BaseModel, Field
 

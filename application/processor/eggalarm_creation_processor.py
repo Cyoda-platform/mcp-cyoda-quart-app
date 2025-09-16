@@ -6,9 +6,8 @@ duration based on egg type as specified in functional requirements.
 """
 
 import logging
-import uuid
 from datetime import datetime, timezone
-from typing import Any, Dict
+from typing import Any
 
 from application.entity.eggalarm.version_1.eggalarm import EggAlarm
 from application.entity.user.version_1.user import User

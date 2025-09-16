@@ -10,7 +10,7 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict, Optional
 
-from quart import Blueprint, jsonify, request
+from quart import Blueprint, jsonify
 from quart.typing import ResponseReturnValue
 from quart_schema import (
     operation_id,
@@ -25,19 +25,13 @@ from services.services import get_entity_service
 # Imported for entity constants / typing
 from ..entity.eggalarm.version_1.eggalarm import EggAlarm
 from ..models import (
-    CountResponse,
     DeleteResponse,
     EggAlarmListResponse,
     EggAlarmQueryParams,
     EggAlarmResponse,
-    EggAlarmSearchResponse,
     EggAlarmUpdateQueryParams,
     ErrorResponse,
-    ExistsResponse,
-    SearchRequest,
     TransitionRequest,
-    TransitionResponse,
-    TransitionsResponse,
     ValidationErrorResponse,
 )
 

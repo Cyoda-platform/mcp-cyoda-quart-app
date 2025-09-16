@@ -7,7 +7,6 @@ Suspends an active user account as specified in functional requirements.
 import logging
 from typing import Any
 
-from application.entity.eggalarm.version_1.eggalarm import EggAlarm
 from application.entity.user.version_1.user import User
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
@@ -79,8 +78,6 @@ class UserSuspensionProcessor(CyodaProcessor):
             user_id: The user ID
         """
         try:
-            entity_service = get_entity_service()
-
             # Find all alarms for this user
             # In a real implementation, we would search for alarms by userId
             # For now, we'll just log the action
