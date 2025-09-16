@@ -6,7 +6,7 @@ Handles clearing pets from medical hold when they are healthy again.
 
 import logging
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, Dict
 
 from application.entity.pet.version_1.pet import Pet
 from common.entity.entity_casting import cast_entity

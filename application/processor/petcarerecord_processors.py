@@ -6,7 +6,7 @@ Handles all pet care record processing workflows.
 
 import logging
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, Dict
 
 from application.entity.petcarerecord.version_1.petcarerecord import PetCareRecord
 from common.entity.entity_casting import cast_entity

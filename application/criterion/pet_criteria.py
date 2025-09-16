@@ -223,7 +223,7 @@ class AdoptionApprovalCriterion(CyodaCriteriaChecker):
                 return False
 
             # Validate customer
-            if not await self._validate_customer(pet.adopter_id):
+            if pet.adopter_id and not await self._validate_customer(pet.adopter_id):
                 return False
 
             # All adoption fees must be paid (simulated check)
@@ -284,7 +284,7 @@ class AdoptionApprovalCriterion(CyodaCriteriaChecker):
             )
             return False
 
-    async def _validate_customer(self, customer_id: int) -> bool:
+    async def _validate_customer(self, customer_id: Optional[int]) -> bool:
         """
         Validate that the customer is approved.
 

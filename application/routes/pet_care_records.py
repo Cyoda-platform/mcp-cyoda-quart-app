@@ -242,8 +242,6 @@ async def cancel_care(record_id: str) -> ResponseReturnValue:
             transition="transition_to_cancelled",
             entity_class=PetCareRecord.ENTITY_NAME,
             entity_version=str(PetCareRecord.ENTITY_VERSION),
-                "reschedule_needed": reschedule_needed,
-            },
         )
 
         if not response:
