@@ -1,0 +1,54 @@
+{
+    "version": "1.0",
+    "name": "EntityName Workflow",
+    "desc": "Description of the workflow for EntityName",
+    "initialState": "initial_state",
+    "active": true,
+    "states": {
+        "initial_state": {
+            "transitions": [
+                {
+                    "name": "transition_to_01",
+                    "next": "state_01",
+                    "manual": false
+                }
+            ]
+        },
+        "state_01": {
+            "transitions": [
+                {
+                    "name": "transition_to_02",
+                    "next": "state_02",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "ValidationProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "state_02": {
+            "transitions": [
+                {
+                    "name": "transition_with_criterion_simple",
+                    "next": "state_criterion_check_01",
+                    "manual": false,
+                    "criterion": {
+                        "type": "function",
+                        "function": {
+                            "name": "CriterionValidator",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}
