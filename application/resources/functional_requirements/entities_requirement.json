@@ -1,0 +1,96 @@
+{
+    "entities": [
+        {
+            "Pet": {
+                "entity_data_example": {
+                    "age": 3,
+                    "breed": "Persian",
+                    "color": "white",
+                    "gender": "Female",
+                    "is_active": true,
+                    "microchip_id": "ABC123456",
+                    "name": "Fluffy",
+                    "owner_id": "owner_1",
+                    "pet_id": "123",
+                    "photo_url": "http://example.com/fluffy.jpg",
+                    "registration_date": "2023-01-01T10:00:00Z",
+                    "special_needs": "None",
+                    "species": "cat",
+                    "weight": 4.5
+                }
+            }
+        },
+        {
+            "Owner": {
+                "entity_data_example": {
+                    "address": "123 Main St",
+                    "city": "Petville",
+                    "communication_preferences": "Email",
+                    "email": "john.doe@example.com",
+                    "emergency_contact_name": "Jane Doe",
+                    "emergency_contact_phone": "555-5678",
+                    "first_name": "John",
+                    "last_name": "Doe",
+                    "owner_id": "owner_1",
+                    "phone": "555-1234",
+                    "postal_code": "12345",
+                    "preferred_vet_id": "vet_1",
+                    "registration_date": "2023-01-01T10:00:00Z"
+                }
+            }
+        },
+        {
+            "Veterinarian": {
+                "entity_data_example": {
+                    "email": "emily.smith@vetclinic.com",
+                    "first_name": "Emily",
+                    "hire_date": "2020-01-01T10:00:00Z",
+                    "is_available": true,
+                    "last_name": "Smith",
+                    "license_number": "VET123456",
+                    "phone": "555-8765",
+                    "specialization": "Surgery",
+                    "vet_id": "vet_1",
+                    "working_hours": "Mon-Fri 9am-5pm",
+                    "years_experience": 10
+                }
+            }
+        },
+        {
+            "Appointment": {
+                "entity_data_example": {
+                    "appointment_date": "2023-01-15T14:00:00Z",
+                    "appointment_id": "appt_1",
+                    "appointment_type": "Checkup",
+                    "created_date": "2023-01-01T10:00:00Z",
+                    "duration_minutes": 30,
+                    "estimated_cost": 50.0,
+                    "notes": "N/A",
+                    "owner_id": "owner_1",
+                    "pet_id": "123",
+                    "reason": "Routine checkup",
+                    "vet_id": "vet_1"
+                }
+            }
+        },
+        {
+            "MedicalRecord": {
+                "entity_data_example": {
+                    "appointment_id": "appt_1",
+                    "cost": 50.0,
+                    "created_date": "2023-01-15T15:00:00Z",
+                    "diagnosis": "Healthy",
+                    "follow_up_date": null,
+                    "follow_up_required": false,
+                    "medications": "None",
+                    "notes": "All vaccinations up to date",
+                    "pet_id": "123",
+                    "record_id": "record_1",
+                    "treatment": "Routine checkup",
+                    "vet_id": "vet_1",
+                    "visit_date": "2023-01-15T14:00:00Z"
+                }
+            }
+        }
+    ]
+}
