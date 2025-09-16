@@ -137,7 +137,7 @@ class AnalysisReport(CyodaEntity):
         self.email_sent_at = None
         self.update_timestamp()
 
-    def to_api_response(self) -> dict:
+    def to_api_response(self) -> Dict[str, Any]:
         """Convert to API response format"""
         data = self.model_dump(by_alias=True)
         # Add state for API compatibility

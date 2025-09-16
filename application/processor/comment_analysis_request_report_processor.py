@@ -71,7 +71,7 @@ class CommentAnalysisRequestReportProcessor(CyodaProcessor):
                 raise Exception("Report ID not found")
 
             # Update the report with transition to SENDING
-            report_data = report.model_dump(by_alias=True)
+            report_data: Dict[str, Any] = report.model_dump(by_alias=True)
             await entity_service.update(
                 entity_id=report_id,
                 entity=report_data,
