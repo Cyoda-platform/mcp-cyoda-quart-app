@@ -25,18 +25,12 @@ from services.services import get_entity_service
 # Imported for entity constants / typing
 from ..entity.user.version_1.user import User
 from ..models import (
-    CountResponse,
     DeleteResponse,
     ErrorResponse,
-    ExistsResponse,
-    SearchRequest,
     TransitionRequest,
-    TransitionResponse,
-    TransitionsResponse,
     UserListResponse,
     UserQueryParams,
     UserResponse,
-    UserSearchResponse,
     UserUpdateQueryParams,
     ValidationErrorResponse,
 )
