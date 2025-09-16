@@ -1,0 +1,145 @@
+{
+    "version": "1.0",
+    "name": "EmailDelivery Workflow",
+    "desc": "Manages the lifecycle of individual email deliveries to subscribers.",
+    "initialState": "initial_state",
+    "active": true,
+    "states": {
+        "initial_state": {
+            "transitions": [
+                {
+                    "name": "transition_to_pending",
+                    "next": "pending",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "EmailDeliveryQueueProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "pending": {
+            "transitions": [
+                {
+                    "name": "transition_to_sent",
+                    "next": "sent",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "EmailDeliverySendProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "transition_to_failed",
+                    "next": "failed",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "EmailDeliveryFailureProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "sent": {
+            "transitions": [
+                {
+                    "name": "transition_to_delivered",
+                    "next": "delivered",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "EmailDeliveryConfirmationProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "transition_to_bounced",
+                    "next": "bounced",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "EmailDeliveryBounceProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "delivered": {
+            "transitions": [
+                {
+                    "name": "transition_to_opened",
+                    "next": "opened",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "EmailDeliveryOpenProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "failed": {
+            "transitions": [
+                {
+                    "name": "transition_to_pending_retry",
+                    "next": "pending",
+                    "manual": true,
+                    "processors": [
+                        {
+                            "name": "EmailDeliveryRetryProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "bounced": {
+            "transitions": [
+                {
+                    "name": "transition_to_final",
+                    "next": "final_state",
+                    "manual": false
+                }
+            ]
+        },
+        "opened": {
+            "transitions": [
+                {
+                    "name": "transition_to_final",
+                    "next": "final_state",
+                    "manual": false
+                }
+            ]
+        }
+    }
+}

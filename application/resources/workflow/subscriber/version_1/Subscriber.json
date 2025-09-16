@@ -1,0 +1,113 @@
+{
+    "version": "1.0",
+    "name": "Subscriber Workflow",
+    "desc": "Manages the lifecycle of a subscriber from registration to unsubscription.",
+    "initialState": "initial_state",
+    "active": true,
+    "states": {
+        "initial_state": {
+            "transitions": [
+                {
+                    "name": "initial_to_pending",
+                    "next": "pending",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "SubscriberRegistrationProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "pending": {
+            "transitions": [
+                {
+                    "name": "pending_to_active",
+                    "next": "active",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "SubscriberActivationProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "active": {
+            "transitions": [
+                {
+                    "name": "active_to_unsubscribed",
+                    "next": "unsubscribed",
+                    "manual": true,
+                    "processors": [
+                        {
+                            "name": "SubscriberUnsubscribeProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "active_to_bounced",
+                    "next": "bounced",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "SubscriberBounceProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ],
+                    "criterion": {
+                        "type": "function",
+                        "function": {
+                            "name": "SubscriberBounceCriterion",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "unsubscribed": {
+            "transitions": [
+                {
+                    "name": "unsubscribed_to_final",
+                    "next": "final_state",
+                    "manual": false
+                }
+            ]
+        },
+        "bounced": {
+            "transitions": [
+                {
+                    "name": "bounced_to_active",
+                    "next": "active",
+                    "manual": true,
+                    "processors": [
+                        {
+                            "name": "SubscriberReactivationProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}
