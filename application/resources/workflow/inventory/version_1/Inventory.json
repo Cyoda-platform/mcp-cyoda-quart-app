@@ -1,0 +1,89 @@
+{
+    "version": "1.0",
+    "name": "Inventory Workflow",
+    "desc": "Description of the workflow for Inventory",
+    "initialState": "initial_state",
+    "active": true,
+    "states": {
+        "initial_state": {
+            "transitions": [
+                {
+                    "name": "transition_to_instock",
+                    "next": "InStock",
+                    "manual": false
+                }
+            ]
+        },
+        "InStock": {
+            "transitions": [
+                {
+                    "name": "transition_to_lowstock",
+                    "next": "LowStock",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "InventoryUpdateProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "LowStock": {
+            "transitions": [
+                {
+                    "name": "transition_to_instock",
+                    "next": "InStock",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "InventoryRestockProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "transition_to_outofstock",
+                    "next": "OutOfStock",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "InventoryUpdateProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "OutOfStock": {
+            "transitions": [
+                {
+                    "name": "transition_to_instock",
+                    "next": "InStock",
+                    "manual": true,
+                    "processors": [
+                        {
+                            "name": "InventoryRestockProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "Discontinued": {
+            "transitions": []
+        }
+    }
+}

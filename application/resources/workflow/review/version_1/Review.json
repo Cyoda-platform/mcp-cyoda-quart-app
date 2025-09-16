@@ -1,0 +1,86 @@
+{
+    "version": "1.0",
+    "name": "Review Workflow",
+    "desc": "Description of the workflow for Review",
+    "initialState": "initial_state",
+    "active": true,
+    "states": {
+        "initial_state": {
+            "transitions": [
+                {
+                    "name": "transition_to_pending",
+                    "next": "Pending",
+                    "manual": false
+                }
+            ]
+        },
+        "Pending": {
+            "transitions": [
+                {
+                    "name": "transition_to_approved",
+                    "next": "Approved",
+                    "manual": true,
+                    "processors": [
+                        {
+                            "name": "ReviewApprovalProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ],
+                    "criterion": {
+                        "type": "function",
+                        "function": {
+                            "name": "ReviewModerationCriterion",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "transition_to_rejected",
+                    "next": "Rejected",
+                    "manual": true,
+                    "processors": [
+                        {
+                            "name": "ReviewRejectionProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ],
+                    "criterion": {
+                        "type": "function",
+                        "function": {
+                            "name": "ReviewViolationCriterion",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "Approved": {
+            "transitions": [
+                {
+                    "name": "transition_to_end",
+                    "next": "[*]",
+                    "manual": false
+                }
+            ]
+        },
+        "Rejected": {
+            "transitions": [
+                {
+                    "name": "transition_to_end",
+                    "next": "[*]",
+                    "manual": false
+                }
+            ]
+        }
+    }
+}

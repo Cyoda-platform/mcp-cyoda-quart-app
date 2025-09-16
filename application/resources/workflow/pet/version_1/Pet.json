@@ -1,0 +1,86 @@
+{
+    "version": "1.0",
+    "name": "Pet Workflow",
+    "desc": "Description of the workflow for Pet",
+    "initialState": "initial_state",
+    "active": true,
+    "states": {
+        "initial_state": {
+            "transitions": [
+                {
+                    "name": "transition_to_available",
+                    "next": "Available",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "PetRegistrationProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "Available": {
+            "transitions": [
+                {
+                    "name": "transition_to_pending",
+                    "next": "Pending",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "PetReservationProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "Pending": {
+            "transitions": [
+                {
+                    "name": "transition_to_available",
+                    "next": "Available",
+                    "manual": true,
+                    "processors": [
+                        {
+                            "name": "PetReleaseProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "transition_to_sold",
+                    "next": "Sold",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "PetSaleProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "Sold": {
+            "transitions": [
+                {
+                    "name": "transition_to_final",
+                    "next": "final_state",
+                    "manual": false
+                }
+            ]
+        }
+    }
+}

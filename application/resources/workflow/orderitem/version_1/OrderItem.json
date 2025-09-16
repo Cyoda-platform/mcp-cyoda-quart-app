@@ -1,0 +1,80 @@
+{
+    "version": "1.0",
+    "name": "OrderItem Workflow",
+    "desc": "Workflow for managing order items in the system",
+    "initialState": "initial_state",
+    "active": true,
+    "states": {
+        "initial_state": {
+            "transitions": [
+                {
+                    "name": "transition_to_added",
+                    "next": "Added",
+                    "manual": false
+                }
+            ]
+        },
+        "Added": {
+            "transitions": [
+                {
+                    "name": "transition_to_confirmed",
+                    "next": "Confirmed",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "OrderItemAdditionProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "transition_to_cancelled",
+                    "next": "Cancelled",
+                    "manual": true,
+                    "processors": [
+                        {
+                            "name": "OrderItemCancellationProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "Confirmed": {
+            "transitions": [
+                {
+                    "name": "transition_to_cancelled_from_confirmed",
+                    "next": "Cancelled",
+                    "manual": true,
+                    "processors": [
+                        {
+                            "name": "OrderItemCancellationProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "Cancelled": {
+            "transitions": [
+                {
+                    "name": "transition_to_final_state",
+                    "next": "final_state",
+                    "manual": false
+                }
+            ]
+        },
+        "final_state": {
+            "transitions": []
+        }
+    }
+}
