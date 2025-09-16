@@ -111,7 +111,7 @@ async def get_weeklyschedule(schedule_id: str):
 
 
 @weeklyschedule_bp.route("/<schedule_id>/execute", methods=["PUT"])
-@validate_json(WeeklyScheduleTransitionRequest)
+@validate_request(WeeklyScheduleTransitionRequest)
 async def execute_weeklyschedule(schedule_id: str):
     """Manually execute weekly schedule."""
     entity_service, cyoda_auth_service = get_services()
