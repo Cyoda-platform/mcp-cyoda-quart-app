@@ -1,0 +1,1 @@
+# EggAlarm entity package
