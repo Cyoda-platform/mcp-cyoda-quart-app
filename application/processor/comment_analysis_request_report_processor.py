@@ -5,7 +5,7 @@ Triggers the report sending process.
 """
 
 import logging
-from typing import Any
+from typing import Any, Dict
 
 from application.entity.analysis_report.version_1.analysis_report import AnalysisReport
 from application.entity.comment_analysis_request.version_1.comment_analysis_request import (
@@ -125,7 +125,7 @@ class CommentAnalysisRequestReportProcessor(CyodaProcessor):
         try:
             report_data = results[0].data
             if hasattr(report_data, "model_dump"):
-                report_dict = report_data.model_dump()
+                report_dict: Dict[str, Any] = report_data.model_dump()
             else:
                 report_dict = report_data
 

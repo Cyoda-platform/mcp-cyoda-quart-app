@@ -6,7 +6,7 @@ Sends the analysis report via email.
 
 import json
 import logging
-from typing import Any
+from typing import Any, Dict
 
 from application.entity.analysis_report.version_1.analysis_report import AnalysisReport
 from application.entity.comment_analysis_request.version_1.comment_analysis_request import (
