@@ -11,7 +11,6 @@ from typing import Any
 from application.entity.orderitem.version_1.orderitem import OrderItem
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from services.services import get_entity_service
 
 
 class OrderItemShippingProcessor(CyodaProcessor):

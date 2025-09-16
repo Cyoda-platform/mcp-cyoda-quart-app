@@ -15,7 +15,6 @@ from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
 
 
-
 class OrderPlacementProcessor(CyodaProcessor):
     """
     Processor for placing Order entities.

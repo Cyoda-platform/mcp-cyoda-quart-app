@@ -13,7 +13,6 @@ from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
 
 
-
 class OrderCancellationProcessor(CyodaProcessor):
     """
     Processor for cancelling Order entities.
