@@ -91,9 +91,9 @@ async def get_pet(pet_id: str):
 
         # Try to get by business ID first, then by technical ID
         try:
-            pet = await entity_service.find_by_business_id("Pet", pet_id)
-        except:
-            pet = await entity_service.get_by_id(pet_id)
+            pet = await entity_service.find_by_business_id("Pet", pet_id, "pet_id")
+        except Exception:
+            pet = await entity_service.get_by_id(pet_id, Pet)
 
         if not pet:
             return jsonify({"error": "Pet not found"}), 404
