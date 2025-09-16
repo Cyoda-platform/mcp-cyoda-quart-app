@@ -298,3 +298,202 @@ process(vet_entity):
     log_termination_event()
     return vet_entity
 ```
+
+## Appointment Processors
+
+### AppointmentSchedulingProcessor
+**Entity**: Appointment
+**Input**: Appointment entity with basic scheduling information
+**Purpose**: Schedule a new appointment
+**Output**: Appointment entity with scheduled details
+
+**Pseudocode**:
+```
+process(appointment_entity):
+    validate_required_fields(appointment_entity.pet_id, appointment_entity.owner_id, appointment_entity.vet_id, appointment_entity.appointment_date)
+    verify_pet_is_active(appointment_entity.pet_id)
+    verify_owner_is_active(appointment_entity.owner_id)
+    verify_vet_is_available(appointment_entity.vet_id)
+    check_scheduling_conflicts(appointment_entity.vet_id, appointment_entity.appointment_date)
+    set appointment_entity.created_date = current_timestamp()
+    generate_unique_appointment_id()
+    reserve_time_slot()
+    log_scheduling_event()
+    return appointment_entity
+```
+
+### AppointmentConfirmationProcessor
+**Entity**: Appointment
+**Input**: Scheduled appointment entity
+**Purpose**: Confirm an appointment
+**Output**: Appointment entity marked as confirmed
+
+**Pseudocode**:
+```
+process(appointment_entity):
+    send_confirmation_to_owner(appointment_entity.owner_id)
+    send_notification_to_vet(appointment_entity.vet_id)
+    update_calendar_systems()
+    set_reminder_notifications()
+    log_confirmation_event()
+    return appointment_entity
+```
+
+### AppointmentStartProcessor
+**Entity**: Appointment
+**Input**: Confirmed appointment entity
+**Purpose**: Mark appointment as in progress
+**Output**: Appointment entity marked as in progress
+
+**Pseudocode**:
+```
+process(appointment_entity):
+    verify_current_time_is_appointment_time()
+    check_pet_and_owner_presence()
+    notify_vet_of_start(appointment_entity.vet_id)
+    start_appointment_timer()
+    log_start_event()
+    return appointment_entity
+```
+
+### AppointmentCompletionProcessor
+**Entity**: Appointment
+**Input**: In-progress appointment entity
+**Purpose**: Complete an appointment
+**Output**: Appointment entity marked as completed
+
+**Pseudocode**:
+```
+process(appointment_entity):
+    calculate_actual_duration()
+    create_medical_record(appointment_entity.pet_id, appointment_entity.vet_id, appointment_entity.appointment_id) // Transition: "create"
+    update_pet_last_visit_date(appointment_entity.pet_id) // Transition: null
+    send_completion_notification(appointment_entity.owner_id)
+    free_time_slot()
+    log_completion_event()
+    return appointment_entity
+```
+
+### AppointmentCancellationProcessor
+**Entity**: Appointment
+**Input**: Scheduled or confirmed appointment entity
+**Purpose**: Cancel an appointment
+**Output**: Appointment entity marked as cancelled
+
+**Pseudocode**:
+```
+process(appointment_entity):
+    free_time_slot()
+    notify_all_parties(appointment_entity.owner_id, appointment_entity.vet_id)
+    apply_cancellation_policy()
+    update_calendar_systems()
+    log_cancellation_event()
+    return appointment_entity
+```
+
+### AppointmentNoShowProcessor
+**Entity**: Appointment
+**Input**: Confirmed appointment entity
+**Purpose**: Mark appointment as no-show
+**Output**: Appointment entity marked as no-show
+
+**Pseudocode**:
+```
+process(appointment_entity):
+    verify_appointment_time_passed()
+    apply_no_show_policy()
+    notify_vet_of_no_show(appointment_entity.vet_id)
+    free_time_slot()
+    update_owner_no_show_count(appointment_entity.owner_id) // Transition: null
+    log_no_show_event()
+    return appointment_entity
+```
+
+## MedicalRecord Processors
+
+### MedicalRecordCreationProcessor
+**Entity**: MedicalRecord
+**Input**: MedicalRecord entity with basic information
+**Purpose**: Create a new medical record
+**Output**: MedicalRecord entity in draft state
+
+**Pseudocode**:
+```
+process(record_entity):
+    validate_required_fields(record_entity.pet_id, record_entity.vet_id, record_entity.visit_date)
+    verify_pet_exists(record_entity.pet_id)
+    verify_vet_exists(record_entity.vet_id)
+    set record_entity.created_date = current_timestamp()
+    generate_unique_record_id()
+    initialize_draft_record()
+    log_creation_event()
+    return record_entity
+```
+
+### MedicalRecordCompletionProcessor
+**Entity**: MedicalRecord
+**Input**: Draft medical record entity
+**Purpose**: Complete a medical record
+**Output**: MedicalRecord entity marked as completed
+
+**Pseudocode**:
+```
+process(record_entity):
+    validate_medical_content(record_entity.diagnosis, record_entity.treatment)
+    calculate_total_cost()
+    set_follow_up_requirements()
+    notify_owner_of_record(record_entity.pet_id) // Get owner through pet
+    update_pet_medical_history(record_entity.pet_id) // Transition: null
+    log_completion_event()
+    return record_entity
+```
+
+### MedicalRecordReviewProcessor
+**Entity**: MedicalRecord
+**Input**: Completed medical record entity
+**Purpose**: Review a medical record
+**Output**: MedicalRecord entity marked as reviewed
+
+**Pseudocode**:
+```
+process(record_entity):
+    perform_quality_review()
+    validate_medical_accuracy()
+    check_follow_up_requirements()
+    approve_record_for_archival()
+    log_review_event()
+    return record_entity
+```
+
+### MedicalRecordArchivalProcessor
+**Entity**: MedicalRecord
+**Input**: Reviewed medical record entity
+**Purpose**: Archive a medical record
+**Output**: MedicalRecord entity marked as archived
+
+**Pseudocode**:
+```
+process(record_entity):
+    move_to_long_term_storage()
+    update_pet_medical_summary(record_entity.pet_id) // Transition: null
+    create_archival_index()
+    log_archival_event()
+    return record_entity
+```
+
+### MedicalRecordUpdateProcessor
+**Entity**: MedicalRecord
+**Input**: Draft medical record entity
+**Purpose**: Update a medical record in draft state
+**Output**: Updated medical record entity still in draft
+
+**Pseudocode**:
+```
+process(record_entity):
+    validate_update_permissions()
+    preserve_audit_trail()
+    update_record_fields()
+    set_last_modified_timestamp()
+    log_update_event()
+    return record_entity
+```
