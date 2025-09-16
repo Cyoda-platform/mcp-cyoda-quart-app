@@ -1,0 +1,63 @@
+{
+    "version": "1.0",
+    "name": "Category Workflow",
+    "desc": "Workflow for managing Category states",
+    "initialState": "initial_state",
+    "active": true,
+    "states": {
+        "initial_state": {
+            "transitions": [
+                {
+                    "name": "transition_to_active",
+                    "next": "active",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "CategoryActivationProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "active": {
+            "transitions": [
+                {
+                    "name": "transition_to_inactive",
+                    "next": "inactive",
+                    "manual": true,
+                    "processors": [
+                        {
+                            "name": "CategoryDeactivationProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "inactive": {
+            "transitions": [
+                {
+                    "name": "transition_to_active",
+                    "next": "active",
+                    "manual": true,
+                    "processors": [
+                        {
+                            "name": "CategoryActivationProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}

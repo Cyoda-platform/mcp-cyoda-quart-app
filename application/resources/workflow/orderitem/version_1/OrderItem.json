@@ -1,0 +1,72 @@
+{
+    "version": "1.0",
+    "name": "OrderItem Workflow",
+    "desc": "Description of the workflow for OrderItem",
+    "initialState": "initial_state",
+    "active": true,
+    "states": {
+        "initial_state": {
+            "transitions": [
+                {
+                    "name": "transition_to_pending",
+                    "next": "pending",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "OrderItemInitializationProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "pending": {
+            "transitions": [
+                {
+                    "name": "transition_to_confirmed",
+                    "next": "confirmed",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "OrderItemConfirmationProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ],
+                    "criterion": {
+                        "type": "function",
+                        "function": {
+                            "name": "OrderItemValidationCriterion",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "confirmed": {
+            "transitions": [
+                {
+                    "name": "transition_to_shipped",
+                    "next": "shipped",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "OrderItemShippingProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}
