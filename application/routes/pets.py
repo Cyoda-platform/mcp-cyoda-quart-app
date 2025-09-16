@@ -278,7 +278,7 @@ async def medical_hold_pet(pet_id: str) -> ResponseReturnValue:
             transition="transition_to_medical_hold",
             entity_class=Pet.ENTITY_NAME,
             entity_version=str(Pet.ENTITY_VERSION),
-            processor_kwargs={"medical_reason": medical_reason},
+
         )
 
         if not response:
@@ -288,7 +288,7 @@ async def medical_hold_pet(pet_id: str) -> ResponseReturnValue:
             )
 
         # Return updated pet
-        updated_pet = Pet(**response.data)
+        updated_pet = Pet(**response.data.model_dump())
         return jsonify(updated_pet.to_api_response()), 200
 
     except Exception as e:
@@ -315,7 +315,7 @@ async def cancel_reservation(pet_id: str) -> ResponseReturnValue:
             transition="transition_to_available",
             entity_class=Pet.ENTITY_NAME,
             entity_version=str(Pet.ENTITY_VERSION),
-            processor_kwargs={"cancellation_reason": cancellation_reason},
+
         )
 
         if not response:
@@ -325,7 +325,7 @@ async def cancel_reservation(pet_id: str) -> ResponseReturnValue:
             )
 
         # Return updated pet
-        updated_pet = Pet(**response.data)
+        updated_pet = Pet(**response.data.model_dump())
         return jsonify(updated_pet.to_api_response()), 200
 
     except Exception as e:

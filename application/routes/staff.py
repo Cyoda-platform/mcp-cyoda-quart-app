@@ -41,7 +41,7 @@ async def get_staff() -> ResponseReturnValue:
         if role:
             filters["role"] = role
         if is_active is not None:
-            filters["is_active"] = is_active.lower() == "true"
+            is_active_bool = is_active.lower() == "true"
 
         # Get staff from entity service
         response = await entity_service.get_all(
