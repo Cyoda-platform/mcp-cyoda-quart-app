@@ -6,7 +6,7 @@ The entity manages the workflow from report generation to email delivery.
 """
 
 from datetime import datetime, timezone
-from typing import ClassVar, Optional
+from typing import Any, ClassVar, Dict, Optional
 
 from pydantic import ConfigDict, Field, field_validator
 

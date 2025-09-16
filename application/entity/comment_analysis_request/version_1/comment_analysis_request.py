@@ -6,7 +6,7 @@ The entity manages the workflow from comment fetching through analysis to email 
 """
 
 from datetime import datetime, timezone
-from typing import ClassVar, Optional
+from typing import Any, ClassVar, Dict, Optional
 
 from pydantic import ConfigDict, Field, field_validator
 
@@ -104,7 +104,7 @@ class CommentAnalysisRequest(CyodaEntity):
         self.completed_at = None
         self.update_timestamp()
 
-    def to_api_response(self) -> dict:
+    def to_api_response(self) -> Dict[str, Any]:
         """Convert to API response format"""
         data = self.model_dump(by_alias=True)
         # Add state for API compatibility
