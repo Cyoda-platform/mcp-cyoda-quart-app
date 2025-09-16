@@ -225,3 +225,129 @@ async def create_pet(data: PetRequest):
     except Exception as e:
         logger.exception(f"Failed to create pet: {e}")
         return jsonify({"error": f"Failed to create pet: {str(e)}"}), 500
+
+
+@pets_bp.route("/<int:pet_id>", methods=["PUT"])
+@validate_request(PetUpdateRequest)
+async def update_pet(pet_id: int, data: PetUpdateRequest):
+    """Update pet."""
+    entity_service, cyoda_auth_service = get_services()
+
+    try:
+        # Find existing pet
+        pet_response = await entity_service.find_by_business_id(
+            "Pet", str(pet_id), "id", ENTITY_VERSION
+        )
+
+        if not pet_response:
+            return jsonify({"error": "Pet not found"}), 404
+
+        # Get current pet data
+        current_pet_data = pet_response.entity
+        pet = Pet(**current_pet_data) if isinstance(current_pet_data, dict) else current_pet_data
+
+        # Update fields if provided
+        update_data = {}
+        if data.name is not None:
+            update_data["name"] = data.name
+        if data.category is not None:
+            update_data["category"] = data.category
+        if data.breed is not None:
+            update_data["breed"] = data.breed
+        if data.age is not None:
+            update_data["age"] = data.age
+        if data.color is not None:
+            update_data["color"] = data.color
+        if data.weight is not None:
+            update_data["weight"] = data.weight
+        if data.description is not None:
+            update_data["description"] = data.description
+        if data.price is not None:
+            update_data["price"] = data.price
+        if data.imageUrl is not None:
+            update_data["imageUrl"] = data.imageUrl
+        if data.ownerId is not None:
+            update_data["ownerId"] = data.ownerId
+
+        # Add timestamp
+        update_data["updatedAt"] = datetime.now(timezone.utc).isoformat()
+
+        # Update with transition if provided
+        transition = data.transitionName
+        if transition:
+            # Map transition names to workflow transitions
+            transition_map = {
+                "AVAILABLE_TO_PENDING": "transition_to_pending",
+                "AVAILABLE_TO_RESERVED": "transition_to_reserved",
+                "PENDING_TO_SOLD": "transition_to_sold",
+                "PENDING_TO_AVAILABLE": "transition_to_available",
+                "RESERVED_TO_AVAILABLE": "transition_to_available",
+                "SOLD_TO_UNAVAILABLE": "transition_to_unavailable"
+            }
+            workflow_transition = transition_map.get(transition)
+        else:
+            workflow_transition = None
+
+        # Update pet
+        updated_response = await entity_service.update(
+            pet_response.metadata.id,
+            update_data,
+            "Pet",
+            workflow_transition,
+            ENTITY_VERSION
+        )
+
+        # Get updated state
+        updated_pet_data = updated_response.entity
+        updated_pet = Pet(**updated_pet_data) if isinstance(updated_pet_data, dict) else updated_pet_data
+
+        response = {
+            "id": pet_id,
+            "name": updated_pet.name,
+            "state": updated_pet.state.upper() if updated_pet.state else "UNKNOWN",
+            "updatedAt": updated_pet.updatedAt
+        }
+
+        logger.info(f"Updated pet {pet_id}")
+        return jsonify(response)
+
+    except Exception as e:
+        logger.exception(f"Failed to update pet {pet_id}: {e}")
+        return jsonify({"error": f"Failed to update pet: {str(e)}"}), 500
+
+
+@pets_bp.route("/<int:pet_id>", methods=["DELETE"])
+async def delete_pet(pet_id: int):
+    """Delete pet (soft delete)."""
+    entity_service, cyoda_auth_service = get_services()
+
+    try:
+        # Find existing pet
+        pet_response = await entity_service.find_by_business_id(
+            "Pet", str(pet_id), "id", ENTITY_VERSION
+        )
+
+        if not pet_response:
+            return jsonify({"error": "Pet not found"}), 404
+
+        # Soft delete by updating state
+        delete_data = {
+            "updatedAt": datetime.now(timezone.utc).isoformat()
+        }
+
+        await entity_service.update(
+            pet_response.metadata.id,
+            delete_data,
+            "Pet",
+            "transition_to_unavailable",  # Soft delete transition
+            ENTITY_VERSION
+        )
+
+        response = {"message": "Pet deleted successfully"}
+
+        logger.info(f"Deleted pet {pet_id}")
+        return jsonify(response)
+
+    except Exception as e:
+        logger.exception(f"Failed to delete pet {pet_id}: {e}")
+        return jsonify({"error": f"Failed to delete pet: {str(e)}"}), 500
