@@ -1,0 +1,107 @@
+{
+    "version": "1.0",
+    "name": "MedicalRecord Workflow",
+    "desc": "Workflow for managing Medical Records in the system",
+    "initialState": "initial_state",
+    "active": true,
+    "states": {
+        "initial_state": {
+            "transitions": [
+                {
+                    "name": "transition_to_draft",
+                    "next": "draft",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "MedicalRecordCreationProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "draft": {
+            "transitions": [
+                {
+                    "name": "transition_to_completed",
+                    "next": "completed",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "MedicalRecordCompletionProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "transition_to_draft_update",
+                    "next": "draft",
+                    "manual": true,
+                    "processors": [
+                        {
+                            "name": "MedicalRecordUpdateProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "completed": {
+            "transitions": [
+                {
+                    "name": "transition_to_reviewed",
+                    "next": "reviewed",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "MedicalRecordReviewProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "reviewed": {
+            "transitions": [
+                {
+                    "name": "transition_to_archived",
+                    "next": "archived",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "MedicalRecordArchivalProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "archived": {
+            "transitions": [
+                {
+                    "name": "transition_to_end",
+                    "next": "end",
+                    "manual": false
+                }
+            ]
+        },
+        "end": {
+            "transitions": []
+        }
+    }
+}

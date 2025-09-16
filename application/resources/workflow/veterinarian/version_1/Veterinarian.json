@@ -1,0 +1,107 @@
+{
+    "version": "1.0",
+    "name": "Veterinarian Workflow",
+    "desc": "Workflow design for the Veterinarian entity",
+    "initialState": "initial_state",
+    "active": true,
+    "states": {
+        "initial_state": {
+            "transitions": [
+                {
+                    "name": "transition_to_hired",
+                    "next": "hired",
+                    "manual": false
+                }
+            ]
+        },
+        "hired": {
+            "transitions": [
+                {
+                    "name": "transition_to_licensed",
+                    "next": "licensed",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "VeterinarianHiringProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "licensed": {
+            "transitions": [
+                {
+                    "name": "transition_to_active",
+                    "next": "active",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "VeterinarianLicenseVerificationProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "active": {
+            "transitions": [
+                {
+                    "name": "transition_to_unavailable",
+                    "next": "unavailable",
+                    "manual": true,
+                    "processors": [
+                        {
+                            "name": "VeterinarianUnavailabilityProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "transition_to_terminated",
+                    "next": "terminated",
+                    "manual": true,
+                    "processors": [
+                        {
+                            "name": "VeterinarianTerminationProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "unavailable": {
+            "transitions": [
+                {
+                    "name": "transition_to_active",
+                    "next": "active",
+                    "manual": true,
+                    "processors": [
+                        {
+                            "name": "VeterinarianAvailabilityProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "terminated": {
+            "transitions": []
+        }
+    }
+}
