@@ -1,0 +1,57 @@
+{
+    "entities": [
+        {
+            "Subscriber": {
+                "entity_data_example": {
+                    "email": "example@example.com",
+                    "firstName": "John",
+                    "id": 1,
+                    "isActive": true,
+                    "lastName": "Doe",
+                    "subscriptionDate": "2023-10-01T12:00:00",
+                    "unsubscribeToken": "123e4567-e89b-12d3-a456-426614174000"
+                }
+            }
+        },
+        {
+            "CatFact": {
+                "entity_data_example": {
+                    "apiFactId": "abc123",
+                    "fact": "Cats sleep for 70% of their lives.",
+                    "id": 1,
+                    "length": 37,
+                    "retrievedDate": "2023-10-01T12:00:00",
+                    "scheduledSendDate": "2023-10-07T12:00:00"
+                }
+            }
+        },
+        {
+            "EmailDelivery": {
+                "entity_data_example": {
+                    "catFactId": 1,
+                    "deliveryAttempts": 1,
+                    "errorMessage": null,
+                    "id": 1,
+                    "lastAttemptDate": "2023-10-07T12:00:00",
+                    "opened": false,
+                    "openedDate": null,
+                    "sentDate": "2023-10-07T12:00:00",
+                    "subscriberId": 1
+                }
+            }
+        },
+        {
+            "WeeklySchedule": {
+                "entity_data_example": {
+                    "catFactId": 1,
+                    "executedDate": "2023-10-07T12:00:00",
+                    "id": 1,
+                    "scheduledDate": "2023-10-01T12:00:00",
+                    "subscriberCount": 100,
+                    "weekEndDate": "2023-10-07",
+                    "weekStartDate": "2023-10-01"
+                }
+            }
+        }
+    ]
+}
