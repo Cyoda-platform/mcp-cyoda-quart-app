@@ -50,12 +50,14 @@ class CustomerRegistrationProcessor(CyodaProcessor):
             await self._validate_email_uniqueness(customer.email)
 
             # 2. Validate required fields completeness (already done by Pydantic)
-            
+
             # 3. Generate customer ID (handled by Cyoda)
-            
+
             # 4. Set registration timestamp
             if not customer.registration_date:
-                customer.registration_date = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+                customer.registration_date = (
+                    datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+                )
 
             # 5. Send welcome email with verification link (simulated)
             await self._send_welcome_email(customer)

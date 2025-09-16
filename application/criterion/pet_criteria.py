@@ -10,7 +10,9 @@ from typing import Any
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
 from application.entity.pet.version_1.pet import Pet
-from application.entity.adoptionapplication.version_1.adoptionapplication import AdoptionApplication
+from application.entity.adoptionapplication.version_1.adoptionapplication import (
+    AdoptionApplication,
+)
 from application.entity.customer.version_1.customer import Customer
 from services.services import get_entity_service
 
@@ -25,7 +27,9 @@ class PetAvailabilityCriterion(CyodaCriteriaChecker):
             name="PetAvailabilityCriterion",
             description="Validates that a pet is available for reservation",
         )
-        self.logger: logging.Logger = getattr(self, "logger", logging.getLogger(__name__))
+        self.logger: logging.Logger = getattr(
+            self, "logger", logging.getLogger(__name__)
+        )
 
     async def check(self, entity: CyodaEntity, **kwargs: Any) -> bool:
         """
@@ -62,9 +66,7 @@ class PetAvailabilityCriterion(CyodaCriteriaChecker):
 
             # Pet must not be on medical hold
             if pet.is_on_medical_hold():
-                self.logger.warning(
-                    f"Pet {pet.technical_id} is on medical hold"
-                )
+                self.logger.warning(f"Pet {pet.technical_id} is on medical hold")
                 return False
 
             # Pet must have completed intake process (check for arrival date)
@@ -74,9 +76,7 @@ class PetAvailabilityCriterion(CyodaCriteriaChecker):
                 )
                 return False
 
-            self.logger.info(
-                f"Pet {pet.technical_id} passed availability validation"
-            )
+            self.logger.info(f"Pet {pet.technical_id} passed availability validation")
             return True
 
         except Exception as e:
@@ -96,7 +96,9 @@ class MedicalClearanceCriterion(CyodaCriteriaChecker):
             name="MedicalClearanceCriterion",
             description="Validates that a pet is medically cleared for adoption",
         )
-        self.logger: logging.Logger = getattr(self, "logger", logging.getLogger(__name__))
+        self.logger: logging.Logger = getattr(
+            self, "logger", logging.getLogger(__name__)
+        )
 
     async def check(self, entity: CyodaEntity, **kwargs: Any) -> bool:
         """
@@ -178,7 +180,9 @@ class AdoptionApprovalCriterion(CyodaCriteriaChecker):
             name="AdoptionApprovalCriterion",
             description="Validates that an adoption can proceed",
         )
-        self.logger: logging.Logger = getattr(self, "logger", logging.getLogger(__name__))
+        self.logger: logging.Logger = getattr(
+            self, "logger", logging.getLogger(__name__)
+        )
 
     async def check(self, entity: CyodaEntity, **kwargs: Any) -> bool:
         """
@@ -202,7 +206,9 @@ class AdoptionApprovalCriterion(CyodaCriteriaChecker):
             # Get application ID from kwargs
             application_id = kwargs.get("application_id")
             if not application_id:
-                self.logger.warning("No application ID provided for adoption approval validation")
+                self.logger.warning(
+                    "No application ID provided for adoption approval validation"
+                )
                 return False
 
             # Pet must be in RESERVED state
@@ -251,7 +257,7 @@ class AdoptionApprovalCriterion(CyodaCriteriaChecker):
         """
         try:
             entity_service = get_entity_service()
-            
+
             app_response = await entity_service.get_by_id(
                 entity_id=application_id,
                 entity_class=AdoptionApplication.ENTITY_NAME,
@@ -273,7 +279,9 @@ class AdoptionApprovalCriterion(CyodaCriteriaChecker):
             return True
 
         except Exception as e:
-            self.logger.error(f"Error validating adoption application {application_id}: {str(e)}")
+            self.logger.error(
+                f"Error validating adoption application {application_id}: {str(e)}"
+            )
             return False
 
     async def _validate_customer(self, customer_id: int) -> bool:
@@ -292,7 +300,7 @@ class AdoptionApprovalCriterion(CyodaCriteriaChecker):
 
         try:
             entity_service = get_entity_service()
-            
+
             customer_response = await entity_service.get_by_id(
                 entity_id=str(customer_id),
                 entity_class=Customer.ENTITY_NAME,
@@ -342,5 +350,7 @@ class AdoptionApprovalCriterion(CyodaCriteriaChecker):
             True if paperwork is completed, False otherwise
         """
         # In a real implementation, this would check document completion
-        self.logger.info(f"Adoption paperwork validated for application {application_id}")
+        self.logger.info(
+            f"Adoption paperwork validated for application {application_id}"
+        )
         return True

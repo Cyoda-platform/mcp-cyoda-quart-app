@@ -16,7 +16,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class PetCareRecord(CyodaEntity):
     """
     PetCareRecord entity represents a care record for a pet in the Purrfect Pets system.
-    
+
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     The state field manages workflow states: initial_state -> scheduled -> completed/cancelled
     """
@@ -28,39 +28,43 @@ class PetCareRecord(CyodaEntity):
     # Required fields from functional requirements
     pet_id: int = Field(..., alias="petId", description="Pet this record belongs to")
     care_date: str = Field(
-        ..., 
-        alias="careDate", 
-        description="Date of care (ISO 8601 format)"
+        ..., alias="careDate", description="Date of care (ISO 8601 format)"
     )
     care_type: str = Field(
-        ..., 
-        alias="careType", 
-        description="Type of care (e.g., Vaccination, Checkup, Treatment, Grooming)"
+        ...,
+        alias="careType",
+        description="Type of care (e.g., Vaccination, Checkup, Treatment, Grooming)",
     )
     description: str = Field(..., description="Detailed description of care")
     veterinarian: str = Field(..., description="Vet or staff member name")
     cost: float = Field(..., description="Cost of care")
-    
+
     # Optional fields
     next_due_date: Optional[str] = Field(
-        default=None, 
-        alias="nextDueDate", 
-        description="When next care is due (YYYY-MM-DD format)"
+        default=None,
+        alias="nextDueDate",
+        description="When next care is due (YYYY-MM-DD format)",
     )
     medications: Optional[str] = Field(
-        default=None, 
-        description="Any medications given"
+        default=None, description="Any medications given"
     )
     notes: Optional[str] = Field(default=None, description="Additional notes")
     attachments: Optional[str] = Field(
-        default=None, 
-        description="URLs to documents/photos"
+        default=None, description="URLs to documents/photos"
     )
 
     # Validation constants
     ALLOWED_CARE_TYPES: ClassVar[list[str]] = [
-        "Vaccination", "Checkup", "Treatment", "Grooming", "Surgery", 
-        "Dental", "Emergency", "Spay/Neuter", "Microchip", "Other"
+        "Vaccination",
+        "Checkup",
+        "Treatment",
+        "Grooming",
+        "Surgery",
+        "Dental",
+        "Emergency",
+        "Spay/Neuter",
+        "Microchip",
+        "Other",
     ]
 
     @field_validator("pet_id")
@@ -77,13 +81,13 @@ class PetCareRecord(CyodaEntity):
         """Validate care_date field"""
         if not v or len(v.strip()) == 0:
             raise ValueError("Care date must be non-empty")
-        
+
         # Validate ISO 8601 datetime format
         try:
-            datetime.fromisoformat(v.replace('Z', '+00:00'))
+            datetime.fromisoformat(v.replace("Z", "+00:00"))
         except ValueError:
             raise ValueError("Care date must be in ISO 8601 format")
-        
+
         return v.strip()
 
     @field_validator("care_type")
@@ -135,13 +139,13 @@ class PetCareRecord(CyodaEntity):
         if v is not None:
             if not v.strip():
                 return None
-            
+
             # Validate date format (YYYY-MM-DD)
             try:
                 datetime.strptime(v, "%Y-%m-%d")
             except ValueError:
                 raise ValueError("Next due date must be in YYYY-MM-DD format")
-            
+
             return v.strip()
         return v
 

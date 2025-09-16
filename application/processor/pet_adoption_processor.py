@@ -12,7 +12,9 @@ from typing import Any
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
 from application.entity.pet.version_1.pet import Pet
-from application.entity.adoptionapplication.version_1.adoptionapplication import AdoptionApplication
+from application.entity.adoptionapplication.version_1.adoptionapplication import (
+    AdoptionApplication,
+)
 from application.entity.petcarerecord.version_1.petcarerecord import PetCareRecord
 from services.services import get_entity_service
 
@@ -56,25 +58,35 @@ class PetAdoptionProcessor(CyodaProcessor):
                 raise ValueError("Adoption application ID is required for pet adoption")
 
             # 1. Validate adoption application approval
-            adoption_application = await self._validate_adoption_application(application_id)
+            adoption_application = await self._validate_adoption_application(
+                application_id
+            )
 
             # 2. Process adoption fee payment (simulated)
             await self._process_adoption_payment(pet, adoption_application)
 
             # 3. Generate adoption certificate (simulated)
-            certificate_id = await self._generate_adoption_certificate(pet, adoption_application)
+            certificate_id = await self._generate_adoption_certificate(
+                pet, adoption_application
+            )
 
             # 4. Update pet ownership records
-            pet.add_metadata("adoption_date", 
-                           datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"))
+            pet.add_metadata(
+                "adoption_date",
+                datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+            )
             pet.add_metadata("adoption_certificate_id", certificate_id)
             pet.add_metadata("adoption_application_id", application_id)
 
             # 5. Send adoption confirmation to customer (simulated)
-            await self._send_adoption_confirmation(adoption_application.customer_id, pet)
+            await self._send_adoption_confirmation(
+                adoption_application.customer_id, pet
+            )
 
             # 6. Schedule post-adoption follow-up (simulated)
-            await self._schedule_post_adoption_followup(adoption_application.customer_id, pet)
+            await self._schedule_post_adoption_followup(
+                adoption_application.customer_id, pet
+            )
 
             # 7. Create final care record for adoption
             await self._create_adoption_care_record(pet)
@@ -83,9 +95,7 @@ class PetAdoptionProcessor(CyodaProcessor):
             # Also update the adoption application to APPROVED
             await self._update_adoption_application(application_id)
 
-            self.logger.info(
-                f"Pet adoption {pet.technical_id} processed successfully"
-            )
+            self.logger.info(f"Pet adoption {pet.technical_id} processed successfully")
 
             return pet
 
@@ -95,7 +105,9 @@ class PetAdoptionProcessor(CyodaProcessor):
             )
             raise
 
-    async def _validate_adoption_application(self, application_id: str) -> AdoptionApplication:
+    async def _validate_adoption_application(
+        self, application_id: str
+    ) -> AdoptionApplication:
         """
         Validate that the adoption application is approved.
 
@@ -125,16 +137,22 @@ class PetAdoptionProcessor(CyodaProcessor):
 
             # Check if application is approved
             if not application.is_approved():
-                raise ValueError(f"Adoption application {application_id} is not approved")
+                raise ValueError(
+                    f"Adoption application {application_id} is not approved"
+                )
 
-            self.logger.info(f"Adoption application {application_id} validated successfully")
+            self.logger.info(
+                f"Adoption application {application_id} validated successfully"
+            )
             return application
 
         except Exception as e:
             self.logger.error(f"Adoption application validation failed: {str(e)}")
             raise
 
-    async def _process_adoption_payment(self, pet: Pet, application: AdoptionApplication) -> None:
+    async def _process_adoption_payment(
+        self, pet: Pet, application: AdoptionApplication
+    ) -> None:
         """
         Process adoption fee payment (simulated).
 
@@ -148,7 +166,9 @@ class PetAdoptionProcessor(CyodaProcessor):
             f"Adoption payment of ${total_fee} processed for pet {pet.technical_id}"
         )
 
-    async def _generate_adoption_certificate(self, pet: Pet, application: AdoptionApplication) -> str:
+    async def _generate_adoption_certificate(
+        self, pet: Pet, application: AdoptionApplication
+    ) -> str:
         """
         Generate adoption certificate (simulated).
 
@@ -179,7 +199,9 @@ class PetAdoptionProcessor(CyodaProcessor):
             f"Adoption confirmation sent to customer {customer_id} for pet {pet.name}"
         )
 
-    async def _schedule_post_adoption_followup(self, customer_id: int, pet: Pet) -> None:
+    async def _schedule_post_adoption_followup(
+        self, customer_id: int, pet: Pet
+    ) -> None:
         """
         Schedule post-adoption follow-up (simulated).
 
@@ -252,7 +274,9 @@ class PetAdoptionProcessor(CyodaProcessor):
                 entity_version=str(AdoptionApplication.ENTITY_VERSION),
             )
 
-            self.logger.info(f"Adoption application {application_id} updated to APPROVED")
+            self.logger.info(
+                f"Adoption application {application_id} updated to APPROVED"
+            )
 
         except Exception as e:
             self.logger.error(

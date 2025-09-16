@@ -47,12 +47,16 @@ class PetUnavailableProcessor(CyodaProcessor):
             pet = cast_entity(entity, Pet)
 
             # Get unavailability reason from kwargs
-            unavailability_reason = kwargs.get("unavailability_reason", "Temporarily unavailable")
+            unavailability_reason = kwargs.get(
+                "unavailability_reason", "Temporarily unavailable"
+            )
 
             # 1. Record unavailability reason
             pet.add_metadata("unavailability_reason", unavailability_reason)
-            pet.add_metadata("unavailable_date", 
-                           datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"))
+            pet.add_metadata(
+                "unavailable_date",
+                datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+            )
 
             # 2. Cancel any existing reservations
             if pet.adopter_id:
@@ -87,7 +91,7 @@ class PetUnavailableProcessor(CyodaProcessor):
         """
         customer_id = pet.adopter_id
         pet.adopter_id = None
-        
+
         if pet.metadata and "reservation_timestamp" in pet.metadata:
             del pet.metadata["reservation_timestamp"]
 

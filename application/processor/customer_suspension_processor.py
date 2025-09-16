@@ -37,8 +37,10 @@ class CustomerSuspensionProcessor(CyodaProcessor):
 
             # Record suspension details
             customer.add_metadata("suspension_reason", suspension_reason)
-            customer.add_metadata("suspension_date", 
-                                datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"))
+            customer.add_metadata(
+                "suspension_date",
+                datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+            )
 
             # Cancel active reservations (simulated)
             await self._cancel_active_reservations(customer)
@@ -49,7 +51,9 @@ class CustomerSuspensionProcessor(CyodaProcessor):
             # Send suspension notification
             await self._send_suspension_notification(customer, suspension_reason)
 
-            self.logger.info(f"Customer suspension {customer.technical_id} processed successfully")
+            self.logger.info(
+                f"Customer suspension {customer.technical_id} processed successfully"
+            )
             return customer
 
         except Exception as e:
@@ -58,9 +62,13 @@ class CustomerSuspensionProcessor(CyodaProcessor):
 
     async def _cancel_active_reservations(self, customer: Customer) -> None:
         """Cancel active reservations (simulated)."""
-        self.logger.info(f"Active reservations cancelled for customer {customer.technical_id}")
+        self.logger.info(
+            f"Active reservations cancelled for customer {customer.technical_id}"
+        )
 
-    async def _send_suspension_notification(self, customer: Customer, reason: str) -> None:
+    async def _send_suspension_notification(
+        self, customer: Customer, reason: str
+    ) -> None:
         """Send suspension notification (simulated)."""
         self.logger.info(f"Suspension notification sent to {customer.email}: {reason}")
 
@@ -88,12 +96,16 @@ class CustomerReinstateProcessor(CyodaProcessor):
 
             # Review suspension reason
             suspension_reason = customer.get_metadata("suspension_reason")
-            self.logger.info(f"Reviewing suspension for customer {customer.technical_id}: {suspension_reason}")
+            self.logger.info(
+                f"Reviewing suspension for customer {customer.technical_id}: {suspension_reason}"
+            )
 
             # Restore adoption privileges
             customer.add_metadata("adoption_privileges", True)
-            customer.add_metadata("reinstatement_date", 
-                                datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"))
+            customer.add_metadata(
+                "reinstatement_date",
+                datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+            )
 
             # Clear suspension flags
             if customer.metadata:
@@ -103,7 +115,9 @@ class CustomerReinstateProcessor(CyodaProcessor):
             # Send reinstatement notification
             await self._send_reinstatement_notification(customer)
 
-            self.logger.info(f"Customer reinstatement {customer.technical_id} processed successfully")
+            self.logger.info(
+                f"Customer reinstatement {customer.technical_id} processed successfully"
+            )
             return customer
 
         except Exception as e:
@@ -137,8 +151,10 @@ class CustomerDeactivationProcessor(CyodaProcessor):
             customer = cast_entity(entity, Customer)
 
             # Archive customer data
-            customer.add_metadata("deactivation_date", 
-                                datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"))
+            customer.add_metadata(
+                "deactivation_date",
+                datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+            )
             customer.add_metadata("data_archived", True)
 
             # Cancel active applications (simulated)
@@ -150,7 +166,9 @@ class CustomerDeactivationProcessor(CyodaProcessor):
             # Send deactivation confirmation
             await self._send_deactivation_confirmation(customer)
 
-            self.logger.info(f"Customer deactivation {customer.technical_id} processed successfully")
+            self.logger.info(
+                f"Customer deactivation {customer.technical_id} processed successfully"
+            )
             return customer
 
         except Exception as e:
@@ -159,11 +177,15 @@ class CustomerDeactivationProcessor(CyodaProcessor):
 
     async def _cancel_active_applications(self, customer: Customer) -> None:
         """Cancel active applications (simulated)."""
-        self.logger.info(f"Active applications cancelled for customer {customer.technical_id}")
+        self.logger.info(
+            f"Active applications cancelled for customer {customer.technical_id}"
+        )
 
     async def _clear_personal_information(self, customer: Customer) -> None:
         """Clear personal information if required (simulated)."""
-        self.logger.info(f"Personal information cleared for customer {customer.technical_id}")
+        self.logger.info(
+            f"Personal information cleared for customer {customer.technical_id}"
+        )
 
     async def _send_deactivation_confirmation(self, customer: Customer) -> None:
         """Send deactivation confirmation (simulated)."""

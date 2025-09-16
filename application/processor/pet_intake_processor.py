@@ -53,7 +53,9 @@ class PetIntakeProcessor(CyodaProcessor):
             # 2. Assign unique pet ID (handled by Cyoda)
             # 3. Set arrival date to current timestamp
             if not pet.arrival_date:
-                pet.arrival_date = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+                pet.arrival_date = (
+                    datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+                )
 
             # 4. Initialize health and vaccination records (set defaults if not provided)
             if pet.vaccinated is None:
@@ -69,15 +71,15 @@ class PetIntakeProcessor(CyodaProcessor):
 
             # 6. Set initial price based on category and breed (if not already set)
             if pet.price <= 0:
-                pet.price = self._calculate_initial_price(pet.category, pet.breed, pet.age)
+                pet.price = self._calculate_initial_price(
+                    pet.category, pet.breed, pet.age
+                )
 
             # 7. Create initial pet care record for intake examination
             await self._create_intake_care_record(pet)
 
             # 8. Update pet state to AVAILABLE (handled by workflow transition)
-            self.logger.info(
-                f"Pet intake {pet.technical_id} processed successfully"
-            )
+            self.logger.info(f"Pet intake {pet.technical_id} processed successfully")
 
             return pet
 
@@ -121,7 +123,13 @@ class PetIntakeProcessor(CyodaProcessor):
             base_price *= 0.8
 
         # Premium breeds cost more
-        premium_breeds = ["Golden Retriever", "Labrador", "Persian", "Siamese", "Maine Coon"]
+        premium_breeds = [
+            "Golden Retriever",
+            "Labrador",
+            "Persian",
+            "Siamese",
+            "Maine Coon",
+        ]
         if breed in premium_breeds:
             base_price *= 1.3
 

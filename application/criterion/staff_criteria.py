@@ -23,7 +23,9 @@ class SuspensionReviewCriterion(CyodaCriteriaChecker):
             name="SuspensionReviewCriterion",
             description="Validates staff suspension review and potential reinstatement",
         )
-        self.logger: logging.Logger = getattr(self, "logger", logging.getLogger(__name__))
+        self.logger: logging.Logger = getattr(
+            self, "logger", logging.getLogger(__name__)
+        )
 
     async def check(self, entity: CyodaEntity, **kwargs: Any) -> bool:
         """
@@ -133,8 +135,14 @@ class SuspensionReviewCriterion(CyodaCriteriaChecker):
 
         # Serious violations that may not be eligible for reinstatement
         serious_violations = [
-            "theft", "fraud", "harassment", "violence", "abuse",
-            "criminal", "illegal", "safety violation"
+            "theft",
+            "fraud",
+            "harassment",
+            "violence",
+            "abuse",
+            "criminal",
+            "illegal",
+            "safety violation",
         ]
 
         for violation in serious_violations:

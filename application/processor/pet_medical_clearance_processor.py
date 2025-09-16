@@ -51,9 +51,13 @@ class PetMedicalClearanceProcessor(CyodaProcessor):
             await self._validate_medical_clearance(pet, clearance_data)
 
             # 2. Update health records
-            pet.add_metadata("medical_clearance_date", 
-                           datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"))
-            pet.add_metadata("cleared_by", clearance_data.get("veterinarian", "Medical Staff"))
+            pet.add_metadata(
+                "medical_clearance_date",
+                datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+            )
+            pet.add_metadata(
+                "cleared_by", clearance_data.get("veterinarian", "Medical Staff")
+            )
 
             # 3. Clear medical hold flags
             if pet.metadata:
@@ -66,8 +70,10 @@ class PetMedicalClearanceProcessor(CyodaProcessor):
             # 5. Update vaccination status if applicable
             if clearance_data.get("vaccinations_updated"):
                 pet.vaccinated = True
-                pet.add_metadata("last_vaccination_date", 
-                               datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"))
+                pet.add_metadata(
+                    "last_vaccination_date",
+                    datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+                )
 
             # 6. Update pet state to AVAILABLE (handled by workflow transition)
             self.logger.info(

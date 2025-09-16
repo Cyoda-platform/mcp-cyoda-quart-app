@@ -62,8 +62,10 @@ class CustomerVerificationProcessor(CyodaProcessor):
             await self._validate_address_information(customer)
 
             # 5. Update verification timestamp
-            customer.add_metadata("verification_date", 
-                                datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"))
+            customer.add_metadata(
+                "verification_date",
+                datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+            )
             customer.add_metadata("verification_documents", verification_documents)
 
             # 6. Send verification confirmation (simulated)
@@ -82,7 +84,9 @@ class CustomerVerificationProcessor(CyodaProcessor):
             )
             raise
 
-    async def _validate_identity_documents(self, customer: Customer, documents: list) -> None:
+    async def _validate_identity_documents(
+        self, customer: Customer, documents: list
+    ) -> None:
         """
         Validate identity documents (simulated).
 
@@ -92,9 +96,13 @@ class CustomerVerificationProcessor(CyodaProcessor):
         """
         # In a real implementation, this would validate actual documents
         if not documents:
-            self.logger.warning(f"No verification documents provided for customer {customer.technical_id}")
-        
-        self.logger.info(f"Identity documents validated for customer {customer.technical_id}")
+            self.logger.warning(
+                f"No verification documents provided for customer {customer.technical_id}"
+            )
+
+        self.logger.info(
+            f"Identity documents validated for customer {customer.technical_id}"
+        )
 
     async def _verify_contact_information(self, customer: Customer) -> None:
         """
@@ -104,7 +112,9 @@ class CustomerVerificationProcessor(CyodaProcessor):
             customer: The customer entity
         """
         # In a real implementation, this would verify phone and email
-        self.logger.info(f"Contact information verified for customer {customer.technical_id}")
+        self.logger.info(
+            f"Contact information verified for customer {customer.technical_id}"
+        )
 
     async def _check_background(self, customer: Customer) -> None:
         """
@@ -114,7 +124,9 @@ class CustomerVerificationProcessor(CyodaProcessor):
             customer: The customer entity
         """
         # In a real implementation, this might run background checks
-        self.logger.info(f"Background check completed for customer {customer.technical_id}")
+        self.logger.info(
+            f"Background check completed for customer {customer.technical_id}"
+        )
 
     async def _validate_address_information(self, customer: Customer) -> None:
         """
@@ -124,7 +136,9 @@ class CustomerVerificationProcessor(CyodaProcessor):
             customer: The customer entity
         """
         # In a real implementation, this would validate the address
-        self.logger.info(f"Address information validated for customer {customer.technical_id}")
+        self.logger.info(
+            f"Address information validated for customer {customer.technical_id}"
+        )
 
     async def _send_verification_confirmation(self, customer: Customer) -> None:
         """

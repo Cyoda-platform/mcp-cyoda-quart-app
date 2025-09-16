@@ -21,7 +21,9 @@ class CareSchedulingProcessor(CyodaProcessor):
             name="CareSchedulingProcessor",
             description="Processes pet care scheduling",
         )
-        self.logger: logging.Logger = getattr(self, "logger", logging.getLogger(__name__))
+        self.logger: logging.Logger = getattr(
+            self, "logger", logging.getLogger(__name__)
+        )
 
     async def process(self, entity: CyodaEntity, **kwargs: Any) -> CyodaEntity:
         """Process PetCareRecord scheduling."""
@@ -36,16 +38,22 @@ class CareSchedulingProcessor(CyodaProcessor):
 
             # Assign veterinarian or staff
             if not care_record.veterinarian:
-                care_record.veterinarian = await self._assign_veterinarian(care_record.care_type)
+                care_record.veterinarian = await self._assign_veterinarian(
+                    care_record.care_type
+                )
 
             # Calculate estimated cost
             if care_record.cost <= 0:
-                care_record.cost = await self._calculate_estimated_cost(care_record.care_type)
+                care_record.cost = await self._calculate_estimated_cost(
+                    care_record.care_type
+                )
 
             # Send scheduling notification (simulated)
             await self._send_scheduling_notification(care_record)
 
-            self.logger.info(f"Care scheduling {care_record.technical_id} processed successfully")
+            self.logger.info(
+                f"Care scheduling {care_record.technical_id} processed successfully"
+            )
             return care_record
 
         except Exception as e:
@@ -91,7 +99,9 @@ class CareSchedulingProcessor(CyodaProcessor):
 
     async def _send_scheduling_notification(self, care_record: PetCareRecord) -> None:
         """Send scheduling notification (simulated)."""
-        self.logger.info(f"Scheduling notification sent for care record {care_record.technical_id}")
+        self.logger.info(
+            f"Scheduling notification sent for care record {care_record.technical_id}"
+        )
 
 
 class CareCompletionProcessor(CyodaProcessor):
@@ -102,7 +112,9 @@ class CareCompletionProcessor(CyodaProcessor):
             name="CareCompletionProcessor",
             description="Processes pet care completion",
         )
-        self.logger: logging.Logger = getattr(self, "logger", logging.getLogger(__name__))
+        self.logger: logging.Logger = getattr(
+            self, "logger", logging.getLogger(__name__)
+        )
 
     async def process(self, entity: CyodaEntity, **kwargs: Any) -> CyodaEntity:
         """Process PetCareRecord completion."""
@@ -128,17 +140,23 @@ class CareCompletionProcessor(CyodaProcessor):
             # Generate care report (simulated)
             await self._generate_care_report(care_record)
 
-            self.logger.info(f"Care completion {care_record.technical_id} processed successfully")
+            self.logger.info(
+                f"Care completion {care_record.technical_id} processed successfully"
+            )
             return care_record
 
         except Exception as e:
             self.logger.error(f"Error processing care completion: {str(e)}")
             raise
 
-    async def _record_completion_details(self, care_record: PetCareRecord, care_results: dict) -> None:
+    async def _record_completion_details(
+        self, care_record: PetCareRecord, care_results: dict
+    ) -> None:
         """Record care completion details."""
-        care_record.add_metadata("completion_date", 
-                                datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"))
+        care_record.add_metadata(
+            "completion_date",
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        )
         care_record.add_metadata("care_results", care_results)
 
         # Update medications if provided
@@ -153,14 +171,20 @@ class CareCompletionProcessor(CyodaProcessor):
         if care_results.get("next_due_date"):
             care_record.next_due_date = care_results["next_due_date"]
 
-    async def _update_pet_health_records(self, care_record: PetCareRecord, care_results: dict) -> None:
+    async def _update_pet_health_records(
+        self, care_record: PetCareRecord, care_results: dict
+    ) -> None:
         """Update pet health records (simulated)."""
         self.logger.info(f"Pet health records updated for pet {care_record.pet_id}")
 
-    async def _schedule_follow_up(self, care_record: PetCareRecord, care_results: dict) -> None:
+    async def _schedule_follow_up(
+        self, care_record: PetCareRecord, care_results: dict
+    ) -> None:
         """Schedule follow-up if needed (simulated)."""
         follow_up_date = care_results.get("follow_up_date")
-        self.logger.info(f"Follow-up scheduled for pet {care_record.pet_id} on {follow_up_date}")
+        self.logger.info(
+            f"Follow-up scheduled for pet {care_record.pet_id} on {follow_up_date}"
+        )
 
     async def _generate_care_report(self, care_record: PetCareRecord) -> None:
         """Generate care report (simulated)."""
@@ -175,18 +199,24 @@ class CareCancellationProcessor(CyodaProcessor):
             name="CareCancellationProcessor",
             description="Processes pet care cancellation",
         )
-        self.logger: logging.Logger = getattr(self, "logger", logging.getLogger(__name__))
+        self.logger: logging.Logger = getattr(
+            self, "logger", logging.getLogger(__name__)
+        )
 
     async def process(self, entity: CyodaEntity, **kwargs: Any) -> CyodaEntity:
         """Process PetCareRecord cancellation."""
         try:
             care_record = cast_entity(entity, PetCareRecord)
-            cancellation_reason = kwargs.get("cancellation_reason", "Appointment cancelled")
+            cancellation_reason = kwargs.get(
+                "cancellation_reason", "Appointment cancelled"
+            )
 
             # Record cancellation reason
             care_record.add_metadata("cancellation_reason", cancellation_reason)
-            care_record.add_metadata("cancellation_date", 
-                                   datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"))
+            care_record.add_metadata(
+                "cancellation_date",
+                datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+            )
 
             # Cancel scheduled appointment (simulated)
             await self._cancel_scheduled_appointment(care_record)
@@ -198,7 +228,9 @@ class CareCancellationProcessor(CyodaProcessor):
             if kwargs.get("reschedule_needed"):
                 await self._reschedule_care(care_record)
 
-            self.logger.info(f"Care cancellation {care_record.technical_id} processed successfully")
+            self.logger.info(
+                f"Care cancellation {care_record.technical_id} processed successfully"
+            )
             return care_record
 
         except Exception as e:
@@ -207,11 +239,17 @@ class CareCancellationProcessor(CyodaProcessor):
 
     async def _cancel_scheduled_appointment(self, care_record: PetCareRecord) -> None:
         """Cancel scheduled appointment (simulated)."""
-        self.logger.info(f"Scheduled appointment cancelled for care record {care_record.technical_id}")
+        self.logger.info(
+            f"Scheduled appointment cancelled for care record {care_record.technical_id}"
+        )
 
-    async def _notify_assigned_staff(self, care_record: PetCareRecord, reason: str) -> None:
+    async def _notify_assigned_staff(
+        self, care_record: PetCareRecord, reason: str
+    ) -> None:
         """Notify assigned staff (simulated)."""
-        self.logger.info(f"Staff {care_record.veterinarian} notified of cancellation: {reason}")
+        self.logger.info(
+            f"Staff {care_record.veterinarian} notified of cancellation: {reason}"
+        )
 
     async def _reschedule_care(self, care_record: PetCareRecord) -> None:
         """Reschedule care if necessary (simulated)."""

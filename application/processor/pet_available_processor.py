@@ -62,13 +62,13 @@ class PetAvailableProcessor(CyodaProcessor):
             await self._update_listing_visibility(pet)
 
             # 5. Record availability restoration
-            pet.add_metadata("availability_restored_date", 
-                           datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"))
+            pet.add_metadata(
+                "availability_restored_date",
+                datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+            )
 
             # 6. Update pet state to AVAILABLE (handled by workflow transition)
-            self.logger.info(
-                f"Pet available {pet.technical_id} processed successfully"
-            )
+            self.logger.info(f"Pet available {pet.technical_id} processed successfully")
 
             return pet
 

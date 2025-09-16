@@ -53,8 +53,10 @@ class PetMedicalHoldProcessor(CyodaProcessor):
 
             # 1. Record medical hold reason
             pet.add_metadata("medical_hold_reason", medical_reason)
-            pet.add_metadata("medical_hold_date", 
-                           datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"))
+            pet.add_metadata(
+                "medical_hold_date",
+                datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+            )
 
             # 2. Schedule veterinary examination (simulated)
             await self._schedule_veterinary_examination(pet, medical_reason)
@@ -82,7 +84,9 @@ class PetMedicalHoldProcessor(CyodaProcessor):
             )
             raise
 
-    async def _schedule_veterinary_examination(self, pet: Pet, medical_reason: str) -> None:
+    async def _schedule_veterinary_examination(
+        self, pet: Pet, medical_reason: str
+    ) -> None:
         """
         Schedule veterinary examination (simulated).
 
@@ -117,7 +121,7 @@ class PetMedicalHoldProcessor(CyodaProcessor):
         """
         customer_id = pet.adopter_id
         pet.adopter_id = None
-        
+
         if pet.metadata and "reservation_timestamp" in pet.metadata:
             del pet.metadata["reservation_timestamp"]
 

@@ -17,7 +17,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class Staff(CyodaEntity):
     """
     Staff entity represents a staff member in the Purrfect Pets system.
-    
+
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     The state field manages workflow states: initial_state -> active -> on_leave/suspended/terminated
     """
@@ -27,35 +27,51 @@ class Staff(CyodaEntity):
     ENTITY_VERSION: ClassVar[int] = 1
 
     # Required fields from functional requirements
-    first_name: str = Field(..., alias="firstName", description="Staff member's first name")
-    last_name: str = Field(..., alias="lastName", description="Staff member's last name")
+    first_name: str = Field(
+        ..., alias="firstName", description="Staff member's first name"
+    )
+    last_name: str = Field(
+        ..., alias="lastName", description="Staff member's last name"
+    )
     email: str = Field(..., description="Work email address")
     phone: str = Field(..., description="Work phone number")
     role: str = Field(..., description="Job role")
     department: str = Field(..., description="Department name")
-    hire_date: str = Field(..., alias="hireDate", description="Date of hire (YYYY-MM-DD)")
+    hire_date: str = Field(
+        ..., alias="hireDate", description="Date of hire (YYYY-MM-DD)"
+    )
     salary: float = Field(..., description="Annual salary")
     is_active: bool = Field(..., alias="isActive", description="Employment status")
-    
+
     # Optional fields
     certifications: Optional[str] = Field(
-        default=None, 
-        description="Relevant certifications"
+        default=None, description="Relevant certifications"
     )
     specializations: Optional[str] = Field(
-        default=None, 
-        description="Areas of expertise"
+        default=None, description="Areas of expertise"
     )
 
     # Validation constants
     ALLOWED_ROLES: ClassVar[list[str]] = [
-        "Manager", "Veterinarian", "Caretaker", "Adoption Counselor", 
-        "Receptionist", "Groomer", "Trainer", "Volunteer Coordinator"
+        "Manager",
+        "Veterinarian",
+        "Caretaker",
+        "Adoption Counselor",
+        "Receptionist",
+        "Groomer",
+        "Trainer",
+        "Volunteer Coordinator",
     ]
-    
+
     ALLOWED_DEPARTMENTS: ClassVar[list[str]] = [
-        "Medical", "Adoption", "Administration", "Grooming", 
-        "Training", "Volunteer", "Maintenance", "Customer Service"
+        "Medical",
+        "Adoption",
+        "Administration",
+        "Grooming",
+        "Training",
+        "Volunteer",
+        "Maintenance",
+        "Customer Service",
     ]
 
     @field_validator("first_name")
@@ -88,12 +104,12 @@ class Staff(CyodaEntity):
         """Validate email field"""
         if not v or len(v.strip()) == 0:
             raise ValueError("Email must be non-empty")
-        
+
         # Basic email validation
-        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
         if not re.match(email_pattern, v):
             raise ValueError("Email format is invalid")
-        
+
         if len(v) > 100:
             raise ValueError("Email must be at most 100 characters long")
         return v.strip().lower()
@@ -104,14 +120,14 @@ class Staff(CyodaEntity):
         """Validate phone field"""
         if not v or len(v.strip()) == 0:
             raise ValueError("Phone must be non-empty")
-        
+
         # Remove common phone formatting characters
-        cleaned_phone = re.sub(r'[^\d]', '', v)
+        cleaned_phone = re.sub(r"[^\d]", "", v)
         if len(cleaned_phone) < 10:
             raise ValueError("Phone number must have at least 10 digits")
         if len(cleaned_phone) > 15:
             raise ValueError("Phone number must have at most 15 digits")
-        
+
         return v.strip()
 
     @field_validator("role")
@@ -136,7 +152,7 @@ class Staff(CyodaEntity):
         """Validate hire_date field"""
         if not v or len(v.strip()) == 0:
             raise ValueError("Hire date must be non-empty")
-        
+
         # Validate date format (YYYY-MM-DD)
         try:
             hire_date = datetime.strptime(v, "%Y-%m-%d")
@@ -148,7 +164,7 @@ class Staff(CyodaEntity):
             if "time data" in str(e):
                 raise ValueError("Hire date must be in YYYY-MM-DD format")
             raise e
-        
+
         return v.strip()
 
     @field_validator("salary")

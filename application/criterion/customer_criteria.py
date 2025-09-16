@@ -24,7 +24,9 @@ class CustomerDataValidationCriterion(CyodaCriteriaChecker):
             name="CustomerDataValidationCriterion",
             description="Validates customer data completeness and validity",
         )
-        self.logger: logging.Logger = getattr(self, "logger", logging.getLogger(__name__))
+        self.logger: logging.Logger = getattr(
+            self, "logger", logging.getLogger(__name__)
+        )
 
     async def check(self, entity: CyodaEntity, **kwargs: Any) -> bool:
         """
@@ -65,9 +67,7 @@ class CustomerDataValidationCriterion(CyodaCriteriaChecker):
             if not self._validate_age_requirement(customer):
                 return False
 
-            self.logger.info(
-                f"Customer {customer.technical_id} passed data validation"
-            )
+            self.logger.info(f"Customer {customer.technical_id} passed data validation")
             return True
 
         except Exception as e:
@@ -79,15 +79,21 @@ class CustomerDataValidationCriterion(CyodaCriteriaChecker):
     def _validate_personal_info(self, customer: Customer) -> bool:
         """Validate personal information."""
         if not customer.first_name or len(customer.first_name.strip()) < 2:
-            self.logger.warning(f"Invalid first name for customer {customer.technical_id}")
+            self.logger.warning(
+                f"Invalid first name for customer {customer.technical_id}"
+            )
             return False
 
         if not customer.last_name or len(customer.last_name.strip()) < 2:
-            self.logger.warning(f"Invalid last name for customer {customer.technical_id}")
+            self.logger.warning(
+                f"Invalid last name for customer {customer.technical_id}"
+            )
             return False
 
         if not customer.occupation or len(customer.occupation.strip()) < 2:
-            self.logger.warning(f"Invalid occupation for customer {customer.technical_id}")
+            self.logger.warning(
+                f"Invalid occupation for customer {customer.technical_id}"
+            )
             return False
 
         return True
@@ -95,15 +101,19 @@ class CustomerDataValidationCriterion(CyodaCriteriaChecker):
     def _validate_contact_info(self, customer: Customer) -> bool:
         """Validate contact information."""
         # Email validation
-        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
         if not re.match(email_pattern, customer.email):
-            self.logger.warning(f"Invalid email format for customer {customer.technical_id}")
+            self.logger.warning(
+                f"Invalid email format for customer {customer.technical_id}"
+            )
             return False
 
         # Phone validation
-        cleaned_phone = re.sub(r'[^\d]', '', customer.phone)
+        cleaned_phone = re.sub(r"[^\d]", "", customer.phone)
         if len(cleaned_phone) < 10:
-            self.logger.warning(f"Invalid phone number for customer {customer.technical_id}")
+            self.logger.warning(
+                f"Invalid phone number for customer {customer.technical_id}"
+            )
             return False
 
         return True
@@ -119,7 +129,9 @@ class CustomerDataValidationCriterion(CyodaCriteriaChecker):
             return False
 
         if not customer.zip_code or len(customer.zip_code.strip()) < 5:
-            self.logger.warning(f"Invalid zip code for customer {customer.technical_id}")
+            self.logger.warning(
+                f"Invalid zip code for customer {customer.technical_id}"
+            )
             return False
 
         return True
@@ -127,11 +139,15 @@ class CustomerDataValidationCriterion(CyodaCriteriaChecker):
     def _validate_housing_info(self, customer: Customer) -> bool:
         """Validate housing information."""
         if customer.housing_type not in Customer.ALLOWED_HOUSING_TYPES:
-            self.logger.warning(f"Invalid housing type for customer {customer.technical_id}")
+            self.logger.warning(
+                f"Invalid housing type for customer {customer.technical_id}"
+            )
             return False
 
         if customer.pet_experience not in Customer.ALLOWED_PET_EXPERIENCE:
-            self.logger.warning(f"Invalid pet experience for customer {customer.technical_id}")
+            self.logger.warning(
+                f"Invalid pet experience for customer {customer.technical_id}"
+            )
             return False
 
         return True
@@ -141,16 +157,24 @@ class CustomerDataValidationCriterion(CyodaCriteriaChecker):
         try:
             birth_date = datetime.strptime(customer.date_of_birth, "%Y-%m-%d")
             today = datetime.now()
-            age = today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
-            
+            age = (
+                today.year
+                - birth_date.year
+                - ((today.month, today.day) < (birth_date.month, birth_date.day))
+            )
+
             if age < 18:
-                self.logger.warning(f"Customer {customer.technical_id} is under 18 years old")
+                self.logger.warning(
+                    f"Customer {customer.technical_id} is under 18 years old"
+                )
                 return False
 
             return True
 
         except ValueError:
-            self.logger.warning(f"Invalid date of birth format for customer {customer.technical_id}")
+            self.logger.warning(
+                f"Invalid date of birth format for customer {customer.technical_id}"
+            )
             return False
 
 
@@ -164,7 +188,9 @@ class CustomerEligibilityCriterion(CyodaCriteriaChecker):
             name="CustomerEligibilityCriterion",
             description="Validates customer eligibility for pet adoption",
         )
-        self.logger: logging.Logger = getattr(self, "logger", logging.getLogger(__name__))
+        self.logger: logging.Logger = getattr(
+            self, "logger", logging.getLogger(__name__)
+        )
 
     async def check(self, entity: CyodaEntity, **kwargs: Any) -> bool:
         """
@@ -210,7 +236,7 @@ class CustomerEligibilityCriterion(CyodaCriteriaChecker):
             # Check maximum concurrent applications
             max_applications = customer.get_metadata("max_concurrent_applications", 3)
             current_applications = customer.get_metadata("application_count", 0)
-            
+
             if current_applications >= max_applications:
                 self.logger.warning(
                     f"Customer {customer.technical_id} has reached maximum concurrent applications: {current_applications}/{max_applications}"
@@ -260,7 +286,9 @@ class SuspensionReviewCriterion(CyodaCriteriaChecker):
             name="SuspensionReviewCriterion",
             description="Validates customer suspension review and potential reinstatement",
         )
-        self.logger: logging.Logger = getattr(self, "logger", logging.getLogger(__name__))
+        self.logger: logging.Logger = getattr(
+            self, "logger", logging.getLogger(__name__)
+        )
 
     async def check(self, entity: CyodaEntity, **kwargs: Any) -> bool:
         """
@@ -298,7 +326,10 @@ class SuspensionReviewCriterion(CyodaCriteriaChecker):
 
             # Check suspension reason severity
             suspension_reason = customer.get_metadata("suspension_reason", "")
-            if "fraud" in suspension_reason.lower() or "abuse" in suspension_reason.lower():
+            if (
+                "fraud" in suspension_reason.lower()
+                or "abuse" in suspension_reason.lower()
+            ):
                 self.logger.warning(
                     f"Customer {customer.technical_id} suspended for serious violation: {suspension_reason}"
                 )

@@ -56,8 +56,10 @@ class CustomerApprovalProcessor(CyodaProcessor):
             await self._validate_housing_suitability(customer)
 
             # 4. Approve customer for adoptions
-            customer.add_metadata("approval_date", 
-                                datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"))
+            customer.add_metadata(
+                "approval_date",
+                datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+            )
             customer.add_metadata("approved_by", "System")
 
             # 5. Send approval notification (simulated)
@@ -89,9 +91,13 @@ class CustomerApprovalProcessor(CyodaProcessor):
         """
         # Check basic eligibility requirements
         if customer.housing_type in ["Apartment"] and not customer.has_yard:
-            self.logger.info(f"Customer {customer.technical_id} approved despite no yard (apartment living)")
-        
-        self.logger.info(f"Eligibility criteria reviewed for customer {customer.technical_id}")
+            self.logger.info(
+                f"Customer {customer.technical_id} approved despite no yard (apartment living)"
+            )
+
+        self.logger.info(
+            f"Eligibility criteria reviewed for customer {customer.technical_id}"
+        )
 
     async def _check_adoption_history(self, customer: Customer) -> None:
         """
@@ -102,7 +108,9 @@ class CustomerApprovalProcessor(CyodaProcessor):
         """
         # In a real implementation, this would check previous adoptions
         adoption_history = customer.get_metadata("adoption_history", [])
-        self.logger.info(f"Adoption history checked for customer {customer.technical_id}: {len(adoption_history)} previous adoptions")
+        self.logger.info(
+            f"Adoption history checked for customer {customer.technical_id}: {len(adoption_history)} previous adoptions"
+        )
 
     async def _validate_housing_suitability(self, customer: Customer) -> None:
         """
@@ -112,11 +120,20 @@ class CustomerApprovalProcessor(CyodaProcessor):
             customer: The customer entity
         """
         # Basic housing validation
-        suitable_housing = customer.housing_type in ["House", "Condo", "Townhouse", "Apartment"]
+        suitable_housing = customer.housing_type in [
+            "House",
+            "Condo",
+            "Townhouse",
+            "Apartment",
+        ]
         if not suitable_housing:
-            raise ValueError(f"Housing type {customer.housing_type} may not be suitable for pet adoption")
-        
-        self.logger.info(f"Housing suitability validated for customer {customer.technical_id}")
+            raise ValueError(
+                f"Housing type {customer.housing_type} may not be suitable for pet adoption"
+            )
+
+        self.logger.info(
+            f"Housing suitability validated for customer {customer.technical_id}"
+        )
 
     async def _send_approval_notification(self, customer: Customer) -> None:
         """

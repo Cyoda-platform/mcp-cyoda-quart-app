@@ -16,7 +16,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class Pet(CyodaEntity):
     """
     Pet entity represents a pet available for adoption in the Purrfect Pets system.
-    
+
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     The state field manages workflow states: initial_state -> available -> reserved -> adopted
     or available -> medical_hold -> available or available -> unavailable -> available
@@ -35,37 +35,40 @@ class Pet(CyodaEntity):
     weight: float = Field(..., description="Weight in kg")
     description: str = Field(..., description="Detailed description")
     price: float = Field(..., description="Price in USD")
-    
+
     # Optional fields
     image_url: Optional[str] = Field(
-        default=None,
-        alias="imageUrl",
-        description="URL to pet's photo"
+        default=None, alias="imageUrl", description="URL to pet's photo"
     )
     vaccinated: bool = Field(default=False, description="Vaccination status")
     neutered: bool = Field(default=False, description="Neutering status")
     microchipped: bool = Field(default=False, description="Microchip status")
     special_needs: Optional[str] = Field(
-        default=None,
-        alias="specialNeeds",
-        description="Any special care requirements"
+        default=None, alias="specialNeeds", description="Any special care requirements"
     )
     arrival_date: Optional[str] = Field(
         default_factory=lambda: datetime.now(timezone.utc)
         .isoformat()
         .replace("+00:00", "Z"),
         alias="arrivalDate",
-        description="When pet arrived at store (ISO 8601 format)"
+        description="When pet arrived at store (ISO 8601 format)",
     )
     adopter_id: Optional[int] = Field(
         default=None,
         alias="adopterId",
-        description="ID of adopter, null if not adopted"
+        description="ID of adopter, null if not adopted",
     )
 
     # Validation constants
     ALLOWED_CATEGORIES: ClassVar[list[str]] = [
-        "Dog", "Cat", "Bird", "Fish", "Rabbit", "Hamster", "Guinea Pig", "Reptile"
+        "Dog",
+        "Cat",
+        "Bird",
+        "Fish",
+        "Rabbit",
+        "Hamster",
+        "Guinea Pig",
+        "Reptile",
     ]
 
     @field_validator("name")

@@ -16,7 +16,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class AdoptionApplication(CyodaEntity):
     """
     AdoptionApplication entity represents an adoption application in the Purrfect Pets system.
-    
+
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     The state field manages workflow states: initial_state -> submitted -> under_review -> approved/rejected/withdrawn
     """
@@ -26,68 +26,56 @@ class AdoptionApplication(CyodaEntity):
     ENTITY_VERSION: ClassVar[int] = 1
 
     # Required fields from functional requirements
-    customer_id: int = Field(..., alias="customerId", description="Applicant customer ID")
+    customer_id: int = Field(
+        ..., alias="customerId", description="Applicant customer ID"
+    )
     pet_id: int = Field(..., alias="petId", description="Pet being applied for")
     application_date: Optional[str] = Field(
         default_factory=lambda: datetime.now(timezone.utc)
         .isoformat()
         .replace("+00:00", "Z"),
         alias="applicationDate",
-        description="When application was submitted (ISO 8601 format)"
+        description="When application was submitted (ISO 8601 format)",
     )
     reason_for_adoption: str = Field(
-        ..., 
-        alias="reasonForAdoption", 
-        description="Why they want to adopt"
+        ..., alias="reasonForAdoption", description="Why they want to adopt"
     )
     living_arrangement: str = Field(
-        ..., 
-        alias="livingArrangement", 
-        description="Description of living situation"
+        ..., alias="livingArrangement", description="Description of living situation"
     )
     work_schedule: str = Field(
-        ..., 
-        alias="workSchedule", 
-        description="Daily work schedule"
+        ..., alias="workSchedule", description="Daily work schedule"
     )
     pet_care_experience: str = Field(
-        ..., 
-        alias="petCareExperience", 
-        description="Previous pet care experience"
+        ..., alias="petCareExperience", description="Previous pet care experience"
     )
     veterinarian_contact: str = Field(
-        ..., 
-        alias="veterinarianContact", 
-        description="Current vet contact info"
+        ..., alias="veterinarianContact", description="Current vet contact info"
     )
     references: str = Field(..., description="Personal references")
     agreed_to_terms: bool = Field(
-        ..., 
-        alias="agreedToTerms", 
-        description="Agreed to adoption terms"
+        ..., alias="agreedToTerms", description="Agreed to adoption terms"
     )
     application_fee: float = Field(
-        ..., 
-        alias="applicationFee", 
-        description="Application fee amount"
+        ..., alias="applicationFee", description="Application fee amount"
     )
-    
+
     # Optional fields
     notes: Optional[str] = Field(default=None, description="Additional notes")
     reviewer_id: Optional[int] = Field(
-        default=None, 
-        alias="reviewerId", 
-        description="Staff member reviewing application"
+        default=None,
+        alias="reviewerId",
+        description="Staff member reviewing application",
     )
     review_date: Optional[str] = Field(
-        default=None, 
-        alias="reviewDate", 
-        description="When application was reviewed (ISO 8601 format)"
+        default=None,
+        alias="reviewDate",
+        description="When application was reviewed (ISO 8601 format)",
     )
     rejection_reason: Optional[str] = Field(
-        default=None, 
-        alias="rejectionReason", 
-        description="Reason for rejection if applicable"
+        default=None,
+        alias="rejectionReason",
+        description="Reason for rejection if applicable",
     )
 
     @field_validator("customer_id")

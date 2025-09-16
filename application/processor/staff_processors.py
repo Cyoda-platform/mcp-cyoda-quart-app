@@ -21,7 +21,9 @@ class StaffOnboardingProcessor(CyodaProcessor):
             name="StaffOnboardingProcessor",
             description="Processes staff onboarding and setup",
         )
-        self.logger: logging.Logger = getattr(self, "logger", logging.getLogger(__name__))
+        self.logger: logging.Logger = getattr(
+            self, "logger", logging.getLogger(__name__)
+        )
 
     async def process(self, entity: CyodaEntity, **kwargs: Any) -> CyodaEntity:
         """Process Staff onboarding."""
@@ -36,7 +38,7 @@ class StaffOnboardingProcessor(CyodaProcessor):
                 staff.hire_date = datetime.now().strftime("%Y-%m-%d")
 
             # Assign employee ID (handled by Cyoda)
-            
+
             # Create access credentials (simulated)
             await self._create_access_credentials(staff)
 
@@ -48,10 +50,14 @@ class StaffOnboardingProcessor(CyodaProcessor):
 
             # Set as active
             staff.is_active = True
-            staff.add_metadata("onboarding_date", 
-                             datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"))
+            staff.add_metadata(
+                "onboarding_date",
+                datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+            )
 
-            self.logger.info(f"Staff onboarding {staff.technical_id} processed successfully")
+            self.logger.info(
+                f"Staff onboarding {staff.technical_id} processed successfully"
+            )
             return staff
 
         except Exception as e:
@@ -60,7 +66,9 @@ class StaffOnboardingProcessor(CyodaProcessor):
 
     async def _validate_employment_documentation(self, staff: Staff) -> None:
         """Validate employment documentation (simulated)."""
-        self.logger.info(f"Employment documentation validated for {staff.get_full_name()}")
+        self.logger.info(
+            f"Employment documentation validated for {staff.get_full_name()}"
+        )
 
     async def _create_access_credentials(self, staff: Staff) -> None:
         """Create access credentials (simulated)."""
@@ -83,7 +91,9 @@ class StaffLeaveProcessor(CyodaProcessor):
             name="StaffLeaveProcessor",
             description="Processes staff leave requests",
         )
-        self.logger: logging.Logger = getattr(self, "logger", logging.getLogger(__name__))
+        self.logger: logging.Logger = getattr(
+            self, "logger", logging.getLogger(__name__)
+        )
 
     async def process(self, entity: CyodaEntity, **kwargs: Any) -> CyodaEntity:
         """Process Staff leave."""
@@ -94,7 +104,9 @@ class StaffLeaveProcessor(CyodaProcessor):
             # Record leave details
             staff.add_metadata("leave_start_date", leave_details.get("start_date"))
             staff.add_metadata("leave_end_date", leave_details.get("end_date"))
-            staff.add_metadata("leave_reason", leave_details.get("reason", "Personal leave"))
+            staff.add_metadata(
+                "leave_reason", leave_details.get("reason", "Personal leave")
+            )
 
             # Reassign active responsibilities (simulated)
             await self._reassign_responsibilities(staff)
@@ -134,7 +146,9 @@ class StaffReturnProcessor(CyodaProcessor):
             name="StaffReturnProcessor",
             description="Processes staff return from leave",
         )
-        self.logger: logging.Logger = getattr(self, "logger", logging.getLogger(__name__))
+        self.logger: logging.Logger = getattr(
+            self, "logger", logging.getLogger(__name__)
+        )
 
     async def process(self, entity: CyodaEntity, **kwargs: Any) -> CyodaEntity:
         """Process Staff return from leave."""
@@ -162,7 +176,9 @@ class StaffReturnProcessor(CyodaProcessor):
                 staff.metadata.pop("leave_end_date", None)
                 staff.metadata.pop("leave_reason", None)
 
-            self.logger.info(f"Staff return {staff.technical_id} processed successfully")
+            self.logger.info(
+                f"Staff return {staff.technical_id} processed successfully"
+            )
             return staff
 
         except Exception as e:
@@ -195,7 +211,9 @@ class StaffSuspensionProcessor(CyodaProcessor):
             name="StaffSuspensionProcessor",
             description="Processes staff suspension",
         )
-        self.logger: logging.Logger = getattr(self, "logger", logging.getLogger(__name__))
+        self.logger: logging.Logger = getattr(
+            self, "logger", logging.getLogger(__name__)
+        )
 
     async def process(self, entity: CyodaEntity, **kwargs: Any) -> CyodaEntity:
         """Process Staff suspension."""
@@ -204,9 +222,14 @@ class StaffSuspensionProcessor(CyodaProcessor):
             suspension_details = kwargs.get("suspension_details", {})
 
             # Record suspension details
-            staff.add_metadata("suspension_reason", suspension_details.get("reason", "Policy violation"))
+            staff.add_metadata(
+                "suspension_reason",
+                suspension_details.get("reason", "Policy violation"),
+            )
             staff.add_metadata("suspension_date", datetime.now().strftime("%Y-%m-%d"))
-            staff.add_metadata("suspension_duration", suspension_details.get("duration"))
+            staff.add_metadata(
+                "suspension_duration", suspension_details.get("duration")
+            )
 
             # Suspend access privileges (simulated)
             await self._suspend_access_privileges(staff)
@@ -217,7 +240,9 @@ class StaffSuspensionProcessor(CyodaProcessor):
             # Send suspension notification (simulated)
             await self._send_suspension_notification(staff)
 
-            self.logger.info(f"Staff suspension {staff.technical_id} processed successfully")
+            self.logger.info(
+                f"Staff suspension {staff.technical_id} processed successfully"
+            )
             return staff
 
         except Exception as e:
@@ -245,7 +270,9 @@ class StaffReinstateProcessor(CyodaProcessor):
             name="StaffReinstateProcessor",
             description="Processes staff reinstatement after suspension",
         )
-        self.logger: logging.Logger = getattr(self, "logger", logging.getLogger(__name__))
+        self.logger: logging.Logger = getattr(
+            self, "logger", logging.getLogger(__name__)
+        )
 
     async def process(self, entity: CyodaEntity, **kwargs: Any) -> CyodaEntity:
         """Process Staff reinstatement."""
@@ -270,9 +297,13 @@ class StaffReinstateProcessor(CyodaProcessor):
                 staff.metadata.pop("suspension_date", None)
                 staff.metadata.pop("suspension_duration", None)
 
-            staff.add_metadata("reinstatement_date", datetime.now().strftime("%Y-%m-%d"))
+            staff.add_metadata(
+                "reinstatement_date", datetime.now().strftime("%Y-%m-%d")
+            )
 
-            self.logger.info(f"Staff reinstatement {staff.technical_id} processed successfully")
+            self.logger.info(
+                f"Staff reinstatement {staff.technical_id} processed successfully"
+            )
             return staff
 
         except Exception as e:
@@ -304,7 +335,9 @@ class StaffTerminationProcessor(CyodaProcessor):
             name="StaffTerminationProcessor",
             description="Processes staff termination",
         )
-        self.logger: logging.Logger = getattr(self, "logger", logging.getLogger(__name__))
+        self.logger: logging.Logger = getattr(
+            self, "logger", logging.getLogger(__name__)
+        )
 
     async def process(self, entity: CyodaEntity, **kwargs: Any) -> CyodaEntity:
         """Process Staff termination."""
@@ -314,7 +347,10 @@ class StaffTerminationProcessor(CyodaProcessor):
 
             # Record termination details
             staff.add_metadata("termination_date", datetime.now().strftime("%Y-%m-%d"))
-            staff.add_metadata("termination_reason", termination_details.get("reason", "Employment ended"))
+            staff.add_metadata(
+                "termination_reason",
+                termination_details.get("reason", "Employment ended"),
+            )
 
             # Revoke all access privileges (simulated)
             await self._revoke_access_privileges(staff)
@@ -331,7 +367,9 @@ class StaffTerminationProcessor(CyodaProcessor):
             # Set as inactive
             staff.is_active = False
 
-            self.logger.info(f"Staff termination {staff.technical_id} processed successfully")
+            self.logger.info(
+                f"Staff termination {staff.technical_id} processed successfully"
+            )
             return staff
 
         except Exception as e:

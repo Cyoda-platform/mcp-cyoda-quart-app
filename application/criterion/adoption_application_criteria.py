@@ -9,7 +9,9 @@ from typing import Any
 
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.adoptionapplication.version_1.adoptionapplication import AdoptionApplication
+from application.entity.adoptionapplication.version_1.adoptionapplication import (
+    AdoptionApplication,
+)
 
 
 class ApplicationCompletenessCriterion(CyodaCriteriaChecker):
@@ -22,7 +24,9 @@ class ApplicationCompletenessCriterion(CyodaCriteriaChecker):
             name="ApplicationCompletenessCriterion",
             description="Validates adoption application completeness",
         )
-        self.logger: logging.Logger = getattr(self, "logger", logging.getLogger(__name__))
+        self.logger: logging.Logger = getattr(
+            self, "logger", logging.getLogger(__name__)
+        )
 
     async def check(self, entity: CyodaEntity, **kwargs: Any) -> bool:
         """
@@ -90,7 +94,9 @@ class ApplicationCompletenessCriterion(CyodaCriteriaChecker):
         ]
 
         for field_name, field_value in required_fields:
-            if not field_value or (isinstance(field_value, str) and len(field_value.strip()) == 0):
+            if not field_value or (
+                isinstance(field_value, str) and len(field_value.strip()) == 0
+            ):
                 self.logger.warning(
                     f"Application {application.technical_id} - missing required field: {field_name}"
                 )
@@ -130,7 +136,9 @@ class ApplicationApprovalCriterion(CyodaCriteriaChecker):
             name="ApplicationApprovalCriterion",
             description="Validates adoption application for approval",
         )
-        self.logger: logging.Logger = getattr(self, "logger", logging.getLogger(__name__))
+        self.logger: logging.Logger = getattr(
+            self, "logger", logging.getLogger(__name__)
+        )
 
     async def check(self, entity: CyodaEntity, **kwargs: Any) -> bool:
         """
@@ -202,7 +210,10 @@ class ApplicationApprovalCriterion(CyodaCriteriaChecker):
             return False
 
         # Check work schedule compatibility
-        if "24/7" in application.work_schedule.lower() or "always working" in application.work_schedule.lower():
+        if (
+            "24/7" in application.work_schedule.lower()
+            or "always working" in application.work_schedule.lower()
+        ):
             self.logger.warning(
                 f"Application {application.technical_id} - work schedule may not be compatible with pet care"
             )
@@ -213,8 +224,15 @@ class ApplicationApprovalCriterion(CyodaCriteriaChecker):
     def _check_red_flags(self, application: AdoptionApplication) -> bool:
         """Check for red flags in the application."""
         red_flag_phrases = [
-            "breeding", "resell", "profit", "fighting", "guard dog only",
-            "outdoor only", "chain", "no vet", "can't afford vet"
+            "breeding",
+            "resell",
+            "profit",
+            "fighting",
+            "guard dog only",
+            "outdoor only",
+            "chain",
+            "no vet",
+            "can't afford vet",
         ]
 
         all_text = f"{application.reason_for_adoption} {application.living_arrangement} {application.pet_care_experience}".lower()
@@ -237,17 +255,24 @@ class ApplicationApprovalCriterion(CyodaCriteriaChecker):
             )
             return False
 
-        self.logger.info(f"References validated for application {application.technical_id}")
+        self.logger.info(
+            f"References validated for application {application.technical_id}"
+        )
         return True
 
     def _validate_veterinarian_contact(self, application: AdoptionApplication) -> bool:
         """Validate veterinarian contact (simulated)."""
         # In a real implementation, this would verify the vet contact
-        if "no vet" in application.veterinarian_contact.lower() or "none" in application.veterinarian_contact.lower():
+        if (
+            "no vet" in application.veterinarian_contact.lower()
+            or "none" in application.veterinarian_contact.lower()
+        ):
             self.logger.warning(
                 f"Application {application.technical_id} - no veterinarian contact provided"
             )
             return False
 
-        self.logger.info(f"Veterinarian contact validated for application {application.technical_id}")
+        self.logger.info(
+            f"Veterinarian contact validated for application {application.technical_id}"
+        )
         return True

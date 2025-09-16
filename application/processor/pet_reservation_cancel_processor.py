@@ -65,10 +65,11 @@ class PetReservationCancelProcessor(CyodaProcessor):
                 await self._send_cancellation_notification(customer_id, pet)
 
             # 5. Log cancellation reason
-            cancellation_reason = kwargs.get("cancellation_reason", "No reason provided")
+            cancellation_reason = kwargs.get(
+                "cancellation_reason", "No reason provided"
+            )
             pet.add_metadata("last_cancellation_reason", cancellation_reason)
-            pet.add_metadata("last_cancellation_date", 
-                           pet.updated_at or pet.created_at)
+            pet.add_metadata("last_cancellation_date", pet.updated_at or pet.created_at)
 
             # 6. Update pet state to AVAILABLE (handled by workflow transition)
             self.logger.info(

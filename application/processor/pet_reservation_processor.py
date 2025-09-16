@@ -59,14 +59,18 @@ class PetReservationProcessor(CyodaProcessor):
 
             # 2. Check if pet is currently available
             if not pet.is_available_for_adoption():
-                raise ValueError(f"Pet {pet.technical_id} is not available for reservation")
+                raise ValueError(
+                    f"Pet {pet.technical_id} is not available for reservation"
+                )
 
             # 3. Set adopter ID to the customer
             pet.adopter_id = int(customer_id)
 
             # 4. Record reservation timestamp
-            pet.add_metadata("reservation_timestamp", 
-                           datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"))
+            pet.add_metadata(
+                "reservation_timestamp",
+                datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+            )
 
             # 5. Send reservation confirmation to customer (simulated)
             await self._send_reservation_confirmation(customer_id, pet)
@@ -114,9 +118,13 @@ class PetReservationProcessor(CyodaProcessor):
 
             # Check if customer is approved for adoptions
             if not customer.is_approved():
-                raise ValueError(f"Customer {customer_id} is not approved for adoptions")
+                raise ValueError(
+                    f"Customer {customer_id} is not approved for adoptions"
+                )
 
-            self.logger.info(f"Customer {customer_id} eligibility validated successfully")
+            self.logger.info(
+                f"Customer {customer_id} eligibility validated successfully"
+            )
 
         except Exception as e:
             self.logger.error(f"Customer eligibility validation failed: {str(e)}")

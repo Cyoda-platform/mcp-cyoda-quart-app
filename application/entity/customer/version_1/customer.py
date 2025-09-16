@@ -17,7 +17,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class Customer(CyodaEntity):
     """
     Customer entity represents a customer in the Purrfect Pets system.
-    
+
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     The state field manages workflow states: initial_state -> registered -> verified -> approved
     or approved -> suspended -> approved or approved -> inactive
@@ -36,37 +36,47 @@ class Customer(CyodaEntity):
     city: str = Field(..., description="City")
     state: str = Field(..., description="State/province")
     zip_code: str = Field(..., alias="zipCode", description="Postal code")
-    date_of_birth: str = Field(..., alias="dateOfBirth", description="Birth date (YYYY-MM-DD)")
+    date_of_birth: str = Field(
+        ..., alias="dateOfBirth", description="Birth date (YYYY-MM-DD)"
+    )
     occupation: str = Field(..., description="Job title")
     housing_type: str = Field(..., alias="housingType", description="Type of housing")
     has_yard: bool = Field(..., alias="hasYard", description="Has yard for pets")
-    has_other_pets: bool = Field(..., alias="hasOtherPets", description="Owns other pets")
-    pet_experience: str = Field(..., alias="petExperience", description="Experience level with pets")
+    has_other_pets: bool = Field(
+        ..., alias="hasOtherPets", description="Owns other pets"
+    )
+    pet_experience: str = Field(
+        ..., alias="petExperience", description="Experience level with pets"
+    )
     preferred_contact_method: str = Field(
-        ..., 
-        alias="preferredContactMethod", 
-        description="Preferred contact method"
+        ..., alias="preferredContactMethod", description="Preferred contact method"
     )
     registration_date: Optional[str] = Field(
         default_factory=lambda: datetime.now(timezone.utc)
         .isoformat()
         .replace("+00:00", "Z"),
         alias="registrationDate",
-        description="When customer registered (ISO 8601 format)"
+        description="When customer registered (ISO 8601 format)",
     )
 
     # Validation constants
     ALLOWED_HOUSING_TYPES: ClassVar[list[str]] = [
-        "House", "Apartment", "Condo", "Townhouse", "Mobile Home", "Other"
+        "House",
+        "Apartment",
+        "Condo",
+        "Townhouse",
+        "Mobile Home",
+        "Other",
     ]
-    
+
     ALLOWED_PET_EXPERIENCE: ClassVar[list[str]] = [
-        "Beginner", "Intermediate", "Advanced", "Expert"
+        "Beginner",
+        "Intermediate",
+        "Advanced",
+        "Expert",
     ]
-    
-    ALLOWED_CONTACT_METHODS: ClassVar[list[str]] = [
-        "email", "phone", "text", "mail"
-    ]
+
+    ALLOWED_CONTACT_METHODS: ClassVar[list[str]] = ["email", "phone", "text", "mail"]
 
     @field_validator("first_name")
     @classmethod
@@ -98,12 +108,12 @@ class Customer(CyodaEntity):
         """Validate email field"""
         if not v or len(v.strip()) == 0:
             raise ValueError("Email must be non-empty")
-        
+
         # Basic email validation
-        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
         if not re.match(email_pattern, v):
             raise ValueError("Email format is invalid")
-        
+
         if len(v) > 100:
             raise ValueError("Email must be at most 100 characters long")
         return v.strip().lower()
@@ -114,14 +124,14 @@ class Customer(CyodaEntity):
         """Validate phone field"""
         if not v or len(v.strip()) == 0:
             raise ValueError("Phone must be non-empty")
-        
+
         # Remove common phone formatting characters
-        cleaned_phone = re.sub(r'[^\d]', '', v)
+        cleaned_phone = re.sub(r"[^\d]", "", v)
         if len(cleaned_phone) < 10:
             raise ValueError("Phone number must have at least 10 digits")
         if len(cleaned_phone) > 15:
             raise ValueError("Phone number must have at most 15 digits")
-        
+
         return v.strip()
 
     @field_validator("address")
@@ -160,13 +170,17 @@ class Customer(CyodaEntity):
         """Validate date_of_birth field"""
         if not v or len(v.strip()) == 0:
             raise ValueError("Date of birth must be non-empty")
-        
+
         # Validate date format (YYYY-MM-DD)
         try:
             birth_date = datetime.strptime(v, "%Y-%m-%d")
             # Check if customer is at least 18 years old
             today = datetime.now()
-            age = today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
+            age = (
+                today.year
+                - birth_date.year
+                - ((today.month, today.day) < (birth_date.month, birth_date.day))
+            )
             if age < 18:
                 raise ValueError("Customer must be at least 18 years old")
             if age > 120:
@@ -175,7 +189,7 @@ class Customer(CyodaEntity):
             if "time data" in str(e):
                 raise ValueError("Date of birth must be in YYYY-MM-DD format")
             raise e
-        
+
         return v.strip()
 
     @field_validator("occupation")
@@ -193,7 +207,9 @@ class Customer(CyodaEntity):
     def validate_housing_type(cls, v: str) -> str:
         """Validate housing_type field"""
         if v not in cls.ALLOWED_HOUSING_TYPES:
-            raise ValueError(f"Housing type must be one of: {cls.ALLOWED_HOUSING_TYPES}")
+            raise ValueError(
+                f"Housing type must be one of: {cls.ALLOWED_HOUSING_TYPES}"
+            )
         return v
 
     @field_validator("pet_experience")
@@ -201,7 +217,9 @@ class Customer(CyodaEntity):
     def validate_pet_experience(cls, v: str) -> str:
         """Validate pet_experience field"""
         if v not in cls.ALLOWED_PET_EXPERIENCE:
-            raise ValueError(f"Pet experience must be one of: {cls.ALLOWED_PET_EXPERIENCE}")
+            raise ValueError(
+                f"Pet experience must be one of: {cls.ALLOWED_PET_EXPERIENCE}"
+            )
         return v
 
     @field_validator("preferred_contact_method")
@@ -209,7 +227,9 @@ class Customer(CyodaEntity):
     def validate_preferred_contact_method(cls, v: str) -> str:
         """Validate preferred_contact_method field"""
         if v not in cls.ALLOWED_CONTACT_METHODS:
-            raise ValueError(f"Preferred contact method must be one of: {cls.ALLOWED_CONTACT_METHODS}")
+            raise ValueError(
+                f"Preferred contact method must be one of: {cls.ALLOWED_CONTACT_METHODS}"
+            )
         return v
 
     def is_registered(self) -> bool:
