@@ -8,15 +8,15 @@ import logging
 import uuid
 from datetime import datetime, timezone
 
-from quart import Blueprint, jsonify, abort
+from quart import Blueprint, abort, jsonify
 
-from service.services import get_entity_service, get_auth_service
 from common.config.config import ENTITY_VERSION
+from service.services import get_auth_service, get_entity_service
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-jobs_bp = Blueprint('jobs', __name__, url_prefix='/jobs')
+jobs_bp = Blueprint("jobs", __name__, url_prefix="/jobs")
 
 # Services will be accessed through the registry
 entity_service = None
@@ -43,13 +43,11 @@ async def schedule_job():
         "id": job_id,
         "status": "SCHEDULED",
         "created_at": datetime.now(timezone.utc).isoformat(),
-        "type": "data_processing"
+        "type": "data_processing",
     }
 
     try:
-        await entity_service.save_item(
-            job_entity, "job", job_id, ENTITY_VERSION
-        )
+        await entity_service.save_item(job_entity, "job", job_id, ENTITY_VERSION)
         logger.info(f"Job {job_id} scheduled successfully")
     except Exception as e:
         logger.exception(e)
@@ -64,17 +62,15 @@ async def get_job_status(job_id):
     entity_service, cyoda_auth_service = get_services()
 
     try:
-        job = await entity_service.get_item(
-            job_id, "job", ENTITY_VERSION
-        )
+        job = await entity_service.get_item(job_id, "job", ENTITY_VERSION)
         logger.info(f"Retrieved job {job_id}")
     except Exception as e:
         logger.exception(e)
         abort(500, description="Failed to retrieve job status")
-    
+
     if not job:
         abort(404, description="Job not found")
-    
+
     return jsonify(job)
 
 
@@ -84,9 +80,7 @@ async def list_jobs():
     entity_service, cyoda_auth_service = get_services()
 
     try:
-        jobs = await entity_service.get_items(
-            "job", ENTITY_VERSION
-        )
+        jobs = await entity_service.get_items("job", ENTITY_VERSION)
         logger.info(f"Retrieved {len(jobs)} jobs")
         return jsonify(jobs)
     except Exception as e:
@@ -111,7 +105,7 @@ async def update_job_status(job_id):
 
         await entity_service.save_item(job, "job", job_id, ENTITY_VERSION)
         logger.info(f"Job {job_id} status updated")
-        
+
         return jsonify(job)
     except Exception as e:
         logger.exception(e)
@@ -132,7 +126,7 @@ async def delete_job(job_id):
         # Delete job (implementation depends on your entity service)
         # await entity_service.delete_item(job_id, "job", ENTITY_VERSION)
         logger.info(f"Job {job_id} deleted")
-        
+
         return jsonify({"message": f"Job {job_id} deleted successfully"}), 200
     except Exception as e:
         logger.exception(e)

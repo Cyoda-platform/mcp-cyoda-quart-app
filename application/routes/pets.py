@@ -1,35 +1,40 @@
 """Pet routes for Purrfect Pets API."""
+
 import logging
 import uuid
 from datetime import datetime, timezone
 from typing import Optional
 
-from quart import Blueprint, jsonify, request, abort
-from quart_schema import validate_request, validate_querystring
 from pydantic import BaseModel, Field
+from quart import Blueprint, abort, jsonify, request
+from quart_schema import validate_querystring, validate_request
 
-from service.services import get_entity_service, get_auth_service
 from application.entity.pet.version_1.pet import Pet
+from service.services import get_auth_service, get_entity_service
 
 logger = logging.getLogger(__name__)
 
-pets_bp = Blueprint('pets', __name__, url_prefix='/api/pets')
+pets_bp = Blueprint("pets", __name__, url_prefix="/api/pets")
 
 ENTITY_VERSION = "1"
 
 
 class PetQuery(BaseModel):
     """Query parameters for pet filtering."""
+
     category: Optional[str] = Field(None, description="Filter by category")
     status: Optional[str] = Field(None, description="Filter by availability status")
     minPrice: Optional[float] = Field(None, ge=0, description="Minimum price filter")
     maxPrice: Optional[float] = Field(None, ge=0, description="Maximum price filter")
     page: Optional[int] = Field(0, ge=0, description="Page number for pagination")
-    size: Optional[int] = Field(10, ge=1, le=100, description="Page size for pagination")
+    size: Optional[int] = Field(
+        10, ge=1, le=100, description="Page size for pagination"
+    )
 
 
 class PetRequest(BaseModel):
     """Request model for creating/updating pets."""
+
     name: str = Field(..., description="Pet's name")
     category: str = Field(..., description="Pet category")
     breed: str = Field(..., description="Pet breed")
@@ -43,6 +48,7 @@ class PetRequest(BaseModel):
 
 class PetUpdateRequest(BaseModel):
     """Request model for updating pets."""
+
     transitionName: Optional[str] = Field(None, description="Workflow transition name")
     name: Optional[str] = Field(None, description="Pet's name")
     category: Optional[str] = Field(None, description="Pet category")
@@ -67,72 +73,74 @@ async def get_pets():
     """Get all pets with optional filtering."""
     entity_service, cyoda_auth_service = get_services()
     args = PetQuery(**request.args)
-    
+
     try:
         # Get all pets from entity service
         pets_response = await entity_service.find_all("Pet", ENTITY_VERSION)
         pets = pets_response if pets_response else []
-        
+
         # Apply filters
         filtered_pets = []
         for pet_data in pets:
             # Convert to Pet entity for easier filtering
             pet = Pet(**pet_data) if isinstance(pet_data, dict) else pet_data
-            
+
             # Apply category filter
             if args.category and pet.category != args.category:
                 continue
-                
+
             # Apply status filter (map to state)
             if args.status:
                 status_map = {
                     "AVAILABLE": "available",
-                    "PENDING": "pending", 
+                    "PENDING": "pending",
                     "SOLD": "sold",
                     "RESERVED": "reserved",
-                    "UNAVAILABLE": "unavailable"
+                    "UNAVAILABLE": "unavailable",
                 }
                 expected_state = status_map.get(args.status.upper())
                 if expected_state and pet.state != expected_state:
                     continue
-            
+
             # Apply price filters
             if args.minPrice is not None and pet.price < args.minPrice:
                 continue
             if args.maxPrice is not None and pet.price > args.maxPrice:
                 continue
-                
+
             filtered_pets.append(pet)
-        
+
         # Apply pagination
         total_elements = len(filtered_pets)
         start_idx = args.page * args.size
         end_idx = start_idx + args.size
         paginated_pets = filtered_pets[start_idx:end_idx]
-        
+
         # Convert to response format
         content = []
         for pet in paginated_pets:
-            content.append({
-                "id": pet.id,
-                "name": pet.name,
-                "category": pet.category,
-                "breed": pet.breed,
-                "age": pet.age,
-                "color": pet.color,
-                "weight": pet.weight,
-                "price": pet.price,
-                "state": pet.state.upper() if pet.state else "UNKNOWN"
-            })
-        
+            content.append(
+                {
+                    "id": pet.id,
+                    "name": pet.name,
+                    "category": pet.category,
+                    "breed": pet.breed,
+                    "age": pet.age,
+                    "color": pet.color,
+                    "weight": pet.weight,
+                    "price": pet.price,
+                    "state": pet.state.upper() if pet.state else "UNKNOWN",
+                }
+            )
+
         total_pages = (total_elements + args.size - 1) // args.size
-        
+
         response = {
             "content": content,
             "totalElements": total_elements,
-            "totalPages": total_pages
+            "totalPages": total_pages,
         }
-        
+
         logger.info(f"Retrieved {len(content)} pets (page {args.page})")
         return jsonify(response)
 
@@ -172,7 +180,7 @@ async def get_pet(pet_id: int):
             "ownerId": pet.ownerId,
             "state": pet.state.upper() if pet.state else "UNKNOWN",
             "createdAt": pet.createdAt,
-            "updatedAt": pet.updatedAt
+            "updatedAt": pet.updatedAt,
         }
 
         logger.info(f"Retrieved pet {pet_id}")
@@ -206,7 +214,7 @@ async def create_pet(data: PetRequest):
             "price": data.price,
             "imageUrl": data.imageUrl,
             "ownerId": None,
-            "state": "initial_state"
+            "state": "initial_state",
         }
 
         # Save pet
@@ -216,7 +224,7 @@ async def create_pet(data: PetRequest):
             "id": pet_id,
             "name": data.name,
             "state": "AVAILABLE",
-            "createdAt": datetime.now(timezone.utc).isoformat()
+            "createdAt": datetime.now(timezone.utc).isoformat(),
         }
 
         logger.info(f"Created pet {pet_id}")
@@ -244,7 +252,11 @@ async def update_pet(pet_id: int, data: PetUpdateRequest):
 
         # Get current pet data
         current_pet_data = pet_response.entity
-        pet = Pet(**current_pet_data) if isinstance(current_pet_data, dict) else current_pet_data
+        pet = (
+            Pet(**current_pet_data)
+            if isinstance(current_pet_data, dict)
+            else current_pet_data
+        )
 
         # Update fields if provided
         update_data = {}
@@ -282,7 +294,7 @@ async def update_pet(pet_id: int, data: PetUpdateRequest):
                 "PENDING_TO_SOLD": "transition_to_sold",
                 "PENDING_TO_AVAILABLE": "transition_to_available",
                 "RESERVED_TO_AVAILABLE": "transition_to_available",
-                "SOLD_TO_UNAVAILABLE": "transition_to_unavailable"
+                "SOLD_TO_UNAVAILABLE": "transition_to_unavailable",
             }
             workflow_transition = transition_map.get(transition)
         else:
@@ -294,18 +306,22 @@ async def update_pet(pet_id: int, data: PetUpdateRequest):
             update_data,
             "Pet",
             workflow_transition,
-            ENTITY_VERSION
+            ENTITY_VERSION,
         )
 
         # Get updated state
         updated_pet_data = updated_response.entity
-        updated_pet = Pet(**updated_pet_data) if isinstance(updated_pet_data, dict) else updated_pet_data
+        updated_pet = (
+            Pet(**updated_pet_data)
+            if isinstance(updated_pet_data, dict)
+            else updated_pet_data
+        )
 
         response = {
             "id": pet_id,
             "name": updated_pet.name,
             "state": updated_pet.state.upper() if updated_pet.state else "UNKNOWN",
-            "updatedAt": updated_pet.updatedAt
+            "updatedAt": updated_pet.updatedAt,
         }
 
         logger.info(f"Updated pet {pet_id}")
@@ -331,16 +347,14 @@ async def delete_pet(pet_id: int):
             return jsonify({"error": "Pet not found"}), 404
 
         # Soft delete by updating state
-        delete_data = {
-            "updatedAt": datetime.now(timezone.utc).isoformat()
-        }
+        delete_data = {"updatedAt": datetime.now(timezone.utc).isoformat()}
 
         await entity_service.update(
             pet_response.metadata.id,
             delete_data,
             "Pet",
             "transition_to_unavailable",  # Soft delete transition
-            ENTITY_VERSION
+            ENTITY_VERSION,
         )
 
         response = {"message": "Pet deleted successfully"}

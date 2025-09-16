@@ -1,10 +1,13 @@
 # errors.py
 import logging
+
 from quart import jsonify
 
-from common.exception.exceptions import UnauthorizedAccessException, ChatNotFoundException
+from common.exception.exceptions import (ChatNotFoundException,
+                                         UnauthorizedAccessException)
 
 logger = logging.getLogger(__name__)
+
 
 def register_error_handlers(app):
     @app.errorhandler(UnauthorizedAccessException)

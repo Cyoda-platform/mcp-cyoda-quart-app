@@ -1,5 +1,5 @@
-from proto.cloudevents_pb2 import CloudEvent
 from common.grpc_client.responses.spec import ResponseSpec
+from proto.cloudevents_pb2 import CloudEvent
 
 
 class Handler:
@@ -8,4 +8,3 @@ class Handler:
 
     async def handle(self, request: CloudEvent, services=None) -> ResponseSpec:
         raise NotImplementedError
-

@@ -13,4 +13,3 @@ class MiddlewareLink:
         if self._successor:
             return await self._successor.handle(event)
         return None
-

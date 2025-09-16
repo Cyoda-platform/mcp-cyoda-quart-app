@@ -10,16 +10,16 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Optional
 
-from quart import Blueprint, jsonify, request, abort
+from quart import Blueprint, abort, jsonify, request
 from quart_schema import validate_request
 
-from service.services import get_entity_service, get_auth_service
 from common.config.config import ENTITY_VERSION
+from service.services import get_auth_service, get_entity_service
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-subscribers_bp = Blueprint('subscribers', __name__, url_prefix='/subscribers')
+subscribers_bp = Blueprint("subscribers", __name__, url_prefix="/subscribers")
 
 # Services will be accessed through the registry
 entity_service = None
@@ -48,9 +48,7 @@ async def list_subscribers():
     entity_service, cyoda_auth_service = get_services()
 
     try:
-        subscribers = await entity_service.get_items(
-            "subscriber", ENTITY_VERSION
-        )
+        subscribers = await entity_service.get_items("subscriber", ENTITY_VERSION)
         logger.info(f"Retrieved {len(subscribers)} subscribers")
         return jsonify(subscribers)
     except Exception as e:
@@ -74,7 +72,7 @@ async def add_subscriber(data: SubscriberRequest):
         "webhook_url": data.webhook_url,
         "status": "active",
         "created_at": datetime.now(timezone.utc).isoformat(),
-        "subscription_type": "laureate_updates"
+        "subscription_type": "laureate_updates",
     }
 
     try:
@@ -82,11 +80,16 @@ async def add_subscriber(data: SubscriberRequest):
             subscriber_data, "subscriber", subscriber_id, ENTITY_VERSION
         )
         logger.info(f"Added subscriber {subscriber_id}")
-        return jsonify({
-            "subscriber_id": subscriber_id, 
-            "status": "active",
-            "message": "Subscriber added successfully"
-        }), 201
+        return (
+            jsonify(
+                {
+                    "subscriber_id": subscriber_id,
+                    "status": "active",
+                    "message": "Subscriber added successfully",
+                }
+            ),
+            201,
+        )
     except Exception as e:
         logger.exception(e)
         abort(500, description="Failed to add subscriber")
@@ -103,7 +106,7 @@ async def get_subscriber(subscriber_id):
         )
         if not subscriber:
             abort(404, description="Subscriber not found")
-        
+
         logger.info(f"Retrieved subscriber {subscriber_id}")
         return jsonify(subscriber)
     except Exception as e:
@@ -136,7 +139,7 @@ async def update_subscriber(subscriber_id):
         await entity_service.save_item(
             updated_subscriber, "subscriber", subscriber_id, ENTITY_VERSION
         )
-        
+
         logger.info(f"Updated subscriber {subscriber_id}")
         return jsonify(updated_subscriber)
 
@@ -160,9 +163,12 @@ async def delete_subscriber(subscriber_id):
 
         # Delete subscriber (implementation depends on your entity service)
         # await entity_service.delete_item(subscriber_id, "subscriber", ENTITY_VERSION)
-        
+
         logger.info(f"Deleted subscriber {subscriber_id}")
-        return jsonify({"message": f"Subscriber {subscriber_id} deleted successfully"}), 200
+        return (
+            jsonify({"message": f"Subscriber {subscriber_id} deleted successfully"}),
+            200,
+        )
 
     except Exception as e:
         logger.exception(e)
@@ -198,13 +204,15 @@ async def update_subscriber_status(subscriber_id):
         await entity_service.save_item(
             subscriber, "subscriber", subscriber_id, ENTITY_VERSION
         )
-        
+
         logger.info(f"Updated subscriber {subscriber_id} status to {status}")
-        return jsonify({
-            "subscriber_id": subscriber_id,
-            "status": status,
-            "message": f"Subscriber status updated to {status}"
-        })
+        return jsonify(
+            {
+                "subscriber_id": subscriber_id,
+                "status": status,
+                "message": f"Subscriber status updated to {status}",
+            }
+        )
 
     except Exception as e:
         logger.exception(e)
@@ -227,15 +235,17 @@ async def notify_subscribers():
         active_subscribers = [s for s in subscribers if s.get("status") == "active"]
 
         if not active_subscribers:
-            return jsonify({
-                "message": "No active subscribers to notify",
-                "notified_count": 0
-            }), 200
+            return (
+                jsonify(
+                    {"message": "No active subscribers to notify", "notified_count": 0}
+                ),
+                200,
+            )
 
         # Send notifications (placeholder implementation)
         notified_count = 0
         failed_count = 0
-        
+
         for subscriber in active_subscribers:
             try:
                 # This would typically send email or webhook notification
@@ -246,12 +256,17 @@ async def notify_subscribers():
                 failed_count += 1
 
         logger.info(f"Notified {notified_count} subscribers, {failed_count} failed")
-        return jsonify({
-            "message": f"Notification sent to {notified_count} subscribers",
-            "notified_count": notified_count,
-            "failed_count": failed_count,
-            "total_active_subscribers": len(active_subscribers)
-        }), 200
+        return (
+            jsonify(
+                {
+                    "message": f"Notification sent to {notified_count} subscribers",
+                    "notified_count": notified_count,
+                    "failed_count": failed_count,
+                    "total_active_subscribers": len(active_subscribers),
+                }
+            ),
+            200,
+        )
 
     except Exception as e:
         logger.exception(e)
@@ -265,17 +280,25 @@ async def get_subscriber_stats():
 
     try:
         subscribers = await entity_service.get_items("subscriber", ENTITY_VERSION)
-        
+
         stats = {
             "total_subscribers": len(subscribers),
-            "active_subscribers": len([s for s in subscribers if s.get("status") == "active"]),
-            "inactive_subscribers": len([s for s in subscribers if s.get("status") == "inactive"]),
-            "suspended_subscribers": len([s for s in subscribers if s.get("status") == "suspended"]),
+            "active_subscribers": len(
+                [s for s in subscribers if s.get("status") == "active"]
+            ),
+            "inactive_subscribers": len(
+                [s for s in subscribers if s.get("status") == "inactive"]
+            ),
+            "suspended_subscribers": len(
+                [s for s in subscribers if s.get("status") == "suspended"]
+            ),
             "email_subscribers": len([s for s in subscribers if s.get("email")]),
-            "webhook_subscribers": len([s for s in subscribers if s.get("webhook_url")]),
-            "timestamp": datetime.now(timezone.utc).isoformat()
+            "webhook_subscribers": len(
+                [s for s in subscribers if s.get("webhook_url")]
+            ),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
-        
+
         logger.info("Retrieved subscriber statistics")
         return jsonify(stats)
 

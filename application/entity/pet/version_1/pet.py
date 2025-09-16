@@ -1,17 +1,19 @@
 """Pet entity for Purrfect Pets API."""
-from typing import ClassVar, Optional
-from pydantic import Field
+
 from datetime import datetime, timezone
+from typing import ClassVar, Optional
+
+from pydantic import Field
 
 from entity.cyoda_entity import CyodaEntity
 
 
 class Pet(CyodaEntity):
     """Pet entity representing pets available for adoption."""
-    
+
     ENTITY_NAME: ClassVar[str] = "Pet"
     ENTITY_VERSION: ClassVar[int] = 1
-    
+
     # Pet-specific fields
     id: Optional[int] = Field(default=None, description="Pet ID")
     name: str = Field(..., description="Pet's name")
@@ -26,13 +28,13 @@ class Pet(CyodaEntity):
     ownerId: Optional[int] = Field(default=None, description="Reference to owner")
     createdAt: Optional[str] = Field(
         default_factory=lambda: datetime.now(timezone.utc).isoformat(),
-        description="Creation timestamp"
+        description="Creation timestamp",
     )
     updatedAt: Optional[str] = Field(
         default_factory=lambda: datetime.now(timezone.utc).isoformat(),
-        description="Last update timestamp"
+        description="Last update timestamp",
     )
-    
+
     def __init__(self, **kwargs):
         """Initialize Pet entity."""
         super().__init__(**kwargs)

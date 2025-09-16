@@ -1,5 +1,6 @@
-from abc import ABC, abstractmethod
 import time
+from abc import ABC, abstractmethod
+
 
 class BaseTokenFetcher(ABC):
     def __init__(self):
@@ -8,9 +9,9 @@ class BaseTokenFetcher(ABC):
 
     def is_token_stale(self) -> bool:
         return (
-            not self._access_token or
-            not self._access_token_expiry or
-            time.time() >= self._access_token_expiry - 60
+            not self._access_token
+            or not self._access_token_expiry
+            or time.time() >= self._access_token_expiry - 60
         )
 
     def invalidate_tokens(self):
