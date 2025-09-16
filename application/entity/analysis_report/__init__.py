@@ -1,0 +1,3 @@
+"""
+AnalysisReport entity module.
+"""
