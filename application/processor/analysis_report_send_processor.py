@@ -116,7 +116,8 @@ class AnalysisReportSendProcessor(CyodaProcessor):
                 if hasattr(request_data, "model_dump"):
                     request_dict: Dict[str, Any] = request_data.model_dump()
                 else:
-                    request_dict = request_data
+                    # If it's already a dict, use it directly
+                    request_dict = dict(request_data) if not isinstance(request_data, dict) else request_data
 
                 return CommentAnalysisRequest(**request_dict)
 
