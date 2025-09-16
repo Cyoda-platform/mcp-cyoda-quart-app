@@ -6,11 +6,13 @@ Checks if comments were successfully fetched from the API.
 
 from typing import Any
 
+from application.entity.comment.version_1.comment import Comment
+from application.entity.comment_analysis_request.version_1.comment_analysis_request import (
+    CommentAnalysisRequest,
+)
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
 from common.service.entity_service import SearchConditionRequest
-from application.entity.comment_analysis_request.version_1.comment_analysis_request import CommentAnalysisRequest
-from application.entity.comment.version_1.comment import Comment
 from services.services import get_entity_service
 
 
@@ -105,5 +107,7 @@ class CommentAnalysisRequestFetchSuccessCriterion(CyodaCriteriaChecker):
             return results
 
         except Exception as e:
-            self.logger.warning(f"Failed to find comments for request {request_id}: {str(e)}")
+            self.logger.warning(
+                f"Failed to find comments for request {request_id}: {str(e)}"
+            )
             return []

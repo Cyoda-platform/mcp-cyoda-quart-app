@@ -16,7 +16,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class AnalysisReport(CyodaEntity):
     """
     AnalysisReport represents the analysis report generated from comments.
-    
+
     The entity state represents the workflow state (GENERATED, SENDING, SENT, FAILED)
     and is managed automatically by the workflow system via entity.meta.state.
     """
@@ -29,50 +29,48 @@ class AnalysisReport(CyodaEntity):
     analysis_request_id: str = Field(
         ...,
         alias="analysisRequestId",
-        description="Foreign key to the CommentAnalysisRequest"
+        description="Foreign key to the CommentAnalysisRequest",
     )
-    
+
     # Analysis results
     total_comments: int = Field(
         ...,
         alias="totalComments",
         description="Total number of comments analyzed",
-        ge=0
+        ge=0,
     )
     average_comment_length: float = Field(
         ...,
-        alias="averageCommentLength", 
+        alias="averageCommentLength",
         description="Average length of comments in characters",
-        ge=0.0
+        ge=0.0,
     )
     most_active_email_domain: str = Field(
         ...,
         alias="mostActiveEmailDomain",
-        description="Email domain that appears most frequently"
+        description="Email domain that appears most frequently",
     )
     sentiment_summary: str = Field(
         ...,
         alias="sentimentSummary",
-        description="Summary of sentiment analysis (e.g., 'Mostly positive')"
+        description="Summary of sentiment analysis (e.g., 'Mostly positive')",
     )
     top_keywords: str = Field(
-        ...,
-        alias="topKeywords",
-        description="JSON array of most frequent keywords"
+        ..., alias="topKeywords", description="JSON array of most frequent keywords"
     )
-    
+
     # Timestamp fields
     generated_at: Optional[str] = Field(
         default_factory=lambda: datetime.now(timezone.utc)
         .isoformat()
         .replace("+00:00", "Z"),
         alias="generatedAt",
-        description="Timestamp when the report was generated (ISO 8601 format)"
+        description="Timestamp when the report was generated (ISO 8601 format)",
     )
     email_sent_at: Optional[str] = Field(
         default=None,
         alias="emailSentAt",
-        description="Timestamp when the report was sent via email (ISO 8601 format, nullable)"
+        description="Timestamp when the report was sent via email (ISO 8601 format, nullable)",
     )
 
     @field_validator("analysis_request_id")
@@ -129,7 +127,9 @@ class AnalysisReport(CyodaEntity):
 
     def set_email_sent(self) -> None:
         """Mark the report as sent via email with current timestamp"""
-        self.email_sent_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.email_sent_at = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
         self.update_timestamp()
 
     def clear_email_sent(self) -> None:

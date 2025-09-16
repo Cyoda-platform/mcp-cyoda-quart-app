@@ -46,7 +46,9 @@ class CommentAnalysisRequestResponse(BaseModel):
 
     id: str = Field(..., description="Entity ID")
     post_id: int = Field(..., alias="postId", description="Post ID")
-    recipient_email: str = Field(..., alias="recipientEmail", description="Recipient email")
+    recipient_email: str = Field(
+        ..., alias="recipientEmail", description="Recipient email"
+    )
     requested_at: Optional[str] = Field(
         default=None, alias="requestedAt", description="Request timestamp"
     )
@@ -62,9 +64,15 @@ class CommentAnalysisRequestResponse(BaseModel):
 class CommentAnalysisRequestListResponse(BaseModel):
     """Response model for CommentAnalysisRequest list operations."""
 
-    content: List[CommentAnalysisRequestResponse] = Field(..., description="List of requests")
-    total_elements: int = Field(..., alias="totalElements", description="Total number of elements")
-    total_pages: int = Field(..., alias="totalPages", description="Total number of pages")
+    content: List[CommentAnalysisRequestResponse] = Field(
+        ..., description="List of requests"
+    )
+    total_elements: int = Field(
+        ..., alias="totalElements", description="Total number of elements"
+    )
+    total_pages: int = Field(
+        ..., alias="totalPages", description="Total number of pages"
+    )
     size: int = Field(..., description="Page size")
     number: int = Field(..., description="Current page number")
 
@@ -72,7 +80,9 @@ class CommentAnalysisRequestListResponse(BaseModel):
 class CommentAnalysisRequestSearchResponse(BaseModel):
     """Response model for CommentAnalysisRequest search operations."""
 
-    entities: List[CommentAnalysisRequestResponse] = Field(..., description="Search results")
+    entities: List[CommentAnalysisRequestResponse] = Field(
+        ..., description="Search results"
+    )
     total: int = Field(..., description="Total number of results")
 
 
@@ -98,8 +108,12 @@ class CommentListResponse(BaseModel):
     """Response model for Comment list operations."""
 
     content: List[CommentResponse] = Field(..., description="List of comments")
-    total_elements: int = Field(..., alias="totalElements", description="Total number of elements")
-    total_pages: int = Field(..., alias="totalPages", description="Total number of pages")
+    total_elements: int = Field(
+        ..., alias="totalElements", description="Total number of elements"
+    )
+    total_pages: int = Field(
+        ..., alias="totalPages", description="Total number of pages"
+    )
     size: int = Field(..., description="Page size")
     number: int = Field(..., description="Current page number")
 
@@ -109,11 +123,21 @@ class AnalysisReportResponse(BaseModel):
     """Response model for AnalysisReport operations."""
 
     id: str = Field(..., description="Report ID")
-    analysis_request_id: str = Field(..., alias="analysisRequestId", description="Analysis request ID")
-    total_comments: int = Field(..., alias="totalComments", description="Total comments analyzed")
-    average_comment_length: float = Field(..., alias="averageCommentLength", description="Average comment length")
-    most_active_email_domain: str = Field(..., alias="mostActiveEmailDomain", description="Most active email domain")
-    sentiment_summary: str = Field(..., alias="sentimentSummary", description="Sentiment summary")
+    analysis_request_id: str = Field(
+        ..., alias="analysisRequestId", description="Analysis request ID"
+    )
+    total_comments: int = Field(
+        ..., alias="totalComments", description="Total comments analyzed"
+    )
+    average_comment_length: float = Field(
+        ..., alias="averageCommentLength", description="Average comment length"
+    )
+    most_active_email_domain: str = Field(
+        ..., alias="mostActiveEmailDomain", description="Most active email domain"
+    )
+    sentiment_summary: str = Field(
+        ..., alias="sentimentSummary", description="Sentiment summary"
+    )
     top_keywords: str = Field(..., alias="topKeywords", description="Top keywords JSON")
     generated_at: Optional[str] = Field(
         default=None, alias="generatedAt", description="Generation timestamp"
@@ -128,8 +152,12 @@ class AnalysisReportListResponse(BaseModel):
     """Response model for AnalysisReport list operations."""
 
     content: List[AnalysisReportResponse] = Field(..., description="List of reports")
-    total_elements: int = Field(..., alias="totalElements", description="Total number of elements")
-    total_pages: int = Field(..., alias="totalPages", description="Total number of pages")
+    total_elements: int = Field(
+        ..., alias="totalElements", description="Total number of elements"
+    )
+    total_pages: int = Field(
+        ..., alias="totalPages", description="Total number of pages"
+    )
     size: int = Field(..., description="Page size")
     number: int = Field(..., description="Current page number")
 

@@ -7,11 +7,13 @@ Triggers the report sending process.
 import logging
 from typing import Any
 
+from application.entity.analysis_report.version_1.analysis_report import AnalysisReport
+from application.entity.comment_analysis_request.version_1.comment_analysis_request import (
+    CommentAnalysisRequest,
+)
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
 from common.service.entity_service import SearchConditionRequest
-from application.entity.comment_analysis_request.version_1.comment_analysis_request import CommentAnalysisRequest
-from application.entity.analysis_report.version_1.analysis_report import AnalysisReport
 from services.services import get_entity_service
 
 
@@ -55,12 +57,14 @@ class CommentAnalysisRequestReportProcessor(CyodaProcessor):
             )
 
             if not report:
-                self.logger.error(f"No analysis report found for request {request_entity.technical_id}")
+                self.logger.error(
+                    f"No analysis report found for request {request_entity.technical_id}"
+                )
                 raise Exception("Analysis report not found")
 
             # Update report with transition to SENDING state
             entity_service = get_entity_service()
-            
+
             # Get the report's technical ID
             report_id = report.technical_id or report.entity_id
             if not report_id:
@@ -88,7 +92,9 @@ class CommentAnalysisRequestReportProcessor(CyodaProcessor):
             )
             raise
 
-    async def _find_analysis_report_by_request_id(self, request_id: str) -> AnalysisReport | None:
+    async def _find_analysis_report_by_request_id(
+        self, request_id: str
+    ) -> AnalysisReport | None:
         """
         Find analysis report by request ID.
 
@@ -118,7 +124,7 @@ class CommentAnalysisRequestReportProcessor(CyodaProcessor):
         # Convert first result to AnalysisReport entity
         try:
             report_data = results[0].data
-            if hasattr(report_data, 'model_dump'):
+            if hasattr(report_data, "model_dump"):
                 report_dict = report_data.model_dump()
             else:
                 report_dict = report_data

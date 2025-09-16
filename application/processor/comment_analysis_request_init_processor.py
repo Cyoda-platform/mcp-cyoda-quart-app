@@ -8,9 +8,11 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.comment_analysis_request.version_1.comment_analysis_request import (
+    CommentAnalysisRequest,
+)
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.comment_analysis_request.version_1.comment_analysis_request import CommentAnalysisRequest
 
 
 class CommentAnalysisRequestInitProcessor(CyodaProcessor):
@@ -52,11 +54,16 @@ class CommentAnalysisRequestInitProcessor(CyodaProcessor):
                 raise ValueError("Post ID must be a positive integer")
 
             # Validate recipientEmail is valid email format (already validated by Pydantic)
-            if not request_entity.recipient_email or "@" not in request_entity.recipient_email:
+            if (
+                not request_entity.recipient_email
+                or "@" not in request_entity.recipient_email
+            ):
                 raise ValueError("Recipient email must be a valid email format")
 
             # Set requestedAt to current timestamp
-            current_timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            current_timestamp = (
+                datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            )
             request_entity.requested_at = current_timestamp
 
             # Set completedAt to null

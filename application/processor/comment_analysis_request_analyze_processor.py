@@ -11,12 +11,14 @@ from collections import Counter
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 
+from application.entity.analysis_report.version_1.analysis_report import AnalysisReport
+from application.entity.comment.version_1.comment import Comment
+from application.entity.comment_analysis_request.version_1.comment_analysis_request import (
+    CommentAnalysisRequest,
+)
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
 from common.service.entity_service import SearchConditionRequest
-from application.entity.comment_analysis_request.version_1.comment_analysis_request import CommentAnalysisRequest
-from application.entity.comment.version_1.comment import Comment
-from application.entity.analysis_report.version_1.analysis_report import AnalysisReport
 from services.services import get_entity_service
 
 
@@ -60,7 +62,9 @@ class CommentAnalysisRequestAnalyzeProcessor(CyodaProcessor):
             )
 
             if not comments:
-                self.logger.warning(f"No comments found for request {request_entity.technical_id}")
+                self.logger.warning(
+                    f"No comments found for request {request_entity.technical_id}"
+                )
                 return request_entity
 
             # Create analysis report
@@ -118,7 +122,7 @@ class CommentAnalysisRequestAnalyzeProcessor(CyodaProcessor):
         for result in results:
             try:
                 comment_data = result.data
-                if hasattr(comment_data, 'model_dump'):
+                if hasattr(comment_data, "model_dump"):
                     comment_dict = comment_data.model_dump()
                 else:
                     comment_dict = comment_data
@@ -144,7 +148,9 @@ class CommentAnalysisRequestAnalyzeProcessor(CyodaProcessor):
         Returns:
             AnalysisReport entity
         """
-        current_timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        current_timestamp = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
 
         # Calculate total comments
         total_comments = len(comments)
@@ -160,7 +166,9 @@ class CommentAnalysisRequestAnalyzeProcessor(CyodaProcessor):
             if domain:
                 email_domains[domain] += 1
 
-        most_active_domain = email_domains.most_common(1)[0][0] if email_domains else "unknown"
+        most_active_domain = (
+            email_domains.most_common(1)[0][0] if email_domains else "unknown"
+        )
 
         # Extract keywords and get top 10
         keywords = Counter()
@@ -177,7 +185,9 @@ class CommentAnalysisRequestAnalyzeProcessor(CyodaProcessor):
 
         # Create AnalysisReport
         report = AnalysisReport(
-            analysis_request_id=request_entity.technical_id or request_entity.entity_id or "",
+            analysis_request_id=request_entity.technical_id
+            or request_entity.entity_id
+            or "",
             total_comments=total_comments,
             average_comment_length=round(average_length, 2),
             most_active_email_domain=most_active_domain,
@@ -199,18 +209,65 @@ class CommentAnalysisRequestAnalyzeProcessor(CyodaProcessor):
             List of keywords
         """
         # Simple keyword extraction: lowercase, remove punctuation, filter short words
-        words = re.findall(r'\b[a-zA-Z]{3,}\b', text.lower())
-        
+        words = re.findall(r"\b[a-zA-Z]{3,}\b", text.lower())
+
         # Filter out common stop words
         stop_words = {
-            'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with',
-            'by', 'from', 'up', 'about', 'into', 'through', 'during', 'before',
-            'after', 'above', 'below', 'between', 'among', 'this', 'that', 'these',
-            'those', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have',
-            'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should',
-            'may', 'might', 'must', 'can', 'shall', 'not', 'no', 'yes'
+            "the",
+            "and",
+            "or",
+            "but",
+            "in",
+            "on",
+            "at",
+            "to",
+            "for",
+            "of",
+            "with",
+            "by",
+            "from",
+            "up",
+            "about",
+            "into",
+            "through",
+            "during",
+            "before",
+            "after",
+            "above",
+            "below",
+            "between",
+            "among",
+            "this",
+            "that",
+            "these",
+            "those",
+            "is",
+            "are",
+            "was",
+            "were",
+            "be",
+            "been",
+            "being",
+            "have",
+            "has",
+            "had",
+            "do",
+            "does",
+            "did",
+            "will",
+            "would",
+            "could",
+            "should",
+            "may",
+            "might",
+            "must",
+            "can",
+            "shall",
+            "not",
+            "no",
+            "yes",
         }
-        
+
         keywords = [word for word in words if word not in stop_words]
         return keywords
 
@@ -225,15 +282,45 @@ class CommentAnalysisRequestAnalyzeProcessor(CyodaProcessor):
             Sentiment summary string
         """
         positive_words = {
-            'good', 'great', 'excellent', 'amazing', 'wonderful', 'fantastic',
-            'love', 'like', 'enjoy', 'happy', 'pleased', 'satisfied', 'perfect',
-            'awesome', 'brilliant', 'outstanding', 'superb', 'marvelous'
+            "good",
+            "great",
+            "excellent",
+            "amazing",
+            "wonderful",
+            "fantastic",
+            "love",
+            "like",
+            "enjoy",
+            "happy",
+            "pleased",
+            "satisfied",
+            "perfect",
+            "awesome",
+            "brilliant",
+            "outstanding",
+            "superb",
+            "marvelous",
         }
-        
+
         negative_words = {
-            'bad', 'terrible', 'awful', 'horrible', 'hate', 'dislike', 'angry',
-            'frustrated', 'disappointed', 'sad', 'upset', 'annoyed', 'disgusted',
-            'worst', 'pathetic', 'useless', 'stupid', 'ridiculous'
+            "bad",
+            "terrible",
+            "awful",
+            "horrible",
+            "hate",
+            "dislike",
+            "angry",
+            "frustrated",
+            "disappointed",
+            "sad",
+            "upset",
+            "annoyed",
+            "disgusted",
+            "worst",
+            "pathetic",
+            "useless",
+            "stupid",
+            "ridiculous",
         }
 
         positive_count = 0
@@ -243,9 +330,9 @@ class CommentAnalysisRequestAnalyzeProcessor(CyodaProcessor):
         for comment in comments:
             words = comment.body.lower().split()
             total_words += len(words)
-            
+
             for word in words:
-                clean_word = re.sub(r'[^\w]', '', word)
+                clean_word = re.sub(r"[^\w]", "", word)
                 if clean_word in positive_words:
                     positive_count += 1
                 elif clean_word in negative_words:

@@ -8,11 +8,13 @@ import json
 import logging
 from typing import Any
 
+from application.entity.analysis_report.version_1.analysis_report import AnalysisReport
+from application.entity.comment_analysis_request.version_1.comment_analysis_request import (
+    CommentAnalysisRequest,
+)
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
 from common.service.entity_service import SearchConditionRequest
-from application.entity.analysis_report.version_1.analysis_report import AnalysisReport
-from application.entity.comment_analysis_request.version_1.comment_analysis_request import CommentAnalysisRequest
 from services.services import get_entity_service
 
 
@@ -56,7 +58,9 @@ class AnalysisReportSendProcessor(CyodaProcessor):
             )
 
             if not request:
-                raise Exception(f"CommentAnalysisRequest not found for ID: {report_entity.analysis_request_id}")
+                raise Exception(
+                    f"CommentAnalysisRequest not found for ID: {report_entity.analysis_request_id}"
+                )
 
             # Format email content
             email_subject = f"Comment Analysis Report for Post {request.post_id}"
@@ -65,15 +69,13 @@ class AnalysisReportSendProcessor(CyodaProcessor):
             # Simulate email sending (in a real implementation, this would use an email service)
             try:
                 await self._send_email(
-                    to=request.recipient_email,
-                    subject=email_subject,
-                    body=email_body
+                    to=request.recipient_email, subject=email_subject, body=email_body
                 )
-                
+
                 self.logger.info(
                     f"Email sent successfully for AnalysisReport {report_entity.technical_id} to {request.recipient_email}"
                 )
-                
+
             except Exception as e:
                 error_msg = f"Failed to send email: {str(e)}"
                 self.logger.error(error_msg)
@@ -87,7 +89,9 @@ class AnalysisReportSendProcessor(CyodaProcessor):
             )
             raise
 
-    async def _find_comment_analysis_request_by_id(self, request_id: str) -> CommentAnalysisRequest | None:
+    async def _find_comment_analysis_request_by_id(
+        self, request_id: str
+    ) -> CommentAnalysisRequest | None:
         """
         Find CommentAnalysisRequest by ID.
 
@@ -109,7 +113,7 @@ class AnalysisReportSendProcessor(CyodaProcessor):
 
             if response:
                 request_data = response.data
-                if hasattr(request_data, 'model_dump'):
+                if hasattr(request_data, "model_dump"):
                     request_dict = request_data.model_dump()
                 else:
                     request_dict = request_data
@@ -117,11 +121,15 @@ class AnalysisReportSendProcessor(CyodaProcessor):
                 return CommentAnalysisRequest(**request_dict)
 
         except Exception as e:
-            self.logger.warning(f"Failed to find CommentAnalysisRequest by ID {request_id}: {str(e)}")
+            self.logger.warning(
+                f"Failed to find CommentAnalysisRequest by ID {request_id}: {str(e)}"
+            )
 
         return None
 
-    def _format_report_as_html(self, report: AnalysisReport, request: CommentAnalysisRequest) -> str:
+    def _format_report_as_html(
+        self, report: AnalysisReport, request: CommentAnalysisRequest
+    ) -> str:
         """
         Format the analysis report as HTML.
 
@@ -190,7 +198,7 @@ class AnalysisReportSendProcessor(CyodaProcessor):
         </body>
         </html>
         """
-        
+
         return html_body
 
     async def _send_email(self, to: str, subject: str, body: str) -> None:
@@ -208,12 +216,13 @@ class AnalysisReportSendProcessor(CyodaProcessor):
         self.logger.info(f"To: {to}")
         self.logger.info(f"Subject: {subject}")
         self.logger.info(f"Body length: {len(body)} characters")
-        
+
         # Simulate potential email service failures (uncomment to test error handling)
         # import random
         # if random.random() < 0.1:  # 10% chance of failure
         #     raise Exception("Email service temporarily unavailable")
-        
+
         # Simulate email sending delay
         import asyncio
+
         await asyncio.sleep(0.1)  # Simulate network delay

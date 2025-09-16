@@ -10,10 +10,13 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List
 
 import httpx
+
+from application.entity.comment.version_1.comment import Comment
+from application.entity.comment_analysis_request.version_1.comment_analysis_request import (
+    CommentAnalysisRequest,
+)
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.comment_analysis_request.version_1.comment_analysis_request import CommentAnalysisRequest
-from application.entity.comment.version_1.comment import Comment
 from services.services import get_entity_service
 
 
@@ -53,21 +56,21 @@ class CommentAnalysisRequestFetchProcessor(CyodaProcessor):
 
             # Build API URL
             api_url = f"https://jsonplaceholder.typicode.com/comments?postId={request_entity.post_id}"
-            
+
             try:
                 # Fetch comments from API
                 async with httpx.AsyncClient() as client:
                     response = await client.get(api_url, timeout=30.0)
-                    
+
                 if response.status_code == 200:
                     comments_data = response.json()
-                    
+
                     if not isinstance(comments_data, list):
                         raise ValueError("API response is not a list")
-                    
+
                     # Create Comment entities for each comment
                     await self._create_comment_entities(comments_data, request_entity)
-                    
+
                     self.logger.info(
                         f"Successfully fetched {len(comments_data)} comments for post {request_entity.post_id}"
                     )
@@ -75,7 +78,7 @@ class CommentAnalysisRequestFetchProcessor(CyodaProcessor):
                     error_msg = f"Failed to fetch comments: HTTP {response.status_code}"
                     request_entity.set_error(error_msg)
                     raise Exception(error_msg)
-                    
+
             except httpx.TimeoutException:
                 error_msg = "Timeout while fetching comments from API"
                 request_entity.set_error(error_msg)
@@ -96,12 +99,14 @@ class CommentAnalysisRequestFetchProcessor(CyodaProcessor):
                 f"Error fetching comments for entity {getattr(entity, 'technical_id', '<unknown>')}: {str(e)}"
             )
             # Set error message if not already set
-            if hasattr(entity, 'error_message') and not entity.error_message:
+            if hasattr(entity, "error_message") and not entity.error_message:
                 entity.error_message = str(e)
             raise
 
     async def _create_comment_entities(
-        self, comments_data: List[Dict[str, Any]], request_entity: CommentAnalysisRequest
+        self,
+        comments_data: List[Dict[str, Any]],
+        request_entity: CommentAnalysisRequest,
     ) -> None:
         """
         Create Comment entities from API response data.
@@ -111,7 +116,9 @@ class CommentAnalysisRequestFetchProcessor(CyodaProcessor):
             request_entity: The CommentAnalysisRequest entity
         """
         entity_service = get_entity_service()
-        current_timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        current_timestamp = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
 
         for comment_data in comments_data:
             try:
@@ -122,7 +129,8 @@ class CommentAnalysisRequestFetchProcessor(CyodaProcessor):
                     name=comment_data.get("name", ""),
                     email=comment_data.get("email", ""),
                     body=comment_data.get("body", ""),
-                    analysis_request_id=request_entity.technical_id or request_entity.entity_id,
+                    analysis_request_id=request_entity.technical_id
+                    or request_entity.entity_id,
                     fetched_at=current_timestamp,
                 )
 

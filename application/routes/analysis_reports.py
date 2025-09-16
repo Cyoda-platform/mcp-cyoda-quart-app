@@ -24,9 +24,9 @@ from services.services import get_entity_service
 
 from ..entity.analysis_report.version_1.analysis_report import AnalysisReport
 from ..models import (
+    AnalysisReportListResponse,
     AnalysisReportQueryParams,
     AnalysisReportResponse,
-    AnalysisReportListResponse,
     AnalysisReportUpdateQueryParams,
     ErrorResponse,
     TransitionRequest,
@@ -35,17 +35,21 @@ from ..models import (
     ValidationErrorResponse,
 )
 
+
 # Module-level service instance to avoid repeated lookups
 class _ServiceProxy:
     def __getattr__(self, name: str) -> Any:
         return getattr(get_entity_service(), name)
 
+
 service = _ServiceProxy()
 logger = logging.getLogger(__name__)
+
 
 # Helper to normalize entity data from service (Pydantic model or dict)
 def _to_entity_dict(data: Any) -> Dict[str, Any]:
     return data.model_dump(by_alias=True) if hasattr(data, "model_dump") else data
+
 
 analysis_reports_bp = Blueprint(
     "analysis_reports", __name__, url_prefix="/api/analysis-reports"
@@ -108,13 +112,18 @@ async def list_analysis_reports(
         total_elements = len(entity_list)
         total_pages = (total_elements + query_args.size - 1) // query_args.size
 
-        return jsonify({
-            "content": paginated_entities,
-            "totalElements": total_elements,
-            "totalPages": total_pages,
-            "size": query_args.size,
-            "number": query_args.page
-        }), 200
+        return (
+            jsonify(
+                {
+                    "content": paginated_entities,
+                    "totalElements": total_elements,
+                    "totalPages": total_pages,
+                    "size": query_args.size,
+                    "number": query_args.page,
+                }
+            ),
+            200,
+        )
 
     except Exception as e:
         logger.exception("Error listing AnalysisReports: %s", str(e))

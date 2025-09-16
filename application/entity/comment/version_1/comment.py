@@ -16,7 +16,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class Comment(CyodaEntity):
     """
     Comment represents a comment fetched from the JSONPlaceholder API.
-    
+
     Comments are fetched from external API and stored for analysis.
     No workflow state needed as comments are static data.
     """
@@ -27,42 +27,29 @@ class Comment(CyodaEntity):
 
     # Fields from JSONPlaceholder API
     comment_id: int = Field(
-        ...,
-        alias="id", 
-        description="Unique identifier for the comment (from API)"
+        ..., alias="id", description="Unique identifier for the comment (from API)"
     )
     post_id: int = Field(
-        ..., 
-        alias="postId",
-        description="The post ID this comment belongs to"
+        ..., alias="postId", description="The post ID this comment belongs to"
     )
-    name: str = Field(
-        ..., 
-        description="Name/title of the comment"
-    )
-    email: str = Field(
-        ..., 
-        description="Email address of the comment author"
-    )
-    body: str = Field(
-        ..., 
-        description="Content/body of the comment"
-    )
-    
+    name: str = Field(..., description="Name/title of the comment")
+    email: str = Field(..., description="Email address of the comment author")
+    body: str = Field(..., description="Content/body of the comment")
+
     # Relationship fields
     analysis_request_id: Optional[str] = Field(
         default=None,
         alias="analysisRequestId",
-        description="Foreign key to the CommentAnalysisRequest"
+        description="Foreign key to the CommentAnalysisRequest",
     )
-    
+
     # Timestamp field
     fetched_at: Optional[str] = Field(
         default_factory=lambda: datetime.now(timezone.utc)
         .isoformat()
         .replace("+00:00", "Z"),
         alias="fetchedAt",
-        description="Timestamp when the comment was fetched (ISO 8601 format)"
+        description="Timestamp when the comment was fetched (ISO 8601 format)",
     )
 
     @field_validator("comment_id")
@@ -95,12 +82,12 @@ class Comment(CyodaEntity):
         """Validate email field"""
         if not v or len(v.strip()) == 0:
             raise ValueError("Email must be non-empty")
-        
+
         # Basic email validation
         v = v.strip().lower()
         if "@" not in v:
             raise ValueError("Email must contain @ symbol")
-        
+
         return v
 
     @field_validator("body")

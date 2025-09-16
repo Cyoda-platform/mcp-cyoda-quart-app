@@ -7,9 +7,9 @@ Handles email sending failure.
 import logging
 from typing import Any
 
+from application.entity.analysis_report.version_1.analysis_report import AnalysisReport
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.analysis_report.version_1.analysis_report import AnalysisReport
 
 
 class AnalysisReportFailProcessor(CyodaProcessor):

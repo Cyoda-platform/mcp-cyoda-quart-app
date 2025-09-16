@@ -6,11 +6,13 @@ Checks if the email report was sent successfully.
 
 from typing import Any
 
+from application.entity.analysis_report.version_1.analysis_report import AnalysisReport
+from application.entity.comment_analysis_request.version_1.comment_analysis_request import (
+    CommentAnalysisRequest,
+)
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
 from common.service.entity_service import SearchConditionRequest
-from application.entity.comment_analysis_request.version_1.comment_analysis_request import CommentAnalysisRequest
-from application.entity.analysis_report.version_1.analysis_report import AnalysisReport
 from services.services import get_entity_service
 
 
@@ -83,7 +85,9 @@ class CommentAnalysisRequestEmailSuccessCriterion(CyodaCriteriaChecker):
             )
             return False
 
-    async def _find_analysis_report_by_request_id(self, request_id: str) -> AnalysisReport | None:
+    async def _find_analysis_report_by_request_id(
+        self, request_id: str
+    ) -> AnalysisReport | None:
         """
         Find analysis report by request ID.
 
@@ -113,7 +117,7 @@ class CommentAnalysisRequestEmailSuccessCriterion(CyodaCriteriaChecker):
 
             # Convert first result to AnalysisReport entity
             report_data = results[0].data
-            if hasattr(report_data, 'model_dump'):
+            if hasattr(report_data, "model_dump"):
                 report_dict = report_data.model_dump()
             else:
                 report_dict = report_data
@@ -121,5 +125,7 @@ class CommentAnalysisRequestEmailSuccessCriterion(CyodaCriteriaChecker):
             return AnalysisReport(**report_dict)
 
         except Exception as e:
-            self.logger.warning(f"Failed to find analysis report for request {request_id}: {str(e)}")
+            self.logger.warning(
+                f"Failed to find analysis report for request {request_id}: {str(e)}"
+            )
             return None

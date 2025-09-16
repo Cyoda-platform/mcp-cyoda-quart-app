@@ -7,9 +7,11 @@ Marks the analysis request as completed.
 import logging
 from typing import Any
 
+from application.entity.comment_analysis_request.version_1.comment_analysis_request import (
+    CommentAnalysisRequest,
+)
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.comment_analysis_request.version_1.comment_analysis_request import CommentAnalysisRequest
 
 
 class CommentAnalysisRequestCompleteProcessor(CyodaProcessor):

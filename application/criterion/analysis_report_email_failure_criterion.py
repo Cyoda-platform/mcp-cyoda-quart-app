@@ -6,9 +6,9 @@ Checks if email sending failed.
 
 from typing import Any
 
+from application.entity.analysis_report.version_1.analysis_report import AnalysisReport
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.analysis_report.version_1.analysis_report import AnalysisReport
 
 
 class AnalysisReportEmailFailureCriterion(CyodaCriteriaChecker):
@@ -44,7 +44,7 @@ class AnalysisReportEmailFailureCriterion(CyodaCriteriaChecker):
 
             # In this simplified implementation, we assume failure if required fields are missing
             # In a real implementation, this would check the actual email service status
-            
+
             # Check if the report is missing required fields for email sending
             if not report_entity.analysis_request_id:
                 self.logger.info(

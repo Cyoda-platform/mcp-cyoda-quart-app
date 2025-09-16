@@ -16,9 +16,9 @@ from common.entity.cyoda_entity import CyodaEntity
 class CommentAnalysisRequest(CyodaEntity):
     """
     CommentAnalysisRequest represents a request to analyze comments for a specific post ID.
-    
-    The entity state represents the workflow state (PENDING, FETCHING_COMMENTS, ANALYZING, 
-    SENDING_REPORT, COMPLETED, FAILED) and is managed automatically by the workflow system 
+
+    The entity state represents the workflow state (PENDING, FETCHING_COMMENTS, ANALYZING,
+    SENDING_REPORT, COMPLETED, FAILED) and is managed automatically by the workflow system
     via entity.meta.state.
     """
 
@@ -28,36 +28,36 @@ class CommentAnalysisRequest(CyodaEntity):
 
     # Required fields from functional requirements
     post_id: int = Field(
-        ..., 
+        ...,
         alias="postId",
         description="The post ID to fetch comments for from JSONPlaceholder API",
-        gt=0
+        gt=0,
     )
     recipient_email: str = Field(
-        ..., 
+        ...,
         alias="recipientEmail",
-        description="Email address to send the analysis report to"
+        description="Email address to send the analysis report to",
     )
-    
+
     # Timestamp fields
     requested_at: Optional[str] = Field(
         default_factory=lambda: datetime.now(timezone.utc)
         .isoformat()
         .replace("+00:00", "Z"),
         alias="requestedAt",
-        description="Timestamp when the request was created (ISO 8601 format)"
+        description="Timestamp when the request was created (ISO 8601 format)",
     )
     completed_at: Optional[str] = Field(
         default=None,
-        alias="completedAt", 
-        description="Timestamp when the analysis was completed (ISO 8601 format, nullable)"
+        alias="completedAt",
+        description="Timestamp when the analysis was completed (ISO 8601 format, nullable)",
     )
-    
+
     # Error handling
     error_message: Optional[str] = Field(
         default=None,
         alias="errorMessage",
-        description="Error message if the analysis failed (nullable)"
+        description="Error message if the analysis failed (nullable)",
     )
 
     @field_validator("post_id")
@@ -74,12 +74,12 @@ class CommentAnalysisRequest(CyodaEntity):
         """Validate recipient_email is a valid email format"""
         if not v or len(v.strip()) == 0:
             raise ValueError("Recipient email must be non-empty")
-        
+
         # Basic email validation
         v = v.strip().lower()
         if "@" not in v or "." not in v.split("@")[-1]:
             raise ValueError("Recipient email must be a valid email format")
-        
+
         return v
 
     def update_timestamp(self) -> None:
@@ -88,7 +88,9 @@ class CommentAnalysisRequest(CyodaEntity):
 
     def set_completed(self) -> None:
         """Mark the request as completed with current timestamp"""
-        self.completed_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.completed_at = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
         self.update_timestamp()
 
     def set_error(self, error_message: str) -> None:

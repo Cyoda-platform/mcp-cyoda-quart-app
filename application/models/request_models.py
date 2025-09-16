@@ -47,7 +47,14 @@ class CommentAnalysisRequestQueryParams(BaseModel):
     def validate_state(cls, v: Optional[str]) -> Optional[str]:
         if v is None:
             return v
-        allowed_states = ["pending", "fetching_comments", "analyzing", "sending_report", "completed", "failed"]
+        allowed_states = [
+            "pending",
+            "fetching_comments",
+            "analyzing",
+            "sending_report",
+            "completed",
+            "failed",
+        ]
         if v not in allowed_states:
             raise ValueError(f"State must be one of: {allowed_states}")
         return v
@@ -66,7 +73,9 @@ class CommentQueryParams(BaseModel):
     """Query parameters for Comment endpoints."""
 
     analysis_request_id: Optional[str] = Field(
-        default=None, alias="analysisRequestId", description="Filter by analysis request ID"
+        default=None,
+        alias="analysisRequestId",
+        description="Filter by analysis request ID",
     )
     post_id: Optional[int] = Field(
         default=None, alias="postId", description="Filter by post ID", ge=1
@@ -80,7 +89,9 @@ class AnalysisReportQueryParams(BaseModel):
     """Query parameters for AnalysisReport endpoints."""
 
     analysis_request_id: Optional[str] = Field(
-        default=None, alias="analysisRequestId", description="Filter by analysis request ID"
+        default=None,
+        alias="analysisRequestId",
+        description="Filter by analysis request ID",
     )
     state: Optional[str] = Field(
         default=None, description="Filter by state", pattern=r"^[a-z_]+$"
@@ -128,7 +139,11 @@ class TransitionRequest(BaseModel):
             "failed_to_sending",
         ]
         # Basic validation - in real implementation, this would be more comprehensive
-        if not v.startswith("transition_") and not v.endswith("_retry") and "failed_to_" not in v:
+        if (
+            not v.startswith("transition_")
+            and not v.endswith("_retry")
+            and "failed_to_" not in v
+        ):
             raise ValueError("Invalid transition name format")
         return v
 
