@@ -26,6 +26,29 @@
         "placed": {
             "transitions": [
                 {
+                    "name": "transition_to_order_confirmed",
+                    "next": "confirmed",
+                    "manual": true,
+                    "processors": [
+                        {
+                            "name": "OrderConfirmationProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ],
+                    "criterion": {
+                        "type": "function",
+                        "function": {
+                            "name": "PaymentValidCriterion",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    }
+                },
+                {
                     "name": "transition_to_order_cancelled",
                     "next": "cancelled",
                     "manual": true,
@@ -43,6 +66,20 @@
         },
         "confirmed": {
             "transitions": [
+                {
+                    "name": "transition_to_order_processing",
+                    "next": "processing",
+                    "manual": true,
+                    "processors": [
+                        {
+                            "name": "OrderProcessingProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                },
                 {
                     "name": "transition_to_order_cancelled",
                     "next": "cancelled",
