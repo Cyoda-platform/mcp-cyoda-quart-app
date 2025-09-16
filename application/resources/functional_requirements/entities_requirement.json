@@ -1,0 +1,106 @@
+{
+    "entities": [
+        {
+            "Pet": {
+                "entity_data_example": {
+                    "adopterId": null,
+                    "age": 3,
+                    "arrivalDate": "2023-01-15T10:00:00",
+                    "breed": "Golden Retriever",
+                    "category": "Dog",
+                    "color": "Golden",
+                    "description": "Friendly and energetic dog",
+                    "id": 1,
+                    "imageUrl": "http://example.com/buddy.jpg",
+                    "microchipped": true,
+                    "name": "Buddy",
+                    "neutered": true,
+                    "price": 1200.0,
+                    "specialNeeds": "None",
+                    "vaccinated": true,
+                    "weight": 30.5
+                }
+            }
+        },
+        {
+            "Customer": {
+                "entity_data_example": {
+                    "address": "123 Main St",
+                    "city": "Anytown",
+                    "dateOfBirth": "1985-05-15",
+                    "email": "john.doe@example.com",
+                    "firstName": "John",
+                    "hasOtherPets": false,
+                    "hasYard": true,
+                    "housingType": "House",
+                    "id": 1,
+                    "lastName": "Doe",
+                    "occupation": "Engineer",
+                    "petExperience": "Moderate",
+                    "phone": "123-456-7890",
+                    "preferredContactMethod": "email",
+                    "registrationDate": "2023-01-01T10:00:00",
+                    "state": "CA",
+                    "zipCode": "12345"
+                }
+            }
+        },
+        {
+            "AdoptionApplication": {
+                "entity_data_example": {
+                    "agreedToTerms": true,
+                    "applicationDate": "2023-02-01T10:00:00",
+                    "applicationFee": 50.0,
+                    "customerId": 1,
+                    "id": 1,
+                    "livingArrangement": "House with yard",
+                    "notes": "N/A",
+                    "petCareExperience": "Grew up with pets",
+                    "petId": 1,
+                    "reasonForAdoption": "Companion",
+                    "references": "Jane Doe, 123-456-7891",
+                    "rejectionReason": null,
+                    "reviewDate": "2023-02-02T10:00:00",
+                    "reviewerId": 2,
+                    "veterinarianContact": "Dr. Smith, 123-456-7890",
+                    "workSchedule": "9am-5pm"
+                }
+            }
+        },
+        {
+            "PetCareRecord": {
+                "entity_data_example": {
+                    "attachments": "http://example.com/vaccination_record.pdf",
+                    "careDate": "2023-02-10T10:00:00",
+                    "careType": "Vaccination",
+                    "cost": 75.0,
+                    "description": "Annual vaccination for rabies",
+                    "id": 1,
+                    "medications": "None",
+                    "nextDueDate": "2024-02-10",
+                    "notes": "N/A",
+                    "petId": 1,
+                    "veterinarian": "Dr. Smith"
+                }
+            }
+        },
+        {
+            "Staff": {
+                "entity_data_example": {
+                    "certifications": "DVM",
+                    "department": "Animal Care",
+                    "email": "alice.johnson@example.com",
+                    "firstName": "Alice",
+                    "hireDate": "2020-03-01",
+                    "id": 1,
+                    "isActive": true,
+                    "lastName": "Johnson",
+                    "phone": "987-654-3210",
+                    "role": "Veterinarian",
+                    "salary": 60000.0,
+                    "specializations": "Small Animals"
+                }
+            }
+        }
+    ]
+}
