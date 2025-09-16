@@ -1,0 +1,99 @@
+{
+    "entities": [
+        {
+            "Pet": {
+                "entity_data_example": {
+                    "age": 24,
+                    "breed": "Labrador",
+                    "category": "Dog",
+                    "color": "Yellow",
+                    "createdAt": "2023-10-01T10:00:00",
+                    "description": "A friendly dog",
+                    "gender": "MALE",
+                    "id": 1,
+                    "name": "Fluffy",
+                    "neutered": false,
+                    "photoUrls": [
+                        "http://example.com/photo1.jpg",
+                        "http://example.com/photo2.jpg"
+                    ],
+                    "price": 299.99,
+                    "tags": [
+                        "cute",
+                        "friendly"
+                    ],
+                    "updatedAt": "2023-10-01T10:00:00",
+                    "vaccinated": true,
+                    "weight": 30.5
+                }
+            }
+        },
+        {
+            "Category": {
+                "entity_data_example": {
+                    "createdAt": "2023-10-01T10:00:00",
+                    "description": "Various breeds of dogs",
+                    "id": 1,
+                    "imageUrl": "http://example.com/category.jpg",
+                    "name": "Dogs",
+                    "updatedAt": "2023-10-01T10:00:00"
+                }
+            }
+        },
+        {
+            "Tag": {
+                "entity_data_example": {
+                    "color": "#FFCC00",
+                    "createdAt": "2023-10-01T10:00:00",
+                    "description": "Tags for cute pets",
+                    "id": 1,
+                    "name": "cute"
+                }
+            }
+        },
+        {
+            "Order": {
+                "entity_data_example": {
+                    "createdAt": "2023-10-01T10:00:00",
+                    "deliveryAddress": "123 Pet St, Pet City, PC 12345",
+                    "id": 1,
+                    "orderDate": "2023-10-01T10:00:00",
+                    "paymentMethod": "Credit Card",
+                    "petId": 1,
+                    "quantity": 1,
+                    "shipDate": "2023-10-02T10:00:00",
+                    "specialInstructions": "Leave at front door",
+                    "totalAmount": 299.99,
+                    "trackingNumber": "TRACK123456",
+                    "updatedAt": "2023-10-01T10:00:00",
+                    "userId": 123
+                }
+            }
+        },
+        {
+            "User": {
+                "entity_data_example": {
+                    "address": "123 Main St",
+                    "city": "Pet City",
+                    "country": "Country",
+                    "createdAt": "2023-10-01T10:00:00",
+                    "dateOfBirth": "1990-01-01",
+                    "email": "john.doe@example.com",
+                    "emailVerified": true,
+                    "firstName": "John",
+                    "id": 123,
+                    "isActive": true,
+                    "lastLoginAt": "2023-10-01T10:00:00",
+                    "lastName": "Doe",
+                    "password": "encrypted_password",
+                    "phone": "123-456-7890",
+                    "preferredPetType": "Dog",
+                    "state": "PC",
+                    "updatedAt": "2023-10-01T10:00:00",
+                    "username": "petlover",
+                    "zipCode": "12345"
+                }
+            }
+        }
+    ]
+}
