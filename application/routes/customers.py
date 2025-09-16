@@ -44,11 +44,13 @@ async def get_customers() -> ResponseReturnValue:
         # Apply filters manually
         filtered_responses = responses
         if state:
-            filtered_responses = [r for r in filtered_responses if r.get_state() == state]
+            filtered_responses = [
+                r for r in filtered_responses if r.get_state() == state
+            ]
 
         # Apply pagination
         total = len(filtered_responses)
-        paginated_responses = filtered_responses[offset:offset + limit]
+        paginated_responses = filtered_responses[offset : offset + limit]
 
         # Convert to API response format
         customers = []
@@ -114,7 +116,7 @@ async def create_customer() -> ResponseReturnValue:
             entity=customer.model_dump(by_alias=True),
             entity_class=Customer.ENTITY_NAME,
             entity_version=str(Customer.ENTITY_VERSION),
-            )
+        )
 
         # Return created customer
         created_customer = Customer(**response.data.model_dump())

@@ -116,7 +116,7 @@ async def create_staff_member() -> ResponseReturnValue:
             entity=staff_member.model_dump(by_alias=True),
             entity_class=Staff.ENTITY_NAME,
             entity_version=str(Staff.ENTITY_VERSION),
-            )
+        )
 
         # Return created staff member
         created_staff = Staff(**response.data.model_dump())

@@ -117,7 +117,7 @@ async def create_adoption_application() -> ResponseReturnValue:
             entity=application.model_dump(by_alias=True),
             entity_class=AdoptionApplication.ENTITY_NAME,
             entity_version=str(AdoptionApplication.ENTITY_VERSION),
-            )
+        )
 
         # Return created application
         created_application = AdoptionApplication(**response.data.model_dump())

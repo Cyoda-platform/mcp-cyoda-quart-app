@@ -115,7 +115,7 @@ async def create_pet_care_record() -> ResponseReturnValue:
             entity=care_record.model_dump(by_alias=True),
             entity_class=PetCareRecord.ENTITY_NAME,
             entity_version=str(PetCareRecord.ENTITY_VERSION),
-            )
+        )
 
         # Return created care record
         created_record = PetCareRecord(**response.data.model_dump())

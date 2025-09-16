@@ -55,13 +55,19 @@ async def get_pets() -> ResponseReturnValue:
         # Apply filters manually (since find_all doesn't support filters)
         filtered_responses = responses
         if state:
-            filtered_responses = [r for r in filtered_responses if r.get_state() == state]
+            filtered_responses = [
+                r for r in filtered_responses if r.get_state() == state
+            ]
         if category:
-            filtered_responses = [r for r in filtered_responses if getattr(r.data, 'category', None) == category]
+            filtered_responses = [
+                r
+                for r in filtered_responses
+                if getattr(r.data, "category", None) == category
+            ]
 
         # Apply pagination
         total = len(filtered_responses)
-        paginated_responses = filtered_responses[offset:offset + limit]
+        paginated_responses = filtered_responses[offset : offset + limit]
 
         # Convert to API response format
         pets = []
@@ -70,9 +76,7 @@ async def get_pets() -> ResponseReturnValue:
             pets.append(pet.to_api_response())
 
         return (
-            jsonify(
-                {"pets": pets, "total": total, "limit": limit, "offset": offset}
-            ),
+            jsonify({"pets": pets, "total": total, "limit": limit, "offset": offset}),
             200,
         )
 
@@ -278,7 +282,6 @@ async def medical_hold_pet(pet_id: str) -> ResponseReturnValue:
             transition="transition_to_medical_hold",
             entity_class=Pet.ENTITY_NAME,
             entity_version=str(Pet.ENTITY_VERSION),
-
         )
 
         if not response:
@@ -315,7 +318,6 @@ async def cancel_reservation(pet_id: str) -> ResponseReturnValue:
             transition="transition_to_available",
             entity_class=Pet.ENTITY_NAME,
             entity_version=str(Pet.ENTITY_VERSION),
-
         )
 
         if not response:

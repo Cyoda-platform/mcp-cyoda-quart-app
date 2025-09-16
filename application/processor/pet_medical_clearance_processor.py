@@ -88,7 +88,9 @@ class PetMedicalClearanceProcessor(CyodaProcessor):
             )
             raise
 
-    async def _validate_medical_clearance(self, pet: Pet, clearance_data: Dict[str, Any]) -> None:
+    async def _validate_medical_clearance(
+        self, pet: Pet, clearance_data: Dict[str, Any]
+    ) -> None:
         """
         Validate medical clearance documentation (simulated).
 
