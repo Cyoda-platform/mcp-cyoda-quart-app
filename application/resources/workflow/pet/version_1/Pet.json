@@ -1,0 +1,136 @@
+{
+    "version": "1.0",
+    "name": "Pet Workflow",
+    "desc": "Description of the workflow for Pet",
+    "initialState": "initial_state",
+    "active": true,
+    "states": {
+        "initial_state": {
+            "transitions": [
+                {
+                    "name": "transition_to_available",
+                    "next": "available",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "PetRegistrationProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "available": {
+            "transitions": [
+                {
+                    "name": "transition_to_pending",
+                    "next": "pending",
+                    "manual": true,
+                    "processors": [
+                        {
+                            "name": "PetReservationProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "transition_to_reserved",
+                    "next": "reserved",
+                    "manual": true,
+                    "processors": [
+                        {
+                            "name": "PetReservationProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "pending": {
+            "transitions": [
+                {
+                    "name": "transition_to_sold",
+                    "next": "sold",
+                    "manual": true,
+                    "processors": [
+                        {
+                            "name": "PetSaleProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "transition_to_available",
+                    "next": "available",
+                    "manual": true,
+                    "processors": [
+                        {
+                            "name": "PetReservationCancelProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "reserved": {
+            "transitions": [
+                {
+                    "name": "transition_to_available",
+                    "next": "available",
+                    "manual": true,
+                    "processors": [
+                        {
+                            "name": "PetReservationCancelProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "sold": {
+            "transitions": [
+                {
+                    "name": "transition_to_unavailable",
+                    "next": "unavailable",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "PetArchiveProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "unavailable": {
+            "transitions": [
+                {
+                    "name": "transition_to_end",
+                    "next": "initial_state",
+                    "manual": false
+                }
+            ]
+        }
+    }
+}
