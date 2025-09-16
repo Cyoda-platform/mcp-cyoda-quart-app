@@ -46,7 +46,6 @@ class EmailDeliveryFailureProcessor(CyodaProcessor):
             if entity.deliveryAttempts >= max_retry_attempts:
                 # Trigger subscriber bounce if permanent failure
                 if self._is_permanent_failure(failure_reason):
-                    entity_service = self._get_entity_service()
                     # This would trigger subscriber bounce workflow
                     entity.add_metadata("permanent_failure", True)
                     entity.add_metadata("bounce_subscriber", True)

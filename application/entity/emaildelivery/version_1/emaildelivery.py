@@ -51,4 +51,7 @@ class EmailDelivery(CyodaEntity):
 
     def __str__(self) -> str:
         """String representation of the email delivery."""
-        return f"EmailDelivery(id={self.id}, subscriberId={self.subscriberId}, catFactId={self.catFactId}, state={self.state})"
+        return (
+            f"EmailDelivery(id={self.id}, subscriberId={self.subscriberId}, "
+            f"catFactId={self.catFactId}, state={self.state})"
+        )

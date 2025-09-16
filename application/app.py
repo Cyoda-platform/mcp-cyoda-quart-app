@@ -8,7 +8,6 @@ for the cat fact subscription system.
 import logging
 
 from quart import Quart
-from quart_schema import QuartSchema
 
 # Import application blueprints
 from application.routes import (catfact_bp, emaildelivery_bp, reporting_bp,

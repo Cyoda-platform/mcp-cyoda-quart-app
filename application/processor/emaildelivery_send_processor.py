@@ -47,7 +47,7 @@ class EmailDeliverySendProcessor(CyodaProcessor):
             catfact_data = catfact_response.data
 
             # Compose email content
-            email_content = self._compose_email(subscriber_data, catfact_data)
+            email_content = self._compose_email(subscriber_data, catfact_data, entity.entity_id or "")
 
             # Simulate email sending (in real implementation, use actual email service)
             success = await self._send_email(
@@ -77,20 +77,20 @@ class EmailDeliverySendProcessor(CyodaProcessor):
         return isinstance(entity, EmailDelivery)
 
     def _compose_email(
-        self, subscriber_data: Dict[str, Any], catfact_data: Dict[str, Any]
+        self, subscriber_data: Dict[str, Any], catfact_data: Dict[str, Any], delivery_id: str = ""
     ) -> Dict[str, str]:
         """Compose email content."""
         subject = "Your Weekly Cat Fact"
 
         body = f"""
         Hello {subscriber_data.get('firstName', 'Cat Lover')}!
-        
+
         Here's your weekly cat fact:
-        
+
         {catfact_data.get('fact')}
-        
+
         Enjoy your week!
-        
+
         ---
         To unsubscribe, click here: [unsubscribe link with token {subscriber_data.get('unsubscribeToken')}]
         """
@@ -98,7 +98,7 @@ class EmailDeliverySendProcessor(CyodaProcessor):
         return {
             "subject": subject,
             "body": body,
-            "tracking_pixel": f"[tracking pixel for delivery {entity.entity_id}]",
+            "tracking_pixel": f"[tracking pixel for delivery {delivery_id}]",
         }
 
     async def _send_email(self, email: str, content: Dict[str, str]) -> bool:
