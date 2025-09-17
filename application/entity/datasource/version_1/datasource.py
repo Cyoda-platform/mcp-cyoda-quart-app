@@ -18,7 +18,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class DataSource(CyodaEntity):
     """
     DataSource represents an external data source that can be downloaded.
-    
+
     Manages URLs, data formats, download status, and file information.
     The state field manages workflow states: initial_state -> pending -> downloading -> completed/failed
     """
@@ -30,7 +30,7 @@ class DataSource(CyodaEntity):
     # Required fields from functional requirements
     url: str = Field(..., description="The URL to download data from")
     data_format: str = Field(..., description="Format of the data (csv, json, xml)")
-    
+
     # Optional fields populated during processing
     last_downloaded: Optional[str] = Field(
         default=None,
@@ -49,7 +49,12 @@ class DataSource(CyodaEntity):
 
     # Validation rules
     ALLOWED_FORMATS: ClassVar[list[str]] = ["csv", "json", "xml"]
-    ALLOWED_STATUSES: ClassVar[list[str]] = ["pending", "downloading", "completed", "failed"]
+    ALLOWED_STATUSES: ClassVar[list[str]] = [
+        "pending",
+        "downloading",
+        "completed",
+        "failed",
+    ]
 
     @field_validator("url")
     @classmethod
@@ -93,7 +98,9 @@ class DataSource(CyodaEntity):
         """Mark download as completed with file size"""
         self.status = "completed"
         self.file_size = file_size
-        self.last_downloaded = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.last_downloaded = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
         self.update_timestamp()
 
     def set_download_failed(self) -> None:

@@ -49,7 +49,7 @@ class AnalysisCompleteCriterion(CyodaCriteriaChecker):
                 f"Entity {analysis.technical_id} analysis completion check: {is_complete} "
                 f"(has_results: {analysis.results is not None}, has_metrics: {analysis.metrics is not None})"
             )
-            
+
             return is_complete
 
         except Exception as e:

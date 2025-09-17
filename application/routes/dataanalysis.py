@@ -43,24 +43,27 @@ from ..models import (
     ValidationErrorResponse,
 )
 
+
 # Module-level service instance to avoid repeated lookups
 class _ServiceProxy:
     def __getattr__(self, name: str) -> Any:
         return getattr(get_entity_service(), name)
 
+
 service = _ServiceProxy()
 
 logger = logging.getLogger(__name__)
+
 
 # Helper to normalize entity data from service (Pydantic model or dict)
 def _to_entity_dict(data: Any) -> Dict[str, Any]:
     return data.model_dump(by_alias=True) if hasattr(data, "model_dump") else data
 
-dataanalysis_bp = Blueprint(
-    "dataanalysis", __name__, url_prefix="/api/dataanalysis"
-)
+
+dataanalysis_bp = Blueprint("dataanalysis", __name__, url_prefix="/api/dataanalysis")
 
 # ---- Routes -----------------------------------------------------------------
+
 
 @dataanalysis_bp.route("", methods=["POST"])
 @tag(["dataanalysis"])
@@ -306,6 +309,7 @@ async def delete_dataanalysis(entity_id: str) -> ResponseReturnValue:
 
 # ---- Additional Entity Service Endpoints ----------------------------------------
 
+
 @dataanalysis_bp.route("/<entity_id>/exists", methods=["GET"])
 @tag(["dataanalysis"])
 @operation_id("check_dataanalysis_exists")
@@ -384,6 +388,7 @@ async def get_available_transitions(entity_id: str) -> ResponseReturnValue:
 
 # ---- Search Endpoints -----------------------------------------------------------
 
+
 @dataanalysis_bp.route("/search", methods=["POST"])
 @tag(["dataanalysis"])
 @operation_id("search_dataanalysis")
@@ -429,9 +434,7 @@ async def search_entities(data: SearchRequest) -> ResponseReturnValue:
 @dataanalysis_bp.route("/find-all", methods=["GET"])
 @tag(["dataanalysis"])
 @operation_id("find_all_dataanalysis")
-@validate(
-    responses={200: (DataAnalysisListResponse, None), 500: (ErrorResponse, None)}
-)
+@validate(responses={200: (DataAnalysisListResponse, None), 500: (ErrorResponse, None)})
 async def find_all_entities() -> ResponseReturnValue:
     """Find all DataAnalysis without filtering"""
     try:

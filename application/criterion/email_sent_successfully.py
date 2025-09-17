@@ -49,7 +49,7 @@ class EmailSentSuccessfullyCriterion(CyodaCriteriaChecker):
                 f"Entity {report.technical_id} email send success check: {is_sent} "
                 f"(delivery_status: {report.delivery_status})"
             )
-            
+
             return is_sent
 
         except Exception as e:

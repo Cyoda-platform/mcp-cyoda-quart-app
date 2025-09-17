@@ -18,7 +18,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class Report(CyodaEntity):
     """
     Report represents a report generation and email delivery operation.
-    
+
     Manages analysis references, subscriber lists, report content, and delivery status.
     The state field manages workflow states: initial_state -> pending -> generating -> sending -> completed/failed
     """
@@ -29,30 +29,25 @@ class Report(CyodaEntity):
 
     # Required fields from functional requirements
     analysis_id: str = Field(
-        ...,
-        alias="analysisId",
-        description="Reference to the DataAnalysis entity"
+        ..., alias="analysisId", description="Reference to the DataAnalysis entity"
     )
     subscribers: List[str] = Field(
-        ...,
-        description="List of email addresses to send report to"
+        ..., description="List of email addresses to send report to"
     )
-    
+
     # Optional fields populated during processing
     report_content: Optional[str] = Field(
-        default=None,
-        alias="reportContent",
-        description="Generated report content"
+        default=None, alias="reportContent", description="Generated report content"
     )
     sent_at: Optional[str] = Field(
         default=None,
         alias="sentAt",
-        description="When report was sent (ISO 8601 format)"
+        description="When report was sent (ISO 8601 format)",
     )
     delivery_status: str = Field(
         default="pending",
         alias="deliveryStatus",
-        description="Email delivery status (pending, sent, failed)"
+        description="Email delivery status (pending, sent, failed)",
     )
 
     # Validation rules
@@ -72,12 +67,12 @@ class Report(CyodaEntity):
         """Validate subscribers field"""
         if not v or len(v) == 0:
             raise ValueError("At least one subscriber email is required")
-        
+
         # Basic email validation
         for email in v:
             if not email or "@" not in email or "." not in email:
                 raise ValueError(f"Invalid email address: {email}")
-        
+
         return v
 
     @field_validator("delivery_status")
@@ -85,7 +80,9 @@ class Report(CyodaEntity):
     def validate_delivery_status(cls, v: str) -> str:
         """Validate delivery_status field"""
         if v not in cls.ALLOWED_DELIVERY_STATUSES:
-            raise ValueError(f"Delivery status must be one of: {cls.ALLOWED_DELIVERY_STATUSES}")
+            raise ValueError(
+                f"Delivery status must be one of: {cls.ALLOWED_DELIVERY_STATUSES}"
+            )
         return v
 
     def update_timestamp(self) -> None:

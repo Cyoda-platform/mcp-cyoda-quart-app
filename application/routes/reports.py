@@ -43,24 +43,27 @@ from ..models import (
     ValidationErrorResponse,
 )
 
+
 # Module-level service instance to avoid repeated lookups
 class _ServiceProxy:
     def __getattr__(self, name: str) -> Any:
         return getattr(get_entity_service(), name)
 
+
 service = _ServiceProxy()
 
 logger = logging.getLogger(__name__)
+
 
 # Helper to normalize entity data from service (Pydantic model or dict)
 def _to_entity_dict(data: Any) -> Dict[str, Any]:
     return data.model_dump(by_alias=True) if hasattr(data, "model_dump") else data
 
-reports_bp = Blueprint(
-    "reports", __name__, url_prefix="/api/reports"
-)
+
+reports_bp = Blueprint("reports", __name__, url_prefix="/api/reports")
 
 # ---- Routes -----------------------------------------------------------------
+
 
 @reports_bp.route("", methods=["POST"])
 @tag(["reports"])
@@ -250,9 +253,7 @@ async def update_report(
         return jsonify(_to_entity_dict(response.data)), 200
 
     except ValueError as e:
-        logger.warning(
-            "Validation error updating Report %s: %s", entity_id, str(e)
-        )
+        logger.warning("Validation error updating Report %s: %s", entity_id, str(e))
         return jsonify({"error": str(e), "code": "VALIDATION_ERROR"}), 400
     except Exception as e:
         logger.exception("Error updating Report %s: %s", entity_id, str(e))
@@ -302,3 +303,207 @@ async def delete_report(entity_id: str) -> ResponseReturnValue:
     except Exception as e:
         logger.exception("Error deleting Report %s: %s", entity_id, str(e))
         return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
+
+
+# ---- Additional Entity Service Endpoints ----------------------------------------
+
+
+@reports_bp.route("/<entity_id>/exists", methods=["GET"])
+@tag(["reports"])
+@operation_id("check_report_exists")
+@validate(responses={200: (ExistsResponse, None), 500: (ErrorResponse, None)})
+async def check_exists(entity_id: str) -> ResponseReturnValue:
+    """Check if Report exists by ID"""
+    try:
+        exists = await service.exists_by_id(
+            entity_id=entity_id,
+            entity_class=Report.ENTITY_NAME,
+            entity_version=str(Report.ENTITY_VERSION),
+        )
+
+        response = ExistsResponse(exists=exists, entity_id=entity_id)
+        return response.model_dump(), 200
+
+    except Exception as e:
+        logger.exception("Error checking Report existence %s: %s", entity_id, str(e))
+        return {"error": str(e)}, 500
+
+
+@reports_bp.route("/count", methods=["GET"])
+@tag(["reports"])
+@operation_id("count_reports")
+@validate(responses={200: (CountResponse, None), 500: (ErrorResponse, None)})
+async def count_entities() -> ResponseReturnValue:
+    """Count total number of Reports"""
+    try:
+        count = await service.count(
+            entity_class=Report.ENTITY_NAME,
+            entity_version=str(Report.ENTITY_VERSION),
+        )
+
+        response = CountResponse(count=count)
+        return jsonify(response.model_dump()), 200
+
+    except Exception as e:
+        logger.exception("Error counting Reports: %s", str(e))
+        return jsonify({"error": str(e)}), 500
+
+
+@reports_bp.route("/<entity_id>/transitions", methods=["GET"])
+@tag(["reports"])
+@operation_id("get_report_transitions")
+@validate(
+    responses={
+        200: (TransitionsResponse, None),
+        404: (ErrorResponse, None),
+        500: (ErrorResponse, None),
+    }
+)
+async def get_available_transitions(entity_id: str) -> ResponseReturnValue:
+    """Get available workflow transitions for Report"""
+    try:
+        transitions = await service.get_transitions(
+            entity_id=entity_id,
+            entity_class=Report.ENTITY_NAME,
+            entity_version=str(Report.ENTITY_VERSION),
+        )
+
+        response = TransitionsResponse(
+            entity_id=entity_id,
+            available_transitions=transitions,
+            current_state=None,
+        )
+        return jsonify(response.model_dump()), 200
+
+    except Exception as e:
+        logger.exception(
+            "Error getting transitions for Report %s: %s", entity_id, str(e)
+        )
+        return jsonify({"error": str(e)}), 500
+
+
+# ---- Search Endpoints -----------------------------------------------------------
+
+
+@reports_bp.route("/search", methods=["POST"])
+@tag(["reports"])
+@operation_id("search_reports")
+@validate(
+    request=SearchRequest,
+    responses={
+        200: (ReportSearchResponse, None),
+        400: (ValidationErrorResponse, None),
+        500: (ErrorResponse, None),
+    },
+)
+async def search_entities(data: SearchRequest) -> ResponseReturnValue:
+    """Search Reports using simple field-value search with validation"""
+    try:
+        # Convert Pydantic model to dict for search
+        search_data = data.model_dump(by_alias=True, exclude_none=True)
+
+        if not search_data:
+            return {"error": "Search conditions required", "code": "EMPTY_SEARCH"}, 400
+
+        # Simple field-value search only
+        builder = SearchConditionRequest.builder()
+        for field, value in search_data.items():
+            builder.equals(field, value)
+
+        search_request = builder.build()
+        results = await service.search(
+            entity_class=Report.ENTITY_NAME,
+            condition=search_request,
+            entity_version=str(Report.ENTITY_VERSION),
+        )
+
+        # Thin proxy: return list of entities directly
+        entities = [_to_entity_dict(r.data) for r in results]
+
+        return {"entities": entities, "total": len(entities)}, 200
+
+    except Exception as e:
+        logger.exception("Error searching Reports: %s", str(e))
+        return {"error": str(e)}, 500
+
+
+@reports_bp.route("/find-all", methods=["GET"])
+@tag(["reports"])
+@operation_id("find_all_reports")
+@validate(responses={200: (ReportListResponse, None), 500: (ErrorResponse, None)})
+async def find_all_entities() -> ResponseReturnValue:
+    """Find all Reports without filtering"""
+    try:
+        results = await service.find_all(
+            entity_class=Report.ENTITY_NAME,
+            entity_version=str(Report.ENTITY_VERSION),
+        )
+
+        entities = [_to_entity_dict(r.data) for r in results]
+        return {"entities": entities, "total": len(entities)}, 200
+
+    except Exception as e:
+        logger.exception("Error finding all Reports: %s", str(e))
+        return {"error": str(e)}, 500
+
+
+@reports_bp.route("/<entity_id>/transitions", methods=["POST"])
+@tag(["reports"])
+@operation_id("trigger_report_transition")
+@validate(
+    request=TransitionRequest,
+    responses={
+        200: (TransitionResponse, None),
+        404: (ErrorResponse, None),
+        400: (ValidationErrorResponse, None),
+        500: (ErrorResponse, None),
+    },
+)
+async def trigger_transition(
+    entity_id: str, data: TransitionRequest
+) -> ResponseReturnValue:
+    """Trigger a specific workflow transition with validation"""
+    try:
+        # Get current entity state
+        current_entity = await service.get_by_id(
+            entity_id=entity_id,
+            entity_class=Report.ENTITY_NAME,
+            entity_version=str(Report.ENTITY_VERSION),
+        )
+
+        if not current_entity:
+            return jsonify({"error": "Report not found"}), 404
+
+        previous_state = current_entity.metadata.state
+
+        # Execute the transition
+        response = await service.execute_transition(
+            entity_id=entity_id,
+            transition=data.transition_name,
+            entity_class=Report.ENTITY_NAME,
+            entity_version=str(Report.ENTITY_VERSION),
+        )
+
+        logger.info(
+            "Executed transition '%s' on Report %s",
+            data.transition_name,
+            entity_id,
+        )
+
+        return (
+            jsonify(
+                {
+                    "id": response.metadata.id,
+                    "message": "Transition executed successfully",
+                    "previousState": previous_state,
+                    "newState": response.metadata.state,
+                }
+            ),
+            200,
+        )
+
+    except Exception as e:
+        logger.exception(
+            "Error executing transition on Report %s: %s", entity_id, str(e)
+        )
+        return jsonify({"error": str(e)}), 500

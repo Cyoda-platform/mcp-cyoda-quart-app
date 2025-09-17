@@ -43,24 +43,27 @@ from ..models import (
     ValidationErrorResponse,
 )
 
+
 # Module-level service instance to avoid repeated lookups
 class _ServiceProxy:
     def __getattr__(self, name: str) -> Any:
         return getattr(get_entity_service(), name)
 
+
 service = _ServiceProxy()
 
 logger = logging.getLogger(__name__)
+
 
 # Helper to normalize entity data from service (Pydantic model or dict)
 def _to_entity_dict(data: Any) -> Dict[str, Any]:
     return data.model_dump(by_alias=True) if hasattr(data, "model_dump") else data
 
-datasources_bp = Blueprint(
-    "datasources", __name__, url_prefix="/api/datasources"
-)
+
+datasources_bp = Blueprint("datasources", __name__, url_prefix="/api/datasources")
 
 # ---- Routes -----------------------------------------------------------------
+
 
 @datasources_bp.route("", methods=["POST"])
 @tag(["datasources"])
@@ -253,9 +256,7 @@ async def update_datasource(
         return jsonify(_to_entity_dict(response.data)), 200
 
     except ValueError as e:
-        logger.warning(
-            "Validation error updating DataSource %s: %s", entity_id, str(e)
-        )
+        logger.warning("Validation error updating DataSource %s: %s", entity_id, str(e))
         return jsonify({"error": str(e), "code": "VALIDATION_ERROR"}), 400
     except Exception as e:
         logger.exception("Error updating DataSource %s: %s", entity_id, str(e))
@@ -308,6 +309,7 @@ async def delete_datasource(entity_id: str) -> ResponseReturnValue:
 
 
 # ---- Additional Entity Service Endpoints ----------------------------------------
+
 
 @datasources_bp.route("/<entity_id>/exists", methods=["GET"])
 @tag(["datasources"])
@@ -387,6 +389,7 @@ async def get_available_transitions(entity_id: str) -> ResponseReturnValue:
 
 # ---- Search Endpoints -----------------------------------------------------------
 
+
 @datasources_bp.route("/search", methods=["POST"])
 @tag(["datasources"])
 @operation_id("search_datasources")
@@ -432,9 +435,7 @@ async def search_entities(data: SearchRequest) -> ResponseReturnValue:
 @datasources_bp.route("/find-all", methods=["GET"])
 @tag(["datasources"])
 @operation_id("find_all_datasources")
-@validate(
-    responses={200: (DataSourceListResponse, None), 500: (ErrorResponse, None)}
-)
+@validate(responses={200: (DataSourceListResponse, None), 500: (ErrorResponse, None)})
 async def find_all_entities() -> ResponseReturnValue:
     """Find all DataSources without filtering"""
     try:

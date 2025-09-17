@@ -18,7 +18,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class DataAnalysis(CyodaEntity):
     """
     DataAnalysis represents an analysis operation on downloaded data.
-    
+
     Manages data source references, analysis types, results, and metrics.
     The state field manages workflow states: initial_state -> pending -> analyzing -> completed
     """
@@ -29,24 +29,20 @@ class DataAnalysis(CyodaEntity):
 
     # Required fields from functional requirements
     data_source_id: str = Field(
-        ...,
-        alias="dataSourceId",
-        description="Reference to the DataSource entity"
+        ..., alias="dataSourceId", description="Reference to the DataSource entity"
     )
     analysis_type: str = Field(
         ...,
         alias="analysisType",
-        description="Type of analysis (summary, statistical, trend)"
+        description="Type of analysis (summary, statistical, trend)",
     )
-    
+
     # Optional fields populated during processing
     results: Optional[Dict[str, Any]] = Field(
-        default=None,
-        description="Analysis results and insights"
+        default=None, description="Analysis results and insights"
     )
     metrics: Optional[Dict[str, Any]] = Field(
-        default=None,
-        description="Calculated metrics (mean, median, counts, etc.)"
+        default=None, description="Calculated metrics (mean, median, counts, etc.)"
     )
     created_at: Optional[str] = Field(
         default_factory=lambda: datetime.now(timezone.utc)
@@ -72,14 +68,18 @@ class DataAnalysis(CyodaEntity):
     def validate_analysis_type(cls, v: str) -> str:
         """Validate analysis_type field"""
         if v not in cls.ALLOWED_ANALYSIS_TYPES:
-            raise ValueError(f"Analysis type must be one of: {cls.ALLOWED_ANALYSIS_TYPES}")
+            raise ValueError(
+                f"Analysis type must be one of: {cls.ALLOWED_ANALYSIS_TYPES}"
+            )
         return v
 
     def update_timestamp(self) -> None:
         """Update the updated_at timestamp to current time"""
         self.updated_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
-    def set_analysis_results(self, results: Dict[str, Any], metrics: Dict[str, Any]) -> None:
+    def set_analysis_results(
+        self, results: Dict[str, Any], metrics: Dict[str, Any]
+    ) -> None:
         """Set analysis results and metrics"""
         self.results = results
         self.metrics = metrics

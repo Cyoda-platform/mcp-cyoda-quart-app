@@ -48,7 +48,7 @@ class DownloadSuccessfulCriterion(CyodaCriteriaChecker):
             self.logger.info(
                 f"Entity {datasource.technical_id} download success check: {is_successful} (status: {datasource.status})"
             )
-            
+
             return is_successful
 
         except Exception as e:

@@ -68,7 +68,9 @@ class DownloadDataProcessor(CyodaProcessor):
                     )
 
             except httpx.HTTPError as e:
-                self.logger.error(f"HTTP error downloading from {datasource.url}: {str(e)}")
+                self.logger.error(
+                    f"HTTP error downloading from {datasource.url}: {str(e)}"
+                )
                 datasource.set_download_failed()
                 raise
             except Exception as e:

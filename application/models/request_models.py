@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field
 
 class SearchRequest(BaseModel):
     """Generic search request model"""
-    
+
     # Allow any fields for flexible searching
     class Config:
         extra = "allow"
@@ -19,23 +19,19 @@ class SearchRequest(BaseModel):
 
 class TransitionRequest(BaseModel):
     """Request model for triggering workflow transitions"""
-    
+
     transition_name: str = Field(
-        ...,
-        alias="transitionName",
-        description="Name of the transition to trigger"
+        ..., alias="transitionName", description="Name of the transition to trigger"
     )
 
 
 # DataSource query parameters
 class DataSourceQueryParams(BaseModel):
     """Query parameters for DataSource list endpoint"""
-    
+
     url: Optional[str] = Field(None, description="Filter by URL")
     data_format: Optional[str] = Field(
-        None,
-        alias="dataFormat",
-        description="Filter by data format"
+        None, alias="dataFormat", description="Filter by data format"
     )
     status: Optional[str] = Field(None, description="Filter by status")
     state: Optional[str] = Field(None, description="Filter by workflow state")
@@ -45,26 +41,21 @@ class DataSourceQueryParams(BaseModel):
 
 class DataSourceUpdateQueryParams(BaseModel):
     """Query parameters for DataSource update endpoint"""
-    
+
     transition: Optional[str] = Field(
-        None,
-        description="Optional workflow transition to trigger after update"
+        None, description="Optional workflow transition to trigger after update"
     )
 
 
 # DataAnalysis query parameters
 class DataAnalysisQueryParams(BaseModel):
     """Query parameters for DataAnalysis list endpoint"""
-    
+
     data_source_id: Optional[str] = Field(
-        None,
-        alias="dataSourceId",
-        description="Filter by data source ID"
+        None, alias="dataSourceId", description="Filter by data source ID"
     )
     analysis_type: Optional[str] = Field(
-        None,
-        alias="analysisType",
-        description="Filter by analysis type"
+        None, alias="analysisType", description="Filter by analysis type"
     )
     state: Optional[str] = Field(None, description="Filter by workflow state")
     offset: int = Field(0, ge=0, description="Pagination offset")
@@ -73,26 +64,21 @@ class DataAnalysisQueryParams(BaseModel):
 
 class DataAnalysisUpdateQueryParams(BaseModel):
     """Query parameters for DataAnalysis update endpoint"""
-    
+
     transition: Optional[str] = Field(
-        None,
-        description="Optional workflow transition to trigger after update"
+        None, description="Optional workflow transition to trigger after update"
     )
 
 
 # Report query parameters
 class ReportQueryParams(BaseModel):
     """Query parameters for Report list endpoint"""
-    
+
     analysis_id: Optional[str] = Field(
-        None,
-        alias="analysisId",
-        description="Filter by analysis ID"
+        None, alias="analysisId", description="Filter by analysis ID"
     )
     delivery_status: Optional[str] = Field(
-        None,
-        alias="deliveryStatus",
-        description="Filter by delivery status"
+        None, alias="deliveryStatus", description="Filter by delivery status"
     )
     state: Optional[str] = Field(None, description="Filter by workflow state")
     offset: int = Field(0, ge=0, description="Pagination offset")
@@ -101,8 +87,7 @@ class ReportQueryParams(BaseModel):
 
 class ReportUpdateQueryParams(BaseModel):
     """Query parameters for Report update endpoint"""
-    
+
     transition: Optional[str] = Field(
-        None,
-        description="Optional workflow transition to trigger after update"
+        None, description="Optional workflow transition to trigger after update"
     )

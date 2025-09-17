@@ -73,34 +73,36 @@ class SendEmailProcessor(CyodaProcessor):
                 f"Error sending email for Report {getattr(entity, 'technical_id', '<unknown>')}: {str(e)}"
             )
             # Set failed status on error
-            if hasattr(entity, 'set_email_failed'):
+            if hasattr(entity, "set_email_failed"):
                 entity.set_email_failed()
             raise
 
     async def _send_emails_to_subscribers(self, report: Report) -> bool:
         """
         Send emails to all subscribers.
-        
+
         Note: This is a simulation for demo purposes.
         In a real implementation, this would integrate with an email service.
         """
         try:
             # Simulate email sending process
-            self.logger.info(f"Simulating email sending to {len(report.subscribers)} subscribers")
-            
+            self.logger.info(
+                f"Simulating email sending to {len(report.subscribers)} subscribers"
+            )
+
             for email in report.subscribers:
                 # Validate email format (basic check)
                 if "@" not in email or "." not in email:
                     self.logger.warning(f"Invalid email format: {email}")
                     continue
-                
+
                 # Simulate sending email
                 await self._simulate_send_email(email, report.report_content)
                 self.logger.info(f"Email sent to: {email}")
-            
+
             self.logger.info("All emails sent successfully")
             return True
-            
+
         except Exception as e:
             self.logger.error(f"Error sending emails: {str(e)}")
             return False
@@ -108,7 +110,7 @@ class SendEmailProcessor(CyodaProcessor):
     async def _simulate_send_email(self, email: str, content: str) -> None:
         """
         Simulate sending an email.
-        
+
         In a real implementation, this would:
         1. Connect to SMTP server or email service API
         2. Format the email with proper headers
@@ -117,7 +119,7 @@ class SendEmailProcessor(CyodaProcessor):
         """
         # Simulate email composition
         subject = "London Houses Data Analysis Report"
-        
+
         # Log the simulated email (in production, this would be actual sending)
         self.logger.info(
             f"SIMULATED EMAIL SEND:\n"
@@ -126,7 +128,8 @@ class SendEmailProcessor(CyodaProcessor):
             f"Content Length: {len(content)} characters\n"
             f"Content Preview: {content[:100]}..."
         )
-        
+
         # Simulate potential email sending delay
         import asyncio
+
         await asyncio.sleep(0.1)  # Small delay to simulate network operation
