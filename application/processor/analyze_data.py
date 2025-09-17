@@ -148,8 +148,8 @@ class AnalyzeDataProcessor(CyodaProcessor):
         self, df: pd.DataFrame
     ) -> tuple[Dict[str, Any], Dict[str, Any]]:
         """Perform statistical analysis"""
-        results = {}
-        metrics = {}
+        results: Dict[str, Any] = {}
+        metrics: Dict[str, Any] = {}
 
         if not df.empty:
             # Look for price column (common in London houses data)
