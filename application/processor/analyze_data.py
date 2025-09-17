@@ -188,9 +188,9 @@ class AnalyzeDataProcessor(CyodaProcessor):
         self, df: pd.DataFrame
     ) -> tuple[Dict[str, Any], Dict[str, Any]]:
         """Perform trend analysis"""
-        results = {"trend_type": "basic", "data_points": len(df)}
+        results: Dict[str, Any] = {"trend_type": "basic", "data_points": len(df)}
 
-        metrics = {
+        metrics: Dict[str, Any] = {
             "trend_direction": "stable",  # Simplified for demo
             "data_quality": "good" if len(df) > 100 else "limited",
         }

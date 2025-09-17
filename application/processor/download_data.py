@@ -6,7 +6,7 @@ file information and status according to workflow requirements.
 """
 
 import logging
-from datetime import datetime, timezone
+
 from typing import Any
 
 import httpx
