@@ -11,6 +11,9 @@ from common.exception.exception_handler import (
 from services.services import get_grpc_client, initialize_services
 
 # Import blueprints for different route groups
+from application.routes.hnitems import hnitems_bp
+from application.routes.hnitemcollections import hnitemcollections_bp
+from application.routes.searchqueries import searchqueries_bp
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -27,6 +30,12 @@ QuartSchema(
             "description": "ExampleEntity management endpoints",
         },
         {"name": "OtherEntities", "description": "OtherEntity management endpoints"},
+        {"name": "hnitems", "description": "HNItem management endpoints"},
+        {
+            "name": "hnitemcollections",
+            "description": "HNItemCollection management endpoints",
+        },
+        {"name": "searchqueries", "description": "SearchQuery management endpoints"},
         {"name": "System", "description": "System and health endpoints"},
     ],
     security=[{"bearerAuth": []}],
@@ -37,6 +46,11 @@ QuartSchema(
         }
     },
 )
+
+# Register blueprints
+app.register_blueprint(hnitems_bp)
+app.register_blueprint(hnitemcollections_bp)
+app.register_blueprint(searchqueries_bp)
 
 # Global holder for the background task to satisfy mypy
 # (avoid setting arbitrary attrs on app)

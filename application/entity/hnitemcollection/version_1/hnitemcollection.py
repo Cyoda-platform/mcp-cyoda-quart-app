@@ -3,7 +3,7 @@
 """
 HNItemCollection Entity for Cyoda Client Application
 
-Manages bulk operations for HN items including array uploads, file uploads, 
+Manages bulk operations for HN items including array uploads, file uploads,
 and batch processing from Firebase HN API.
 """
 
@@ -18,7 +18,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class HNItemCollection(CyodaEntity):
     """
     HNItemCollection manages bulk operations for HN items.
-    
+
     Supports array uploads, file uploads, and batch processing from Firebase HN API.
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     The state field manages workflow states: initial_state -> received -> processing -> completed/failed
@@ -30,95 +30,76 @@ class HNItemCollection(CyodaEntity):
 
     # Core collection fields
     collection_id: Optional[str] = Field(
-        default=None,
-        description="Unique identifier for the collection"
+        default=None, description="Unique identifier for the collection"
     )
     collection_type: str = Field(
-        ...,
-        description="Type of collection: array, file_upload, firebase_pull"
+        ..., description="Type of collection: array, file_upload, firebase_pull"
     )
     source: Optional[str] = Field(
-        default=None,
-        description="Source description (filename, API endpoint, etc.)"
+        default=None, description="Source description (filename, API endpoint, etc.)"
     )
-    
+
     # Item counts
     total_items: int = Field(
-        default=0,
-        description="Total number of items in collection"
+        default=0, description="Total number of items in collection"
     )
     processed_items: int = Field(
-        default=0,
-        description="Number of successfully processed items"
+        default=0, description="Number of successfully processed items"
     )
-    failed_items: int = Field(
-        default=0,
-        description="Number of failed items"
-    )
-    
+    failed_items: int = Field(default=0, description="Number of failed items")
+
     # Timestamps
     created_at: Optional[str] = Field(
         default_factory=lambda: datetime.now(timezone.utc)
         .isoformat()
         .replace("+00:00", "Z"),
-        description="Collection creation timestamp"
+        description="Collection creation timestamp",
     )
     completed_at: Optional[str] = Field(
-        default=None,
-        description="Collection completion timestamp"
+        default=None, description="Collection completion timestamp"
     )
-    
+
     # Data and results
     items: Optional[List[Dict[str, Any]]] = Field(
-        default=None,
-        description="Array of HNItem references or data"
+        default=None, description="Array of HNItem references or data"
     )
     processing_errors: Optional[List[Dict[str, Any]]] = Field(
-        default_factory=list,
-        description="Array of error details"
+        default_factory=list, description="Array of error details"
     )
-    
+
     # Processing metadata
     batch_size: Optional[int] = Field(
-        default=100,
-        description="Number of items to process in each batch"
+        default=100, description="Number of items to process in each batch"
     )
     processing_started_at: Optional[str] = Field(
-        default=None,
-        description="When processing started"
+        default=None, description="When processing started"
     )
     processing_duration_ms: Optional[int] = Field(
-        default=None,
-        description="Total processing time in milliseconds"
+        default=None, description="Total processing time in milliseconds"
     )
-    
+
     # Firebase API specific fields
     firebase_endpoint: Optional[str] = Field(
-        default=None,
-        description="Firebase API endpoint used for pulling data"
+        default=None, description="Firebase API endpoint used for pulling data"
     )
     firebase_filters: Optional[Dict[str, Any]] = Field(
-        default=None,
-        description="Filters applied when pulling from Firebase"
+        default=None, description="Filters applied when pulling from Firebase"
     )
-    
+
     # File upload specific fields
     file_name: Optional[str] = Field(
-        default=None,
-        description="Original filename for file uploads"
+        default=None, description="Original filename for file uploads"
     )
-    file_size: Optional[int] = Field(
-        default=None,
-        description="File size in bytes"
-    )
+    file_size: Optional[int] = Field(default=None, description="File size in bytes")
     file_format: Optional[str] = Field(
-        default=None,
-        description="File format: json, csv, etc."
+        default=None, description="File format: json, csv, etc."
     )
 
     # Validation constants
     ALLOWED_COLLECTION_TYPES: ClassVar[List[str]] = [
-        "array", "file_upload", "firebase_pull"
+        "array",
+        "file_upload",
+        "firebase_pull",
     ]
 
     @field_validator("collection_type")
@@ -126,7 +107,9 @@ class HNItemCollection(CyodaEntity):
     def validate_collection_type(cls, v: str) -> str:
         """Validate collection type"""
         if v not in cls.ALLOWED_COLLECTION_TYPES:
-            raise ValueError(f"Collection type must be one of: {cls.ALLOWED_COLLECTION_TYPES}")
+            raise ValueError(
+                f"Collection type must be one of: {cls.ALLOWED_COLLECTION_TYPES}"
+            )
         return v
 
     @field_validator("total_items")
@@ -202,15 +185,21 @@ class HNItemCollection(CyodaEntity):
 
     def start_processing(self) -> None:
         """Mark processing as started"""
-        self.processing_started_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.processing_started_at = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
 
     def complete_processing(self) -> None:
         """Mark processing as completed"""
-        self.completed_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-        
+        self.completed_at = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
+
         # Calculate processing duration if start time is available
         if self.processing_started_at:
-            start_time = datetime.fromisoformat(self.processing_started_at.replace("Z", "+00:00"))
+            start_time = datetime.fromisoformat(
+                self.processing_started_at.replace("Z", "+00:00")
+            )
             end_time = datetime.now(timezone.utc)
             duration = end_time - start_time
             self.processing_duration_ms = int(duration.total_seconds() * 1000)
@@ -227,7 +216,7 @@ class HNItemCollection(CyodaEntity):
             "failure_rate": self.get_failure_rate(),
             "is_complete": self.is_processing_complete(),
             "processing_duration_ms": self.processing_duration_ms,
-            "error_count": len(self.processing_errors) if self.processing_errors else 0
+            "error_count": len(self.processing_errors) if self.processing_errors else 0,
         }
 
     def to_api_response(self) -> Dict[str, Any]:

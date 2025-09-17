@@ -50,7 +50,9 @@ class EnrichItemData(CyodaProcessor):
             hn_item = cast_entity(entity, HNItem)
 
             # Add processed timestamp
-            hn_item.processed_time = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            hn_item.processed_time = (
+                datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            )
 
             # Create search text by combining title and text
             hn_item.search_text = self._combine_title_and_text(hn_item)
@@ -61,9 +63,7 @@ class EnrichItemData(CyodaProcessor):
             else:
                 hn_item.parent_chain = []
 
-            self.logger.info(
-                f"HNItem {hn_item.technical_id} enriched successfully"
-            )
+            self.logger.info(f"HNItem {hn_item.technical_id} enriched successfully")
 
             return hn_item
 
@@ -84,20 +84,20 @@ class EnrichItemData(CyodaProcessor):
             Combined searchable text
         """
         parts = []
-        
+
         if hn_item.title:
             # Remove HTML tags for search (simple approach)
             clean_title = self._strip_html_tags(hn_item.title)
             parts.append(clean_title)
-        
+
         if hn_item.text:
             # Remove HTML tags for search (simple approach)
             clean_text = self._strip_html_tags(hn_item.text)
             parts.append(clean_text)
-        
+
         if hn_item.by:
             parts.append(f"by:{hn_item.by}")
-        
+
         if hn_item.url:
             parts.append(f"url:{hn_item.url}")
 
@@ -106,41 +106,42 @@ class EnrichItemData(CyodaProcessor):
     def _strip_html_tags(self, html_text: str) -> str:
         """
         Simple HTML tag removal for search text.
-        
+
         Args:
             html_text: Text that may contain HTML tags
-            
+
         Returns:
             Text with HTML tags removed
         """
         import re
+
         # Simple regex to remove HTML tags
-        clean_text = re.sub(r'<[^>]+>', '', html_text)
+        clean_text = re.sub(r"<[^>]+>", "", html_text)
         # Replace multiple whitespace with single space
-        clean_text = re.sub(r'\s+', ' ', clean_text)
+        clean_text = re.sub(r"\s+", " ", clean_text)
         return clean_text.strip()
 
     async def _build_parent_chain(self, parent_id: int) -> List[int]:
         """
         Build the parent chain for hierarchy traversal.
-        
+
         Args:
             parent_id: The immediate parent ID
-            
+
         Returns:
             List of parent IDs from immediate parent to root
         """
         try:
             entity_service = get_entity_service()
             parent_chain = [parent_id]
-            
+
             # Look up the parent item to continue the chain
             # Note: This is a simplified implementation
             # In a real system, you might want to limit depth or use caching
             current_parent_id = parent_id
             max_depth = 10  # Prevent infinite loops
             depth = 0
-            
+
             while current_parent_id and depth < max_depth:
                 try:
                     # Try to find the parent item
@@ -153,25 +154,32 @@ class EnrichItemData(CyodaProcessor):
                         .build(),
                         entity_version=str(HNItem.ENTITY_VERSION),
                     )
-                    
+
                     if parent_results and len(parent_results) > 0:
                         parent_item = cast_entity(parent_results[0].data, HNItem)
-                        if parent_item.parent and parent_item.parent not in parent_chain:
+                        if (
+                            parent_item.parent
+                            and parent_item.parent not in parent_chain
+                        ):
                             parent_chain.append(parent_item.parent)
                             current_parent_id = parent_item.parent
                         else:
                             break
                     else:
                         break
-                        
+
                 except Exception as e:
-                    self.logger.warning(f"Could not resolve parent {current_parent_id}: {str(e)}")
+                    self.logger.warning(
+                        f"Could not resolve parent {current_parent_id}: {str(e)}"
+                    )
                     break
-                
+
                 depth += 1
-            
+
             return parent_chain
-            
+
         except Exception as e:
-            self.logger.warning(f"Error building parent chain for {parent_id}: {str(e)}")
+            self.logger.warning(
+                f"Error building parent chain for {parent_id}: {str(e)}"
+            )
             return [parent_id]  # Return at least the immediate parent

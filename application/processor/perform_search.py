@@ -65,14 +65,18 @@ class PerformSearch(CyodaProcessor):
             )
 
             # Convert results to dictionaries
-            raw_results = [result.data.model_dump(by_alias=True) for result in search_results]
+            raw_results = [
+                result.data.model_dump(by_alias=True) for result in search_results
+            ]
 
             # Apply text filtering if needed
             filtered_results = self._apply_text_filtering(raw_results, search_query)
 
             # Apply hierarchy expansion if requested
             if search_query.include_hierarchy:
-                filtered_results = await self._expand_hierarchy(filtered_results, search_query, entity_service)
+                filtered_results = await self._expand_hierarchy(
+                    filtered_results, search_query, entity_service
+                )
 
             # Apply sorting
             sorted_results = self._apply_sorting(filtered_results, search_query)
@@ -96,7 +100,9 @@ class PerformSearch(CyodaProcessor):
             )
             raise
 
-    def _build_search_conditions(self, search_query: SearchQuery) -> SearchConditionRequest:
+    def _build_search_conditions(
+        self, search_query: SearchQuery
+    ) -> SearchConditionRequest:
         """Build search conditions from the query parameters."""
         builder = SearchConditionRequest.builder()
 
@@ -126,13 +132,17 @@ class PerformSearch(CyodaProcessor):
         # Apply score range filter
         if search_query.score_range:
             if "min" in search_query.score_range:
-                builder.greaterThanOrEqual("score", str(search_query.score_range["min"]))
+                builder.greaterThanOrEqual(
+                    "score", str(search_query.score_range["min"])
+                )
             if "max" in search_query.score_range:
                 builder.lessThanOrEqual("score", str(search_query.score_range["max"]))
 
         return builder.build()
 
-    def _apply_text_filtering(self, results: List[Dict[str, Any]], search_query: SearchQuery) -> List[Dict[str, Any]]:
+    def _apply_text_filtering(
+        self, results: List[Dict[str, Any]], search_query: SearchQuery
+    ) -> List[Dict[str, Any]]:
         """Apply text-based filtering to results."""
         if not search_query.query_text or not search_query.parsed_query:
             return results
@@ -142,17 +152,19 @@ class PerformSearch(CyodaProcessor):
         quoted_phrases = search_query.parsed_query.get("quoted_phrases", [])
 
         for result in results:
-            if self._matches_text_criteria(result, search_terms, quoted_phrases, search_query.search_fields):
+            if self._matches_text_criteria(
+                result, search_terms, quoted_phrases, search_query.search_fields
+            ):
                 filtered_results.append(result)
 
         return filtered_results
 
     def _matches_text_criteria(
-        self, 
-        item: Dict[str, Any], 
-        search_terms: List[str], 
+        self,
+        item: Dict[str, Any],
+        search_terms: List[str],
         quoted_phrases: List[str],
-        search_fields: List[str]
+        search_fields: List[str],
     ) -> bool:
         """Check if an item matches the text search criteria."""
         # Get searchable text from specified fields
@@ -160,7 +172,7 @@ class PerformSearch(CyodaProcessor):
         for field in search_fields:
             if field in item and item[field]:
                 searchable_text += f" {item[field]}"
-        
+
         searchable_text = searchable_text.lower()
 
         # Check search terms (all must match)
@@ -176,23 +188,27 @@ class PerformSearch(CyodaProcessor):
         return True
 
     async def _expand_hierarchy(
-        self, 
-        results: List[Dict[str, Any]], 
-        search_query: SearchQuery, 
-        entity_service: Any
+        self,
+        results: List[Dict[str, Any]],
+        search_query: SearchQuery,
+        entity_service: Any,
     ) -> List[Dict[str, Any]]:
         """Expand results to include hierarchy relationships."""
         expanded_results = list(results)  # Start with original results
-        
+
         for result in results:
             # Include parents if requested
             if search_query.include_parents and result.get("parent"):
-                parent_items = await self._get_parent_chain(result["parent"], search_query.max_depth, entity_service)
+                parent_items = await self._get_parent_chain(
+                    result["parent"], search_query.max_depth, entity_service
+                )
                 expanded_results.extend(parent_items)
-            
+
             # Include children if requested
             if search_query.include_children and result.get("kids"):
-                child_items = await self._get_child_items(result["kids"], search_query.max_depth, entity_service)
+                child_items = await self._get_child_items(
+                    result["kids"], search_query.max_depth, entity_service
+                )
                 expanded_results.extend(child_items)
 
         # Remove duplicates based on HN item ID
@@ -206,7 +222,9 @@ class PerformSearch(CyodaProcessor):
 
         return unique_results
 
-    async def _get_parent_chain(self, parent_id: int, max_depth: int, entity_service: Any) -> List[Dict[str, Any]]:
+    async def _get_parent_chain(
+        self, parent_id: int, max_depth: int, entity_service: Any
+    ) -> List[Dict[str, Any]]:
         """Get parent chain up to max_depth."""
         parents = []
         current_parent_id = parent_id
@@ -231,17 +249,21 @@ class PerformSearch(CyodaProcessor):
                     break
 
             except Exception as e:
-                self.logger.warning(f"Error fetching parent {current_parent_id}: {str(e)}")
+                self.logger.warning(
+                    f"Error fetching parent {current_parent_id}: {str(e)}"
+                )
                 break
 
             depth += 1
 
         return parents
 
-    async def _get_child_items(self, child_ids: List[int], max_depth: int, entity_service: Any) -> List[Dict[str, Any]]:
+    async def _get_child_items(
+        self, child_ids: List[int], max_depth: int, entity_service: Any
+    ) -> List[Dict[str, Any]]:
         """Get child items up to max_depth."""
         children = []
-        
+
         for child_id in child_ids[:10]:  # Limit to prevent excessive queries
             try:
                 # Search for child by HN item ID
@@ -262,7 +284,9 @@ class PerformSearch(CyodaProcessor):
 
         return children
 
-    def _apply_sorting(self, results: List[Dict[str, Any]], search_query: SearchQuery) -> List[Dict[str, Any]]:
+    def _apply_sorting(
+        self, results: List[Dict[str, Any]], search_query: SearchQuery
+    ) -> List[Dict[str, Any]]:
         """Apply sorting to results."""
         if search_query.sort_order == "score":
             return sorted(results, key=lambda x: x.get("score", 0), reverse=True)
@@ -273,7 +297,9 @@ class PerformSearch(CyodaProcessor):
         else:  # relevance or default
             return results  # Keep original order for relevance
 
-    def _apply_pagination(self, results: List[Dict[str, Any]], search_query: SearchQuery) -> List[Dict[str, Any]]:
+    def _apply_pagination(
+        self, results: List[Dict[str, Any]], search_query: SearchQuery
+    ) -> List[Dict[str, Any]]:
         """Apply pagination to results."""
         start = search_query.offset
         end = start + search_query.limit

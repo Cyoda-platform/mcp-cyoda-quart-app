@@ -49,37 +49,39 @@ class ValidateItemStructure(CyodaProcessor):
 
             # Validate required fields
             validation_errors = []
-            
+
             # Check for required fields
             if hn_item.id is None:
                 validation_errors.append("Missing required field: id")
-            
+
             if not hn_item.type:
                 validation_errors.append("Missing required field: type")
             elif hn_item.type not in HNItem.ALLOWED_TYPES:
-                validation_errors.append(f"Invalid type: {hn_item.type}. Must be one of: {HNItem.ALLOWED_TYPES}")
+                validation_errors.append(
+                    f"Invalid type: {hn_item.type}. Must be one of: {HNItem.ALLOWED_TYPES}"
+                )
 
             # Type-specific validations
             if hn_item.type == "story":
                 if not hn_item.title and not hn_item.text:
                     validation_errors.append("Stories must have either title or text")
-            
+
             elif hn_item.type == "comment":
                 if not hn_item.text:
                     validation_errors.append("Comments must have text")
                 if hn_item.parent is None:
                     validation_errors.append("Comments must have a parent")
-            
+
             elif hn_item.type == "job":
                 if not hn_item.title:
                     validation_errors.append("Jobs must have a title")
-            
+
             elif hn_item.type == "poll":
                 if not hn_item.title:
                     validation_errors.append("Polls must have a title")
                 if not hn_item.parts:
                     validation_errors.append("Polls must have parts (poll options)")
-            
+
             elif hn_item.type == "pollopt":
                 if hn_item.poll is None:
                     validation_errors.append("Poll options must reference a poll")
@@ -87,7 +89,7 @@ class ValidateItemStructure(CyodaProcessor):
             # Validate data consistency
             if hn_item.kids and not isinstance(hn_item.kids, list):
                 validation_errors.append("Kids field must be a list of integers")
-            
+
             if hn_item.parts and not isinstance(hn_item.parts, list):
                 validation_errors.append("Parts field must be a list of integers")
 
@@ -101,9 +103,7 @@ class ValidateItemStructure(CyodaProcessor):
             else:
                 hn_item.validation_error = None
                 hn_item.validation_status = "valid"
-                self.logger.info(
-                    f"HNItem {hn_item.technical_id} validation successful"
-                )
+                self.logger.info(f"HNItem {hn_item.technical_id} validation successful")
 
             return hn_item
 
@@ -112,7 +112,7 @@ class ValidateItemStructure(CyodaProcessor):
                 f"Error validating HNItem {getattr(entity, 'technical_id', '<unknown>')}: {str(e)}"
             )
             # Set validation error on the entity
-            if hasattr(entity, 'validation_error'):
+            if hasattr(entity, "validation_error"):
                 entity.validation_error = f"Validation processing error: {str(e)}"
                 entity.validation_status = "error"
             raise

@@ -9,7 +9,9 @@ from typing import Any
 
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.hnitemcollection.version_1.hnitemcollection import HNItemCollection
+from application.entity.hnitemcollection.version_1.hnitemcollection import (
+    HNItemCollection,
+)
 
 
 class AllItemsProcessedSuccessfully(CyodaCriteriaChecker):
@@ -55,23 +57,29 @@ class AllItemsProcessedSuccessfully(CyodaCriteriaChecker):
             # Check success rate threshold
             success_rate = collection.get_success_rate()
             failure_rate = collection.get_failure_rate()
-            
+
             # Consider successful if:
             # 1. At least 95% success rate, OR
             # 2. 100% processed with less than 5% failures, OR
             # 3. All items processed and no critical errors
-            
+
             if success_rate >= 95.0:
                 self.logger.info(
                     f"Collection {collection.technical_id} meets success criteria with {success_rate:.1f}% success rate"
                 )
                 return True
-            
+
             # Check for critical errors
             if collection.processing_errors:
-                critical_error_count = self._count_critical_errors(collection.processing_errors)
-                critical_error_rate = (critical_error_count / collection.total_items) * 100 if collection.total_items > 0 else 0
-                
+                critical_error_count = self._count_critical_errors(
+                    collection.processing_errors
+                )
+                critical_error_rate = (
+                    (critical_error_count / collection.total_items) * 100
+                    if collection.total_items > 0
+                    else 0
+                )
+
                 if critical_error_rate > 5.0:
                     self.logger.warning(
                         f"Collection {collection.technical_id} has too many critical errors: "
@@ -102,25 +110,25 @@ class AllItemsProcessedSuccessfully(CyodaCriteriaChecker):
     def _count_critical_errors(self, processing_errors: list) -> int:
         """
         Count the number of critical errors in the processing errors list.
-        
+
         Args:
             processing_errors: List of error dictionaries
-            
+
         Returns:
             Number of critical errors
         """
         critical_error_types = [
             "validation_error",
-            "batch_processing_error", 
+            "batch_processing_error",
             "file_processing_error",
-            "firebase_pull_error"
+            "firebase_pull_error",
         ]
-        
+
         critical_count = 0
         for error in processing_errors:
             if isinstance(error, dict):
                 error_type = error.get("type", "")
                 if error_type in critical_error_types:
                     critical_count += 1
-        
+
         return critical_count

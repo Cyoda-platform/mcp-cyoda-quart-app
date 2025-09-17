@@ -17,7 +17,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class HNItem(CyodaEntity):
     """
     HNItem represents a single Hacker News item from Firebase HN API.
-    
+
     Supports all item types: stories, comments, jobs, Ask HNs, polls, and poll options.
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     The state field manages workflow states: initial_state -> pending -> validated -> stored -> indexed -> published
@@ -29,114 +29,85 @@ class HNItem(CyodaEntity):
 
     # Core Firebase HN API fields
     id: Optional[int] = Field(
-        default=None,
-        description="Unique integer identifier from HN API"
+        default=None, description="Unique integer identifier from HN API"
     )
     type: Optional[str] = Field(
-        default=None,
-        description="Item type: job, story, comment, poll, pollopt"
+        default=None, description="Item type: job, story, comment, poll, pollopt"
     )
-    by: Optional[str] = Field(
-        default=None,
-        description="Username of the item's author"
-    )
+    by: Optional[str] = Field(default=None, description="Username of the item's author")
     time: Optional[int] = Field(
-        default=None,
-        description="Creation date of the item, in Unix Time"
+        default=None, description="Creation date of the item, in Unix Time"
     )
-    
+
     # Content fields
     title: Optional[str] = Field(
-        default=None,
-        description="The title of the story, poll or job. HTML"
+        default=None, description="The title of the story, poll or job. HTML"
     )
     text: Optional[str] = Field(
-        default=None,
-        description="The comment, story or poll text. HTML"
+        default=None, description="The comment, story or poll text. HTML"
     )
-    url: Optional[str] = Field(
-        default=None,
-        description="The URL of the story"
-    )
-    
+    url: Optional[str] = Field(default=None, description="The URL of the story")
+
     # Scoring and engagement
     score: Optional[int] = Field(
-        default=None,
-        description="The story's score, or the votes for a pollopt"
+        default=None, description="The story's score, or the votes for a pollopt"
     )
     descendants: Optional[int] = Field(
-        default=None,
-        description="Total comment count for stories"
+        default=None, description="Total comment count for stories"
     )
-    
+
     # Relationships
     parent: Optional[int] = Field(
         default=None,
-        description="The comment's parent: either another comment or the relevant story"
+        description="The comment's parent: either another comment or the relevant story",
     )
     kids: Optional[List[int]] = Field(
         default=None,
-        description="The ids of the item's comments, in ranked display order"
+        description="The ids of the item's comments, in ranked display order",
     )
-    
+
     # Poll-specific fields
     poll: Optional[int] = Field(
-        default=None,
-        description="The pollopt's associated poll"
+        default=None, description="The pollopt's associated poll"
     )
     parts: Optional[List[int]] = Field(
-        default=None,
-        description="A list of related pollopts, in display order"
+        default=None, description="A list of related pollopts, in display order"
     )
-    
+
     # Status fields
     deleted: Optional[bool] = Field(
-        default=None,
-        description="True if the item is deleted"
+        default=None, description="True if the item is deleted"
     )
-    dead: Optional[bool] = Field(
-        default=None,
-        description="True if the item is dead"
-    )
-    
+    dead: Optional[bool] = Field(default=None, description="True if the item is dead")
+
     # Processing fields (populated during workflow)
     validation_error: Optional[str] = Field(
-        default=None,
-        description="Validation error message if validation fails"
+        default=None, description="Validation error message if validation fails"
     )
     validation_status: Optional[str] = Field(
-        default=None,
-        description="Validation status: valid, invalid, pending"
+        default=None, description="Validation status: valid, invalid, pending"
     )
     processed_time: Optional[str] = Field(
-        default=None,
-        description="Timestamp when item was processed"
+        default=None, description="Timestamp when item was processed"
     )
     search_text: Optional[str] = Field(
-        default=None,
-        description="Combined searchable text from title and text fields"
+        default=None, description="Combined searchable text from title and text fields"
     )
     parent_chain: Optional[List[int]] = Field(
-        default=None,
-        description="Chain of parent IDs for hierarchy traversal"
+        default=None, description="Chain of parent IDs for hierarchy traversal"
     )
     stored_at: Optional[str] = Field(
-        default=None,
-        description="Timestamp when item was stored"
+        default=None, description="Timestamp when item was stored"
     )
     storage_status: Optional[str] = Field(
-        default=None,
-        description="Storage status: persisted, failed"
+        default=None, description="Storage status: persisted, failed"
     )
     indexed_at: Optional[str] = Field(
-        default=None,
-        description="Timestamp when item was indexed for search"
+        default=None, description="Timestamp when item was indexed for search"
     )
 
     # Validation constants
-    ALLOWED_TYPES: ClassVar[List[str]] = [
-        "job", "story", "comment", "poll", "pollopt"
-    ]
+    ALLOWED_TYPES: ClassVar[List[str]] = ["job", "story", "comment", "poll", "pollopt"]
 
     @field_validator("type")
     @classmethod

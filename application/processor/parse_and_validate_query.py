@@ -52,11 +52,12 @@ class ParseAndValidateQuery(CyodaProcessor):
 
             # Parse and validate query text
             parsed_query = self._parse_query_text(search_query.query_text)
-            
+
             # Validate search fields
             if search_query.search_fields:
                 invalid_fields = [
-                    field for field in search_query.search_fields 
+                    field
+                    for field in search_query.search_fields
                     if field not in SearchQuery.ALLOWED_SEARCH_FIELDS
                 ]
                 if invalid_fields:
@@ -71,16 +72,22 @@ class ParseAndValidateQuery(CyodaProcessor):
 
             # Validate date range
             if search_query.date_range:
-                validation_errors.extend(self._validate_date_range(search_query.date_range))
+                validation_errors.extend(
+                    self._validate_date_range(search_query.date_range)
+                )
 
             # Validate score range
             if search_query.score_range:
-                validation_errors.extend(self._validate_score_range(search_query.score_range))
+                validation_errors.extend(
+                    self._validate_score_range(search_query.score_range)
+                )
 
             # Validate hierarchy options
             if search_query.include_hierarchy and search_query.max_depth:
                 if search_query.max_depth > 10:
-                    validation_errors.append("Max depth cannot exceed 10 for performance reasons")
+                    validation_errors.append(
+                        "Max depth cannot exceed 10 for performance reasons"
+                    )
 
             # Set parsed query structure
             search_query.parsed_query = {
@@ -89,7 +96,7 @@ class ParseAndValidateQuery(CyodaProcessor):
                 "operators": parsed_query["operators"],
                 "quoted_phrases": parsed_query["quoted_phrases"],
                 "field_searches": parsed_query["field_searches"],
-                "validation_errors": validation_errors
+                "validation_errors": validation_errors,
             }
 
             # Log validation results
@@ -114,10 +121,10 @@ class ParseAndValidateQuery(CyodaProcessor):
     def _parse_query_text(self, query_text: str) -> Dict[str, Any]:
         """
         Parse query text into structured components.
-        
+
         Args:
             query_text: The raw query text
-            
+
         Returns:
             Dictionary with parsed query components
         """
@@ -125,36 +132,42 @@ class ParseAndValidateQuery(CyodaProcessor):
             "terms": [],
             "operators": [],
             "quoted_phrases": [],
-            "field_searches": {}
+            "field_searches": {},
         }
 
         # Extract quoted phrases
         quoted_pattern = r'"([^"]*)"'
         quoted_matches = re.findall(quoted_pattern, query_text)
         parsed["quoted_phrases"] = quoted_matches
-        
+
         # Remove quoted phrases from text for further processing
-        text_without_quotes = re.sub(quoted_pattern, '', query_text)
+        text_without_quotes = re.sub(quoted_pattern, "", query_text)
 
         # Extract field searches (e.g., "author:username", "type:story")
-        field_pattern = r'(\w+):(\w+)'
+        field_pattern = r"(\w+):(\w+)"
         field_matches = re.findall(field_pattern, text_without_quotes)
         for field, value in field_matches:
             if field not in parsed["field_searches"]:
                 parsed["field_searches"][field] = []
             parsed["field_searches"][field].append(value)
-        
+
         # Remove field searches from text
-        text_without_fields = re.sub(field_pattern, '', text_without_quotes)
+        text_without_fields = re.sub(field_pattern, "", text_without_quotes)
 
         # Extract operators (AND, OR, NOT)
-        operator_pattern = r'\b(AND|OR|NOT)\b'
-        operator_matches = re.findall(operator_pattern, text_without_fields, re.IGNORECASE)
+        operator_pattern = r"\b(AND|OR|NOT)\b"
+        operator_matches = re.findall(
+            operator_pattern, text_without_fields, re.IGNORECASE
+        )
         parsed["operators"] = [op.upper() for op in operator_matches]
 
         # Extract remaining terms
-        text_without_operators = re.sub(operator_pattern, '', text_without_fields, flags=re.IGNORECASE)
-        terms = [term.strip() for term in text_without_operators.split() if term.strip()]
+        text_without_operators = re.sub(
+            operator_pattern, "", text_without_fields, flags=re.IGNORECASE
+        )
+        terms = [
+            term.strip() for term in text_without_operators.split() if term.strip()
+        ]
         parsed["terms"] = terms
 
         return parsed
@@ -162,12 +175,14 @@ class ParseAndValidateQuery(CyodaProcessor):
     def _validate_filters(self, filters: Dict[str, Any]) -> List[str]:
         """Validate search filters."""
         errors = []
-        
+
         # Validate type filter
         if "type" in filters:
             valid_types = ["job", "story", "comment", "poll", "pollopt"]
             if filters["type"] not in valid_types:
-                errors.append(f"Invalid type filter: {filters['type']}. Must be one of: {valid_types}")
+                errors.append(
+                    f"Invalid type filter: {filters['type']}. Must be one of: {valid_types}"
+                )
 
         # Validate author filter
         if "by" in filters:
@@ -188,7 +203,7 @@ class ParseAndValidateQuery(CyodaProcessor):
     def _validate_date_range(self, date_range: Dict[str, str]) -> List[str]:
         """Validate date range filter."""
         errors = []
-        
+
         if not isinstance(date_range, dict):
             errors.append("Date range must be a dictionary")
             return errors
@@ -203,7 +218,7 @@ class ParseAndValidateQuery(CyodaProcessor):
                 date_str = date_range[field]
                 if not isinstance(date_str, str):
                     errors.append(f"Date range '{field}' must be a string")
-                elif not re.match(r'\d{4}-\d{2}-\d{2}', date_str):
+                elif not re.match(r"\d{4}-\d{2}-\d{2}", date_str):
                     errors.append(f"Date range '{field}' must be in YYYY-MM-DD format")
 
         return errors
@@ -211,7 +226,7 @@ class ParseAndValidateQuery(CyodaProcessor):
     def _validate_score_range(self, score_range: Dict[str, int]) -> List[str]:
         """Validate score range filter."""
         errors = []
-        
+
         if not isinstance(score_range, dict):
             errors.append("Score range must be a dictionary")
             return errors
@@ -230,7 +245,9 @@ class ParseAndValidateQuery(CyodaProcessor):
         if "min" in score_range and "max" in score_range:
             try:
                 if int(score_range["min"]) > int(score_range["max"]):
-                    errors.append("Score range 'min' must be less than or equal to 'max'")
+                    errors.append(
+                        "Score range 'min' must be less than or equal to 'max'"
+                    )
             except (ValueError, TypeError):
                 pass  # Already handled above
 

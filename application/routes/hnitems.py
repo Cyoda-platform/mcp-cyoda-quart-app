@@ -28,6 +28,7 @@ from application.entity.hnitem.version_1.hnitem import HNItem
 # Request/Response Models
 class HNItemQueryParams(BaseModel):
     """Query parameters for listing HNItems"""
+
     type: Optional[str] = Field(None, description="Filter by item type")
     by: Optional[str] = Field(None, description="Filter by author")
     parent: Optional[int] = Field(None, description="Filter by parent ID")
@@ -37,11 +38,15 @@ class HNItemQueryParams(BaseModel):
 
 class HNItemUpdateQueryParams(BaseModel):
     """Query parameters for updating HNItems"""
-    transition: Optional[str] = Field(None, description="Workflow transition to trigger")
+
+    transition: Optional[str] = Field(
+        None, description="Workflow transition to trigger"
+    )
 
 
 class HNItemSearchParams(BaseModel):
     """Query parameters for searching HNItems"""
+
     q: str = Field(..., description="Search query text")
     type: Optional[str] = Field(None, description="Filter by item type")
     by: Optional[str] = Field(None, description="Filter by author")
@@ -53,19 +58,26 @@ class HNItemSearchParams(BaseModel):
 
 class HNItemArrayRequest(BaseModel):
     """Request model for array of HNItems"""
+
     items: List[Dict[str, Any]] = Field(..., description="Array of HN item data")
-    transition: Optional[str] = Field(None, description="Workflow transition to trigger")
+    transition: Optional[str] = Field(
+        None, description="Workflow transition to trigger"
+    )
 
 
 class HNItemBulkRequest(BaseModel):
     """Request model for bulk HNItem upload"""
+
     data: List[Dict[str, Any]] = Field(..., description="Bulk HN item data")
     source: Optional[str] = Field(None, description="Source description")
-    transition: Optional[str] = Field(None, description="Workflow transition to trigger")
+    transition: Optional[str] = Field(
+        None, description="Workflow transition to trigger"
+    )
 
 
 class FirebasePullRequest(BaseModel):
     """Request model for Firebase API pull"""
+
     endpoint: Optional[str] = Field(None, description="Firebase API endpoint")
     filters: Optional[Dict[str, Any]] = Field(None, description="API filters")
     limit: Optional[int] = Field(100, description="Number of items to pull")
@@ -73,6 +85,7 @@ class FirebasePullRequest(BaseModel):
 
 class HNItemResponse(BaseModel):
     """Response model for single HNItem"""
+
     id: str = Field(..., description="Entity ID")
     status: str = Field(..., description="Operation status")
     transition: Optional[str] = Field(None, description="Applied transition")
@@ -80,12 +93,14 @@ class HNItemResponse(BaseModel):
 
 class HNItemListResponse(BaseModel):
     """Response model for HNItem list"""
+
     items: List[Dict[str, Any]] = Field(..., description="List of HN items")
     total: int = Field(..., description="Total number of items")
 
 
 class HNItemSearchResponse(BaseModel):
     """Response model for HNItem search"""
+
     items: List[Dict[str, Any]] = Field(..., description="Search results")
     total: int = Field(..., description="Total number of results")
     query: str = Field(..., description="Search query")
@@ -129,7 +144,7 @@ async def create_hnitem(data: HNItem) -> ResponseReturnValue:
     try:
         # Get optional transition from query params
         transition = request.args.get("transition")
-        
+
         # Convert request to entity data
         entity_data = data.model_dump(by_alias=True, exclude_none=True)
 
@@ -154,7 +169,7 @@ async def create_hnitem(data: HNItem) -> ResponseReturnValue:
         return {
             "id": response.metadata.id,
             "status": "created",
-            "transition": transition
+            "transition": transition,
         }, 201
 
     except ValueError as e:
@@ -204,26 +219,27 @@ async def create_hnitem_array(data: HNItemArrayRequest) -> ResponseReturnValue:
                         entity_version=str(HNItem.ENTITY_VERSION),
                     )
 
-                created_items.append({
-                    "id": response.metadata.id,
-                    "hn_id": item_data.get("id"),
-                    "status": "created"
-                })
+                created_items.append(
+                    {
+                        "id": response.metadata.id,
+                        "hn_id": item_data.get("id"),
+                        "status": "created",
+                    }
+                )
 
             except Exception as e:
-                failed_items.append({
-                    "hn_id": item_data.get("id"),
-                    "error": str(e)
-                })
+                failed_items.append({"hn_id": item_data.get("id"), "error": str(e)})
 
-        logger.info("Created %d HNItems, %d failed", len(created_items), len(failed_items))
+        logger.info(
+            "Created %d HNItems, %d failed", len(created_items), len(failed_items)
+        )
 
         return {
             "created": created_items,
             "failed": failed_items,
             "total_created": len(created_items),
             "total_failed": len(failed_items),
-            "transition": data.transition
+            "transition": data.transition,
         }, 201
 
     except Exception as e:
@@ -245,14 +261,16 @@ async def create_hnitem_array(data: HNItemArrayRequest) -> ResponseReturnValue:
 async def create_hnitem_bulk(data: HNItemBulkRequest) -> ResponseReturnValue:
     """Bulk upload HN items from JSON data"""
     try:
-        from application.entity.hnitemcollection.version_1.hnitemcollection import HNItemCollection
+        from application.entity.hnitemcollection.version_1.hnitemcollection import (
+            HNItemCollection,
+        )
 
         # Create HNItemCollection for bulk processing
         collection = HNItemCollection(
             collection_type="array",
             source=data.source or "bulk_upload",
             total_items=len(data.data),
-            items=data.data
+            items=data.data,
         )
 
         collection_data = collection.model_dump(by_alias=True, exclude_none=True)
@@ -273,14 +291,16 @@ async def create_hnitem_bulk(data: HNItemBulkRequest) -> ResponseReturnValue:
                 entity_version=str(HNItemCollection.ENTITY_VERSION),
             )
 
-        logger.info("Created HNItemCollection for bulk upload with ID: %s", response.metadata.id)
+        logger.info(
+            "Created HNItemCollection for bulk upload with ID: %s", response.metadata.id
+        )
 
         return {
             "collection_id": response.metadata.id,
             "status": "created",
             "total_items": len(data.data),
             "source": data.source,
-            "transition": data.transition
+            "transition": data.transition,
         }, 201
 
     except Exception as e:
@@ -401,15 +421,17 @@ async def search_hnitems(query_args: HNItemSearchParams) -> ResponseReturnValue:
         search_query = SearchQuery(
             query_text=query_args.q,
             filters={
-                k: v for k, v in {
+                k: v
+                for k, v in {
                     "type": query_args.type,
                     "by": query_args.by,
-                    "parent": query_args.parent
-                }.items() if v is not None
+                    "parent": query_args.parent,
+                }.items()
+                if v is not None
             },
             include_hierarchy=query_args.include_hierarchy,
             limit=query_args.limit,
-            offset=query_args.offset
+            offset=query_args.offset,
         )
 
         search_data = search_query.model_dump(by_alias=True, exclude_none=True)
@@ -442,7 +464,7 @@ async def search_hnitems(query_args: HNItemSearchParams) -> ResponseReturnValue:
             "items": search_result.get("results", []),
             "total": search_result.get("result_count", 0),
             "query": query_args.q,
-            "execution_time_ms": search_result.get("execution_time_ms")
+            "execution_time_ms": search_result.get("execution_time_ms"),
         }, 200
 
     except Exception as e:
@@ -548,7 +570,9 @@ async def delete_hnitem(entity_id: str) -> ResponseReturnValue:
 async def pull_firebase_hnitems(data: FirebasePullRequest) -> ResponseReturnValue:
     """Trigger pull from Firebase HN API"""
     try:
-        from application.entity.hnitemcollection.version_1.hnitemcollection import HNItemCollection
+        from application.entity.hnitemcollection.version_1.hnitemcollection import (
+            HNItemCollection,
+        )
 
         # Create HNItemCollection for Firebase pull
         collection = HNItemCollection(
@@ -556,7 +580,7 @@ async def pull_firebase_hnitems(data: FirebasePullRequest) -> ResponseReturnValu
             source="Firebase HN API",
             firebase_endpoint=data.endpoint or "https://hacker-news.firebaseio.com/v0",
             firebase_filters=data.filters,
-            total_items=data.limit or 100
+            total_items=data.limit or 100,
         )
 
         collection_data = collection.model_dump(by_alias=True, exclude_none=True)
@@ -576,13 +600,15 @@ async def pull_firebase_hnitems(data: FirebasePullRequest) -> ResponseReturnValu
             entity_version=str(HNItemCollection.ENTITY_VERSION),
         )
 
-        logger.info("Created Firebase pull collection with ID: %s", response.metadata.id)
+        logger.info(
+            "Created Firebase pull collection with ID: %s", response.metadata.id
+        )
 
         return {
             "collection_id": response.metadata.id,
             "status": "processing",
             "endpoint": data.endpoint,
-            "limit": data.limit
+            "limit": data.limit,
         }, 201
 
     except Exception as e:

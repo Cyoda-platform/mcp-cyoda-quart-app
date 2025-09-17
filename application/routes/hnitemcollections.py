@@ -22,13 +22,18 @@ from pydantic import BaseModel, Field
 
 from common.service.entity_service import SearchConditionRequest
 from services.services import get_entity_service
-from application.entity.hnitemcollection.version_1.hnitemcollection import HNItemCollection
+from application.entity.hnitemcollection.version_1.hnitemcollection import (
+    HNItemCollection,
+)
 
 
 # Request/Response Models
 class HNItemCollectionQueryParams(BaseModel):
     """Query parameters for listing HNItemCollections"""
-    collection_type: Optional[str] = Field(None, description="Filter by collection type")
+
+    collection_type: Optional[str] = Field(
+        None, description="Filter by collection type"
+    )
     source: Optional[str] = Field(None, description="Filter by source")
     limit: int = Field(10, description="Number of collections to return", ge=1, le=100)
     offset: int = Field(0, description="Number of collections to skip", ge=0)
@@ -36,11 +41,15 @@ class HNItemCollectionQueryParams(BaseModel):
 
 class HNItemCollectionUpdateQueryParams(BaseModel):
     """Query parameters for updating HNItemCollections"""
-    transition: Optional[str] = Field(None, description="Workflow transition to trigger")
+
+    transition: Optional[str] = Field(
+        None, description="Workflow transition to trigger"
+    )
 
 
 class HNItemCollectionResponse(BaseModel):
     """Response model for single HNItemCollection"""
+
     id: str = Field(..., description="Entity ID")
     status: str = Field(..., description="Operation status")
     transition: Optional[str] = Field(None, description="Applied transition")
@@ -48,6 +57,7 @@ class HNItemCollectionResponse(BaseModel):
 
 class HNItemCollectionListResponse(BaseModel):
     """Response model for HNItemCollection list"""
+
     collections: list[Dict[str, Any]] = Field(..., description="List of collections")
     total: int = Field(..., description="Total number of collections")
 
@@ -67,7 +77,9 @@ def _to_entity_dict(data: Any) -> Dict[str, Any]:
     return data.model_dump(by_alias=True) if hasattr(data, "model_dump") else data
 
 
-hnitemcollections_bp = Blueprint("hnitemcollections", __name__, url_prefix="/hnitemcollection")
+hnitemcollections_bp = Blueprint(
+    "hnitemcollections", __name__, url_prefix="/hnitemcollection"
+)
 
 
 # ---- Core CRUD Routes -------------------------------------------------------
@@ -89,7 +101,7 @@ async def create_hnitemcollection(data: HNItemCollection) -> ResponseReturnValue
     try:
         # Get optional transition from query params
         transition = request.args.get("transition")
-        
+
         # Convert request to entity data
         entity_data = data.model_dump(by_alias=True, exclude_none=True)
 
@@ -114,7 +126,7 @@ async def create_hnitemcollection(data: HNItemCollection) -> ResponseReturnValue
         return {
             "id": response.metadata.id,
             "status": "created",
-            "transition": transition
+            "transition": transition,
         }, 201
 
     except ValueError as e:
@@ -172,7 +184,9 @@ async def get_hnitemcollection(entity_id: str) -> ResponseReturnValue:
         500: (Dict[str, str], None),
     }
 )
-async def list_hnitemcollections(query_args: HNItemCollectionQueryParams) -> ResponseReturnValue:
+async def list_hnitemcollections(
+    query_args: HNItemCollectionQueryParams,
+) -> ResponseReturnValue:
     """List HNItemCollections with optional filtering"""
     try:
         # Build search conditions
@@ -230,7 +244,9 @@ async def list_hnitemcollections(query_args: HNItemCollectionQueryParams) -> Res
     },
 )
 async def update_hnitemcollection(
-    entity_id: str, data: HNItemCollection, query_args: HNItemCollectionUpdateQueryParams
+    entity_id: str,
+    data: HNItemCollection,
+    query_args: HNItemCollectionUpdateQueryParams,
 ) -> ResponseReturnValue:
     """Update HNItemCollection and optionally trigger workflow transition"""
     try:
@@ -254,7 +270,9 @@ async def update_hnitemcollection(
         return _to_entity_dict(response.data), 200
 
     except ValueError as e:
-        logger.warning("Validation error updating HNItemCollection %s: %s", entity_id, str(e))
+        logger.warning(
+            "Validation error updating HNItemCollection %s: %s", entity_id, str(e)
+        )
         return {"error": str(e), "code": "VALIDATION_ERROR"}, 400
     except Exception as e:
         logger.exception("Error updating HNItemCollection %s: %s", entity_id, str(e))
@@ -340,13 +358,15 @@ async def get_hnitemcollection_status(entity_id: str) -> ResponseReturnValue:
             "processing_started_at": collection_data.get("processing_started_at"),
             "completed_at": collection_data.get("completed_at"),
             "processing_duration_ms": collection_data.get("processing_duration_ms"),
-            "error_count": len(collection_data.get("processing_errors", []))
+            "error_count": len(collection_data.get("processing_errors", [])),
         }
 
         return status_info, 200
 
     except Exception as e:
-        logger.exception("Error getting HNItemCollection status %s: %s", entity_id, str(e))
+        logger.exception(
+            "Error getting HNItemCollection status %s: %s", entity_id, str(e)
+        )
         return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
 
 
@@ -377,11 +397,15 @@ async def start_hnitemcollection_processing(entity_id: str) -> ResponseReturnVal
         return {
             "collection_id": entity_id,
             "status": "processing_started",
-            "state": response.metadata.state if hasattr(response.metadata, 'state') else None
+            "state": (
+                response.metadata.state if hasattr(response.metadata, "state") else None
+            ),
         }, 200
 
     except Exception as e:
-        logger.exception("Error starting HNItemCollection processing %s: %s", entity_id, str(e))
+        logger.exception(
+            "Error starting HNItemCollection processing %s: %s", entity_id, str(e)
+        )
         return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
 
 
@@ -413,9 +437,11 @@ async def get_hnitemcollection_errors(entity_id: str) -> ResponseReturnValue:
         return {
             "collection_id": entity_id,
             "error_count": len(processing_errors),
-            "errors": processing_errors
+            "errors": processing_errors,
         }, 200
 
     except Exception as e:
-        logger.exception("Error getting HNItemCollection errors %s: %s", entity_id, str(e))
+        logger.exception(
+            "Error getting HNItemCollection errors %s: %s", entity_id, str(e)
+        )
         return {"error": str(e), "code": "INTERNAL_ERROR"}, 500

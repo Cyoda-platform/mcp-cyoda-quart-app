@@ -3,7 +3,7 @@
 """
 SearchQuery Entity for Cyoda Client Application
 
-Handles search functionality for HN items with support for complex queries 
+Handles search functionality for HN items with support for complex queries
 and parent hierarchy joins.
 """
 
@@ -18,7 +18,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class SearchQuery(CyodaEntity):
     """
     SearchQuery handles search functionality for HN items.
-    
+
     Supports complex queries and parent hierarchy joins.
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     The state field manages workflow states: initial_state -> validated -> executed -> completed
@@ -30,106 +30,81 @@ class SearchQuery(CyodaEntity):
 
     # Core search fields
     query_id: Optional[str] = Field(
-        default=None,
-        description="Unique identifier for the search query"
+        default=None, description="Unique identifier for the search query"
     )
-    query_text: str = Field(
-        ...,
-        description="Text search terms"
-    )
-    
+    query_text: str = Field(..., description="Text search terms")
+
     # Search configuration
     filters: Optional[Dict[str, Any]] = Field(
         default_factory=dict,
-        description="Search filters (type, author, date range, etc.)"
+        description="Search filters (type, author, date range, etc.)",
     )
     include_hierarchy: bool = Field(
-        default=False,
-        description="Boolean to include parent hierarchy in results"
+        default=False, description="Boolean to include parent hierarchy in results"
     )
     sort_order: str = Field(
-        default="relevance",
-        description="Sort criteria: score, time, relevance"
+        default="relevance", description="Sort criteria: score, time, relevance"
     )
-    limit: int = Field(
-        default=10,
-        description="Maximum number of results"
-    )
-    offset: int = Field(
-        default=0,
-        description="Pagination offset"
-    )
-    
+    limit: int = Field(default=10, description="Maximum number of results")
+    offset: int = Field(default=0, description="Pagination offset")
+
     # Execution metadata
     executed_at: Optional[str] = Field(
-        default=None,
-        description="Query execution timestamp"
+        default=None, description="Query execution timestamp"
     )
     execution_time_ms: Optional[int] = Field(
-        default=None,
-        description="Query execution time in milliseconds"
+        default=None, description="Query execution time in milliseconds"
     )
-    result_count: int = Field(
-        default=0,
-        description="Number of results found"
-    )
-    
+    result_count: int = Field(default=0, description="Number of results found")
+
     # Results
     results: Optional[List[Dict[str, Any]]] = Field(
-        default_factory=list,
-        description="Array of matching HNItem references"
+        default_factory=list, description="Array of matching HNItem references"
     )
-    
+
     # Advanced search options
     search_fields: Optional[List[str]] = Field(
         default_factory=lambda: ["title", "text"],
-        description="Fields to search in: title, text, by, url"
+        description="Fields to search in: title, text, by, url",
     )
     date_range: Optional[Dict[str, str]] = Field(
-        default=None,
-        description="Date range filter with 'from' and 'to' ISO dates"
+        default=None, description="Date range filter with 'from' and 'to' ISO dates"
     )
     score_range: Optional[Dict[str, int]] = Field(
-        default=None,
-        description="Score range filter with 'min' and 'max' values"
+        default=None, description="Score range filter with 'min' and 'max' values"
     )
-    
+
     # Hierarchy search options
     max_depth: Optional[int] = Field(
-        default=None,
-        description="Maximum depth for hierarchy traversal"
+        default=None, description="Maximum depth for hierarchy traversal"
     )
     include_children: bool = Field(
-        default=False,
-        description="Include child comments in results"
+        default=False, description="Include child comments in results"
     )
     include_parents: bool = Field(
-        default=False,
-        description="Include parent items in results"
+        default=False, description="Include parent items in results"
     )
-    
+
     # Processing fields
     parsed_query: Optional[Dict[str, Any]] = Field(
-        default=None,
-        description="Parsed and validated query structure"
+        default=None, description="Parsed and validated query structure"
     )
     search_index_used: Optional[str] = Field(
-        default=None,
-        description="Search index that was used for the query"
+        default=None, description="Search index that was used for the query"
     )
     cache_key: Optional[str] = Field(
-        default=None,
-        description="Cache key for result caching"
+        default=None, description="Cache key for result caching"
     )
 
     # Validation constants
     ALLOWED_SORT_ORDERS: ClassVar[List[str]] = [
-        "relevance", "score", "time", "comments"
+        "relevance",
+        "score",
+        "time",
+        "comments",
     ]
-    
-    ALLOWED_SEARCH_FIELDS: ClassVar[List[str]] = [
-        "title", "text", "by", "url", "type"
-    ]
+
+    ALLOWED_SEARCH_FIELDS: ClassVar[List[str]] = ["title", "text", "by", "url", "type"]
 
     @field_validator("query_text")
     @classmethod
@@ -174,7 +149,9 @@ class SearchQuery(CyodaEntity):
         if v is not None:
             for field in v:
                 if field not in cls.ALLOWED_SEARCH_FIELDS:
-                    raise ValueError(f"Search field '{field}' not allowed. Must be one of: {cls.ALLOWED_SEARCH_FIELDS}")
+                    raise ValueError(
+                        f"Search field '{field}' not allowed. Must be one of: {cls.ALLOWED_SEARCH_FIELDS}"
+                    )
         return v
 
     @field_validator("max_depth")
@@ -209,14 +186,16 @@ class SearchQuery(CyodaEntity):
         """Mark query execution as started"""
         self.executed_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
-    def complete_execution(self, result_count: int, results: List[Dict[str, Any]]) -> None:
+    def complete_execution(
+        self, result_count: int, results: List[Dict[str, Any]]
+    ) -> None:
         """Mark query execution as completed"""
         if self.executed_at:
             start_time = datetime.fromisoformat(self.executed_at.replace("Z", "+00:00"))
             end_time = datetime.now(timezone.utc)
             duration = end_time - start_time
             self.execution_time_ms = int(duration.total_seconds() * 1000)
-        
+
         self.result_count = result_count
         self.results = results
 
@@ -231,7 +210,7 @@ class SearchQuery(CyodaEntity):
             "search_fields": self.search_fields,
             "sort_order": self.sort_order,
             "limit": self.limit,
-            "offset": self.offset
+            "offset": self.offset,
         }
         return summary
 
@@ -243,7 +222,7 @@ class SearchQuery(CyodaEntity):
             "result_count": self.result_count,
             "execution_time_ms": self.execution_time_ms,
             "executed_at": self.executed_at,
-            "filter_summary": self.get_filter_summary()
+            "filter_summary": self.get_filter_summary(),
         }
 
     def to_api_response(self) -> Dict[str, Any]:

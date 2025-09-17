@@ -48,8 +48,10 @@ class PersistItem(CyodaProcessor):
             hn_item = cast_entity(entity, HNItem)
 
             # Add storage timestamp
-            hn_item.stored_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-            
+            hn_item.stored_at = (
+                datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            )
+
             # Mark as persisted
             hn_item.storage_status = "persisted"
 
@@ -57,9 +59,7 @@ class PersistItem(CyodaProcessor):
             # when this processor returns. We just mark the entity as ready
             # for storage and add metadata.
 
-            self.logger.info(
-                f"HNItem {hn_item.technical_id} marked for persistence"
-            )
+            self.logger.info(f"HNItem {hn_item.technical_id} marked for persistence")
 
             return hn_item
 
@@ -68,6 +68,6 @@ class PersistItem(CyodaProcessor):
                 f"Error persisting HNItem {getattr(entity, 'technical_id', '<unknown>')}: {str(e)}"
             )
             # Mark storage as failed
-            if hasattr(entity, 'storage_status'):
+            if hasattr(entity, "storage_status"):
                 entity.storage_status = "failed"
             raise

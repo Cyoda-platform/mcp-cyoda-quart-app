@@ -28,6 +28,7 @@ from application.entity.searchquery.version_1.searchquery import SearchQuery
 # Request/Response Models
 class SearchQueryQueryParams(BaseModel):
     """Query parameters for listing SearchQueries"""
+
     query_text: Optional[str] = Field(None, description="Filter by query text")
     sort_order: Optional[str] = Field(None, description="Filter by sort order")
     limit: int = Field(10, description="Number of queries to return", ge=1, le=100)
@@ -36,11 +37,15 @@ class SearchQueryQueryParams(BaseModel):
 
 class SearchQueryUpdateQueryParams(BaseModel):
     """Query parameters for updating SearchQueries"""
-    transition: Optional[str] = Field(None, description="Workflow transition to trigger")
+
+    transition: Optional[str] = Field(
+        None, description="Workflow transition to trigger"
+    )
 
 
 class SearchQueryExecuteRequest(BaseModel):
     """Request model for executing a search query"""
+
     query_text: str = Field(..., description="Search query text")
     filters: Optional[Dict[str, Any]] = Field(None, description="Search filters")
     include_hierarchy: bool = Field(False, description="Include parent hierarchy")
@@ -52,6 +57,7 @@ class SearchQueryExecuteRequest(BaseModel):
 
 class SearchQueryResponse(BaseModel):
     """Response model for single SearchQuery"""
+
     id: str = Field(..., description="Entity ID")
     status: str = Field(..., description="Operation status")
     transition: Optional[str] = Field(None, description="Applied transition")
@@ -59,12 +65,14 @@ class SearchQueryResponse(BaseModel):
 
 class SearchQueryListResponse(BaseModel):
     """Response model for SearchQuery list"""
+
     queries: List[Dict[str, Any]] = Field(..., description="List of search queries")
     total: int = Field(..., description="Total number of queries")
 
 
 class SearchQueryExecuteResponse(BaseModel):
     """Response model for search execution"""
+
     query_id: str = Field(..., description="Search query ID")
     results: List[Dict[str, Any]] = Field(..., description="Search results")
     total: int = Field(..., description="Total number of results")
@@ -109,7 +117,7 @@ async def create_searchquery(data: SearchQuery) -> ResponseReturnValue:
     try:
         # Get optional transition from query params
         transition = request.args.get("transition")
-        
+
         # Convert request to entity data
         entity_data = data.model_dump(by_alias=True, exclude_none=True)
 
@@ -134,7 +142,7 @@ async def create_searchquery(data: SearchQuery) -> ResponseReturnValue:
         return {
             "id": response.metadata.id,
             "status": "created",
-            "transition": transition
+            "transition": transition,
         }, 201
 
     except ValueError as e:
@@ -274,7 +282,9 @@ async def update_searchquery(
         return _to_entity_dict(response.data), 200
 
     except ValueError as e:
-        logger.warning("Validation error updating SearchQuery %s: %s", entity_id, str(e))
+        logger.warning(
+            "Validation error updating SearchQuery %s: %s", entity_id, str(e)
+        )
         return {"error": str(e), "code": "VALIDATION_ERROR"}, 400
     except Exception as e:
         logger.exception("Error updating SearchQuery %s: %s", entity_id, str(e))
@@ -317,4 +327,157 @@ async def delete_searchquery(entity_id: str) -> ResponseReturnValue:
         return {"error": str(e), "code": "INVALID_ID"}, 400
     except Exception as e:
         logger.exception("Error deleting SearchQuery %s: %s", entity_id, str(e))
+        return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
+
+
+# ---- Search Execution Operations ---------------------------------------------
+
+
+@searchqueries_bp.route("/execute", methods=["POST"])
+@tag(["searchqueries"])
+@operation_id("execute_search")
+@validate(
+    request=SearchQueryExecuteRequest,
+    responses={
+        200: (SearchQueryExecuteResponse, None),
+        400: (Dict[str, str], None),
+        500: (Dict[str, str], None),
+    },
+)
+async def execute_search(data: SearchQueryExecuteRequest) -> ResponseReturnValue:
+    """Execute a search query and return results"""
+    try:
+        # Create SearchQuery entity
+        search_query = SearchQuery(
+            query_text=data.query_text,
+            filters=data.filters or {},
+            include_hierarchy=data.include_hierarchy,
+            sort_order=data.sort_order,
+            limit=data.limit,
+            offset=data.offset,
+            search_fields=data.search_fields or ["title", "text"],
+        )
+
+        search_data = search_query.model_dump(by_alias=True, exclude_none=True)
+
+        # Save the search query
+        response = await service.save(
+            entity=search_data,
+            entity_class=SearchQuery.ENTITY_NAME,
+            entity_version=str(SearchQuery.ENTITY_VERSION),
+        )
+
+        # Execute search workflow
+        await service.execute_transition(
+            entity_id=response.metadata.id,
+            transition="execute_search",
+            entity_class=SearchQuery.ENTITY_NAME,
+            entity_version=str(SearchQuery.ENTITY_VERSION),
+        )
+
+        # Get updated search results
+        updated_response = await service.get_by_id(
+            entity_id=response.metadata.id,
+            entity_class=SearchQuery.ENTITY_NAME,
+            entity_version=str(SearchQuery.ENTITY_VERSION),
+        )
+
+        search_result = _to_entity_dict(updated_response.data)
+
+        return {
+            "query_id": response.metadata.id,
+            "results": search_result.get("results", []),
+            "total": search_result.get("result_count", 0),
+            "execution_time_ms": search_result.get("execution_time_ms"),
+            "query_text": data.query_text,
+        }, 200
+
+    except Exception as e:
+        logger.exception("Error executing search: %s", str(e))
+        return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
+
+
+@searchqueries_bp.route("/<entity_id>/execute", methods=["POST"])
+@tag(["searchqueries"])
+@operation_id("execute_existing_search")
+@validate(
+    responses={
+        200: (SearchQueryExecuteResponse, None),
+        404: (Dict[str, str], None),
+        400: (Dict[str, str], None),
+        500: (Dict[str, str], None),
+    }
+)
+async def execute_existing_search(entity_id: str) -> ResponseReturnValue:
+    """Execute an existing SearchQuery"""
+    try:
+        # Execute search workflow
+        await service.execute_transition(
+            entity_id=entity_id,
+            transition="execute_search",
+            entity_class=SearchQuery.ENTITY_NAME,
+            entity_version=str(SearchQuery.ENTITY_VERSION),
+        )
+
+        # Get updated search results
+        response = await service.get_by_id(
+            entity_id=entity_id,
+            entity_class=SearchQuery.ENTITY_NAME,
+            entity_version=str(SearchQuery.ENTITY_VERSION),
+        )
+
+        if not response:
+            return {"error": "SearchQuery not found", "code": "NOT_FOUND"}, 404
+
+        search_result = _to_entity_dict(response.data)
+
+        return {
+            "query_id": entity_id,
+            "results": search_result.get("results", []),
+            "total": search_result.get("result_count", 0),
+            "execution_time_ms": search_result.get("execution_time_ms"),
+            "query_text": search_result.get("query_text", ""),
+        }, 200
+
+    except Exception as e:
+        logger.exception("Error executing existing search %s: %s", entity_id, str(e))
+        return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
+
+
+@searchqueries_bp.route("/<entity_id>/results", methods=["GET"])
+@tag(["searchqueries"])
+@operation_id("get_search_results")
+@validate(
+    responses={
+        200: (Dict[str, Any], None),
+        404: (Dict[str, str], None),
+        500: (Dict[str, str], None),
+    }
+)
+async def get_search_results(entity_id: str) -> ResponseReturnValue:
+    """Get results from a previously executed SearchQuery"""
+    try:
+        response = await service.get_by_id(
+            entity_id=entity_id,
+            entity_class=SearchQuery.ENTITY_NAME,
+            entity_version=str(SearchQuery.ENTITY_VERSION),
+        )
+
+        if not response:
+            return {"error": "SearchQuery not found", "code": "NOT_FOUND"}, 404
+
+        search_result = _to_entity_dict(response.data)
+
+        return {
+            "query_id": entity_id,
+            "query_text": search_result.get("query_text", ""),
+            "results": search_result.get("results", []),
+            "total": search_result.get("result_count", 0),
+            "execution_time_ms": search_result.get("execution_time_ms"),
+            "executed_at": search_result.get("executed_at"),
+            "state": search_result.get("state"),
+        }, 200
+
+    except Exception as e:
+        logger.exception("Error getting search results %s: %s", entity_id, str(e))
         return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
