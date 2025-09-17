@@ -99,7 +99,7 @@ class CancelApplicationProcessor(CyodaProcessor):
                 f"Adoption cannot be cancelled from state: {adoption.state}"
             )
 
-        self.logger.info(f"Adoption validation passed for cancellation")
+        self.logger.info("Adoption validation passed for cancellation")
 
     def _cancel_adoption_application(self, adoption: Adoption) -> None:
         """

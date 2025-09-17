@@ -96,7 +96,7 @@ class CompleteAdoptionProcessor(CyodaProcessor):
         if not adoption.owner_id or len(adoption.owner_id.strip()) == 0:
             raise ValueError("Owner ID is required for completion")
 
-        self.logger.info(f"Adoption validation passed for completion")
+        self.logger.info("Adoption validation passed for completion")
 
     def _complete_adoption(self, adoption: Adoption) -> None:
         """
