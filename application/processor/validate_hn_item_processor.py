@@ -6,7 +6,6 @@ Performs comprehensive validation including type-specific rules and relationship
 """
 
 import logging
-from datetime import datetime, timezone
 from typing import Any
 
 from application.entity.hnitem.version_1.hnitem import HnItem
