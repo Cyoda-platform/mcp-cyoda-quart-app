@@ -1,0 +1,77 @@
+{
+    "version": "1.0",
+    "name": "Store Workflow",
+    "desc": "Description of the workflow for Store",
+    "initialState": "initial_state",
+    "active": true,
+    "states": {
+        "initial_state": {
+            "transitions": [
+                {
+                    "name": "transition_to_active",
+                    "next": "active",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "StoreActivationProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "active": {
+            "transitions": [
+                {
+                    "name": "transition_to_temporarily_closed",
+                    "next": "temporarily_closed",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "StoreTemporaryClosureProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "transition_to_permanently_closed",
+                    "next": "permanently_closed",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "StorePermanentClosureProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "temporarily_closed": {
+            "transitions": [
+                {
+                    "name": "transition_to_active",
+                    "next": "active",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "StoreReopeningProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}

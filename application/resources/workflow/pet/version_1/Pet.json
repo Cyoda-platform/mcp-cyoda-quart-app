@@ -1,0 +1,170 @@
+{
+    "version": "1.0",
+    "name": "Pet Workflow",
+    "desc": "Workflow for managing pet states in the adoption process",
+    "initialState": "initial_state",
+    "active": true,
+    "states": {
+        "initial_state": {
+            "transitions": [
+                {
+                    "name": "transition_to_available",
+                    "next": "available",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "PetIntakeProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "available": {
+            "transitions": [
+                {
+                    "name": "transition_to_reserved",
+                    "next": "reserved",
+                    "manual": true,
+                    "processors": [
+                        {
+                            "name": "PetReservationProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ],
+                    "criterion": {
+                        "type": "function",
+                        "function": {
+                            "name": "PetAvailabilityCriterion",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "transition_to_medical_hold",
+                    "next": "medical_hold",
+                    "manual": true,
+                    "processors": [
+                        {
+                            "name": "PetMedicalHoldProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "transition_to_unavailable",
+                    "next": "unavailable",
+                    "manual": true,
+                    "processors": []
+                }
+            ]
+        },
+        "reserved": {
+            "transitions": [
+                {
+                    "name": "transition_to_adopted",
+                    "next": "adopted",
+                    "manual": true,
+                    "processors": [
+                        {
+                            "name": "PetAdoptionProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ],
+                    "criterion": {
+                        "type": "function",
+                        "function": {
+                            "name": "AdoptionReadinessCriterion",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "transition_to_available",
+                    "next": "available",
+                    "manual": true,
+                    "processors": [
+                        {
+                            "name": "PetReservationCancellationProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "medical_hold": {
+            "transitions": [
+                {
+                    "name": "transition_to_available",
+                    "next": "available",
+                    "manual": true,
+                    "processors": [
+                        {
+                            "name": "PetMedicalClearanceProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ],
+                    "criterion": {
+                        "type": "function",
+                        "function": {
+                            "name": "MedicalClearanceCriterion",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "adopted": {
+            "transitions": [
+                {
+                    "name": "transition_to_available",
+                    "next": "available",
+                    "manual": true,
+                    "processors": [
+                        {
+                            "name": "PetReturnProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "unavailable": {
+            "transitions": [
+                {
+                    "name": "transition_to_available",
+                    "next": "available",
+                    "manual": true,
+                    "processors": []
+                }
+            ]
+        }
+    }
+}

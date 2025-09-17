@@ -1,0 +1,112 @@
+{
+    "version": "1.0",
+    "name": "Adoption Workflow",
+    "desc": "Workflow for managing adoption processes",
+    "initialState": "initial_state",
+    "active": true,
+    "states": {
+        "initial_state": {
+            "transitions": [
+                {
+                    "name": "transition_to_completed",
+                    "next": "completed",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "AdoptionCompletionProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "completed": {
+            "transitions": [
+                {
+                    "name": "transition_to_follow_up_pending",
+                    "next": "follow_up_pending",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "FollowUpSchedulingProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "transition_to_returned",
+                    "next": "returned",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "AdoptionReturnProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "follow_up_pending": {
+            "transitions": [
+                {
+                    "name": "transition_to_follow_up_completed",
+                    "next": "follow_up_completed",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "FollowUpCompletionProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "transition_to_returned",
+                    "next": "returned",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "AdoptionReturnProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "follow_up_completed": {
+            "transitions": [
+                {
+                    "name": "transition_to_returned",
+                    "next": "returned",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "AdoptionReturnProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "returned": {
+            "transitions": []
+        }
+    }
+}

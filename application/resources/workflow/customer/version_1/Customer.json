@@ -1,0 +1,94 @@
+{
+    "version": "1.0",
+    "name": "Customer Workflow",
+    "desc": "Description of the workflow for Customer",
+    "initialState": "initial_state",
+    "active": true,
+    "states": {
+        "initial_state": {
+            "transitions": [
+                {
+                    "name": "transition_to_active",
+                    "next": "active",
+                    "manual": false,
+                    "processors": [
+                        {
+                            "name": "CustomerRegistrationProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "active": {
+            "transitions": [
+                {
+                    "name": "transition_to_suspended",
+                    "next": "suspended",
+                    "manual": true,
+                    "processors": [
+                        {
+                            "name": "CustomerSuspensionProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "transition_to_blacklisted",
+                    "next": "blacklisted",
+                    "manual": true,
+                    "processors": [
+                        {
+                            "name": "CustomerBlacklistProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "suspended": {
+            "transitions": [
+                {
+                    "name": "transition_to_active",
+                    "next": "active",
+                    "manual": true,
+                    "processors": [
+                        {
+                            "name": "CustomerReactivationProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "transition_to_blacklisted",
+                    "next": "blacklisted",
+                    "manual": true,
+                    "processors": [
+                        {
+                            "name": "CustomerBlacklistProcessor",
+                            "executionMode": "SYNC",
+                            "config": {
+                                "calculationNodesTags": "cyoda_application"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "blacklisted": {
+            "transitions": []
+        }
+    }
+}
