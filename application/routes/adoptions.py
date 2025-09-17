@@ -108,7 +108,15 @@ async def get_adoption(entity_id: str) -> ResponseReturnValue:
 @validate_querystring(AdoptionUpdateQueryParams)
 @tag(["adoptions"])
 @operation_id("update_adoption")
-@validate(request=Adoption)
+@validate(
+    request=Adoption,
+    responses={
+        200: (AdoptionResponse, None),
+        404: (ErrorResponse, None),
+        400: (ValidationErrorResponse, None),
+        500: (ErrorResponse, None),
+    },
+)
 async def update_adoption(entity_id: str, data: Adoption, query_args: AdoptionUpdateQueryParams) -> ResponseReturnValue:
     """Update Adoption and optionally trigger workflow transition"""
     try:
