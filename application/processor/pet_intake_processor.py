@@ -8,9 +8,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.pet.version_1.pet import Pet
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.pet.version_1.pet import Pet
 
 
 class PetIntakeProcessor(CyodaProcessor):
@@ -55,7 +55,7 @@ class PetIntakeProcessor(CyodaProcessor):
 
             # Validate age is positive (already done in Pet model validation)
             # Validate weight is positive if provided (already done in Pet model validation)
-            
+
             # Set default values for boolean fields if not provided
             if pet.vaccinated is None:
                 pet.vaccinated = False
@@ -90,10 +90,10 @@ class PetIntakeProcessor(CyodaProcessor):
         # Name, category, breed are required (validated by Pydantic model)
         if not pet.name or len(pet.name.strip()) == 0:
             raise ValueError("Pet name is required")
-        
+
         if not pet.category or len(pet.category.strip()) == 0:
             raise ValueError("Pet category is required")
-        
+
         if not pet.breed or len(pet.breed.strip()) == 0:
             raise ValueError("Pet breed is required")
 

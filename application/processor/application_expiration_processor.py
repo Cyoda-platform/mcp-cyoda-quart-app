@@ -8,9 +8,11 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.adoption_application.version_1.adoption_application import (
+    AdoptionApplication,
+)
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.adoption_application.version_1.adoption_application import AdoptionApplication
 
 
 class ApplicationExpirationProcessor(CyodaProcessor):
@@ -47,11 +49,17 @@ class ApplicationExpirationProcessor(CyodaProcessor):
             application = cast_entity(entity, AdoptionApplication)
 
             # Get expiration information from kwargs
-            expiration_reason = kwargs.get("expirationReason") or kwargs.get("expiration_reason")
+            expiration_reason = kwargs.get("expirationReason") or kwargs.get(
+                "expiration_reason"
+            )
             days_inactive = kwargs.get("daysInactive") or kwargs.get("days_inactive")
 
             # Validate application is in a state that can expire
-            if application.is_approved() or application.is_rejected() or application.is_expired():
+            if (
+                application.is_approved()
+                or application.is_rejected()
+                or application.is_expired()
+            ):
                 raise ValueError("Application cannot be expired from current state")
 
             # Validate expiration criteria
@@ -63,7 +71,9 @@ class ApplicationExpirationProcessor(CyodaProcessor):
 
             # Record expiration information
             # In a real system, you might have an expiration_date field
-            expiration_time = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            expiration_time = (
+                datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            )
 
             # Notify customer of expiration (in a real system)
             self.logger.info(
@@ -89,7 +99,9 @@ class ApplicationExpirationProcessor(CyodaProcessor):
             )
             raise
 
-    def _validate_expiration_criteria(self, application: AdoptionApplication, kwargs: dict) -> None:
+    def _validate_expiration_criteria(
+        self, application: AdoptionApplication, kwargs: dict
+    ) -> None:
         """
         Validate that expiration criteria are met.
 
@@ -103,16 +115,24 @@ class ApplicationExpirationProcessor(CyodaProcessor):
         # Check if application has been inactive long enough
         days_inactive = kwargs.get("daysInactive") or kwargs.get("days_inactive")
         if days_inactive is not None and days_inactive < 30:
-            raise ValueError("Application must be inactive for at least 30 days to expire")
+            raise ValueError(
+                "Application must be inactive for at least 30 days to expire"
+            )
 
         # Check if customer has been contacted (placeholder)
-        customer_contacted = kwargs.get("customerContacted") or kwargs.get("customer_contacted")
+        customer_contacted = kwargs.get("customerContacted") or kwargs.get(
+            "customer_contacted"
+        )
         if not customer_contacted:
             raise ValueError("Customer must be contacted before expiring application")
 
         # Check if grace period has passed (placeholder)
-        grace_period_passed = kwargs.get("gracePeriodPassed") or kwargs.get("grace_period_passed")
+        grace_period_passed = kwargs.get("gracePeriodPassed") or kwargs.get(
+            "grace_period_passed"
+        )
         if not grace_period_passed:
             raise ValueError("Grace period must pass before expiring application")
 
-        self.logger.debug(f"Expiration criteria validation passed for application {application.technical_id}")
+        self.logger.debug(
+            f"Expiration criteria validation passed for application {application.technical_id}"
+        )

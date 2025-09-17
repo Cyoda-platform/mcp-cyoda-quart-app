@@ -7,11 +7,13 @@ Reserves a pet for an approved adoption application.
 import logging
 from typing import Any
 
+from application.entity.adoption_application.version_1.adoption_application import (
+    AdoptionApplication,
+)
+from application.entity.customer.version_1.customer import Customer
+from application.entity.pet.version_1.pet import Pet
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.pet.version_1.pet import Pet
-from application.entity.customer.version_1.customer import Customer
-from application.entity.adoption_application.version_1.adoption_application import AdoptionApplication
 from services.services import get_entity_service
 
 
@@ -70,7 +72,7 @@ class PetReservationProcessor(CyodaProcessor):
             # Create reservation record linking pet, customer, and application
             # This is handled by updating the pet entity with reservation info
             # In a real system, you might create a separate Reservation entity
-            
+
             # Log reservation activity
             self.logger.info(
                 f"Pet {pet.technical_id} reserved for customer {customer_id} "
@@ -96,23 +98,23 @@ class PetReservationProcessor(CyodaProcessor):
             ValueError: If customer validation fails
         """
         entity_service = get_entity_service()
-        
+
         try:
             customer_response = await entity_service.get_by_id(
                 entity_id=customer_id,
                 entity_class=Customer.ENTITY_NAME,
                 entity_version=str(Customer.ENTITY_VERSION),
             )
-            
+
             if not customer_response:
                 raise ValueError(f"Customer {customer_id} not found")
-            
+
             customer = cast_entity(customer_response.data, Customer)
             if not customer.is_active():
                 raise ValueError(f"Customer {customer_id} is not active")
-                
+
             self.logger.debug(f"Customer {customer_id} validation passed")
-            
+
         except Exception as e:
             self.logger.error(f"Customer validation failed for {customer_id}: {str(e)}")
             raise ValueError(f"Customer validation failed: {str(e)}")
@@ -128,23 +130,29 @@ class PetReservationProcessor(CyodaProcessor):
             ValueError: If application validation fails
         """
         entity_service = get_entity_service()
-        
+
         try:
             application_response = await entity_service.get_by_id(
                 entity_id=application_id,
                 entity_class=AdoptionApplication.ENTITY_NAME,
                 entity_version=str(AdoptionApplication.ENTITY_VERSION),
             )
-            
+
             if not application_response:
                 raise ValueError(f"Adoption application {application_id} not found")
-            
+
             application = cast_entity(application_response.data, AdoptionApplication)
             if not application.is_approved():
-                raise ValueError(f"Adoption application {application_id} is not approved")
-                
-            self.logger.debug(f"Adoption application {application_id} validation passed")
-            
+                raise ValueError(
+                    f"Adoption application {application_id} is not approved"
+                )
+
+            self.logger.debug(
+                f"Adoption application {application_id} validation passed"
+            )
+
         except Exception as e:
-            self.logger.error(f"Application validation failed for {application_id}: {str(e)}")
+            self.logger.error(
+                f"Application validation failed for {application_id}: {str(e)}"
+            )
             raise ValueError(f"Application validation failed: {str(e)}")

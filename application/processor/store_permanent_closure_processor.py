@@ -7,9 +7,9 @@ Permanently closes a store.
 import logging
 from typing import Any
 
+from application.entity.store.version_1.store import Store
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.store.version_1.store import Store
 
 
 class StorePermanentClosureProcessor(CyodaProcessor):

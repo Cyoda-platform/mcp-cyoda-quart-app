@@ -18,7 +18,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class AdoptionApplication(CyodaEntity):
     """
     AdoptionApplication entity represents an adoption application in the Purrfect Pets system.
-    
+
     The AdoptionApplication entity uses entity.meta.state to track application progress:
     - SUBMITTED: Application has been submitted
     - UNDER_REVIEW: Application is being reviewed
@@ -32,38 +32,30 @@ class AdoptionApplication(CyodaEntity):
     ENTITY_VERSION: ClassVar[int] = 1
 
     # Required fields from functional requirements
-    customer_id: int = Field(..., alias="customerId", description="Customer ID (foreign key)")
+    customer_id: int = Field(
+        ..., alias="customerId", description="Customer ID (foreign key)"
+    )
     pet_id: int = Field(..., alias="petId", description="Pet ID (foreign key)")
     store_id: int = Field(..., alias="storeId", description="Store ID (foreign key)")
     preferred_pickup_date: str = Field(
         ...,
         alias="preferredPickupDate",
-        description="Preferred pickup date (YYYY-MM-DD)"
+        description="Preferred pickup date (YYYY-MM-DD)",
     )
     reason_for_adoption: str = Field(
-        ...,
-        alias="reasonForAdoption",
-        description="Reason for wanting to adopt"
+        ..., alias="reasonForAdoption", description="Reason for wanting to adopt"
     )
     living_arrangement: str = Field(
-        ...,
-        alias="livingArrangement",
-        description="Description of living arrangement"
+        ..., alias="livingArrangement", description="Description of living arrangement"
     )
     work_schedule: str = Field(
-        ...,
-        alias="workSchedule",
-        description="Work schedule description"
+        ..., alias="workSchedule", description="Work schedule description"
     )
     pet_care_experience: str = Field(
-        ...,
-        alias="petCareExperience",
-        description="Previous pet care experience"
+        ..., alias="petCareExperience", description="Previous pet care experience"
     )
     veterinarian_contact: str = Field(
-        ...,
-        alias="veterinarianContact",
-        description="Veterinarian contact information"
+        ..., alias="veterinarianContact", description="Veterinarian contact information"
     )
     references: str = Field(..., description="Reference contact information")
 
@@ -71,32 +63,30 @@ class AdoptionApplication(CyodaEntity):
     application_date: Optional[str] = Field(
         default=None,
         alias="applicationDate",
-        description="Application submission date (ISO 8601 format)"
+        description="Application submission date (ISO 8601 format)",
     )
     application_notes: Optional[str] = Field(
         default=None,
         alias="applicationNotes",
-        description="Additional application notes"
+        description="Additional application notes",
     )
     review_notes: Optional[str] = Field(
-        default=None,
-        alias="reviewNotes",
-        description="Staff notes during review"
+        default=None, alias="reviewNotes", description="Staff notes during review"
     )
     rejection_reason: Optional[str] = Field(
         default=None,
         alias="rejectionReason",
-        description="Reason for rejection if rejected"
+        description="Reason for rejection if rejected",
     )
     approval_date: Optional[str] = Field(
         default=None,
         alias="approvalDate",
-        description="Date when application was approved (ISO 8601 format)"
+        description="Date when application was approved (ISO 8601 format)",
     )
     rejection_date: Optional[str] = Field(
         default=None,
         alias="rejectionDate",
-        description="Date when application was rejected (ISO 8601 format)"
+        description="Date when application was rejected (ISO 8601 format)",
     )
 
     # Validation rules
@@ -199,17 +189,23 @@ class AdoptionApplication(CyodaEntity):
 
     def set_application_date(self) -> None:
         """Set application date to current timestamp"""
-        self.application_date = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.application_date = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
         self.update_timestamp()
 
     def set_approval_date(self) -> None:
         """Set approval date to current timestamp"""
-        self.approval_date = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.approval_date = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
         self.update_timestamp()
 
     def set_rejection_date(self) -> None:
         """Set rejection date to current timestamp"""
-        self.rejection_date = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.rejection_date = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
         self.update_timestamp()
 
     def is_submitted(self) -> bool:

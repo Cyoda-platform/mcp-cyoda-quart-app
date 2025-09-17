@@ -7,9 +7,9 @@ Clears pet from medical hold after treatment.
 import logging
 from typing import Any
 
+from application.entity.pet.version_1.pet import Pet
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.pet.version_1.pet import Pet
 
 
 class PetMedicalClearanceProcessor(CyodaProcessor):
@@ -46,9 +46,15 @@ class PetMedicalClearanceProcessor(CyodaProcessor):
             pet = cast_entity(entity, Pet)
 
             # Get clearance information from kwargs
-            clearance_notes = kwargs.get("clearanceNotes") or kwargs.get("clearance_notes")
-            vet_approval = kwargs.get("veterinarianApproval") or kwargs.get("veterinarian_approval")
-            treatment_complete = kwargs.get("treatmentComplete") or kwargs.get("treatment_complete")
+            clearance_notes = kwargs.get("clearanceNotes") or kwargs.get(
+                "clearance_notes"
+            )
+            vet_approval = kwargs.get("veterinarianApproval") or kwargs.get(
+                "veterinarian_approval"
+            )
+            treatment_complete = kwargs.get("treatmentComplete") or kwargs.get(
+                "treatment_complete"
+            )
 
             # Validate pet is currently on medical hold
             if not pet.is_on_medical_hold():
@@ -56,7 +62,9 @@ class PetMedicalClearanceProcessor(CyodaProcessor):
 
             # Validate veterinarian approval is provided
             if not vet_approval:
-                raise ValueError("Veterinarian approval is required for medical clearance")
+                raise ValueError(
+                    "Veterinarian approval is required for medical clearance"
+                )
 
             # Validate treatment is complete
             if not treatment_complete:

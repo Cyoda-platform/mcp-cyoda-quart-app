@@ -18,7 +18,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class Adoption(CyodaEntity):
     """
     Adoption entity represents a completed adoption in the Purrfect Pets system.
-    
+
     The Adoption entity uses entity.meta.state to track adoption status:
     - COMPLETED: Adoption has been completed
     - FOLLOW_UP_PENDING: Follow-up is scheduled and pending
@@ -31,53 +31,57 @@ class Adoption(CyodaEntity):
     ENTITY_VERSION: ClassVar[int] = 1
 
     # Required fields from functional requirements
-    customer_id: int = Field(..., alias="customerId", description="Customer ID (foreign key)")
+    customer_id: int = Field(
+        ..., alias="customerId", description="Customer ID (foreign key)"
+    )
     pet_id: int = Field(..., alias="petId", description="Pet ID (foreign key)")
     store_id: int = Field(..., alias="storeId", description="Store ID (foreign key)")
-    application_id: int = Field(..., alias="applicationId", description="Application ID (foreign key)")
-    adoption_fee: float = Field(..., alias="adoptionFee", description="Adoption fee paid")
-    contract_signed: bool = Field(..., alias="contractSigned", description="Whether contract was signed")
+    application_id: int = Field(
+        ..., alias="applicationId", description="Application ID (foreign key)"
+    )
+    adoption_fee: float = Field(
+        ..., alias="adoptionFee", description="Adoption fee paid"
+    )
+    contract_signed: bool = Field(
+        ..., alias="contractSigned", description="Whether contract was signed"
+    )
     microchip_transferred: bool = Field(
         ...,
         alias="microchipTransferred",
-        description="Whether microchip was transferred"
+        description="Whether microchip was transferred",
     )
     vaccination_records_provided: bool = Field(
         ...,
         alias="vaccinationRecordsProvided",
-        description="Whether vaccination records were provided"
+        description="Whether vaccination records were provided",
     )
 
     # Optional fields
     adoption_date: Optional[str] = Field(
         default=None,
         alias="adoptionDate",
-        description="Date when adoption was completed (ISO 8601 format)"
+        description="Date when adoption was completed (ISO 8601 format)",
     )
     follow_up_date: Optional[str] = Field(
         default=None,
         alias="followUpDate",
-        description="Scheduled follow-up date (YYYY-MM-DD)"
+        description="Scheduled follow-up date (YYYY-MM-DD)",
     )
     follow_up_completed: bool = Field(
         default=False,
         alias="followUpCompleted",
-        description="Whether follow-up has been completed"
+        description="Whether follow-up has been completed",
     )
     adoption_notes: Optional[str] = Field(
-        default=None,
-        alias="adoptionNotes",
-        description="Notes about the adoption"
+        default=None, alias="adoptionNotes", description="Notes about the adoption"
     )
     return_date: Optional[str] = Field(
         default=None,
         alias="returnDate",
-        description="Date when pet was returned (ISO 8601 format)"
+        description="Date when pet was returned (ISO 8601 format)",
     )
     return_reason: Optional[str] = Field(
-        default=None,
-        alias="returnReason",
-        description="Reason for returning the pet"
+        default=None, alias="returnReason", description="Reason for returning the pet"
     )
 
     # Validation rules
@@ -164,7 +168,9 @@ class Adoption(CyodaEntity):
 
     def set_adoption_date(self) -> None:
         """Set adoption date to current timestamp"""
-        self.adoption_date = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.adoption_date = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
         self.update_timestamp()
 
     def set_return_date(self) -> None:

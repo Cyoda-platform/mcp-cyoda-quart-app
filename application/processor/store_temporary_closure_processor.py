@@ -7,9 +7,9 @@ Temporarily closes a store.
 import logging
 from typing import Any
 
+from application.entity.store.version_1.store import Store
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.store.version_1.store import Store
 
 
 class StoreTemporaryClosureProcessor(CyodaProcessor):
@@ -47,7 +47,9 @@ class StoreTemporaryClosureProcessor(CyodaProcessor):
 
             # Get closure information from kwargs
             closure_reason = kwargs.get("closureReason") or kwargs.get("closure_reason")
-            expected_reopening_date = kwargs.get("expectedReopeningDate") or kwargs.get("expected_reopening_date")
+            expected_reopening_date = kwargs.get("expectedReopeningDate") or kwargs.get(
+                "expected_reopening_date"
+            )
 
             # Validate store is currently active
             if not store.is_active():
@@ -60,7 +62,7 @@ class StoreTemporaryClosureProcessor(CyodaProcessor):
             # Create closure record with reason and expected reopening
             # In a real system, you might create a separate StoreClosure entity
             # For this implementation, we log the closure information
-            
+
             closure_info = f"Temporarily closed: {closure_reason}"
             if expected_reopening_date:
                 closure_info += f" (Expected reopening: {expected_reopening_date})"

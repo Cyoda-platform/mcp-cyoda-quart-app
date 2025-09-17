@@ -7,9 +7,11 @@ Rejects an adoption application after review.
 import logging
 from typing import Any
 
+from application.entity.adoption_application.version_1.adoption_application import (
+    AdoptionApplication,
+)
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.adoption_application.version_1.adoption_application import AdoptionApplication
 
 
 class ApplicationRejectionProcessor(CyodaProcessor):
@@ -46,7 +48,9 @@ class ApplicationRejectionProcessor(CyodaProcessor):
             application = cast_entity(entity, AdoptionApplication)
 
             # Get rejection information from kwargs
-            rejection_reason = kwargs.get("rejectionReason") or kwargs.get("rejection_reason")
+            rejection_reason = kwargs.get("rejectionReason") or kwargs.get(
+                "rejection_reason"
+            )
             reviewer = kwargs.get("reviewer")
             reviewer_id = kwargs.get("reviewerId") or kwargs.get("reviewer_id")
 

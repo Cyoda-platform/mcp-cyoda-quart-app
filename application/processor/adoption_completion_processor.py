@@ -7,9 +7,9 @@ Completes the adoption process and creates an Adoption entity.
 import logging
 from typing import Any
 
+from application.entity.adoption.version_1.adoption import Adoption
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.adoption.version_1.adoption import Adoption
 
 
 class AdoptionCompletionProcessor(CyodaProcessor):
@@ -73,9 +73,7 @@ class AdoptionCompletionProcessor(CyodaProcessor):
 
             # Create adoption completion record (in a real system)
             # This would update various related entities and create audit trails
-            self.logger.info(
-                f"Would update pet {adoption.pet_id} status to adopted"
-            )
+            self.logger.info(f"Would update pet {adoption.pet_id} status to adopted")
 
             # Log adoption completion
             self.logger.info(
@@ -120,4 +118,6 @@ class AdoptionCompletionProcessor(CyodaProcessor):
         if adoption.adoption_fee < 0:
             raise ValueError("Adoption fee must be non-negative")
 
-        self.logger.debug(f"Adoption requirements validation passed for {adoption.technical_id}")
+        self.logger.debug(
+            f"Adoption requirements validation passed for {adoption.technical_id}"
+        )

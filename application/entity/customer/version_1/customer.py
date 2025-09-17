@@ -18,7 +18,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class Customer(CyodaEntity):
     """
     Customer entity represents a customer in the Purrfect Pets system.
-    
+
     The Customer entity uses entity.meta.state to track account status:
     - ACTIVE: Customer account is active
     - SUSPENDED: Customer account is suspended
@@ -38,27 +38,37 @@ class Customer(CyodaEntity):
     city: str = Field(..., description="Customer's city")
     state: str = Field(..., description="Customer's state")
     zip_code: str = Field(..., alias="zipCode", description="Customer's ZIP code")
-    date_of_birth: str = Field(..., alias="dateOfBirth", description="Customer's date of birth (YYYY-MM-DD)")
+    date_of_birth: str = Field(
+        ..., alias="dateOfBirth", description="Customer's date of birth (YYYY-MM-DD)"
+    )
     occupation: str = Field(..., description="Customer's occupation")
-    housing_type: str = Field(..., alias="housingType", description="Type of housing (House, Apartment, Condo)")
-    has_yard: bool = Field(..., alias="hasYard", description="Whether customer has a yard")
-    has_other_pets: bool = Field(..., alias="hasOtherPets", description="Whether customer has other pets")
-    
+    housing_type: str = Field(
+        ...,
+        alias="housingType",
+        description="Type of housing (House, Apartment, Condo)",
+    )
+    has_yard: bool = Field(
+        ..., alias="hasYard", description="Whether customer has a yard"
+    )
+    has_other_pets: bool = Field(
+        ..., alias="hasOtherPets", description="Whether customer has other pets"
+    )
+
     # Optional fields
     other_pets_description: Optional[str] = Field(
         default=None,
         alias="otherPetsDescription",
-        description="Description of other pets"
+        description="Description of other pets",
     )
     previous_pet_experience: Optional[str] = Field(
         default=None,
         alias="previousPetExperience",
-        description="Previous pet experience"
+        description="Previous pet experience",
     )
     registration_date: Optional[str] = Field(
         default=None,
         alias="registrationDate",
-        description="Customer registration date (ISO 8601 format)"
+        description="Customer registration date (ISO 8601 format)",
     )
 
     # Validation rules
@@ -180,7 +190,9 @@ class Customer(CyodaEntity):
 
     def set_registration_date(self) -> None:
         """Set registration date to current timestamp"""
-        self.registration_date = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.registration_date = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
         self.update_timestamp()
 
     def is_active(self) -> bool:

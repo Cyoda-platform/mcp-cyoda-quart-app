@@ -7,9 +7,9 @@ Reopens a temporarily closed store.
 import logging
 from typing import Any
 
+from application.entity.store.version_1.store import Store
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.store.version_1.store import Store
 
 
 class StoreReopeningProcessor(CyodaProcessor):
@@ -46,7 +46,9 @@ class StoreReopeningProcessor(CyodaProcessor):
             store = cast_entity(entity, Store)
 
             # Get reopening information from kwargs
-            reopening_notes = kwargs.get("reopeningNotes") or kwargs.get("reopening_notes")
+            reopening_notes = kwargs.get("reopeningNotes") or kwargs.get(
+                "reopening_notes"
+            )
 
             # Validate store is temporarily closed
             if not store.is_temporarily_closed():
@@ -55,7 +57,7 @@ class StoreReopeningProcessor(CyodaProcessor):
             # Update closure record with actual reopening date
             # In a real system, you would update the StoreClosure entity
             # For this implementation, we log the reopening information
-            
+
             reopening_info = f"Store reopened"
             if reopening_notes:
                 reopening_info += f": {reopening_notes}"

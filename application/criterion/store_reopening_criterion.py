@@ -6,9 +6,9 @@ Checks if a temporarily closed store can be reopened.
 
 from typing import Any
 
+from application.entity.store.version_1.store import Store
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.store.version_1.store import Store
 
 
 class StoreReopeningCriterion(CyodaCriteriaChecker):
@@ -49,9 +49,15 @@ class StoreReopeningCriterion(CyodaCriteriaChecker):
                 return False
 
             # Get reopening data from kwargs
-            issues_resolved = kwargs.get("issuesResolved") or kwargs.get("issues_resolved")
-            staff_available = kwargs.get("staffAvailable") or kwargs.get("staff_available")
-            facilities_ready = kwargs.get("facilitiesReady") or kwargs.get("facilities_ready")
+            issues_resolved = kwargs.get("issuesResolved") or kwargs.get(
+                "issues_resolved"
+            )
+            staff_available = kwargs.get("staffAvailable") or kwargs.get(
+                "staff_available"
+            )
+            facilities_ready = kwargs.get("facilitiesReady") or kwargs.get(
+                "facilities_ready"
+            )
 
             # Check if closure issues have been resolved
             if not issues_resolved:
@@ -69,14 +75,10 @@ class StoreReopeningCriterion(CyodaCriteriaChecker):
 
             # Check if store facilities are ready
             if not facilities_ready:
-                self.logger.info(
-                    f"Store {store.technical_id} facilities are not ready"
-                )
+                self.logger.info(f"Store {store.technical_id} facilities are not ready")
                 return False
 
-            self.logger.info(
-                f"Store {store.technical_id} is ready for reopening"
-            )
+            self.logger.info(f"Store {store.technical_id} is ready for reopening")
             return True
 
         except Exception as e:

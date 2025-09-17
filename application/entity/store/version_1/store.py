@@ -17,7 +17,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class Store(CyodaEntity):
     """
     Store entity represents a pet store in the Purrfect Pets system.
-    
+
     The Store entity uses entity.meta.state to track operational status:
     - ACTIVE: Store is operational
     - TEMPORARILY_CLOSED: Store is temporarily closed
@@ -36,13 +36,15 @@ class Store(CyodaEntity):
     zip_code: str = Field(..., alias="zipCode", description="ZIP code")
     phone: str = Field(..., description="Contact phone")
     email: str = Field(..., description="Contact email")
-    manager_name: str = Field(..., alias="managerName", description="Store manager's name")
-    opening_hours: str = Field(..., alias="openingHours", description="Opening hours (e.g., Mon-Fri 9AM-6PM)")
+    manager_name: str = Field(
+        ..., alias="managerName", description="Store manager's name"
+    )
+    opening_hours: str = Field(
+        ..., alias="openingHours", description="Opening hours (e.g., Mon-Fri 9AM-6PM)"
+    )
     capacity: int = Field(..., description="Maximum number of pets")
     current_pet_count: int = Field(
-        default=0,
-        alias="currentPetCount",
-        description="Current number of pets"
+        default=0, alias="currentPetCount", description="Current number of pets"
     )
 
     # Validation rules

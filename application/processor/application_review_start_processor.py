@@ -8,9 +8,11 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.adoption_application.version_1.adoption_application import (
+    AdoptionApplication,
+)
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.adoption_application.version_1.adoption_application import AdoptionApplication
 
 
 class ApplicationReviewStartProcessor(CyodaProcessor):
@@ -58,12 +60,18 @@ class ApplicationReviewStartProcessor(CyodaProcessor):
             # Assign reviewer to application (in a real system)
             # This would create a reviewer assignment record
             if reviewer_id or reviewer_name:
-                reviewer_assignment = f"Assigned to reviewer: {reviewer_name or reviewer_id}"
-                self.logger.info(f"Application {application.technical_id} - {reviewer_assignment}")
+                reviewer_assignment = (
+                    f"Assigned to reviewer: {reviewer_name or reviewer_id}"
+                )
+                self.logger.info(
+                    f"Application {application.technical_id} - {reviewer_assignment}"
+                )
 
             # Set review start date to current timestamp (placeholder)
             # In a real system, you might have a review_start_date field
-            review_start_time = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            review_start_time = (
+                datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            )
 
             # Create review tracking record (in a real system)
             # This would create a separate ReviewTracking entity

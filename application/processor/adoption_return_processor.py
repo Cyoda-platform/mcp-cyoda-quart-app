@@ -7,9 +7,9 @@ Processes the return of an adopted pet.
 import logging
 from typing import Any
 
+from application.entity.adoption.version_1.adoption import Adoption
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.adoption.version_1.adoption import Adoption
 
 
 class AdoptionReturnProcessor(CyodaProcessor):
@@ -92,10 +92,8 @@ class AdoptionReturnProcessor(CyodaProcessor):
             return_info = f"Pet returned. Reason: {return_reason}"
             if staff_member:
                 return_info += f" (Processed by: {staff_member})"
-            
-            self.logger.info(
-                f"Adoption {adoption.technical_id} - {return_info}"
-            )
+
+            self.logger.info(f"Adoption {adoption.technical_id} - {return_info}")
 
             return adoption
 
@@ -130,7 +128,7 @@ class AdoptionReturnProcessor(CyodaProcessor):
             "family_circumstances",
             "pet_health_issues",
             "incompatibility",
-            "other"
+            "other",
         ]
 
         # Log if reason matches common categories

@@ -8,9 +8,9 @@ import logging
 from datetime import datetime
 from typing import Any
 
+from application.entity.customer.version_1.customer import Customer
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.customer.version_1.customer import Customer
 
 
 class CustomerRegistrationProcessor(CyodaProcessor):
@@ -87,17 +87,19 @@ class CustomerRegistrationProcessor(CyodaProcessor):
         # Email, name, contact info are required (validated by Pydantic model)
         if not customer.email or len(customer.email.strip()) == 0:
             raise ValueError("Customer email is required")
-        
+
         if not customer.first_name or len(customer.first_name.strip()) == 0:
             raise ValueError("Customer first name is required")
-        
+
         if not customer.last_name or len(customer.last_name.strip()) == 0:
             raise ValueError("Customer last name is required")
-        
+
         if not customer.phone or len(customer.phone.strip()) == 0:
             raise ValueError("Customer phone is required")
 
-        self.logger.debug(f"Customer data validation passed for {customer.get_full_name()}")
+        self.logger.debug(
+            f"Customer data validation passed for {customer.get_full_name()}"
+        )
 
     async def _check_email_uniqueness(self, email: str) -> None:
         """
@@ -112,7 +114,7 @@ class CustomerRegistrationProcessor(CyodaProcessor):
         # In a real system, you would query the database to check if email exists
         # For this implementation, we'll just log the check
         self.logger.debug(f"Checking email uniqueness for: {email}")
-        
+
         # Placeholder - in real implementation:
         # existing_customer = await entity_service.find_by_business_id(
         #     entity_class=Customer.ENTITY_NAME,
@@ -135,13 +137,17 @@ class CustomerRegistrationProcessor(CyodaProcessor):
         try:
             birth_date = datetime.strptime(date_of_birth, "%Y-%m-%d")
             today = datetime.now()
-            age = today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
-            
+            age = (
+                today.year
+                - birth_date.year
+                - ((today.month, today.day) < (birth_date.month, birth_date.day))
+            )
+
             if age < 18:
                 raise ValueError("Customer must be at least 18 years old for adoption")
-                
+
             self.logger.debug(f"Age validation passed: {age} years old")
-            
+
         except ValueError as e:
             if "18 years old" in str(e):
                 raise
@@ -158,11 +164,11 @@ class CustomerRegistrationProcessor(CyodaProcessor):
             ValueError: If phone number format is invalid
         """
         # Basic validation - remove common formatting and check length
-        cleaned_phone = ''.join(filter(str.isdigit, phone))
-        
+        cleaned_phone = "".join(filter(str.isdigit, phone))
+
         if len(cleaned_phone) < 10:
             raise ValueError("Phone number must contain at least 10 digits")
-        
+
         if len(cleaned_phone) > 15:
             raise ValueError("Phone number is too long")
 

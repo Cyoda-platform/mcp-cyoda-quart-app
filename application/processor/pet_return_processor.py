@@ -7,10 +7,10 @@ Processes the return of an adopted pet.
 import logging
 from typing import Any
 
+from application.entity.adoption.version_1.adoption import Adoption
+from application.entity.pet.version_1.pet import Pet
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.pet.version_1.pet import Pet
-from application.entity.adoption.version_1.adoption import Adoption
 from services.services import get_entity_service
 
 
@@ -79,7 +79,9 @@ class PetReturnProcessor(CyodaProcessor):
             )
             raise
 
-    async def _update_adoption_record(self, pet: Pet, return_reason: str, return_date: str = None) -> None:
+    async def _update_adoption_record(
+        self, pet: Pet, return_reason: str, return_date: str = None
+    ) -> None:
         """
         Find and update the related adoption record with return information.
 
@@ -94,19 +96,19 @@ class PetReturnProcessor(CyodaProcessor):
             # Find the adoption record for this pet
             # In a real system, you would search for the adoption by petId
             # For this implementation, we'll log the action
-            
+
             pet_id = pet.technical_id or pet.entity_id
-            
+
             # In a real implementation, you would:
             # 1. Search for adoption records where petId = pet_id and state != "returned"
             # 2. Update the found adoption record with return information
             # 3. Trigger the adoption return workflow transition
-            
+
             # For now, we'll just log the intended action
             self.logger.info(
                 f"Would update adoption record for pet {pet_id} with return reason: {return_reason}"
             )
-            
+
             # In a real system, this would be something like:
             # adoption_records = await entity_service.search(...)
             # for adoption_record in adoption_records:

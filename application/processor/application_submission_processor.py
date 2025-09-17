@@ -7,12 +7,14 @@ Processes a new adoption application submission.
 import logging
 from typing import Any
 
-from common.entity.entity_casting import cast_entity
-from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.adoption_application.version_1.adoption_application import AdoptionApplication
+from application.entity.adoption_application.version_1.adoption_application import (
+    AdoptionApplication,
+)
 from application.entity.customer.version_1.customer import Customer
 from application.entity.pet.version_1.pet import Pet
 from application.entity.store.version_1.store import Store
+from common.entity.entity_casting import cast_entity
+from common.processor.base import CyodaEntity, CyodaProcessor
 from services.services import get_entity_service
 
 
@@ -93,23 +95,23 @@ class ApplicationSubmissionProcessor(CyodaProcessor):
             ValueError: If customer validation fails
         """
         entity_service = get_entity_service()
-        
+
         try:
             customer_response = await entity_service.get_by_id(
                 entity_id=str(customer_id),
                 entity_class=Customer.ENTITY_NAME,
                 entity_version=str(Customer.ENTITY_VERSION),
             )
-            
+
             if not customer_response:
                 raise ValueError(f"Customer {customer_id} not found")
-            
+
             customer = cast_entity(customer_response.data, Customer)
             if not customer.is_active():
                 raise ValueError(f"Customer {customer_id} is not active")
-                
+
             self.logger.debug(f"Customer {customer_id} validation passed")
-            
+
         except Exception as e:
             self.logger.error(f"Customer validation failed for {customer_id}: {str(e)}")
             raise ValueError(f"Customer validation failed: {str(e)}")
@@ -125,23 +127,23 @@ class ApplicationSubmissionProcessor(CyodaProcessor):
             ValueError: If pet validation fails
         """
         entity_service = get_entity_service()
-        
+
         try:
             pet_response = await entity_service.get_by_id(
                 entity_id=str(pet_id),
                 entity_class=Pet.ENTITY_NAME,
                 entity_version=str(Pet.ENTITY_VERSION),
             )
-            
+
             if not pet_response:
                 raise ValueError(f"Pet {pet_id} not found")
-            
+
             pet = cast_entity(pet_response.data, Pet)
             if not pet.is_available():
                 raise ValueError(f"Pet {pet_id} is not available")
-                
+
             self.logger.debug(f"Pet {pet_id} validation passed")
-            
+
         except Exception as e:
             self.logger.error(f"Pet validation failed for {pet_id}: {str(e)}")
             raise ValueError(f"Pet validation failed: {str(e)}")
@@ -157,23 +159,23 @@ class ApplicationSubmissionProcessor(CyodaProcessor):
             ValueError: If store validation fails
         """
         entity_service = get_entity_service()
-        
+
         try:
             store_response = await entity_service.get_by_id(
                 entity_id=str(store_id),
                 entity_class=Store.ENTITY_NAME,
                 entity_version=str(Store.ENTITY_VERSION),
             )
-            
+
             if not store_response:
                 raise ValueError(f"Store {store_id} not found")
-            
+
             store = cast_entity(store_response.data, Store)
             if not store.is_active():
                 raise ValueError(f"Store {store_id} is not active")
-                
+
             self.logger.debug(f"Store {store_id} validation passed")
-            
+
         except Exception as e:
             self.logger.error(f"Store validation failed for {store_id}: {str(e)}")
             raise ValueError(f"Store validation failed: {str(e)}")
@@ -190,14 +192,23 @@ class ApplicationSubmissionProcessor(CyodaProcessor):
         """
         # Required fields are already validated by Pydantic model
         # Additional business logic validation can be added here
-        
-        if not application.reason_for_adoption or len(application.reason_for_adoption.strip()) == 0:
+
+        if (
+            not application.reason_for_adoption
+            or len(application.reason_for_adoption.strip()) == 0
+        ):
             raise ValueError("Reason for adoption is required")
-        
-        if not application.living_arrangement or len(application.living_arrangement.strip()) == 0:
+
+        if (
+            not application.living_arrangement
+            or len(application.living_arrangement.strip()) == 0
+        ):
             raise ValueError("Living arrangement description is required")
-        
-        if not application.pet_care_experience or len(application.pet_care_experience.strip()) == 0:
+
+        if (
+            not application.pet_care_experience
+            or len(application.pet_care_experience.strip()) == 0
+        ):
             raise ValueError("Pet care experience is required")
 
         self.logger.debug(f"Application fields validation passed")

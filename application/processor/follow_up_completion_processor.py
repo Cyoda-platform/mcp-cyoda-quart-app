@@ -7,9 +7,9 @@ Completes a scheduled follow-up for an adoption.
 import logging
 from typing import Any
 
+from application.entity.adoption.version_1.adoption import Adoption
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.adoption.version_1.adoption import Adoption
 
 
 class FollowUpCompletionProcessor(CyodaProcessor):
@@ -46,8 +46,12 @@ class FollowUpCompletionProcessor(CyodaProcessor):
             adoption = cast_entity(entity, Adoption)
 
             # Get follow-up information from kwargs
-            follow_up_notes = kwargs.get("followUpNotes") or kwargs.get("follow_up_notes")
-            follow_up_outcome = kwargs.get("followUpOutcome") or kwargs.get("follow_up_outcome")
+            follow_up_notes = kwargs.get("followUpNotes") or kwargs.get(
+                "follow_up_notes"
+            )
+            follow_up_outcome = kwargs.get("followUpOutcome") or kwargs.get(
+                "follow_up_outcome"
+            )
             staff_member = kwargs.get("staffMember") or kwargs.get("staff_member")
 
             # Validate adoption has follow-up pending
@@ -66,7 +70,9 @@ class FollowUpCompletionProcessor(CyodaProcessor):
                 # In a real system, you might have a separate field for follow-up notes
                 # For now, we'll append to adoption notes
                 if adoption.adoption_notes:
-                    adoption.adoption_notes += f"\n\nFollow-up completed: {follow_up_notes}"
+                    adoption.adoption_notes += (
+                        f"\n\nFollow-up completed: {follow_up_notes}"
+                    )
                 else:
                     adoption.adoption_notes = f"Follow-up completed: {follow_up_notes}"
 
@@ -91,10 +97,8 @@ class FollowUpCompletionProcessor(CyodaProcessor):
                 completion_info += f" by {staff_member}"
             if follow_up_outcome:
                 completion_info += f" (Outcome: {follow_up_outcome})"
-            
-            self.logger.info(
-                f"Adoption {adoption.technical_id} - {completion_info}"
-            )
+
+            self.logger.info(f"Adoption {adoption.technical_id} - {completion_info}")
 
             return adoption
 
@@ -125,7 +129,7 @@ class FollowUpCompletionProcessor(CyodaProcessor):
             "major_issues",
             "requires_intervention",
             "no_response",
-            "customer_unavailable"
+            "customer_unavailable",
         ]
 
         # Basic validation - just check it's not empty and reasonable length

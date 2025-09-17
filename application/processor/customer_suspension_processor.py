@@ -7,9 +7,9 @@ Suspends a customer account due to policy violations.
 import logging
 from typing import Any
 
+from application.entity.customer.version_1.customer import Customer
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.customer.version_1.customer import Customer
 
 
 class CustomerSuspensionProcessor(CyodaProcessor):
@@ -46,8 +46,12 @@ class CustomerSuspensionProcessor(CyodaProcessor):
             customer = cast_entity(entity, Customer)
 
             # Get suspension information from kwargs
-            suspension_reason = kwargs.get("suspensionReason") or kwargs.get("suspension_reason")
-            suspension_duration = kwargs.get("suspensionDuration") or kwargs.get("suspension_duration")
+            suspension_reason = kwargs.get("suspensionReason") or kwargs.get(
+                "suspension_reason"
+            )
+            suspension_duration = kwargs.get("suspensionDuration") or kwargs.get(
+                "suspension_duration"
+            )
 
             # Validate customer is currently active
             if not customer.is_active():

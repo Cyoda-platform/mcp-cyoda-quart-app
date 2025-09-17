@@ -7,9 +7,11 @@ Approves an adoption application after successful review.
 import logging
 from typing import Any
 
+from application.entity.adoption_application.version_1.adoption_application import (
+    AdoptionApplication,
+)
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.adoption_application.version_1.adoption_application import AdoptionApplication
 
 
 class ApplicationApprovalProcessor(CyodaProcessor):
@@ -101,27 +103,37 @@ class ApplicationApprovalProcessor(CyodaProcessor):
             ValueError: If approval criteria are not met
         """
         # Background check must pass
-        background_check_passed = kwargs.get("backgroundCheckPassed") or kwargs.get("background_check_passed")
+        background_check_passed = kwargs.get("backgroundCheckPassed") or kwargs.get(
+            "background_check_passed"
+        )
         if not background_check_passed:
             raise ValueError("Background check must pass for approval")
 
         # References must be verified
-        references_verified = kwargs.get("referencesVerified") or kwargs.get("references_verified")
+        references_verified = kwargs.get("referencesVerified") or kwargs.get(
+            "references_verified"
+        )
         if not references_verified:
             raise ValueError("References must be verified for approval")
 
         # Housing must be approved
-        housing_approved = kwargs.get("housingApproved") or kwargs.get("housing_approved")
+        housing_approved = kwargs.get("housingApproved") or kwargs.get(
+            "housing_approved"
+        )
         if not housing_approved:
             raise ValueError("Housing situation must be approved")
 
         # Customer must not be blacklisted
-        customer_blacklisted = kwargs.get("customerBlacklisted") or kwargs.get("customer_blacklisted")
+        customer_blacklisted = kwargs.get("customerBlacklisted") or kwargs.get(
+            "customer_blacklisted"
+        )
         if customer_blacklisted:
             raise ValueError("Cannot approve application for blacklisted customer")
 
         # Pet compatibility must be confirmed
-        pet_compatibility_confirmed = kwargs.get("petCompatibilityConfirmed") or kwargs.get("pet_compatibility_confirmed")
+        pet_compatibility_confirmed = kwargs.get(
+            "petCompatibilityConfirmed"
+        ) or kwargs.get("pet_compatibility_confirmed")
         if not pet_compatibility_confirmed:
             raise ValueError("Pet compatibility must be confirmed for approval")
 

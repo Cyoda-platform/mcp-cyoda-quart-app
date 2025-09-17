@@ -7,9 +7,9 @@ Activates a new store and makes it operational.
 import logging
 from typing import Any
 
+from application.entity.store.version_1.store import Store
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.store.version_1.store import Store
 
 
 class StoreActivationProcessor(CyodaProcessor):
@@ -85,16 +85,16 @@ class StoreActivationProcessor(CyodaProcessor):
         # Name, address, contact info are required (validated by Pydantic model)
         if not store.name or len(store.name.strip()) == 0:
             raise ValueError("Store name is required")
-        
+
         if not store.address or len(store.address.strip()) == 0:
             raise ValueError("Store address is required")
-        
+
         if not store.phone or len(store.phone.strip()) == 0:
             raise ValueError("Store phone is required")
-        
+
         if not store.email or len(store.email.strip()) == 0:
             raise ValueError("Store email is required")
-        
+
         if not store.manager_name or len(store.manager_name.strip()) == 0:
             raise ValueError("Store manager name is required")
 
@@ -112,7 +112,7 @@ class StoreActivationProcessor(CyodaProcessor):
         """
         if not opening_hours or len(opening_hours.strip()) == 0:
             raise ValueError("Store opening hours are required")
-        
+
         # Basic validation - just check it's not empty and reasonable length
         if len(opening_hours.strip()) > 200:
             raise ValueError("Opening hours description is too long")

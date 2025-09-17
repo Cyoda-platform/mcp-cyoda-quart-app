@@ -18,7 +18,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class Pet(CyodaEntity):
     """
     Pet entity represents a pet available for adoption in the Purrfect Pets system.
-    
+
     The Pet entity uses entity.meta.state to track its lifecycle status:
     - AVAILABLE: Pet is available for adoption
     - RESERVED: Pet is reserved for an approved adoption application
@@ -40,32 +40,28 @@ class Pet(CyodaEntity):
     weight: float = Field(..., description="Weight in kg")
     description: str = Field(..., description="Detailed description")
     price: float = Field(..., description="Price in USD")
-    
+
     # Optional fields
     image_url: Optional[str] = Field(
-        default=None,
-        alias="imageUrl",
-        description="URL to pet's photo"
+        default=None, alias="imageUrl", description="URL to pet's photo"
     )
     vaccinated: bool = Field(default=False, description="Vaccination status")
     neutered: bool = Field(default=False, description="Neutering status")
     microchipped: bool = Field(default=False, description="Microchip status")
     special_needs: Optional[str] = Field(
-        default=None,
-        alias="specialNeeds",
-        description="Any special care requirements"
+        default=None, alias="specialNeeds", description="Any special care requirements"
     )
-    
+
     # Timestamp fields
     arrival_date: Optional[str] = Field(
         default=None,
         alias="arrivalDate",
-        description="When pet arrived at store (ISO 8601 format)"
+        description="When pet arrived at store (ISO 8601 format)",
     )
     adoption_date: Optional[str] = Field(
         default=None,
         alias="adoptionDate",
-        description="When pet was adopted (ISO 8601 format)"
+        description="When pet was adopted (ISO 8601 format)",
     )
 
     # Validation rules
@@ -135,12 +131,16 @@ class Pet(CyodaEntity):
 
     def set_arrival_date(self) -> None:
         """Set arrival date to current timestamp"""
-        self.arrival_date = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.arrival_date = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
         self.update_timestamp()
 
     def set_adoption_date(self) -> None:
         """Set adoption date to current timestamp"""
-        self.adoption_date = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.adoption_date = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
         self.update_timestamp()
 
     def is_available(self) -> bool:

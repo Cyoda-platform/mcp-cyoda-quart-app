@@ -7,9 +7,9 @@ Reactivates a suspended customer account.
 import logging
 from typing import Any
 
+from application.entity.customer.version_1.customer import Customer
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.customer.version_1.customer import Customer
 
 
 class CustomerReactivationProcessor(CyodaProcessor):
@@ -46,7 +46,9 @@ class CustomerReactivationProcessor(CyodaProcessor):
             customer = cast_entity(entity, Customer)
 
             # Get reactivation information from kwargs
-            reactivation_notes = kwargs.get("reactivationNotes") or kwargs.get("reactivation_notes")
+            reactivation_notes = kwargs.get("reactivationNotes") or kwargs.get(
+                "reactivation_notes"
+            )
 
             # Validate customer is currently suspended
             if not customer.is_suspended():
@@ -81,7 +83,9 @@ class CustomerReactivationProcessor(CyodaProcessor):
             )
             raise
 
-    def _validate_reactivation_eligibility(self, customer: Customer, kwargs: dict) -> None:
+    def _validate_reactivation_eligibility(
+        self, customer: Customer, kwargs: dict
+    ) -> None:
         """
         Validate that customer is eligible for reactivation.
 
@@ -98,13 +102,19 @@ class CustomerReactivationProcessor(CyodaProcessor):
             raise ValueError("Suspension issues must be resolved before reactivation")
 
         # Check for outstanding debts (placeholder)
-        has_outstanding_debts = kwargs.get("hasOutstandingDebts") or kwargs.get("has_outstanding_debts")
+        has_outstanding_debts = kwargs.get("hasOutstandingDebts") or kwargs.get(
+            "has_outstanding_debts"
+        )
         if has_outstanding_debts:
-            raise ValueError("Customer must resolve outstanding debts before reactivation")
+            raise ValueError(
+                "Customer must resolve outstanding debts before reactivation"
+            )
 
         # Check if customer agrees to terms (placeholder)
         agrees_to_terms = kwargs.get("agreesToTerms") or kwargs.get("agrees_to_terms")
         if not agrees_to_terms:
             raise ValueError("Customer must agree to updated terms before reactivation")
 
-        self.logger.debug(f"Reactivation eligibility validation passed for customer {customer.technical_id}")
+        self.logger.debug(
+            f"Reactivation eligibility validation passed for customer {customer.technical_id}"
+        )

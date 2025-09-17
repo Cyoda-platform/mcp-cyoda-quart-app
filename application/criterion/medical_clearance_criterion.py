@@ -6,9 +6,9 @@ Checks if a pet on medical hold can be cleared.
 
 from typing import Any
 
+from application.entity.pet.version_1.pet import Pet
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.pet.version_1.pet import Pet
 
 
 class MedicalClearanceCriterion(CyodaCriteriaChecker):
@@ -49,8 +49,12 @@ class MedicalClearanceCriterion(CyodaCriteriaChecker):
                 return False
 
             # Get clearance details from kwargs
-            veterinarian_approval = kwargs.get("veterinarianApproval") or kwargs.get("veterinarian_approval")
-            treatment_complete = kwargs.get("treatmentComplete") or kwargs.get("treatment_complete")
+            veterinarian_approval = kwargs.get("veterinarianApproval") or kwargs.get(
+                "veterinarian_approval"
+            )
+            treatment_complete = kwargs.get("treatmentComplete") or kwargs.get(
+                "treatment_complete"
+            )
 
             # Check if veterinarian approval is provided
             if not veterinarian_approval:
@@ -61,14 +65,10 @@ class MedicalClearanceCriterion(CyodaCriteriaChecker):
 
             # Check if treatment is complete
             if not treatment_complete:
-                self.logger.info(
-                    f"Pet {pet.technical_id} treatment is not complete"
-                )
+                self.logger.info(f"Pet {pet.technical_id} treatment is not complete")
                 return False
 
-            self.logger.info(
-                f"Pet {pet.technical_id} can be cleared from medical hold"
-            )
+            self.logger.info(f"Pet {pet.technical_id} can be cleared from medical hold")
             return True
 
         except Exception as e:

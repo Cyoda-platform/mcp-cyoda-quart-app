@@ -6,9 +6,9 @@ Checks if a pet is available for reservation.
 
 from typing import Any
 
+from application.entity.pet.version_1.pet import Pet
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.pet.version_1.pet import Pet
 
 
 class PetAvailabilityCriterion(CyodaCriteriaChecker):
@@ -54,9 +54,7 @@ class PetAvailabilityCriterion(CyodaCriteriaChecker):
             # - Pet age restrictions
             # For now, we keep it minimal as per requirements
 
-            self.logger.info(
-                f"Pet {pet.technical_id} is available for reservation"
-            )
+            self.logger.info(f"Pet {pet.technical_id} is available for reservation")
             return True
 
         except Exception as e:

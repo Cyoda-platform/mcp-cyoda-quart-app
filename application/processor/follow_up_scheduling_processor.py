@@ -8,9 +8,9 @@ import logging
 from datetime import datetime, timedelta
 from typing import Any
 
+from application.entity.adoption.version_1.adoption import Adoption
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.adoption.version_1.adoption import Adoption
 
 
 class FollowUpSchedulingProcessor(CyodaProcessor):
@@ -49,7 +49,9 @@ class FollowUpSchedulingProcessor(CyodaProcessor):
             # Get follow-up information from kwargs
             follow_up_date = kwargs.get("followUpDate") or kwargs.get("follow_up_date")
             follow_up_type = kwargs.get("followUpType") or kwargs.get("follow_up_type")
-            days_after_adoption = kwargs.get("daysAfterAdoption") or kwargs.get("days_after_adoption")
+            days_after_adoption = kwargs.get("daysAfterAdoption") or kwargs.get(
+                "days_after_adoption"
+            )
 
             # Validate adoption is completed
             if not adoption.is_completed():
@@ -57,7 +59,9 @@ class FollowUpSchedulingProcessor(CyodaProcessor):
 
             # Calculate follow-up date if not provided
             if not follow_up_date:
-                follow_up_date = self._calculate_follow_up_date(adoption, days_after_adoption)
+                follow_up_date = self._calculate_follow_up_date(
+                    adoption, days_after_adoption
+                )
 
             # Validate follow-up date format
             self._validate_follow_up_date(follow_up_date)
@@ -81,10 +85,8 @@ class FollowUpSchedulingProcessor(CyodaProcessor):
             follow_up_info = f"Follow-up scheduled for {follow_up_date}"
             if follow_up_type:
                 follow_up_info += f" (Type: {follow_up_type})"
-            
-            self.logger.info(
-                f"Adoption {adoption.technical_id} - {follow_up_info}"
-            )
+
+            self.logger.info(f"Adoption {adoption.technical_id} - {follow_up_info}")
 
             return adoption
 
@@ -94,7 +96,9 @@ class FollowUpSchedulingProcessor(CyodaProcessor):
             )
             raise
 
-    def _calculate_follow_up_date(self, adoption: Adoption, days_after_adoption: int = None) -> str:
+    def _calculate_follow_up_date(
+        self, adoption: Adoption, days_after_adoption: int = None
+    ) -> str:
         """
         Calculate follow-up date based on adoption date.
 
@@ -112,11 +116,17 @@ class FollowUpSchedulingProcessor(CyodaProcessor):
         # Parse adoption date
         if adoption.adoption_date:
             try:
-                adoption_datetime = datetime.fromisoformat(adoption.adoption_date.replace("Z", "+00:00"))
-                follow_up_datetime = adoption_datetime + timedelta(days=days_after_adoption)
+                adoption_datetime = datetime.fromisoformat(
+                    adoption.adoption_date.replace("Z", "+00:00")
+                )
+                follow_up_datetime = adoption_datetime + timedelta(
+                    days=days_after_adoption
+                )
                 return follow_up_datetime.strftime("%Y-%m-%d")
             except ValueError:
-                self.logger.warning(f"Invalid adoption date format: {adoption.adoption_date}")
+                self.logger.warning(
+                    f"Invalid adoption date format: {adoption.adoption_date}"
+                )
 
         # Fallback to current date + days
         follow_up_datetime = datetime.now() + timedelta(days=days_after_adoption)
@@ -135,7 +145,9 @@ class FollowUpSchedulingProcessor(CyodaProcessor):
         try:
             datetime.strptime(follow_up_date, "%Y-%m-%d")
         except ValueError:
-            raise ValueError(f"Follow-up date must be in YYYY-MM-DD format: {follow_up_date}")
+            raise ValueError(
+                f"Follow-up date must be in YYYY-MM-DD format: {follow_up_date}"
+            )
 
         # Validate date is not in the past
         follow_up_datetime = datetime.strptime(follow_up_date, "%Y-%m-%d")

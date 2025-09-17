@@ -7,10 +7,10 @@ Completes the adoption process for a reserved pet.
 import logging
 from typing import Any
 
+from application.entity.adoption.version_1.adoption import Adoption
+from application.entity.pet.version_1.pet import Pet
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.pet.version_1.pet import Pet
-from application.entity.adoption.version_1.adoption import Adoption
 from services.services import get_entity_service
 
 
@@ -50,7 +50,7 @@ class PetAdoptionProcessor(CyodaProcessor):
 
             # Get adoption details from kwargs
             adoption_details = kwargs.get("adoptionDetails", {})
-            
+
             # Validate pet is currently reserved (done by workflow criteria)
             if not pet.is_reserved():
                 raise ValueError("Pet must be reserved before adoption")
@@ -65,9 +65,7 @@ class PetAdoptionProcessor(CyodaProcessor):
             await self._create_adoption_record(pet, adoption_details)
 
             # Log adoption completion
-            self.logger.info(
-                f"Pet {pet.technical_id} adoption completed successfully"
-            )
+            self.logger.info(f"Pet {pet.technical_id} adoption completed successfully")
 
             return pet
 
@@ -120,7 +118,9 @@ class PetAdoptionProcessor(CyodaProcessor):
             adoption_fee = adoption_details.get("adoptionFee", 0.0)
             contract_signed = adoption_details.get("contractSigned", False)
             microchip_transferred = adoption_details.get("microchipTransferred", False)
-            vaccination_records_provided = adoption_details.get("vaccinationRecordsProvided", False)
+            vaccination_records_provided = adoption_details.get(
+                "vaccinationRecordsProvided", False
+            )
             adoption_notes = adoption_details.get("adoptionNotes")
 
             if not customer_id:

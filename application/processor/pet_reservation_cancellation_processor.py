@@ -7,9 +7,9 @@ Cancels a pet reservation and makes pet available again.
 import logging
 from typing import Any
 
+from application.entity.pet.version_1.pet import Pet
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.pet.version_1.pet import Pet
 
 
 class PetReservationCancellationProcessor(CyodaProcessor):
@@ -47,7 +47,9 @@ class PetReservationCancellationProcessor(CyodaProcessor):
             pet = cast_entity(entity, Pet)
 
             # Get cancellation reason from kwargs
-            cancellation_reason = kwargs.get("cancellationReason") or kwargs.get("cancellation_reason")
+            cancellation_reason = kwargs.get("cancellationReason") or kwargs.get(
+                "cancellation_reason"
+            )
 
             # Validate pet is currently reserved
             if not pet.is_reserved():
@@ -55,7 +57,7 @@ class PetReservationCancellationProcessor(CyodaProcessor):
 
             # Remove reservation record (in a real system, you might have a separate Reservation entity)
             # For this implementation, we just log the cancellation
-            
+
             # Clear reservation-related fields (if any were stored on the pet)
             # In this simple implementation, the state transition handles this
 

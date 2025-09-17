@@ -7,9 +7,9 @@ Blacklists a customer permanently.
 import logging
 from typing import Any
 
+from application.entity.customer.version_1.customer import Customer
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.customer.version_1.customer import Customer
 
 
 class CustomerBlacklistProcessor(CyodaProcessor):
@@ -46,7 +46,9 @@ class CustomerBlacklistProcessor(CyodaProcessor):
             customer = cast_entity(entity, Customer)
 
             # Get blacklist information from kwargs
-            blacklist_reason = kwargs.get("blacklistReason") or kwargs.get("blacklist_reason")
+            blacklist_reason = kwargs.get("blacklistReason") or kwargs.get(
+                "blacklist_reason"
+            )
 
             # Validate customer is currently active or suspended
             if customer.is_blacklisted():

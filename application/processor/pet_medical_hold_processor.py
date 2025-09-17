@@ -7,9 +7,9 @@ Places pet on medical hold for health issues.
 import logging
 from typing import Any
 
+from application.entity.pet.version_1.pet import Pet
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.pet.version_1.pet import Pet
 
 
 class PetMedicalHoldProcessor(CyodaProcessor):
@@ -47,7 +47,9 @@ class PetMedicalHoldProcessor(CyodaProcessor):
 
             # Get medical information from kwargs
             medical_notes = kwargs.get("medicalNotes") or kwargs.get("medical_notes")
-            expected_duration = kwargs.get("expectedDuration") or kwargs.get("expected_duration")
+            expected_duration = kwargs.get("expectedDuration") or kwargs.get(
+                "expected_duration"
+            )
 
             # Validate pet is not already adopted
             if pet.is_adopted():
@@ -63,7 +65,7 @@ class PetMedicalHoldProcessor(CyodaProcessor):
             medical_hold_info = f"MEDICAL HOLD: {medical_notes}"
             if expected_duration:
                 medical_hold_info += f" (Expected duration: {expected_duration})"
-            
+
             pet.special_needs = medical_hold_info
 
             # Log medical hold activity
