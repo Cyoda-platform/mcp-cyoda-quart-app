@@ -9,9 +9,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.adoption.version_1.adoption import Adoption
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.adoption.version_1.adoption import Adoption
 from services.services import get_entity_service
 
 
@@ -81,7 +81,9 @@ class ApproveApplicationProcessor(CyodaProcessor):
             ValueError: If adoption cannot be approved
         """
         if not adoption.is_pending():
-            raise ValueError(f"Adoption application is not pending (current state: {adoption.state})")
+            raise ValueError(
+                f"Adoption application is not pending (current state: {adoption.state})"
+            )
 
         # Validate required fields are present
         if not adoption.pet_id or len(adoption.pet_id.strip()) == 0:
@@ -124,29 +126,31 @@ class ApproveApplicationProcessor(CyodaProcessor):
 
             # Get the owner entity to get email
             owner_response = await entity_service.get_by_id(
-                entity_id=adoption.owner_id,
-                entity_class="Owner",
-                entity_version="1"
+                entity_id=adoption.owner_id, entity_class="Owner", entity_version="1"
             )
 
             if owner_response and owner_response.data:
                 owner_data = owner_response.data
-                owner_email = getattr(owner_data, 'email', 'unknown@example.com')
-                owner_name = getattr(owner_data, 'name', 'Unknown Owner')
+                owner_email = getattr(owner_data, "email", "unknown@example.com")
+                owner_name = getattr(owner_data, "name", "Unknown Owner")
 
                 # Simulate sending approval notification email
                 self.logger.info(
                     f"Approval notification email sent to {owner_email} for owner {owner_name}"
                 )
-                
+
                 # Add metadata to track notification
                 current_timestamp = (
                     datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
                 )
                 adoption.add_metadata("owner_approval_notified", current_timestamp)
             else:
-                self.logger.warning(f"Owner {adoption.owner_id} not found for approval notification")
+                self.logger.warning(
+                    f"Owner {adoption.owner_id} not found for approval notification"
+                )
 
         except Exception as e:
-            self.logger.error(f"Failed to notify owner {adoption.owner_id} of approval: {str(e)}")
+            self.logger.error(
+                f"Failed to notify owner {adoption.owner_id} of approval: {str(e)}"
+            )
             # Don't raise exception as the approval itself is valid

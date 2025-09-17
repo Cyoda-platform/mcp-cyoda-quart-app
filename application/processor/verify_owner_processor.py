@@ -9,9 +9,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.owner.version_1.owner import Owner
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.owner.version_1.owner import Owner
 
 
 class VerifyOwnerProcessor(CyodaProcessor):
@@ -57,9 +57,7 @@ class VerifyOwnerProcessor(CyodaProcessor):
             # Send verification confirmation (simulated)
             self._send_verification_confirmation(owner)
 
-            self.logger.info(
-                f"Owner {owner.technical_id} verified successfully"
-            )
+            self.logger.info(f"Owner {owner.technical_id} verified successfully")
 
             return owner
 
@@ -80,11 +78,15 @@ class VerifyOwnerProcessor(CyodaProcessor):
             ValueError: If owner cannot be verified
         """
         if not owner.is_registered():
-            raise ValueError(f"Owner {owner.name} is not registered (current state: {owner.state})")
+            raise ValueError(
+                f"Owner {owner.name} is not registered (current state: {owner.state})"
+            )
 
         # Check if verification documents are provided
         if not owner.has_verification_documents():
-            raise ValueError(f"Owner {owner.name} has not provided verification documents")
+            raise ValueError(
+                f"Owner {owner.name} has not provided verification documents"
+            )
 
         self.logger.info(f"Owner {owner.name} validation passed for verification")
 
@@ -105,9 +107,7 @@ class VerifyOwnerProcessor(CyodaProcessor):
         owner.add_metadata("can_adopt", True)
         owner.add_metadata("verified_by", "VerifyOwnerProcessor")
 
-        self.logger.info(
-            f"Owner {owner.name} verified on {current_timestamp}"
-        )
+        self.logger.info(f"Owner {owner.name} verified on {current_timestamp}")
 
     def _send_verification_confirmation(self, owner: Owner) -> None:
         """
@@ -120,7 +120,7 @@ class VerifyOwnerProcessor(CyodaProcessor):
         self.logger.info(
             f"Verification confirmation email sent to {owner.email} for owner {owner.name}"
         )
-        
+
         # Add metadata to track email sending
         current_timestamp = (
             datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")

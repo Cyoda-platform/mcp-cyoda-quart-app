@@ -7,9 +7,9 @@ before they can proceed to the verified stage.
 
 from typing import Any
 
+from application.entity.owner.version_1.owner import Owner
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.owner.version_1.owner import Owner
 
 
 class OwnerDocumentsValidCriterion(CyodaCriteriaChecker):

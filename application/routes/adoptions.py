@@ -19,25 +19,25 @@ from quart_schema import (
     validate_querystring,
 )
 
-from common.service.entity_service import SearchConditionRequest
-from services.services import get_entity_service
 from application.entity.adoption.version_1.adoption import Adoption
 from application.models import (
-    AdoptionQueryParams,
-    AdoptionUpdateQueryParams,
-    AdoptionResponse,
     AdoptionListResponse,
+    AdoptionQueryParams,
+    AdoptionResponse,
     AdoptionSearchResponse,
+    AdoptionUpdateQueryParams,
     CountResponse,
     DeleteResponse,
+    ErrorResponse,
     ExistsResponse,
-    TransitionResponse,
-    TransitionsResponse,
     SearchRequest,
     TransitionRequest,
-    ErrorResponse,
+    TransitionResponse,
+    TransitionsResponse,
     ValidationErrorResponse,
 )
+from common.service.entity_service import SearchConditionRequest
+from services.services import get_entity_service
 
 logger = logging.getLogger(__name__)
 
@@ -189,7 +189,10 @@ async def list_adoptions(query_args: AdoptionQueryParams) -> ResponseReturnValue
         end = start + query_args.limit
         paginated_entities = entity_list[start:end]
 
-        return jsonify({"adoptions": paginated_entities, "total": len(entity_list)}), 200
+        return (
+            jsonify({"adoptions": paginated_entities, "total": len(entity_list)}),
+            200,
+        )
 
     except Exception as e:
         logger.exception("Error listing Adoptions: %s", str(e))
@@ -362,7 +365,9 @@ async def get_available_transitions(entity_id: str) -> ResponseReturnValue:
         return jsonify(response.model_dump()), 200
 
     except Exception as e:
-        logger.exception("Error getting transitions for Adoption %s: %s", entity_id, str(e))
+        logger.exception(
+            "Error getting transitions for Adoption %s: %s", entity_id, str(e)
+        )
         return jsonify({"error": str(e)}), 500
 
 
@@ -445,7 +450,9 @@ async def trigger_transition(
             entity_version=str(Adoption.ENTITY_VERSION),
         )
 
-        logger.info("Executed transition '%s' on Adoption %s", data.transition_name, entity_id)
+        logger.info(
+            "Executed transition '%s' on Adoption %s", data.transition_name, entity_id
+        )
 
         return (
             jsonify(
@@ -460,5 +467,7 @@ async def trigger_transition(
         )
 
     except Exception as e:
-        logger.exception("Error executing transition on Adoption %s: %s", entity_id, str(e))
+        logger.exception(
+            "Error executing transition on Adoption %s: %s", entity_id, str(e)
+        )
         return jsonify({"error": str(e)}), 500

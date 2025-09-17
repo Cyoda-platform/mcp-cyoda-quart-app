@@ -9,9 +9,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.owner.version_1.owner import Owner
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.owner.version_1.owner import Owner
 
 
 class RegisterOwnerProcessor(CyodaProcessor):
@@ -57,9 +57,7 @@ class RegisterOwnerProcessor(CyodaProcessor):
             # Send welcome email (simulated)
             self._send_welcome_email(owner)
 
-            self.logger.info(
-                f"Owner {owner.technical_id} registered successfully"
-            )
+            self.logger.info(f"Owner {owner.technical_id} registered successfully")
 
             return owner
 
@@ -117,14 +115,12 @@ class RegisterOwnerProcessor(CyodaProcessor):
         owner.add_metadata("registered_by", "RegisterOwnerProcessor")
 
         # Initialize empty lists for relationships if not already set
-        if not hasattr(owner, 'pet_ids') or owner.pet_ids is None:
+        if not hasattr(owner, "pet_ids") or owner.pet_ids is None:
             owner.pet_ids = []
-        if not hasattr(owner, 'adoption_ids') or owner.adoption_ids is None:
+        if not hasattr(owner, "adoption_ids") or owner.adoption_ids is None:
             owner.adoption_ids = []
 
-        self.logger.info(
-            f"Owner {owner.name} registered on {current_timestamp}"
-        )
+        self.logger.info(f"Owner {owner.name} registered on {current_timestamp}")
 
     def _send_welcome_email(self, owner: Owner) -> None:
         """
@@ -134,10 +130,8 @@ class RegisterOwnerProcessor(CyodaProcessor):
             owner: The Owner entity to send email to
         """
         # Simulate sending welcome email
-        self.logger.info(
-            f"Welcome email sent to {owner.email} for owner {owner.name}"
-        )
-        
+        self.logger.info(f"Welcome email sent to {owner.email} for owner {owner.name}")
+
         # Add metadata to track email sending
         current_timestamp = (
             datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")

@@ -9,9 +9,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.pet.version_1.pet import Pet
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.pet.version_1.pet import Pet
 
 
 class InitializePetProcessor(CyodaProcessor):
@@ -54,9 +54,7 @@ class InitializePetProcessor(CyodaProcessor):
             # Validate pet data
             self._validate_pet_data(pet)
 
-            self.logger.info(
-                f"Pet {pet.technical_id} initialized successfully"
-            )
+            self.logger.info(f"Pet {pet.technical_id} initialized successfully")
 
             return pet
 
@@ -112,11 +110,15 @@ class InitializePetProcessor(CyodaProcessor):
 
         # Ensure no owner or adoption references during initialization
         if pet.owner_id is not None:
-            self.logger.warning(f"Pet {pet.technical_id} has owner_id during initialization, clearing it")
+            self.logger.warning(
+                f"Pet {pet.technical_id} has owner_id during initialization, clearing it"
+            )
             pet.owner_id = None
 
         if pet.adoption_id is not None:
-            self.logger.warning(f"Pet {pet.technical_id} has adoption_id during initialization, clearing it")
+            self.logger.warning(
+                f"Pet {pet.technical_id} has adoption_id during initialization, clearing it"
+            )
             pet.adoption_id = None
 
         self.logger.info(f"Pet data validation passed for {pet.name}")

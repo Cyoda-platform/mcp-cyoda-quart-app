@@ -7,9 +7,9 @@ application can be approved.
 
 from typing import Any
 
+from application.entity.adoption.version_1.adoption import Adoption
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.adoption.version_1.adoption import Adoption
 from services.services import get_entity_service
 
 
@@ -79,22 +79,22 @@ class OwnerVerifiedCriterion(CyodaCriteriaChecker):
 
             # Get the owner entity
             owner_response = await entity_service.get_by_id(
-                entity_id=owner_id,
-                entity_class="Owner",
-                entity_version="1"
+                entity_id=owner_id, entity_class="Owner", entity_version="1"
             )
 
             if owner_response and owner_response.data:
                 owner_data = owner_response.data
-                
+
                 # Check owner state - should be "verified" or "active"
-                owner_state = getattr(owner_data, 'state', None)
-                
+                owner_state = getattr(owner_data, "state", None)
+
                 if owner_state in ["verified", "active"]:
                     self.logger.info(f"Owner {owner_id} has valid state: {owner_state}")
                     return True
                 else:
-                    self.logger.warning(f"Owner {owner_id} has invalid state for adoption: {owner_state}")
+                    self.logger.warning(
+                        f"Owner {owner_id} has invalid state for adoption: {owner_state}"
+                    )
                     return False
             else:
                 self.logger.warning(f"Owner {owner_id} not found")

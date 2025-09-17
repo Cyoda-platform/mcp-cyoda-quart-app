@@ -9,9 +9,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.adoption.version_1.adoption import Adoption
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.adoption.version_1.adoption import Adoption
 from services.services import get_entity_service
 
 
@@ -64,9 +64,7 @@ class CompleteAdoptionProcessor(CyodaProcessor):
             # Process payment (simulated)
             self._process_payment(adoption)
 
-            self.logger.info(
-                f"Adoption {adoption.technical_id} completed successfully"
-            )
+            self.logger.info(f"Adoption {adoption.technical_id} completed successfully")
 
             return adoption
 
@@ -87,7 +85,9 @@ class CompleteAdoptionProcessor(CyodaProcessor):
             ValueError: If adoption cannot be completed
         """
         if not adoption.is_approved():
-            raise ValueError(f"Adoption is not approved (current state: {adoption.state})")
+            raise ValueError(
+                f"Adoption is not approved (current state: {adoption.state})"
+            )
 
         # Validate required fields
         if not adoption.pet_id or len(adoption.pet_id.strip()) == 0:
@@ -111,7 +111,7 @@ class CompleteAdoptionProcessor(CyodaProcessor):
 
         # Set completion data
         adoption.complete_adoption()  # This sets adoption_date
-        
+
         # Add completion metadata
         adoption.add_metadata("status", "completed")
         adoption.add_metadata("completed_date", current_timestamp)
@@ -133,15 +133,13 @@ class CompleteAdoptionProcessor(CyodaProcessor):
 
             # Get the pet entity
             pet_response = await entity_service.get_by_id(
-                entity_id=adoption.pet_id,
-                entity_class="Pet",
-                entity_version="1"
+                entity_id=adoption.pet_id, entity_class="Pet", entity_version="1"
             )
 
             if pet_response and pet_response.data:
                 # Update pet with owner reference
                 pet_data = pet_response.data
-                if hasattr(pet_data, 'model_dump'):
+                if hasattr(pet_data, "model_dump"):
                     pet_dict = pet_data.model_dump(by_alias=True)
                 else:
                     pet_dict = pet_data
@@ -155,15 +153,19 @@ class CompleteAdoptionProcessor(CyodaProcessor):
                     entity=pet_dict,
                     entity_class="Pet",
                     transition="complete_adoption",
-                    entity_version="1"
+                    entity_version="1",
                 )
 
-                self.logger.info(f"Pet {adoption.pet_id} adoption finalized with owner {adoption.owner_id}")
+                self.logger.info(
+                    f"Pet {adoption.pet_id} adoption finalized with owner {adoption.owner_id}"
+                )
             else:
                 self.logger.warning(f"Pet {adoption.pet_id} not found for finalization")
 
         except Exception as e:
-            self.logger.error(f"Failed to finalize pet {adoption.pet_id} adoption: {str(e)}")
+            self.logger.error(
+                f"Failed to finalize pet {adoption.pet_id} adoption: {str(e)}"
+            )
             # Don't raise exception as the adoption completion itself is valid
 
     async def _update_owner_records(self, adoption: Adoption) -> None:
@@ -178,15 +180,13 @@ class CompleteAdoptionProcessor(CyodaProcessor):
 
             # Get the owner entity
             owner_response = await entity_service.get_by_id(
-                entity_id=adoption.owner_id,
-                entity_class="Owner",
-                entity_version="1"
+                entity_id=adoption.owner_id, entity_class="Owner", entity_version="1"
             )
 
             if owner_response and owner_response.data:
                 # Update owner with pet and adoption references
                 owner_data = owner_response.data
-                if hasattr(owner_data, 'model_dump'):
+                if hasattr(owner_data, "model_dump"):
                     owner_dict = owner_data.model_dump(by_alias=True)
                 else:
                     owner_dict = owner_data
@@ -209,15 +209,21 @@ class CompleteAdoptionProcessor(CyodaProcessor):
                     entity_id=adoption.owner_id,
                     entity=owner_dict,
                     entity_class="Owner",
-                    entity_version="1"
+                    entity_version="1",
                 )
 
-                self.logger.info(f"Owner {adoption.owner_id} records updated with pet {adoption.pet_id}")
+                self.logger.info(
+                    f"Owner {adoption.owner_id} records updated with pet {adoption.pet_id}"
+                )
             else:
-                self.logger.warning(f"Owner {adoption.owner_id} not found for record update")
+                self.logger.warning(
+                    f"Owner {adoption.owner_id} not found for record update"
+                )
 
         except Exception as e:
-            self.logger.error(f"Failed to update owner {adoption.owner_id} records: {str(e)}")
+            self.logger.error(
+                f"Failed to update owner {adoption.owner_id} records: {str(e)}"
+            )
             # Don't raise exception as the adoption completion itself is valid
 
     def _process_payment(self, adoption: Adoption) -> None:
@@ -231,7 +237,7 @@ class CompleteAdoptionProcessor(CyodaProcessor):
         self.logger.info(
             f"Payment of ${adoption.fee_paid} processed for adoption {adoption.technical_id}"
         )
-        
+
         # Add metadata to track payment processing
         current_timestamp = (
             datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")

@@ -16,7 +16,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class Adoption(CyodaEntity):
     """
     Adoption entity represents the adoption process linking pets with their new owners.
-    
+
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     The state field manages workflow states: initial_state -> pending -> approved -> completed/cancelled
     """
@@ -27,18 +27,18 @@ class Adoption(CyodaEntity):
 
     # Required fields from functional requirements
     application_date: str = Field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
-        description="When adoption was requested (ISO date)"
+        default_factory=lambda: datetime.now(timezone.utc)
+        .isoformat()
+        .replace("+00:00", "Z"),
+        description="When adoption was requested (ISO date)",
     )
     adoption_date: Optional[str] = Field(
-        default=None, 
-        description="When adoption was completed (ISO date, nullable)"
+        default=None, description="When adoption was completed (ISO date, nullable)"
     )
     notes: str = Field(..., description="Additional notes about the adoption")
     fee_paid: float = Field(..., description="Amount paid for adoption", ge=0)
     contract_signed: bool = Field(
-        default=False, 
-        description="Whether adoption contract is signed"
+        default=False, description="Whether adoption contract is signed"
     )
 
     # Relationships - required references to Pet and Owner
@@ -55,7 +55,9 @@ class Adoption(CyodaEntity):
         try:
             datetime.fromisoformat(v.replace("Z", "+00:00"))
         except ValueError:
-            raise ValueError("Application date must be in ISO format (YYYY-MM-DDTHH:MM:SSZ)")
+            raise ValueError(
+                "Application date must be in ISO format (YYYY-MM-DDTHH:MM:SSZ)"
+            )
         return v.strip()
 
     @field_validator("adoption_date")
@@ -68,7 +70,9 @@ class Adoption(CyodaEntity):
             try:
                 datetime.fromisoformat(v.replace("Z", "+00:00"))
             except ValueError:
-                raise ValueError("Adoption date must be in ISO format (YYYY-MM-DDTHH:MM:SSZ)")
+                raise ValueError(
+                    "Adoption date must be in ISO format (YYYY-MM-DDTHH:MM:SSZ)"
+                )
             return v.strip()
         return v
 
@@ -116,7 +120,9 @@ class Adoption(CyodaEntity):
 
     def complete_adoption(self) -> None:
         """Mark adoption as completed with current timestamp"""
-        self.adoption_date = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.adoption_date = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
         self.update_timestamp()
 
     def sign_contract(self) -> None:
@@ -134,7 +140,9 @@ class Adoption(CyodaEntity):
     def add_note(self, additional_note: str) -> None:
         """Add additional note to existing notes"""
         if additional_note and len(additional_note.strip()) > 0:
-            current_timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            current_timestamp = (
+                datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            )
             self.notes += f"\n[{current_timestamp}] {additional_note.strip()}"
             self.update_timestamp()
 

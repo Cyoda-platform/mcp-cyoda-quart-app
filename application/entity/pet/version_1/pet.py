@@ -16,7 +16,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class Pet(CyodaEntity):
     """
     Pet entity represents pets available for adoption in the Purrfect Pets store.
-    
+
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     The state field manages workflow states: initial_state -> available -> reserved -> adopted
     """
@@ -36,17 +36,23 @@ class Pet(CyodaEntity):
 
     # Relationships - nullable references set during adoption process
     owner_id: Optional[str] = Field(
-        default=None, 
-        description="Reference to Owner entity (set when adopted)"
+        default=None, description="Reference to Owner entity (set when adopted)"
     )
     adoption_id: Optional[str] = Field(
-        default=None, 
-        description="Reference to Adoption entity (set during adoption process)"
+        default=None,
+        description="Reference to Adoption entity (set during adoption process)",
     )
 
     # Validation constants
     ALLOWED_SPECIES: ClassVar[list[str]] = [
-        "cat", "dog", "bird", "rabbit", "hamster", "guinea pig", "fish", "reptile"
+        "cat",
+        "dog",
+        "bird",
+        "rabbit",
+        "hamster",
+        "guinea pig",
+        "fish",
+        "reptile",
     ]
 
     @field_validator("name")

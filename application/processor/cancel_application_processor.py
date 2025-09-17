@@ -9,9 +9,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.adoption.version_1.adoption import Adoption
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.adoption.version_1.adoption import Adoption
 from services.services import get_entity_service
 
 
@@ -84,14 +84,20 @@ class CancelApplicationProcessor(CyodaProcessor):
             ValueError: If adoption cannot be cancelled
         """
         if adoption.is_completed():
-            raise ValueError(f"Cannot cancel completed adoption (current state: {adoption.state})")
+            raise ValueError(
+                f"Cannot cancel completed adoption (current state: {adoption.state})"
+            )
 
         if adoption.is_cancelled():
-            raise ValueError(f"Adoption is already cancelled (current state: {adoption.state})")
+            raise ValueError(
+                f"Adoption is already cancelled (current state: {adoption.state})"
+            )
 
         # Can cancel pending or approved adoptions
         if not (adoption.is_pending() or adoption.is_approved()):
-            raise ValueError(f"Adoption cannot be cancelled from state: {adoption.state}")
+            raise ValueError(
+                f"Adoption cannot be cancelled from state: {adoption.state}"
+            )
 
         self.logger.info(f"Adoption validation passed for cancellation")
 
@@ -130,15 +136,13 @@ class CancelApplicationProcessor(CyodaProcessor):
 
             # Get the pet entity
             pet_response = await entity_service.get_by_id(
-                entity_id=adoption.pet_id,
-                entity_class="Pet",
-                entity_version="1"
+                entity_id=adoption.pet_id, entity_class="Pet", entity_version="1"
             )
 
             if pet_response and pet_response.data:
                 # Update pet to clear adoption reference
                 pet_data = pet_response.data
-                if hasattr(pet_data, 'model_dump'):
+                if hasattr(pet_data, "model_dump"):
                     pet_dict = pet_data.model_dump(by_alias=True)
                 else:
                     pet_dict = pet_data
@@ -152,7 +156,7 @@ class CancelApplicationProcessor(CyodaProcessor):
                     entity=pet_dict,
                     entity_class="Pet",
                     transition="cancel_reservation",
-                    entity_version="1"
+                    entity_version="1",
                 )
 
                 self.logger.info(f"Pet {adoption.pet_id} released from reservation")
@@ -175,22 +179,23 @@ class CancelApplicationProcessor(CyodaProcessor):
 
             # Get the owner entity
             owner_response = await entity_service.get_by_id(
-                entity_id=adoption.owner_id,
-                entity_class="Owner",
-                entity_version="1"
+                entity_id=adoption.owner_id, entity_class="Owner", entity_version="1"
             )
 
             if owner_response and owner_response.data:
                 # Update owner to remove adoption reference
                 owner_data = owner_response.data
-                if hasattr(owner_data, 'model_dump'):
+                if hasattr(owner_data, "model_dump"):
                     owner_dict = owner_data.model_dump(by_alias=True)
                 else:
                     owner_dict = owner_data
 
                 # Remove adoption from lists if present
                 adoption_id = adoption.technical_id or adoption.entity_id
-                if "adoption_ids" in owner_dict and adoption_id in owner_dict["adoption_ids"]:
+                if (
+                    "adoption_ids" in owner_dict
+                    and adoption_id in owner_dict["adoption_ids"]
+                ):
                     owner_dict["adoption_ids"].remove(adoption_id)
 
                 # Update the owner (no transition needed)
@@ -198,13 +203,19 @@ class CancelApplicationProcessor(CyodaProcessor):
                     entity_id=adoption.owner_id,
                     entity=owner_dict,
                     entity_class="Owner",
-                    entity_version="1"
+                    entity_version="1",
                 )
 
-                self.logger.info(f"Owner {adoption.owner_id} records updated for cancellation")
+                self.logger.info(
+                    f"Owner {adoption.owner_id} records updated for cancellation"
+                )
             else:
-                self.logger.warning(f"Owner {adoption.owner_id} not found for record update")
+                self.logger.warning(
+                    f"Owner {adoption.owner_id} not found for record update"
+                )
 
         except Exception as e:
-            self.logger.error(f"Failed to update owner {adoption.owner_id} records: {str(e)}")
+            self.logger.error(
+                f"Failed to update owner {adoption.owner_id} records: {str(e)}"
+            )
             # Don't raise exception as the cancellation itself is valid

@@ -6,12 +6,12 @@ Marks pets as reserved and sets reservation details.
 """
 
 import logging
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
+from application.entity.pet.version_1.pet import Pet
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.pet.version_1.pet import Pet
 
 
 class ReservePetProcessor(CyodaProcessor):
@@ -54,9 +54,7 @@ class ReservePetProcessor(CyodaProcessor):
             # Reserve the pet
             self._reserve_pet(pet)
 
-            self.logger.info(
-                f"Pet {pet.technical_id} reserved successfully"
-            )
+            self.logger.info(f"Pet {pet.technical_id} reserved successfully")
 
             return pet
 
@@ -77,7 +75,9 @@ class ReservePetProcessor(CyodaProcessor):
             ValueError: If pet cannot be reserved
         """
         if not pet.is_available_for_adoption():
-            raise ValueError(f"Pet {pet.name} is not available for reservation (current state: {pet.state})")
+            raise ValueError(
+                f"Pet {pet.name} is not available for reservation (current state: {pet.state})"
+            )
 
         if pet.owner_id is not None:
             raise ValueError(f"Pet {pet.name} already has an owner assigned")
@@ -94,7 +94,7 @@ class ReservePetProcessor(CyodaProcessor):
         current_timestamp = (
             datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
         )
-        
+
         # Calculate reservation expiry (7 days from now)
         expiry_date = datetime.now(timezone.utc) + timedelta(days=7)
         expiry_timestamp = expiry_date.isoformat().replace("+00:00", "Z")
@@ -105,6 +105,4 @@ class ReservePetProcessor(CyodaProcessor):
         pet.add_metadata("reservation_expires", expiry_timestamp)
         pet.add_metadata("reserved_by", "ReservePetProcessor")
 
-        self.logger.info(
-            f"Pet {pet.name} reserved until {expiry_timestamp}"
-        )
+        self.logger.info(f"Pet {pet.name} reserved until {expiry_timestamp}")

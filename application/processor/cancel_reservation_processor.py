@@ -9,9 +9,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.pet.version_1.pet import Pet
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.pet.version_1.pet import Pet
 
 
 class CancelReservationProcessor(CyodaProcessor):
@@ -77,9 +77,13 @@ class CancelReservationProcessor(CyodaProcessor):
             ValueError: If reservation cannot be cancelled
         """
         if not pet.is_reserved():
-            raise ValueError(f"Pet {pet.name} is not reserved (current state: {pet.state})")
+            raise ValueError(
+                f"Pet {pet.name} is not reserved (current state: {pet.state})"
+            )
 
-        self.logger.info(f"Pet {pet.name} validation passed for reservation cancellation")
+        self.logger.info(
+            f"Pet {pet.name} validation passed for reservation cancellation"
+        )
 
     def _cancel_pet_reservation(self, pet: Pet) -> None:
         """
@@ -100,10 +104,7 @@ class CancelReservationProcessor(CyodaProcessor):
         # Clear reservation-related metadata
         if pet.metadata:
             # Remove reservation-specific metadata
-            metadata_to_remove = [
-                "reserved_date", 
-                "reservation_expires"
-            ]
+            metadata_to_remove = ["reserved_date", "reservation_expires"]
             for key in metadata_to_remove:
                 if key in pet.metadata:
                     del pet.metadata[key]

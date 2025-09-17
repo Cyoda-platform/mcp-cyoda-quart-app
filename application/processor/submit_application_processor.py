@@ -9,9 +9,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.adoption.version_1.adoption import Adoption
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.adoption.version_1.adoption import Adoption
 from services.services import get_entity_service
 
 
@@ -96,7 +96,9 @@ class SubmitApplicationProcessor(CyodaProcessor):
         if adoption.fee_paid < 0:
             raise ValueError("Fee paid cannot be negative")
 
-        self.logger.info(f"Adoption application validation passed for pet {adoption.pet_id}")
+        self.logger.info(
+            f"Adoption application validation passed for pet {adoption.pet_id}"
+        )
 
     def _process_adoption_application(self, adoption: Adoption) -> None:
         """
@@ -134,18 +136,16 @@ class SubmitApplicationProcessor(CyodaProcessor):
 
             # Get the pet entity
             pet_response = await entity_service.get_by_id(
-                entity_id=adoption.pet_id,
-                entity_class="Pet",
-                entity_version="1"
+                entity_id=adoption.pet_id, entity_class="Pet", entity_version="1"
             )
 
             if pet_response and pet_response.data:
                 # Update pet with adoption reference
                 pet_data = pet_response.data
-                if hasattr(pet_data, 'model_dump'):
+                if hasattr(pet_data, "model_dump"):
                     pet_dict = pet_data.model_dump(by_alias=True)
                 else:
-                    pet_dict = pet_data
+                    pet_dict = pet_data if isinstance(pet_data, dict) else pet_data.__dict__
 
                 # Set adoption_id reference
                 pet_dict["adoption_id"] = adoption.technical_id or adoption.entity_id
@@ -156,10 +156,12 @@ class SubmitApplicationProcessor(CyodaProcessor):
                     entity=pet_dict,
                     entity_class="Pet",
                     transition="reserve_pet",
-                    entity_version="1"
+                    entity_version="1",
                 )
 
-                self.logger.info(f"Pet {adoption.pet_id} reserved for adoption {adoption.technical_id}")
+                self.logger.info(
+                    f"Pet {adoption.pet_id} reserved for adoption {adoption.technical_id}"
+                )
             else:
                 self.logger.warning(f"Pet {adoption.pet_id} not found for reservation")
 
@@ -178,7 +180,7 @@ class SubmitApplicationProcessor(CyodaProcessor):
         self.logger.info(
             f"Staff notified about new adoption application {adoption.technical_id} for pet {adoption.pet_id}"
         )
-        
+
         # Add metadata to track notification
         current_timestamp = (
             datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")

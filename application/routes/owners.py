@@ -19,25 +19,25 @@ from quart_schema import (
     validate_querystring,
 )
 
-from common.service.entity_service import SearchConditionRequest
-from services.services import get_entity_service
 from application.entity.owner.version_1.owner import Owner
 from application.models import (
-    OwnerQueryParams,
-    OwnerUpdateQueryParams,
-    OwnerResponse,
-    OwnerListResponse,
-    OwnerSearchResponse,
     CountResponse,
     DeleteResponse,
+    ErrorResponse,
     ExistsResponse,
-    TransitionResponse,
-    TransitionsResponse,
+    OwnerListResponse,
+    OwnerQueryParams,
+    OwnerResponse,
+    OwnerSearchResponse,
+    OwnerUpdateQueryParams,
     SearchRequest,
     TransitionRequest,
-    ErrorResponse,
+    TransitionResponse,
+    TransitionsResponse,
     ValidationErrorResponse,
 )
+from common.service.entity_service import SearchConditionRequest
+from services.services import get_entity_service
 
 logger = logging.getLogger(__name__)
 
@@ -359,7 +359,9 @@ async def get_available_transitions(entity_id: str) -> ResponseReturnValue:
         return jsonify(response.model_dump()), 200
 
     except Exception as e:
-        logger.exception("Error getting transitions for Owner %s: %s", entity_id, str(e))
+        logger.exception(
+            "Error getting transitions for Owner %s: %s", entity_id, str(e)
+        )
         return jsonify({"error": str(e)}), 500
 
 
@@ -442,7 +444,9 @@ async def trigger_transition(
             entity_version=str(Owner.ENTITY_VERSION),
         )
 
-        logger.info("Executed transition '%s' on Owner %s", data.transition_name, entity_id)
+        logger.info(
+            "Executed transition '%s' on Owner %s", data.transition_name, entity_id
+        )
 
         return (
             jsonify(
@@ -457,5 +461,7 @@ async def trigger_transition(
         )
 
     except Exception as e:
-        logger.exception("Error executing transition on Owner %s: %s", entity_id, str(e))
+        logger.exception(
+            "Error executing transition on Owner %s: %s", entity_id, str(e)
+        )
         return jsonify({"error": str(e)}), 500

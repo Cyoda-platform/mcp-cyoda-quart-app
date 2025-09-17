@@ -19,25 +19,25 @@ from quart_schema import (
     validate_querystring,
 )
 
-from common.service.entity_service import SearchConditionRequest
-from services.services import get_entity_service
 from application.entity.pet.version_1.pet import Pet
 from application.models import (
-    PetQueryParams,
-    PetUpdateQueryParams,
-    PetResponse,
-    PetListResponse,
-    PetSearchResponse,
     CountResponse,
     DeleteResponse,
+    ErrorResponse,
     ExistsResponse,
-    TransitionResponse,
-    TransitionsResponse,
+    PetListResponse,
+    PetQueryParams,
+    PetResponse,
+    PetSearchResponse,
+    PetUpdateQueryParams,
     SearchRequest,
     TransitionRequest,
-    ErrorResponse,
+    TransitionResponse,
+    TransitionsResponse,
     ValidationErrorResponse,
 )
+from common.service.entity_service import SearchConditionRequest
+from services.services import get_entity_service
 
 logger = logging.getLogger(__name__)
 
@@ -457,7 +457,9 @@ async def trigger_transition(
             entity_version=str(Pet.ENTITY_VERSION),
         )
 
-        logger.info("Executed transition '%s' on Pet %s", data.transition_name, entity_id)
+        logger.info(
+            "Executed transition '%s' on Pet %s", data.transition_name, entity_id
+        )
 
         return (
             jsonify(

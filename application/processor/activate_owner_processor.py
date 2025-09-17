@@ -9,9 +9,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.owner.version_1.owner import Owner
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.owner.version_1.owner import Owner
 
 
 class ActivateOwnerProcessor(CyodaProcessor):
@@ -54,9 +54,7 @@ class ActivateOwnerProcessor(CyodaProcessor):
             # Activate the owner
             self._activate_owner(owner)
 
-            self.logger.info(
-                f"Owner {owner.technical_id} activated successfully"
-            )
+            self.logger.info(f"Owner {owner.technical_id} activated successfully")
 
             return owner
 
@@ -77,7 +75,9 @@ class ActivateOwnerProcessor(CyodaProcessor):
             ValueError: If owner cannot be activated
         """
         if not owner.is_verified():
-            raise ValueError(f"Owner {owner.name} is not verified (current state: {owner.state})")
+            raise ValueError(
+                f"Owner {owner.name} is not verified (current state: {owner.state})"
+            )
 
         self.logger.info(f"Owner {owner.name} validation passed for activation")
 
@@ -97,6 +97,4 @@ class ActivateOwnerProcessor(CyodaProcessor):
         owner.add_metadata("status", "active")
         owner.add_metadata("activated_by", "ActivateOwnerProcessor")
 
-        self.logger.info(
-            f"Owner {owner.name} activated on {current_timestamp}"
-        )
+        self.logger.info(f"Owner {owner.name} activated on {current_timestamp}")

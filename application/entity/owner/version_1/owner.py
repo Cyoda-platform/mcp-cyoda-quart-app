@@ -7,7 +7,7 @@ Entity state is managed internally via workflow engine.
 
 from typing import ClassVar, Optional
 
-from pydantic import ConfigDict, Field, field_validator, EmailStr
+from pydantic import ConfigDict, EmailStr, Field, field_validator
 
 from common.entity.cyoda_entity import CyodaEntity
 
@@ -15,7 +15,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class Owner(CyodaEntity):
     """
     Owner entity represents individuals who can adopt pets from the Purrfect Pets store.
-    
+
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     The state field manages workflow states: initial_state -> registered -> verified -> active
     """
@@ -32,23 +32,23 @@ class Owner(CyodaEntity):
     experience: str = Field(..., description="Pet ownership experience level")
     preferences: str = Field(..., description="Preferred pet types and characteristics")
     verification_documents: Optional[str] = Field(
-        default=None, 
-        description="Uploaded verification files"
+        default=None, description="Uploaded verification files"
     )
 
     # Relationships - lists of references to adopted pets and adoptions
     pet_ids: list[str] = Field(
-        default_factory=list, 
-        description="List of adopted pet references"
+        default_factory=list, description="List of adopted pet references"
     )
     adoption_ids: list[str] = Field(
-        default_factory=list, 
-        description="List of adoption process references"
+        default_factory=list, description="List of adoption process references"
     )
 
     # Validation constants
     ALLOWED_EXPERIENCE_LEVELS: ClassVar[list[str]] = [
-        "beginner", "intermediate", "experienced", "expert"
+        "beginner",
+        "intermediate",
+        "experienced",
+        "expert",
     ]
 
     @field_validator("name")
@@ -70,7 +70,13 @@ class Owner(CyodaEntity):
         if not v or len(v.strip()) == 0:
             raise ValueError("Phone number must be non-empty")
         # Basic phone validation - remove spaces and check length
-        phone_clean = v.strip().replace(" ", "").replace("-", "").replace("(", "").replace(")", "")
+        phone_clean = (
+            v.strip()
+            .replace(" ", "")
+            .replace("-", "")
+            .replace("(", "")
+            .replace(")", "")
+        )
         if len(phone_clean) < 10:
             raise ValueError("Phone number must be at least 10 digits")
         if len(phone_clean) > 15:
@@ -95,7 +101,9 @@ class Owner(CyodaEntity):
             raise ValueError("Experience level must be non-empty")
         experience_lower = v.strip().lower()
         if experience_lower not in cls.ALLOWED_EXPERIENCE_LEVELS:
-            raise ValueError(f"Experience must be one of: {cls.ALLOWED_EXPERIENCE_LEVELS}")
+            raise ValueError(
+                f"Experience must be one of: {cls.ALLOWED_EXPERIENCE_LEVELS}"
+            )
         return experience_lower
 
     @field_validator("preferences")
@@ -116,7 +124,9 @@ class Owner(CyodaEntity):
             if len(v.strip()) == 0:
                 return None  # Empty string becomes None
             if len(v) > 500:
-                raise ValueError("Verification documents path must be at most 500 characters long")
+                raise ValueError(
+                    "Verification documents path must be at most 500 characters long"
+                )
             return v.strip()
         return v
 
@@ -138,7 +148,10 @@ class Owner(CyodaEntity):
 
     def has_verification_documents(self) -> bool:
         """Check if owner has provided verification documents"""
-        return self.verification_documents is not None and len(self.verification_documents.strip()) > 0
+        return (
+            self.verification_documents is not None
+            and len(self.verification_documents.strip()) > 0
+        )
 
     def add_pet(self, pet_id: str) -> None:
         """Add a pet to the owner's list of adopted pets"""

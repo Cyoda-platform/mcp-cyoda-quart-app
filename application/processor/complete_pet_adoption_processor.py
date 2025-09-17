@@ -9,9 +9,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.pet.version_1.pet import Pet
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.pet.version_1.pet import Pet
 
 
 class CompleteAdoptionProcessor(CyodaProcessor):
@@ -54,9 +54,7 @@ class CompleteAdoptionProcessor(CyodaProcessor):
             # Complete the adoption
             self._complete_pet_adoption(pet)
 
-            self.logger.info(
-                f"Pet {pet.technical_id} adoption completed successfully"
-            )
+            self.logger.info(f"Pet {pet.technical_id} adoption completed successfully")
 
             return pet
 
@@ -77,11 +75,15 @@ class CompleteAdoptionProcessor(CyodaProcessor):
             ValueError: If adoption cannot be completed
         """
         if not pet.is_reserved():
-            raise ValueError(f"Pet {pet.name} is not reserved for adoption (current state: {pet.state})")
+            raise ValueError(
+                f"Pet {pet.name} is not reserved for adoption (current state: {pet.state})"
+            )
 
         # Check if pet has adoption process linked
         if pet.adoption_id is None:
-            self.logger.warning(f"Pet {pet.name} has no adoption_id linked during completion")
+            self.logger.warning(
+                f"Pet {pet.name} has no adoption_id linked during completion"
+            )
 
         self.logger.info(f"Pet {pet.name} validation passed for adoption completion")
 
@@ -108,6 +110,4 @@ class CompleteAdoptionProcessor(CyodaProcessor):
         if pet.metadata and "reserved_date" in pet.metadata:
             del pet.metadata["reserved_date"]
 
-        self.logger.info(
-            f"Pet {pet.name} adoption completed on {current_timestamp}"
-        )
+        self.logger.info(f"Pet {pet.name} adoption completed on {current_timestamp}")
