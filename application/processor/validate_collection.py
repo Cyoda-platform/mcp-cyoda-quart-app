@@ -6,7 +6,7 @@ before batch processing can begin.
 """
 
 import logging
-from typing import Any, Dict, List
+from typing import Any, List
 
 from application.entity.hnitemcollection.version_1.hnitemcollection import (
     HNItemCollection,
