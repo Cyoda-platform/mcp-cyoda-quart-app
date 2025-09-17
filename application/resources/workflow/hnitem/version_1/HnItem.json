@@ -1,0 +1,63 @@
+{
+  "version": "1.0",
+  "name": "HnItem",
+  "desc": "Workflow for managing Hacker News items lifecycle from creation to processing",
+  "initialState": "initial_state",
+  "active": true,
+  "states": {
+    "initial_state": {
+      "transitions": [
+        {
+          "name": "auto_receive",
+          "next": "received",
+          "manual": false
+        }
+      ]
+    },
+    "received": {
+      "transitions": [
+        {
+          "name": "validate_item",
+          "next": "validated",
+          "manual": true,
+          "processors": [
+            {
+              "name": "validate_item_processor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "validated": {
+      "transitions": [
+        {
+          "name": "process_item",
+          "next": "processed",
+          "manual": true,
+          "processors": [
+            {
+              "name": "process_item_processor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 5000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "processed": {
+      "transitions": []
+    }
+  }
+}
