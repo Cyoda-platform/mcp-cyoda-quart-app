@@ -7,6 +7,11 @@ This guide provides specific commands and prompts for working with AI assistants
 ### **Entity Name Case Sensitivity** ⚠️
 **MOST IMPORTANT**: Entity names for workflow import must **EXACTLY** match the `ENTITY_NAME` constant in your entity class:
 
+Before starting the application with ./gradlew runApp, ensure you have imported all the workflows using the MCP tool workflow_mgmt_import_workflows_from_file_tool_cyoda-mcp.
+DO NOT start the application before importing the workflows.
+It is critical to import workflows before you start the application - otherwise the application will not work correctly
+Retry until workflow import is successful.
+
 ```python
 # In your entity class (e.g., application/entity/ your_entity/version_1/ your_entity.py)
 class YourEntity(CyodaEntity):
