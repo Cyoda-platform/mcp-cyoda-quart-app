@@ -182,3 +182,128 @@ stateDiagram-v2
     ACTIVE --> BLACKLISTED : CustomerBlacklistProcessor
     SUSPENDED --> BLACKLISTED : CustomerBlacklistProcessor
 ```
+
+---
+
+## AdoptionApplication Workflow
+
+**Name:** AdoptionApplicationWorkflow
+
+**States:**
+- INITIAL (starting state)
+- SUBMITTED (application has been submitted)
+- UNDER_REVIEW (application is being reviewed)
+- APPROVED (application has been approved)
+- REJECTED (application has been rejected)
+- EXPIRED (application has expired)
+
+**Transitions:**
+
+1. **INITIAL → SUBMITTED**
+   - Type: Automatic
+   - Processor: ApplicationSubmissionProcessor
+   - Criterion: None
+   - Description: Application is submitted by customer
+
+2. **SUBMITTED → UNDER_REVIEW**
+   - Type: Manual
+   - Processor: ApplicationReviewStartProcessor
+   - Criterion: None
+   - Description: Staff starts reviewing the application
+
+3. **UNDER_REVIEW → APPROVED**
+   - Type: Manual
+   - Processor: ApplicationApprovalProcessor
+   - Criterion: ApplicationApprovalCriterion
+   - Description: Application is approved after review
+
+4. **UNDER_REVIEW → REJECTED**
+   - Type: Manual
+   - Processor: ApplicationRejectionProcessor
+   - Criterion: None
+   - Description: Application is rejected after review
+
+5. **SUBMITTED → EXPIRED**
+   - Type: Manual
+   - Processor: ApplicationExpirationProcessor
+   - Criterion: None
+   - Description: Application expires if not reviewed in time
+
+6. **UNDER_REVIEW → EXPIRED**
+   - Type: Manual
+   - Processor: ApplicationExpirationProcessor
+   - Criterion: None
+   - Description: Application expires during review
+
+```mermaid
+stateDiagram-v2
+    [*] --> INITIAL
+    INITIAL --> SUBMITTED : ApplicationSubmissionProcessor
+    SUBMITTED --> UNDER_REVIEW : ApplicationReviewStartProcessor
+    UNDER_REVIEW --> APPROVED : ApplicationApprovalProcessor / ApplicationApprovalCriterion
+    UNDER_REVIEW --> REJECTED : ApplicationRejectionProcessor
+    SUBMITTED --> EXPIRED : ApplicationExpirationProcessor
+    UNDER_REVIEW --> EXPIRED : ApplicationExpirationProcessor
+```
+
+---
+
+## Adoption Workflow
+
+**Name:** AdoptionWorkflow
+
+**States:**
+- INITIAL (starting state)
+- COMPLETED (adoption has been completed)
+- FOLLOW_UP_PENDING (follow-up is pending)
+- FOLLOW_UP_COMPLETED (follow-up has been completed)
+- RETURNED (pet has been returned)
+
+**Transitions:**
+
+1. **INITIAL → COMPLETED**
+   - Type: Automatic
+   - Processor: AdoptionCompletionProcessor
+   - Criterion: None
+   - Description: Adoption is completed
+
+2. **COMPLETED → FOLLOW_UP_PENDING**
+   - Type: Manual
+   - Processor: FollowUpSchedulingProcessor
+   - Criterion: None
+   - Description: Follow-up is scheduled
+
+3. **FOLLOW_UP_PENDING → FOLLOW_UP_COMPLETED**
+   - Type: Manual
+   - Processor: FollowUpCompletionProcessor
+   - Criterion: None
+   - Description: Follow-up is completed
+
+4. **COMPLETED → RETURNED**
+   - Type: Manual
+   - Processor: AdoptionReturnProcessor
+   - Criterion: None
+   - Description: Pet is returned by adopter
+
+5. **FOLLOW_UP_PENDING → RETURNED**
+   - Type: Manual
+   - Processor: AdoptionReturnProcessor
+   - Criterion: None
+   - Description: Pet is returned during follow-up period
+
+6. **FOLLOW_UP_COMPLETED → RETURNED**
+   - Type: Manual
+   - Processor: AdoptionReturnProcessor
+   - Criterion: None
+   - Description: Pet is returned after follow-up completion
+
+```mermaid
+stateDiagram-v2
+    [*] --> INITIAL
+    INITIAL --> COMPLETED : AdoptionCompletionProcessor
+    COMPLETED --> FOLLOW_UP_PENDING : FollowUpSchedulingProcessor
+    FOLLOW_UP_PENDING --> FOLLOW_UP_COMPLETED : FollowUpCompletionProcessor
+    COMPLETED --> RETURNED : AdoptionReturnProcessor
+    FOLLOW_UP_PENDING --> RETURNED : AdoptionReturnProcessor
+    FOLLOW_UP_COMPLETED --> RETURNED : AdoptionReturnProcessor
+```
