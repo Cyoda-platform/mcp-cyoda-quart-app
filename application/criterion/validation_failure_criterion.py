@@ -42,8 +42,12 @@ class ValidationFailureCriterion(CyodaCriteriaChecker):
             hn_item = cast_entity(entity, HnItem)
 
             # Check if validation failed
-            has_failed = hn_item.validation_status == "failed" or (
-                hn_item.validation_errors and len(hn_item.validation_errors) > 0
+            has_failed = (
+                hn_item.validation_status == "failed"
+                or (
+                    hn_item.validation_errors is not None
+                    and len(hn_item.validation_errors) > 0
+                )
             )
 
             self.logger.info(

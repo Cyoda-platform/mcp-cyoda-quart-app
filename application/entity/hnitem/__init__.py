@@ -1,1 +1,1 @@
-
+# HnItem entity package
