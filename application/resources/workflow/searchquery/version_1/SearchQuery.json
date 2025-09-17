@@ -1,0 +1,232 @@
+{
+  "version": "1.0",
+  "name": "SearchQuery",
+  "desc": "Workflow for managing search query execution with validation, processing, and caching",
+  "initialState": "initial_state",
+  "active": true,
+  "states": {
+    "initial_state": {
+      "transitions": [
+        {
+          "name": "initial_to_created",
+          "next": "created",
+          "manual": false
+        }
+      ]
+    },
+    "created": {
+      "transitions": [
+        {
+          "name": "validate_query",
+          "next": "validating",
+          "manual": true,
+          "processors": [
+            {
+              "name": "validate_query_processor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 5000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "validating": {
+      "transitions": [
+        {
+          "name": "validation_success",
+          "next": "executing",
+          "manual": false,
+          "processors": [
+            {
+              "name": "prepare_execution_processor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 5000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ],
+          "criterion": {
+            "type": "function",
+            "function": {
+              "name": "validation_success_criterion",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          }
+        },
+        {
+          "name": "validation_failure",
+          "next": "failed",
+          "manual": false,
+          "processors": [
+            {
+              "name": "handle_validation_failure_processor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ],
+          "criterion": {
+            "type": "function",
+            "function": {
+              "name": "validation_failure_criterion",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "executing": {
+      "transitions": [
+        {
+          "name": "execution_success",
+          "next": "completed",
+          "manual": false,
+          "processors": [
+            {
+              "name": "process_results_processor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 15000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ],
+          "criterion": {
+            "type": "function",
+            "function": {
+              "name": "execution_success_criterion",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          }
+        },
+        {
+          "name": "execution_failure",
+          "next": "failed",
+          "manual": false,
+          "processors": [
+            {
+              "name": "handle_execution_failure_processor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ],
+          "criterion": {
+            "type": "function",
+            "function": {
+              "name": "execution_failure_criterion",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "completed": {
+      "transitions": [
+        {
+          "name": "cache_results",
+          "next": "cached",
+          "manual": true,
+          "processors": [
+            {
+              "name": "cache_results_processor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 5000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ],
+          "criterion": {
+            "type": "function",
+            "function": {
+              "name": "cache_eligible_criterion",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "cached": {
+      "transitions": []
+    },
+    "failed": {
+      "transitions": [
+        {
+          "name": "retry_query",
+          "next": "created",
+          "manual": true,
+          "processors": [
+            {
+              "name": "reset_query_processor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ],
+          "criterion": {
+            "type": "function",
+            "function": {
+              "name": "retry_allowed_criterion",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
