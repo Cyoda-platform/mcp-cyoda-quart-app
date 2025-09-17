@@ -6,9 +6,9 @@ Checks if HN item validation failed.
 
 from typing import Any
 
+from application.entity.hnitem.version_1.hnitem import HnItem
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.hnitem.version_1.hnitem import HnItem
 
 
 class ValidationFailureCriterion(CyodaCriteriaChecker):
@@ -42,9 +42,8 @@ class ValidationFailureCriterion(CyodaCriteriaChecker):
             hn_item = cast_entity(entity, HnItem)
 
             # Check if validation failed
-            has_failed = (
-                hn_item.validation_status == "failed" 
-                or (hn_item.validation_errors and len(hn_item.validation_errors) > 0)
+            has_failed = hn_item.validation_status == "failed" or (
+                hn_item.validation_errors and len(hn_item.validation_errors) > 0
             )
 
             self.logger.info(

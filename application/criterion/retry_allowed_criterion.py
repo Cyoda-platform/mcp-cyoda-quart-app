@@ -6,9 +6,9 @@ Checks if retry is allowed for failed HN items.
 
 from typing import Any
 
+from application.entity.hnitem.version_1.hnitem import HnItem
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.hnitem.version_1.hnitem import HnItem
 
 
 class RetryAllowedCriterion(CyodaCriteriaChecker):

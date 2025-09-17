@@ -7,9 +7,9 @@ Handles validation failures and prepares items for retry or manual intervention.
 import logging
 from typing import Any
 
+from application.entity.hnitem.version_1.hnitem import HnItem
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.hnitem.version_1.hnitem import HnItem
 
 
 class HandleValidationFailureProcessor(CyodaProcessor):
@@ -46,7 +46,9 @@ class HandleValidationFailureProcessor(CyodaProcessor):
             hn_item = cast_entity(entity, HnItem)
 
             # Set failure information
-            failure_details = "; ".join(hn_item.validation_errors or ["Unknown validation error"])
+            failure_details = "; ".join(
+                hn_item.validation_errors or ["Unknown validation error"]
+            )
             hn_item.set_failure("validation_failed", failure_details)
 
             # Log validation failure

@@ -6,9 +6,9 @@ Checks if HN item validation was successful.
 
 from typing import Any
 
+from application.entity.hnitem.version_1.hnitem import HnItem
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.hnitem.version_1.hnitem import HnItem
 
 
 class ValidationSuccessCriterion(CyodaCriteriaChecker):
@@ -42,9 +42,8 @@ class ValidationSuccessCriterion(CyodaCriteriaChecker):
             hn_item = cast_entity(entity, HnItem)
 
             # Check if validation was successful
-            is_successful = (
-                hn_item.validation_status == "passed" 
-                and (not hn_item.validation_errors or len(hn_item.validation_errors) == 0)
+            is_successful = hn_item.validation_status == "passed" and (
+                not hn_item.validation_errors or len(hn_item.validation_errors) == 0
             )
 
             self.logger.info(

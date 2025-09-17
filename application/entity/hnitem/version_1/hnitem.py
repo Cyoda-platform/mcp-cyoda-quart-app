@@ -18,7 +18,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class HnItem(CyodaEntity):
     """
     HnItem represents individual Hacker News items following the Firebase HN API format.
-    
+
     Supports all HN item types: story, comment, job, poll, pollopt
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     The state field manages workflow states: pending -> validating -> validated -> storing -> stored
@@ -30,98 +30,115 @@ class HnItem(CyodaEntity):
 
     # Required fields from Firebase HN API
     id: int = Field(..., description="The item's unique id")
-    type: str = Field(..., description="The type of item: job, story, comment, poll, or pollopt")
+    type: str = Field(
+        ..., description="The type of item: job, story, comment, poll, or pollopt"
+    )
 
     # Optional fields from Firebase HN API
-    deleted: Optional[bool] = Field(default=None, description="true if the item is deleted")
-    by: Optional[str] = Field(default=None, description="The username of the item's author")
-    time: Optional[int] = Field(default=None, description="Creation date of the item, in Unix Time")
-    text: Optional[str] = Field(default=None, description="The comment, story or poll text. HTML")
+    deleted: Optional[bool] = Field(
+        default=None, description="true if the item is deleted"
+    )
+    by: Optional[str] = Field(
+        default=None, description="The username of the item's author"
+    )
+    time: Optional[int] = Field(
+        default=None, description="Creation date of the item, in Unix Time"
+    )
+    text: Optional[str] = Field(
+        default=None, description="The comment, story or poll text. HTML"
+    )
     dead: Optional[bool] = Field(default=None, description="true if the item is dead")
-    parent: Optional[int] = Field(default=None, description="The comment's parent: either another comment or the relevant story")
-    poll: Optional[int] = Field(default=None, description="The pollopt's associated poll")
-    kids: Optional[List[int]] = Field(default=None, description="The ids of the item's comments, in ranked display order")
+    parent: Optional[int] = Field(
+        default=None,
+        description="The comment's parent: either another comment or the relevant story",
+    )
+    poll: Optional[int] = Field(
+        default=None, description="The pollopt's associated poll"
+    )
+    kids: Optional[List[int]] = Field(
+        default=None,
+        description="The ids of the item's comments, in ranked display order",
+    )
     url: Optional[str] = Field(default=None, description="The URL of the story")
-    score: Optional[int] = Field(default=None, description="The story's score, or the votes for a pollopt")
-    title: Optional[str] = Field(default=None, description="The title of the story, poll or job. HTML")
-    parts: Optional[List[int]] = Field(default=None, description="A list of related pollopts, in display order")
-    descendants: Optional[int] = Field(default=None, description="In the case of stories or polls, the total comment count")
+    score: Optional[int] = Field(
+        default=None, description="The story's score, or the votes for a pollopt"
+    )
+    title: Optional[str] = Field(
+        default=None, description="The title of the story, poll or job. HTML"
+    )
+    parts: Optional[List[int]] = Field(
+        default=None, description="A list of related pollopts, in display order"
+    )
+    descendants: Optional[int] = Field(
+        default=None,
+        description="In the case of stories or polls, the total comment count",
+    )
 
     # System attributes
     source: Optional[str] = Field(
         default="manual_post",
-        description="Source of the item: firebase_api, manual_post, bulk_upload"
+        description="Source of the item: firebase_api, manual_post, bulk_upload",
     )
     imported_at: Optional[int] = Field(
         default_factory=lambda: int(datetime.now(timezone.utc).timestamp()),
-        description="Unix timestamp when item was imported"
+        description="Unix timestamp when item was imported",
     )
     last_updated: Optional[int] = Field(
-        default=None,
-        description="Unix timestamp when item was last updated"
+        default=None, description="Unix timestamp when item was last updated"
     )
 
     # Processing-related fields (populated during workflow)
     validation_errors: Optional[List[str]] = Field(
-        default=None,
-        description="List of validation errors if any"
+        default=None, description="List of validation errors if any"
     )
     validation_status: Optional[str] = Field(
-        default=None,
-        description="Validation status: passed, failed"
+        default=None, description="Validation status: passed, failed"
     )
     validated_at: Optional[int] = Field(
-        default=None,
-        description="Unix timestamp when validation completed"
+        default=None, description="Unix timestamp when validation completed"
     )
     storage_status: Optional[str] = Field(
-        default=None,
-        description="Storage status: success, failed"
+        default=None, description="Storage status: success, failed"
     )
     storage_action: Optional[str] = Field(
-        default=None,
-        description="Storage action taken: created, updated"
+        default=None, description="Storage action taken: created, updated"
     )
     storage_error: Optional[str] = Field(
-        default=None,
-        description="Storage error message if failed"
+        default=None, description="Storage error message if failed"
     )
     stored_at: Optional[int] = Field(
-        default=None,
-        description="Unix timestamp when item was stored"
+        default=None, description="Unix timestamp when item was stored"
     )
     processing_completed_at: Optional[int] = Field(
-        default=None,
-        description="Unix timestamp when processing completed"
+        default=None, description="Unix timestamp when processing completed"
     )
     failure_reason: Optional[str] = Field(
         default=None,
-        description="Reason for failure: validation_failed, storage_failed"
+        description="Reason for failure: validation_failed, storage_failed",
     )
     failure_details: Optional[str] = Field(
-        default=None,
-        description="Detailed failure information"
+        default=None, description="Detailed failure information"
     )
     failed_at: Optional[int] = Field(
-        default=None,
-        description="Unix timestamp when failure occurred"
+        default=None, description="Unix timestamp when failure occurred"
     )
     retry_count: Optional[int] = Field(
-        default=0,
-        description="Number of retry attempts"
+        default=0, description="Number of retry attempts"
     )
     retry_attempted_at: Optional[int] = Field(
-        default=None,
-        description="Unix timestamp of last retry attempt"
+        default=None, description="Unix timestamp of last retry attempt"
     )
     status: Optional[str] = Field(
-        default="pending",
-        description="Item status: pending, active, archived"
+        default="pending", description="Item status: pending, active, archived"
     )
 
     # Validation constants
     ALLOWED_TYPES: ClassVar[List[str]] = ["job", "story", "comment", "poll", "pollopt"]
-    ALLOWED_SOURCES: ClassVar[List[str]] = ["firebase_api", "manual_post", "bulk_upload"]
+    ALLOWED_SOURCES: ClassVar[List[str]] = [
+        "firebase_api",
+        "manual_post",
+        "bulk_upload",
+    ]
 
     @field_validator("type")
     @classmethod
@@ -146,30 +163,39 @@ class HnItem(CyodaEntity):
         if self.type == "comment" and self.parent is None:
             # Allow comments without parent for now, validation will be done in processor
             pass
-        
+
         # Poll options must reference a poll
         if self.type == "pollopt" and self.poll is None:
             # Allow for now, validation will be done in processor
             pass
-        
+
         # Only certain types can have scores
-        if self.score is not None and self.type not in ["story", "poll", "job", "pollopt"]:
+        if self.score is not None and self.type not in [
+            "story",
+            "poll",
+            "job",
+            "pollopt",
+        ]:
             raise ValueError(f"Type {self.type} cannot have a score")
-        
+
         return self
 
     def update_last_updated(self) -> None:
         """Update the last_updated timestamp to current time"""
         self.last_updated = int(datetime.now(timezone.utc).timestamp())
 
-    def set_validation_result(self, status: str, errors: Optional[List[str]] = None) -> None:
+    def set_validation_result(
+        self, status: str, errors: Optional[List[str]] = None
+    ) -> None:
         """Set validation result and update timestamp"""
         self.validation_status = status
         self.validation_errors = errors or []
         self.validated_at = int(datetime.now(timezone.utc).timestamp())
         self.update_last_updated()
 
-    def set_storage_result(self, status: str, action: Optional[str] = None, error: Optional[str] = None) -> None:
+    def set_storage_result(
+        self, status: str, action: Optional[str] = None, error: Optional[str] = None
+    ) -> None:
         """Set storage result and update timestamp"""
         self.storage_status = status
         self.storage_action = action
@@ -207,7 +233,10 @@ class HnItem(CyodaEntity):
 
     def can_retry(self, max_retries: int = 3) -> bool:
         """Check if item can be retried"""
-        return (self.retry_count or 0) < max_retries and self.failure_reason in ["validation_failed", "storage_failed"]
+        return (self.retry_count or 0) < max_retries and self.failure_reason in [
+            "validation_failed",
+            "storage_failed",
+        ]
 
     def to_api_response(self) -> Dict[str, Any]:
         """Convert to API response format"""

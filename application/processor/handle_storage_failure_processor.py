@@ -7,9 +7,9 @@ Handles storage failures and prepares items for retry.
 import logging
 from typing import Any
 
+from application.entity.hnitem.version_1.hnitem import HnItem
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.hnitem.version_1.hnitem import HnItem
 
 
 class HandleStorageFailureProcessor(CyodaProcessor):
@@ -50,9 +50,7 @@ class HandleStorageFailureProcessor(CyodaProcessor):
             hn_item.set_failure("storage_failed", failure_details)
 
             # Log storage failure
-            self.logger.error(
-                f"HN Item {hn_item.id} storage failed: {failure_details}"
-            )
+            self.logger.error(f"HN Item {hn_item.id} storage failed: {failure_details}")
 
             self.logger.info(
                 f"HnItem {hn_item.id} storage failure handling completed. Retry count: {hn_item.retry_count}"

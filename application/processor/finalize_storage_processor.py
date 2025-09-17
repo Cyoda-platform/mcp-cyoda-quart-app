@@ -8,9 +8,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.hnitem.version_1.hnitem import HnItem
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.hnitem.version_1.hnitem import HnItem
 
 
 class FinalizeStorageProcessor(CyodaProcessor):
@@ -52,12 +52,12 @@ class FinalizeStorageProcessor(CyodaProcessor):
             await self._trigger_notifications(hn_item)
 
             # Mark processing as completed
-            hn_item.processing_completed_at = int(datetime.now(timezone.utc).timestamp())
+            hn_item.processing_completed_at = int(
+                datetime.now(timezone.utc).timestamp()
+            )
             hn_item.status = "active"
 
-            self.logger.info(
-                f"Storage finalization completed for HnItem {hn_item.id}"
-            )
+            self.logger.info(f"Storage finalization completed for HnItem {hn_item.id}")
 
             return hn_item
 
@@ -72,20 +72,24 @@ class FinalizeStorageProcessor(CyodaProcessor):
         try:
             # Log search index update (in a real implementation, this would update a search engine)
             searchable_content = []
-            
+
             if item.title:
                 searchable_content.append(f"title:{item.title}")
             if item.text:
-                searchable_content.append(f"text:{item.text[:100]}...")  # Truncate for logging
+                searchable_content.append(
+                    f"text:{item.text[:100]}..."
+                )  # Truncate for logging
             if item.by:
                 searchable_content.append(f"author:{item.by}")
-            
+
             self.logger.info(
                 f"Updated search index for HnItem {item.id}: {'; '.join(searchable_content)}"
             )
-            
+
         except Exception as e:
-            self.logger.warning(f"Error updating search index for item {item.id}: {str(e)}")
+            self.logger.warning(
+                f"Error updating search index for item {item.id}: {str(e)}"
+            )
 
     async def _update_statistics(self, item: HnItem) -> None:
         """Update item statistics"""
@@ -94,7 +98,7 @@ class FinalizeStorageProcessor(CyodaProcessor):
             self.logger.info(
                 f"Updated statistics for item type {item.type}, source {item.source}"
             )
-            
+
             # Log additional metrics based on item type
             if item.type == "story" and item.score:
                 self.logger.info(f"Story {item.id} has score {item.score}")
@@ -102,9 +106,11 @@ class FinalizeStorageProcessor(CyodaProcessor):
                 self.logger.info(f"Comment {item.id} added to parent {item.parent}")
             elif item.type == "poll" and item.parts:
                 self.logger.info(f"Poll {item.id} has {len(item.parts)} options")
-                
+
         except Exception as e:
-            self.logger.warning(f"Error updating statistics for item {item.id}: {str(e)}")
+            self.logger.warning(
+                f"Error updating statistics for item {item.id}: {str(e)}"
+            )
 
     async def _trigger_notifications(self, item: HnItem) -> None:
         """Trigger notifications if needed"""
@@ -115,11 +121,17 @@ class FinalizeStorageProcessor(CyodaProcessor):
             elif item.source == "bulk_upload":
                 self.logger.info(f"Bulk uploaded item {item.id} processed: {item.type}")
             elif item.source == "manual_post":
-                self.logger.info(f"Manually posted item {item.id} processed: {item.type}")
-                
+                self.logger.info(
+                    f"Manually posted item {item.id} processed: {item.type}"
+                )
+
             # Special notifications for high-scoring stories
             if item.type == "story" and item.score and item.score > 100:
-                self.logger.info(f"High-scoring story detected: {item.id} with score {item.score}")
-                
+                self.logger.info(
+                    f"High-scoring story detected: {item.id} with score {item.score}"
+                )
+
         except Exception as e:
-            self.logger.warning(f"Error triggering notifications for item {item.id}: {str(e)}")
+            self.logger.warning(
+                f"Error triggering notifications for item {item.id}: {str(e)}"
+            )

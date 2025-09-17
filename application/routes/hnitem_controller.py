@@ -19,36 +19,40 @@ from quart_schema import (
     validate_querystring,
 )
 
-from common.service.entity_service import SearchConditionRequest
-from services.services import get_entity_service
 from application.entity.hnitem.version_1.hnitem import HnItem
 from application.models import (
-    HnItemQueryParams,
-    HnItemUpdateQueryParams,
     BulkCreateRequest,
-    TransitionRequest,
-    HierarchyQueryParams,
-    HnItemResponse,
-    HnItemListResponse,
     BulkCreateResponse,
-    TransitionResponse,
-    HierarchyResponse,
-    ErrorResponse,
-    ValidationErrorResponse,
     DeleteResponse,
+    ErrorResponse,
+    HierarchyQueryParams,
+    HierarchyResponse,
+    HnItemListResponse,
+    HnItemQueryParams,
+    HnItemResponse,
+    HnItemUpdateQueryParams,
+    TransitionRequest,
+    TransitionResponse,
+    ValidationErrorResponse,
 )
+from common.service.entity_service import SearchConditionRequest
+from services.services import get_entity_service
+
 
 # Module-level service proxy
 class _ServiceProxy:
     def __getattr__(self, name: str) -> Any:
         return getattr(get_entity_service(), name)
 
+
 service = _ServiceProxy()
 logger = logging.getLogger(__name__)
+
 
 # Helper to normalize entity data from service
 def _to_entity_dict(data: Any) -> Dict[str, Any]:
     return data.model_dump(by_alias=True) if hasattr(data, "model_dump") else data
+
 
 hnitem_bp = Blueprint("hnitem", __name__, url_prefix="/api/v1/hnitem")
 
@@ -71,14 +75,19 @@ async def create_hn_item(data: HnItem) -> ResponseReturnValue:
         # Check if item with same HN ID already exists
         existing_item = await _find_item_by_hn_id(data.id)
         if existing_item:
-            return jsonify({
-                "success": False,
-                "error": {
-                    "code": "ITEM_ALREADY_EXISTS",
-                    "message": "HN item with this ID already exists",
-                    "details": f"Item with HN ID {data.id} already exists"
-                }
-            }), 409
+            return (
+                jsonify(
+                    {
+                        "success": False,
+                        "error": {
+                            "code": "ITEM_ALREADY_EXISTS",
+                            "message": "HN item with this ID already exists",
+                            "details": f"Item with HN ID {data.id} already exists",
+                        },
+                    }
+                ),
+                409,
+            )
 
         # Convert request to entity data
         entity_data = data.model_dump(by_alias=True)
@@ -93,31 +102,43 @@ async def create_hn_item(data: HnItem) -> ResponseReturnValue:
         logger.info("Created HnItem with ID: %s", response.metadata.id)
 
         # Return created entity
-        return jsonify({
-            "success": True,
-            "data": _to_entity_dict(response.data),
-            "message": "HN item created successfully"
-        }), 201
+        return (
+            jsonify(
+                {
+                    "success": True,
+                    "data": _to_entity_dict(response.data),
+                    "message": "HN item created successfully",
+                }
+            ),
+            201,
+        )
 
     except ValueError as e:
         logger.warning("Validation error creating HnItem: %s", str(e))
-        return jsonify({
-            "success": False,
-            "error": {
-                "code": "VALIDATION_ERROR",
-                "message": "Invalid request data",
-                "details": [str(e)]
-            }
-        }), 400
+        return (
+            jsonify(
+                {
+                    "success": False,
+                    "error": {
+                        "code": "VALIDATION_ERROR",
+                        "message": "Invalid request data",
+                        "details": [str(e)],
+                    },
+                }
+            ),
+            400,
+        )
     except Exception as e:
         logger.exception("Error creating HnItem: %s", str(e))
-        return jsonify({
-            "success": False,
-            "error": {
-                "code": "INTERNAL_ERROR",
-                "message": str(e)
-            }
-        }), 500
+        return (
+            jsonify(
+                {
+                    "success": False,
+                    "error": {"code": "INTERNAL_ERROR", "message": str(e)},
+                }
+            ),
+            500,
+        )
 
 
 @hnitem_bp.route("/<entity_id>", methods=["GET"])
@@ -140,29 +161,33 @@ async def get_hn_item(entity_id: str) -> ResponseReturnValue:
         )
 
         if not response:
-            return jsonify({
-                "success": False,
-                "error": {
-                    "code": "ITEM_NOT_FOUND",
-                    "message": "HN item not found",
-                    "details": f"No item found with technical_id: {entity_id}"
-                }
-            }), 404
+            return (
+                jsonify(
+                    {
+                        "success": False,
+                        "error": {
+                            "code": "ITEM_NOT_FOUND",
+                            "message": "HN item not found",
+                            "details": f"No item found with technical_id: {entity_id}",
+                        },
+                    }
+                ),
+                404,
+            )
 
-        return jsonify({
-            "success": True,
-            "data": _to_entity_dict(response.data)
-        }), 200
+        return jsonify({"success": True, "data": _to_entity_dict(response.data)}), 200
 
     except Exception as e:
         logger.exception("Error getting HnItem %s: %s", entity_id, str(e))
-        return jsonify({
-            "success": False,
-            "error": {
-                "code": "INTERNAL_ERROR",
-                "message": str(e)
-            }
-        }), 500
+        return (
+            jsonify(
+                {
+                    "success": False,
+                    "error": {"code": "INTERNAL_ERROR", "message": str(e)},
+                }
+            ),
+            500,
+        )
 
 
 @hnitem_bp.route("/hn/<int:hn_id>", methods=["GET"])
@@ -179,31 +204,35 @@ async def get_hn_item_by_hn_id(hn_id: int) -> ResponseReturnValue:
     """Get HN item by original Hacker News ID"""
     try:
         item = await _find_item_by_hn_id(hn_id)
-        
-        if not item:
-            return jsonify({
-                "success": False,
-                "error": {
-                    "code": "ITEM_NOT_FOUND",
-                    "message": "HN item not found",
-                    "details": f"No item found with HN ID: {hn_id}"
-                }
-            }), 404
 
-        return jsonify({
-            "success": True,
-            "data": _to_entity_dict(item.data)
-        }), 200
+        if not item:
+            return (
+                jsonify(
+                    {
+                        "success": False,
+                        "error": {
+                            "code": "ITEM_NOT_FOUND",
+                            "message": "HN item not found",
+                            "details": f"No item found with HN ID: {hn_id}",
+                        },
+                    }
+                ),
+                404,
+            )
+
+        return jsonify({"success": True, "data": _to_entity_dict(item.data)}), 200
 
     except Exception as e:
         logger.exception("Error getting HnItem by HN ID %s: %s", hn_id, str(e))
-        return jsonify({
-            "success": False,
-            "error": {
-                "code": "INTERNAL_ERROR",
-                "message": str(e)
-            }
-        }), 500
+        return (
+            jsonify(
+                {
+                    "success": False,
+                    "error": {"code": "INTERNAL_ERROR", "message": str(e)},
+                }
+            ),
+            500,
+        )
 
 
 @hnitem_bp.route("/<entity_id>", methods=["PUT"])
@@ -245,31 +274,43 @@ async def update_hn_item(
         if transition:
             message += f" and transition '{transition}' triggered"
 
-        return jsonify({
-            "success": True,
-            "data": _to_entity_dict(response.data),
-            "message": message
-        }), 200
+        return (
+            jsonify(
+                {
+                    "success": True,
+                    "data": _to_entity_dict(response.data),
+                    "message": message,
+                }
+            ),
+            200,
+        )
 
     except ValueError as e:
         logger.warning("Validation error updating HnItem %s: %s", entity_id, str(e))
-        return jsonify({
-            "success": False,
-            "error": {
-                "code": "VALIDATION_ERROR",
-                "message": "Invalid request data",
-                "details": [str(e)]
-            }
-        }), 400
+        return (
+            jsonify(
+                {
+                    "success": False,
+                    "error": {
+                        "code": "VALIDATION_ERROR",
+                        "message": "Invalid request data",
+                        "details": [str(e)],
+                    },
+                }
+            ),
+            400,
+        )
     except Exception as e:
         logger.exception("Error updating HnItem %s: %s", entity_id, str(e))
-        return jsonify({
-            "success": False,
-            "error": {
-                "code": "INTERNAL_ERROR",
-                "message": str(e)
-            }
-        }), 500
+        return (
+            jsonify(
+                {
+                    "success": False,
+                    "error": {"code": "INTERNAL_ERROR", "message": str(e)},
+                }
+            ),
+            500,
+        )
 
 
 @hnitem_bp.route("", methods=["GET"])
@@ -325,29 +366,36 @@ async def list_hn_items(query_args: HnItemQueryParams) -> ResponseReturnValue:
         end = start + query_args.limit
         paginated_entities = entity_list[start:end]
 
-        return jsonify({
-            "success": True,
-            "data": {
-                "items": paginated_entities,
-                "pagination": {
-                    "total": total,
-                    "limit": query_args.limit,
-                    "offset": query_args.offset,
-                    "has_next": end < total,
-                    "has_prev": start > 0
+        return (
+            jsonify(
+                {
+                    "success": True,
+                    "data": {
+                        "items": paginated_entities,
+                        "pagination": {
+                            "total": total,
+                            "limit": query_args.limit,
+                            "offset": query_args.offset,
+                            "has_next": end < total,
+                            "has_prev": start > 0,
+                        },
+                    },
                 }
-            }
-        }), 200
+            ),
+            200,
+        )
 
     except Exception as e:
         logger.exception("Error listing HnItems: %s", str(e))
-        return jsonify({
-            "success": False,
-            "error": {
-                "code": "INTERNAL_ERROR",
-                "message": str(e)
-            }
-        }), 500
+        return (
+            jsonify(
+                {
+                    "success": False,
+                    "error": {"code": "INTERNAL_ERROR", "message": str(e)},
+                }
+            ),
+            500,
+        )
 
 
 @hnitem_bp.route("/<entity_id>", methods=["DELETE"])
@@ -371,20 +419,22 @@ async def delete_hn_item(entity_id: str) -> ResponseReturnValue:
 
         logger.info("Deleted HnItem %s", entity_id)
 
-        return jsonify({
-            "success": True,
-            "message": "HN item deleted successfully"
-        }), 200
+        return (
+            jsonify({"success": True, "message": "HN item deleted successfully"}),
+            200,
+        )
 
     except Exception as e:
         logger.exception("Error deleting HnItem %s: %s", entity_id, str(e))
-        return jsonify({
-            "success": False,
-            "error": {
-                "code": "INTERNAL_ERROR",
-                "message": str(e)
-            }
-        }), 500
+        return (
+            jsonify(
+                {
+                    "success": False,
+                    "error": {"code": "INTERNAL_ERROR", "message": str(e)},
+                }
+            ),
+            500,
+        )
 
 
 @hnitem_bp.route("/<entity_id>/transition", methods=["POST"])
@@ -399,7 +449,9 @@ async def delete_hn_item(entity_id: str) -> ResponseReturnValue:
         500: (ErrorResponse, None),
     },
 )
-async def trigger_transition(entity_id: str, data: TransitionRequest) -> ResponseReturnValue:
+async def trigger_transition(
+    entity_id: str, data: TransitionRequest
+) -> ResponseReturnValue:
     """Trigger a specific workflow transition"""
     try:
         # Get current entity state
@@ -410,13 +462,18 @@ async def trigger_transition(entity_id: str, data: TransitionRequest) -> Respons
         )
 
         if not current_entity:
-            return jsonify({
-                "success": False,
-                "error": {
-                    "code": "ITEM_NOT_FOUND",
-                    "message": "HN item not found"
-                }
-            }), 404
+            return (
+                jsonify(
+                    {
+                        "success": False,
+                        "error": {
+                            "code": "ITEM_NOT_FOUND",
+                            "message": "HN item not found",
+                        },
+                    }
+                ),
+                404,
+            )
 
         previous_state = current_entity.metadata.state
 
@@ -430,27 +487,36 @@ async def trigger_transition(entity_id: str, data: TransitionRequest) -> Respons
 
         logger.info("Executed transition '%s' on HnItem %s", data.transition, entity_id)
 
-        return jsonify({
-            "success": True,
-            "data": {
-                "technical_id": response.metadata.id,
-                "previous_state": previous_state,
-                "current_state": response.metadata.state,
-                "transition": data.transition,
-                "triggered_at": response.metadata.updated_at
-            },
-            "message": f"Transition '{data.transition}' triggered successfully"
-        }), 200
+        return (
+            jsonify(
+                {
+                    "success": True,
+                    "data": {
+                        "technical_id": response.metadata.id,
+                        "previous_state": previous_state,
+                        "current_state": response.metadata.state,
+                        "transition": data.transition,
+                        "triggered_at": response.metadata.updated_at,
+                    },
+                    "message": f"Transition '{data.transition}' triggered successfully",
+                }
+            ),
+            200,
+        )
 
     except Exception as e:
-        logger.exception("Error executing transition on HnItem %s: %s", entity_id, str(e))
-        return jsonify({
-            "success": False,
-            "error": {
-                "code": "WORKFLOW_TRANSITION_ERROR",
-                "message": str(e)
-            }
-        }), 422
+        logger.exception(
+            "Error executing transition on HnItem %s: %s", entity_id, str(e)
+        )
+        return (
+            jsonify(
+                {
+                    "success": False,
+                    "error": {"code": "WORKFLOW_TRANSITION_ERROR", "message": str(e)},
+                }
+            ),
+            422,
+        )
 
 
 @hnitem_bp.route("/bulk", methods=["POST"])
@@ -478,12 +544,14 @@ async def bulk_create_hn_items(data: BulkCreateRequest) -> ResponseReturnValue:
                 # Check for duplicates
                 existing_item = await _find_item_by_hn_id(hn_item.id)
                 if existing_item:
-                    created_items.append({
-                        "technical_id": None,
-                        "id": hn_item.id,
-                        "status": "failed",
-                        "error": "Item already exists"
-                    })
+                    created_items.append(
+                        {
+                            "technical_id": None,
+                            "id": hn_item.id,
+                            "status": "failed",
+                            "error": "Item already exists",
+                        }
+                    )
                     failed_count += 1
                     continue
 
@@ -495,11 +563,13 @@ async def bulk_create_hn_items(data: BulkCreateRequest) -> ResponseReturnValue:
                     entity_version=str(HnItem.ENTITY_VERSION),
                 )
 
-                created_items.append({
-                    "technical_id": response.metadata.id,
-                    "id": hn_item.id,
-                    "status": "created"
-                })
+                created_items.append(
+                    {
+                        "technical_id": response.metadata.id,
+                        "id": hn_item.id,
+                        "status": "created",
+                    }
+                )
 
                 # Auto-validate if requested
                 if data.auto_validate:
@@ -511,41 +581,144 @@ async def bulk_create_hn_items(data: BulkCreateRequest) -> ResponseReturnValue:
                             entity_version=str(HnItem.ENTITY_VERSION),
                         )
                     except Exception as e:
-                        logger.warning(f"Auto-validation failed for item {hn_item.id}: {str(e)}")
+                        logger.warning(
+                            f"Auto-validation failed for item {hn_item.id}: {str(e)}"
+                        )
 
             except Exception as e:
-                created_items.append({
-                    "technical_id": None,
-                    "id": item_data.get("id", "unknown"),
-                    "status": "failed",
-                    "error": str(e)
-                })
+                created_items.append(
+                    {
+                        "technical_id": None,
+                        "id": item_data.get("id", "unknown"),
+                        "status": "failed",
+                        "error": str(e),
+                    }
+                )
                 failed_count += 1
 
         successful_count = len(data.items) - failed_count
 
-        return jsonify({
-            "success": True,
-            "data": {
-                "created_items": created_items,
-                "summary": {
-                    "total_requested": len(data.items),
-                    "successfully_created": successful_count,
-                    "failed": failed_count
+        return (
+            jsonify(
+                {
+                    "success": True,
+                    "data": {
+                        "created_items": created_items,
+                        "summary": {
+                            "total_requested": len(data.items),
+                            "successfully_created": successful_count,
+                            "failed": failed_count,
+                        },
+                    },
+                    "message": "Bulk creation completed successfully",
                 }
-            },
-            "message": "Bulk creation completed successfully"
-        }), 201
+            ),
+            201,
+        )
 
     except Exception as e:
         logger.exception("Error in bulk create: %s", str(e))
-        return jsonify({
-            "success": False,
-            "error": {
-                "code": "INTERNAL_ERROR",
-                "message": str(e)
-            }
-        }), 500
+        return (
+            jsonify(
+                {
+                    "success": False,
+                    "error": {"code": "INTERNAL_ERROR", "message": str(e)},
+                }
+            ),
+            500,
+        )
+
+
+@hnitem_bp.route("/<entity_id>/hierarchy", methods=["GET"])
+@validate_querystring(HierarchyQueryParams)
+@tag(["hnitem"])
+@operation_id("get_hn_item_hierarchy")
+@validate(
+    responses={
+        200: (HierarchyResponse, None),
+        404: (ErrorResponse, None),
+        500: (ErrorResponse, None),
+    }
+)
+async def get_item_hierarchy(
+    entity_id: str, query_args: HierarchyQueryParams
+) -> ResponseReturnValue:
+    """Get parent-child hierarchy for an HN item"""
+    try:
+        # Get the main item
+        main_item = await service.get_by_id(
+            entity_id=entity_id,
+            entity_class=HnItem.ENTITY_NAME,
+            entity_version=str(HnItem.ENTITY_VERSION),
+        )
+
+        if not main_item:
+            return (
+                jsonify(
+                    {
+                        "success": False,
+                        "error": {
+                            "code": "ITEM_NOT_FOUND",
+                            "message": "HN item not found",
+                        },
+                    }
+                ),
+                404,
+            )
+
+        item_data = _to_entity_dict(main_item.data)
+        parents = []
+        children = []
+
+        # Get parents if requested
+        if query_args.include_parents and item_data.get("parent"):
+            parent_item = await _find_item_by_hn_id(item_data["parent"])
+            if parent_item:
+                parents.append(_to_entity_dict(parent_item.data))
+
+        # Get children if requested
+        if query_args.include_children and item_data.get("kids"):
+            for kid_id in item_data["kids"][:10]:  # Limit to first 10 children
+                child_item = await _find_item_by_hn_id(kid_id)
+                if child_item:
+                    children.append(_to_entity_dict(child_item.data))
+
+        return (
+            jsonify(
+                {
+                    "success": True,
+                    "data": {
+                        "item": {
+                            "technical_id": item_data.get("technical_id"),
+                            "id": item_data.get("id"),
+                            "type": item_data.get("type"),
+                            "title": item_data.get("title"),
+                            "by": item_data.get("by"),
+                        },
+                        "parents": parents,
+                        "children": children,
+                        "hierarchy_stats": {
+                            "total_parents": len(parents),
+                            "total_children": len(children),
+                            "max_depth": 1,  # Simplified for now
+                        },
+                    },
+                }
+            ),
+            200,
+        )
+
+    except Exception as e:
+        logger.exception("Error getting hierarchy for HnItem %s: %s", entity_id, str(e))
+        return (
+            jsonify(
+                {
+                    "success": False,
+                    "error": {"code": "INTERNAL_ERROR", "message": str(e)},
+                }
+            ),
+            500,
+        )
 
 
 async def _find_item_by_hn_id(hn_id: int) -> Any:

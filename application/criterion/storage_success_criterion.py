@@ -6,9 +6,9 @@ Checks if HN item storage was successful.
 
 from typing import Any
 
+from application.entity.hnitem.version_1.hnitem import HnItem
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.hnitem.version_1.hnitem import HnItem
 
 
 class StorageSuccessCriterion(CyodaCriteriaChecker):
@@ -43,8 +43,7 @@ class StorageSuccessCriterion(CyodaCriteriaChecker):
 
             # Check if storage was successful
             is_successful = (
-                hn_item.storage_status == "success" 
-                and hn_item.stored_at is not None
+                hn_item.storage_status == "success" and hn_item.stored_at is not None
             )
 
             self.logger.info(

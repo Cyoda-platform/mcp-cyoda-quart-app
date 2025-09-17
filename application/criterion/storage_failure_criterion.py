@@ -6,9 +6,9 @@ Checks if HN item storage failed.
 
 from typing import Any
 
+from application.entity.hnitem.version_1.hnitem import HnItem
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.hnitem.version_1.hnitem import HnItem
 
 
 class StorageFailureCriterion(CyodaCriteriaChecker):
@@ -43,8 +43,7 @@ class StorageFailureCriterion(CyodaCriteriaChecker):
 
             # Check if storage failed
             has_failed = (
-                hn_item.storage_status == "failed" 
-                or hn_item.storage_error is not None
+                hn_item.storage_status == "failed" or hn_item.storage_error is not None
             )
 
             self.logger.info(
