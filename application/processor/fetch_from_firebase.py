@@ -5,7 +5,7 @@ Fetches items from Firebase HN API as specified in workflow requirements.
 """
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import httpx
 
