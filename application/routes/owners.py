@@ -289,3 +289,173 @@ async def delete_owner(entity_id: str) -> ResponseReturnValue:
     except Exception as e:
         logger.exception("Error deleting Owner %s: %s", entity_id, str(e))
         return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
+
+
+@owners_bp.route("/<entity_id>/exists", methods=["GET"])
+@tag(["owners"])
+@operation_id("check_owner_exists")
+@validate(responses={200: (ExistsResponse, None), 500: (ErrorResponse, None)})
+async def check_exists(entity_id: str) -> ResponseReturnValue:
+    """Check if Owner exists by ID"""
+    try:
+        exists = await service.exists_by_id(
+            entity_id=entity_id,
+            entity_class=Owner.ENTITY_NAME,
+            entity_version=str(Owner.ENTITY_VERSION),
+        )
+
+        response = ExistsResponse(exists=exists, entity_id=entity_id)
+        return response.model_dump(), 200
+
+    except Exception as e:
+        logger.exception("Error checking Owner existence %s: %s", entity_id, str(e))
+        return {"error": str(e)}, 500
+
+
+@owners_bp.route("/count", methods=["GET"])
+@tag(["owners"])
+@operation_id("count_owners")
+@validate(responses={200: (CountResponse, None), 500: (ErrorResponse, None)})
+async def count_entities() -> ResponseReturnValue:
+    """Count total number of Owners"""
+    try:
+        count = await service.count(
+            entity_class=Owner.ENTITY_NAME,
+            entity_version=str(Owner.ENTITY_VERSION),
+        )
+
+        response = CountResponse(count=count)
+        return jsonify(response.model_dump()), 200
+
+    except Exception as e:
+        logger.exception("Error counting Owners: %s", str(e))
+        return jsonify({"error": str(e)}), 500
+
+
+@owners_bp.route("/<entity_id>/transitions", methods=["GET"])
+@tag(["owners"])
+@operation_id("get_owner_transitions")
+@validate(
+    responses={
+        200: (TransitionsResponse, None),
+        404: (ErrorResponse, None),
+        500: (ErrorResponse, None),
+    }
+)
+async def get_available_transitions(entity_id: str) -> ResponseReturnValue:
+    """Get available workflow transitions for Owner"""
+    try:
+        transitions = await service.get_transitions(
+            entity_id=entity_id,
+            entity_class=Owner.ENTITY_NAME,
+            entity_version=str(Owner.ENTITY_VERSION),
+        )
+
+        response = TransitionsResponse(
+            entity_id=entity_id,
+            available_transitions=transitions,
+            current_state=None,
+        )
+        return jsonify(response.model_dump()), 200
+
+    except Exception as e:
+        logger.exception("Error getting transitions for Owner %s: %s", entity_id, str(e))
+        return jsonify({"error": str(e)}), 500
+
+
+@owners_bp.route("/search", methods=["POST"])
+@tag(["owners"])
+@operation_id("search_owners")
+@validate(
+    request=SearchRequest,
+    responses={
+        200: (OwnerSearchResponse, None),
+        400: (ValidationErrorResponse, None),
+        500: (ErrorResponse, None),
+    },
+)
+async def search_entities(data: SearchRequest) -> ResponseReturnValue:
+    """Search Owners using simple field-value search with validation"""
+    try:
+        # Convert Pydantic model to dict for search
+        search_data = data.model_dump(by_alias=True, exclude_none=True)
+
+        if not search_data:
+            return {"error": "Search conditions required", "code": "EMPTY_SEARCH"}, 400
+
+        # Simple field-value search only
+        builder = SearchConditionRequest.builder()
+        for field, value in search_data.items():
+            builder.equals(field, value)
+
+        search_request = builder.build()
+        results = await service.search(
+            entity_class=Owner.ENTITY_NAME,
+            condition=search_request,
+            entity_version=str(Owner.ENTITY_VERSION),
+        )
+
+        # Thin proxy: return list of entities directly
+        entities = [_to_entity_dict(r.data) for r in results]
+
+        return {"owners": entities, "total": len(entities)}, 200
+
+    except Exception as e:
+        logger.exception("Error searching Owners: %s", str(e))
+        return {"error": str(e)}, 500
+
+
+@owners_bp.route("/<entity_id>/transitions", methods=["POST"])
+@tag(["owners"])
+@operation_id("trigger_owner_transition")
+@validate(
+    request=TransitionRequest,
+    responses={
+        200: (TransitionResponse, None),
+        404: (ErrorResponse, None),
+        400: (ValidationErrorResponse, None),
+        500: (ErrorResponse, None),
+    },
+)
+async def trigger_transition(
+    entity_id: str, data: TransitionRequest
+) -> ResponseReturnValue:
+    """Trigger a specific workflow transition with validation"""
+    try:
+        # Get current entity state
+        current_entity = await service.get_by_id(
+            entity_id=entity_id,
+            entity_class=Owner.ENTITY_NAME,
+            entity_version=str(Owner.ENTITY_VERSION),
+        )
+
+        if not current_entity:
+            return jsonify({"error": "Owner not found"}), 404
+
+        previous_state = current_entity.metadata.state
+
+        # Execute the transition
+        response = await service.execute_transition(
+            entity_id=entity_id,
+            transition=data.transition_name,
+            entity_class=Owner.ENTITY_NAME,
+            entity_version=str(Owner.ENTITY_VERSION),
+        )
+
+        logger.info("Executed transition '%s' on Owner %s", data.transition_name, entity_id)
+
+        return (
+            jsonify(
+                {
+                    "id": response.metadata.id,
+                    "message": "Transition executed successfully",
+                    "previousState": previous_state,
+                    "newState": response.metadata.state,
+                }
+            ),
+            200,
+        )
+
+    except Exception as e:
+        logger.exception("Error executing transition on Owner %s: %s", entity_id, str(e))
+        return jsonify({"error": str(e)}), 500
