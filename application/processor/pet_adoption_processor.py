@@ -5,7 +5,7 @@ Completes the adoption process for a reserved pet.
 """
 
 import logging
-from typing import Any
+from typing import Any, Dict
 
 from application.entity.adoption.version_1.adoption import Adoption
 from application.entity.pet.version_1.pet import Pet
@@ -75,7 +75,7 @@ class PetAdoptionProcessor(CyodaProcessor):
             )
             raise
 
-    def _validate_adoption_requirements(self, adoption_details: dict) -> None:
+    def _validate_adoption_requirements(self, adoption_details: Dict[str, Any]) -> None:
         """
         Validate that all adoption requirements are met.
 
@@ -100,7 +100,7 @@ class PetAdoptionProcessor(CyodaProcessor):
 
         self.logger.debug("Adoption requirements validation passed")
 
-    async def _create_adoption_record(self, pet: Pet, adoption_details: dict) -> None:
+    async def _create_adoption_record(self, pet: Pet, adoption_details: Dict[str, Any]) -> None:
         """
         Create adoption record with all details.
 
@@ -131,9 +131,10 @@ class PetAdoptionProcessor(CyodaProcessor):
                 raise ValueError("Application ID is required for adoption record")
 
             # Create Adoption entity using direct Pydantic model construction
+            pet_id_int = int(pet.technical_id or pet.entity_id or "0")
             adoption = Adoption(
                 customerId=customer_id,
-                petId=pet.technical_id or pet.entity_id,
+                petId=pet_id_int,
                 storeId=store_id,
                 applicationId=application_id,
                 adoptionFee=adoption_fee,
