@@ -7,7 +7,7 @@ Processes the return of an adopted pet.
 import logging
 from typing import Any, Optional
 
-from application.entity.adoption.version_1.adoption import Adoption
+
 from application.entity.pet.version_1.pet import Pet
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor

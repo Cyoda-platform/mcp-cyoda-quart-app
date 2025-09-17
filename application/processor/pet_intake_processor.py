@@ -5,7 +5,7 @@ Processes a new pet entering the system, validates data, assigns ID, sets arriva
 """
 
 import logging
-from datetime import datetime, timezone
+
 from typing import Any
 
 from application.entity.pet.version_1.pet import Pet

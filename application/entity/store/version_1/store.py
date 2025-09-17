@@ -7,7 +7,7 @@ Represents a pet store in the system with all required attributes
 and state management through Cyoda workflow engine.
 """
 
-from typing import ClassVar, Optional
+from typing import ClassVar
 
 from pydantic import ConfigDict, Field, field_validator
 
