@@ -47,16 +47,17 @@ async def execute_search() -> ResponseReturnValue:
         service = get_entity_service()
 
         # Save the entity
+        response = await service.save(
+            entity=entity_data,
+            entity_class=SearchQuery.ENTITY_NAME,
+            entity_version=str(SearchQuery.ENTITY_VERSION),
+        )
+
+        # Execute transition if provided
         if transition:
-            response = await service.save(
-                entity=entity_data,
-                entity_class=SearchQuery.ENTITY_NAME,
-                entity_version=str(SearchQuery.ENTITY_VERSION),
+            response = await service.execute_transition(
+                entity_id=response.metadata.id,
                 transition=transition,
-            )
-        else:
-            response = await service.save(
-                entity=entity_data,
                 entity_class=SearchQuery.ENTITY_NAME,
                 entity_version=str(SearchQuery.ENTITY_VERSION),
             )

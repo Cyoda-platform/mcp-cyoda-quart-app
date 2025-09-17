@@ -96,8 +96,8 @@ async def bulk_upload() -> ResponseReturnValue:
             name=collection_name,
             source="bulk_upload",
             items=items,
-            total_items=len(items),
         )
+        collection.set_total_items(len(items))
 
         # Add metadata about the upload
         collection.metadata = {

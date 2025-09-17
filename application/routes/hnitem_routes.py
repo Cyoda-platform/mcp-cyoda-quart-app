@@ -220,11 +220,11 @@ async def search_hnitems() -> ResponseReturnValue:
         for result in results[offset : offset + limit]:
             item_data = _to_entity_dict(result.data)
 
-            result_entry = {"item_id": result.metadata.id, "data": item_data}
+            result_entry: Dict[str, Any] = {"item_id": result.metadata.id, "data": item_data}
 
             # Include children if requested
             kids = item_data.get("kids")
-            if include_children and kids:
+            if include_children and kids and isinstance(kids, list):
                 result_entry["children_count"] = len(kids)
 
             processed_results.append(result_entry)
