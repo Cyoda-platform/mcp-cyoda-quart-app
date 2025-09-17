@@ -326,3 +326,305 @@ GET /api/stores
   "transitionName": "SUSPENDED_TO_ACTIVE"
 }
 ```
+
+### PUT /api/customers/{id}/blacklist
+**Description:** Blacklist a customer
+**Transition:** ACTIVE/SUSPENDED → BLACKLISTED
+
+**Request Example:**
+```json
+{
+  "blacklistReason": "Fraudulent activity",
+  "transitionName": "ACTIVE_TO_BLACKLISTED"
+}
+```
+
+---
+
+## AdoptionApplicationRoutes
+
+### GET /api/adoption-applications
+**Description:** Get all adoption applications with optional filtering
+**Parameters:**
+- customerId (optional): Filter by customer ID
+- petId (optional): Filter by pet ID
+- storeId (optional): Filter by store ID
+- state (optional): Filter by application state
+
+**Request Example:**
+```
+GET /api/adoption-applications?customerId=123&state=UNDER_REVIEW
+```
+
+**Response Example:**
+```json
+{
+  "applications": [
+    {
+      "id": 1,
+      "customerId": 123,
+      "petId": 456,
+      "storeId": 1,
+      "state": "UNDER_REVIEW",
+      "applicationDate": "2024-01-15T10:30:00Z"
+    }
+  ],
+  "total": 1
+}
+```
+
+### GET /api/adoption-applications/{id}
+**Description:** Get a specific adoption application by ID
+
+**Request Example:**
+```
+GET /api/adoption-applications/1
+```
+
+**Response Example:**
+```json
+{
+  "id": 1,
+  "customerId": 123,
+  "petId": 456,
+  "storeId": 1,
+  "applicationDate": "2024-01-15T10:30:00Z",
+  "preferredPickupDate": "2024-01-25",
+  "reasonForAdoption": "Looking for a family companion",
+  "livingArrangement": "Single family home with yard",
+  "workSchedule": "9-5 weekdays, home evenings and weekends",
+  "petCareExperience": "Had dogs for 15 years",
+  "veterinarianContact": "Dr. Smith - 555-0199",
+  "references": "John Doe - 555-0188, Jane Smith - 555-0177",
+  "state": "UNDER_REVIEW"
+}
+```
+
+### POST /api/adoption-applications
+**Description:** Create a new adoption application
+**Transition:** INITIAL → SUBMITTED (automatic)
+
+**Request Example:**
+```json
+{
+  "customerId": 123,
+  "petId": 456,
+  "storeId": 1,
+  "preferredPickupDate": "2024-01-25",
+  "reasonForAdoption": "Looking for a family companion",
+  "livingArrangement": "Single family home with yard",
+  "workSchedule": "9-5 weekdays, home evenings and weekends",
+  "petCareExperience": "Had dogs for 15 years",
+  "veterinarianContact": "Dr. Smith - 555-0199",
+  "references": "John Doe - 555-0188, Jane Smith - 555-0177"
+}
+```
+
+**Response Example:**
+```json
+{
+  "id": 1,
+  "state": "SUBMITTED",
+  "message": "Adoption application submitted successfully"
+}
+```
+
+### PUT /api/adoption-applications/{id}
+**Description:** Update an adoption application
+**Parameters:**
+- transitionName (optional): Name of the workflow transition to execute
+
+**Request Example (without transition):**
+```json
+{
+  "reasonForAdoption": "Updated reason",
+  "applicationNotes": "Additional notes"
+}
+```
+
+### PUT /api/adoption-applications/{id}/start-review
+**Description:** Start reviewing an adoption application
+**Transition:** SUBMITTED → UNDER_REVIEW
+
+**Request Example:**
+```json
+{
+  "reviewerId": 789,
+  "reviewerName": "Staff Member",
+  "transitionName": "SUBMITTED_TO_UNDER_REVIEW"
+}
+```
+
+### PUT /api/adoption-applications/{id}/approve
+**Description:** Approve an adoption application
+**Transition:** UNDER_REVIEW → APPROVED
+
+**Request Example:**
+```json
+{
+  "approvalNotes": "All requirements met",
+  "reviewerId": 789,
+  "backgroundCheckPassed": true,
+  "referencesVerified": true,
+  "housingApproved": true,
+  "petCompatibilityConfirmed": true,
+  "transitionName": "UNDER_REVIEW_TO_APPROVED"
+}
+```
+
+### PUT /api/adoption-applications/{id}/reject
+**Description:** Reject an adoption application
+**Transition:** UNDER_REVIEW → REJECTED
+
+**Request Example:**
+```json
+{
+  "rejectionReason": "Housing not suitable for this pet",
+  "reviewerId": 789,
+  "transitionName": "UNDER_REVIEW_TO_REJECTED"
+}
+```
+
+### PUT /api/adoption-applications/{id}/expire
+**Description:** Expire an adoption application
+**Transition:** SUBMITTED/UNDER_REVIEW → EXPIRED
+
+**Request Example:**
+```json
+{
+  "expirationReason": "Application exceeded time limit",
+  "transitionName": "SUBMITTED_TO_EXPIRED"
+}
+```
+
+---
+
+## AdoptionRoutes
+
+### GET /api/adoptions
+**Description:** Get all adoptions with optional filtering
+**Parameters:**
+- customerId (optional): Filter by customer ID
+- petId (optional): Filter by pet ID
+- storeId (optional): Filter by store ID
+- state (optional): Filter by adoption state
+
+**Request Example:**
+```
+GET /api/adoptions?customerId=123&state=COMPLETED
+```
+
+**Response Example:**
+```json
+{
+  "adoptions": [
+    {
+      "id": 1,
+      "customerId": 123,
+      "petId": 456,
+      "storeId": 1,
+      "adoptionDate": "2024-01-20T14:30:00Z",
+      "state": "COMPLETED"
+    }
+  ],
+  "total": 1
+}
+```
+
+### GET /api/adoptions/{id}
+**Description:** Get a specific adoption by ID
+
+**Request Example:**
+```
+GET /api/adoptions/1
+```
+
+**Response Example:**
+```json
+{
+  "id": 1,
+  "customerId": 123,
+  "petId": 456,
+  "storeId": 1,
+  "applicationId": 789,
+  "adoptionDate": "2024-01-20T14:30:00Z",
+  "adoptionFee": 250.00,
+  "contractSigned": true,
+  "microchipTransferred": true,
+  "vaccinationRecordsProvided": true,
+  "followUpDate": "2024-02-20",
+  "state": "COMPLETED"
+}
+```
+
+### POST /api/adoptions
+**Description:** Create a new adoption record
+**Transition:** INITIAL → COMPLETED (automatic)
+
+**Request Example:**
+```json
+{
+  "customerId": 123,
+  "petId": 456,
+  "storeId": 1,
+  "applicationId": 789,
+  "adoptionFee": 250.00,
+  "contractSigned": true,
+  "microchipTransferred": true,
+  "vaccinationRecordsProvided": true,
+  "adoptionNotes": "Smooth adoption process"
+}
+```
+
+**Response Example:**
+```json
+{
+  "id": 1,
+  "state": "COMPLETED",
+  "message": "Adoption completed successfully"
+}
+```
+
+### PUT /api/adoptions/{id}
+**Description:** Update an adoption record
+**Parameters:**
+- transitionName (optional): Name of the workflow transition to execute
+
+### PUT /api/adoptions/{id}/schedule-followup
+**Description:** Schedule a follow-up for an adoption
+**Transition:** COMPLETED → FOLLOW_UP_PENDING
+
+**Request Example:**
+```json
+{
+  "followUpDate": "2024-02-20",
+  "followUpNotes": "Check on pet adjustment",
+  "transitionName": "COMPLETED_TO_FOLLOW_UP_PENDING"
+}
+```
+
+### PUT /api/adoptions/{id}/complete-followup
+**Description:** Complete a follow-up for an adoption
+**Transition:** FOLLOW_UP_PENDING → FOLLOW_UP_COMPLETED
+
+**Request Example:**
+```json
+{
+  "followUpNotes": "Pet is well adjusted, customer is happy",
+  "followUpCompleted": true,
+  "transitionName": "FOLLOW_UP_PENDING_TO_FOLLOW_UP_COMPLETED"
+}
+```
+
+### PUT /api/adoptions/{id}/return
+**Description:** Process the return of an adopted pet
+**Transition:** COMPLETED/FOLLOW_UP_PENDING/FOLLOW_UP_COMPLETED → RETURNED
+
+**Request Example:**
+```json
+{
+  "returnReason": "Pet not compatible with family lifestyle",
+  "returnDate": "2024-02-15T10:00:00Z",
+  "transitionName": "COMPLETED_TO_RETURNED"
+}
+```
