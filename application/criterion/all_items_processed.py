@@ -1,28 +1,30 @@
 """
 AllItemsProcessedCriterion for Cyoda Client Application
 
-Checks if all items in an HNItemCollection have been processed successfully 
+Checks if all items in an HNItemCollection have been processed successfully
 as specified in workflow requirements.
 """
 
 from typing import Any
 
+from application.entity.hnitemcollection.version_1.hnitemcollection import (
+    HNItemCollection,
+)
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.hnitemcollection.version_1.hnitemcollection import HNItemCollection
 
 
 class AllItemsProcessedCriterion(CyodaCriteriaChecker):
     """
     Criterion to check if all items in a collection have been processed successfully.
-    
+
     Checks if processed_items == total_items AND failed_items == 0.
     """
 
     def __init__(self) -> None:
         super().__init__(
             name="all_items_processed",
-            description="Checks if all items processed successfully"
+            description="Checks if all items processed successfully",
         )
 
     async def check(self, entity: CyodaEntity, **kwargs: Any) -> bool:

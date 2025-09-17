@@ -7,22 +7,22 @@ Validates HN item structure and data integrity as specified in workflow requirem
 import logging
 from typing import Any
 
+from application.entity.hnitem.version_1.hnitem import HNItem
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.hnitem.version_1.hnitem import HNItem
 
 
 class ValidateHNItemProcessor(CyodaProcessor):
     """
     Processor for validating HNItem structure and data integrity.
-    
+
     Validates required fields, data types, and ensures HN API compliance.
     """
 
     def __init__(self) -> None:
         super().__init__(
             name="validate_hn_item",
-            description="Validates HN item structure and data integrity"
+            description="Validates HN item structure and data integrity",
         )
         self.logger: logging.Logger = getattr(
             self, "logger", logging.getLogger(__name__)
@@ -49,30 +49,30 @@ class ValidateHNItemProcessor(CyodaProcessor):
 
             # Perform validation checks
             validation_errors = []
-            
+
             # Validate required fields based on item type
             if hn_item.type == "story":
                 if not hn_item.title and not hn_item.url:
                     validation_errors.append("Stories must have either title or URL")
                 if hn_item.score is None:
                     validation_errors.append("Stories must have a score")
-                    
+
             elif hn_item.type == "comment":
                 if not hn_item.text:
                     validation_errors.append("Comments must have text content")
                 if hn_item.parent is None:
                     validation_errors.append("Comments must have a parent ID")
-                    
+
             elif hn_item.type == "job":
                 if not hn_item.title:
                     validation_errors.append("Job postings must have a title")
-                    
+
             elif hn_item.type == "poll":
                 if not hn_item.title:
                     validation_errors.append("Polls must have a title")
                 if not hn_item.parts:
                     validation_errors.append("Polls must have poll options (parts)")
-                    
+
             elif hn_item.type == "pollopt":
                 if not hn_item.text:
                     validation_errors.append("Poll options must have text")
@@ -85,7 +85,10 @@ class ValidateHNItemProcessor(CyodaProcessor):
 
             # Validate URL format if present
             if hn_item.url:
-                if not (hn_item.url.startswith("http://") or hn_item.url.startswith("https://")):
+                if not (
+                    hn_item.url.startswith("http://")
+                    or hn_item.url.startswith("https://")
+                ):
                     validation_errors.append("URL must start with http:// or https://")
 
             # Validate relationships
@@ -107,13 +110,11 @@ class ValidateHNItemProcessor(CyodaProcessor):
                 )
             else:
                 validation_status = "PASSED"
-                self.logger.info(
-                    f"HNItem {hn_item.technical_id} validation passed"
-                )
+                self.logger.info(f"HNItem {hn_item.technical_id} validation passed")
 
             # Update validation status
             hn_item.update_validation_status(validation_status)
-            
+
             # Add validation details to metadata
             if not hn_item.metadata:
                 hn_item.metadata = {}

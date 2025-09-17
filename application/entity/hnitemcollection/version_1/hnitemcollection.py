@@ -3,7 +3,7 @@
 """
 HNItemCollection for Cyoda Client Application
 
-Manages bulk operations for Hacker News items, including batch uploads, 
+Manages bulk operations for Hacker News items, including batch uploads,
 Firebase API pulls, and collection management as specified in functional requirements.
 """
 
@@ -18,7 +18,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class HNItemCollection(CyodaEntity):
     """
     HNItemCollection manages bulk operations for Hacker News items.
-    
+
     Supports batch uploads, Firebase API pulls, and collection management.
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     The state field manages workflow states: initial_state -> pending_processing -> processing -> completed/partial_failure/failed
@@ -32,69 +32,59 @@ class HNItemCollection(CyodaEntity):
     collection_id: Optional[str] = Field(
         default=None,
         alias="collectionId",
-        description="Unique identifier for the collection"
+        description="Unique identifier for the collection",
     )
     name: str = Field(..., description="Descriptive name for the collection")
-    source: str = Field(..., description="Source of items: firebase_api, bulk_upload, manual")
-    
+    source: str = Field(
+        ..., description="Source of items: firebase_api, bulk_upload, manual"
+    )
+
     # Processing metrics
     total_items: int = Field(
-        default=0,
-        alias="totalItems",
-        description="Total number of items in collection"
+        default=0, alias="totalItems", description="Total number of items in collection"
     )
     processed_items: int = Field(
         default=0,
         alias="processedItems",
-        description="Number of successfully processed items"
+        description="Number of successfully processed items",
     )
     failed_items: int = Field(
-        default=0,
-        alias="failedItems",
-        description="Number of failed items"
+        default=0, alias="failedItems", description="Number of failed items"
     )
-    
+
     # Collection data
     items: Optional[List[Dict[str, Any]]] = Field(
-        default=None,
-        description="Array of HNItem references or data"
+        default=None, description="Array of HNItem references or data"
     )
-    
+
     # Timestamps
     created_at: Optional[str] = Field(
         default_factory=lambda: datetime.now(timezone.utc)
         .isoformat()
         .replace("+00:00", "Z"),
         alias="createdAt",
-        description="Collection creation timestamp"
+        description="Collection creation timestamp",
     )
     updated_at: Optional[str] = Field(
-        default=None,
-        alias="updatedAt",
-        description="Last update timestamp"
+        default=None, alias="updatedAt", description="Last update timestamp"
     )
-    
+
     # Processing metadata
     metadata: Optional[Dict[str, Any]] = Field(
-        default_factory=dict,
-        description="Additional collection metadata"
+        default_factory=dict, description="Additional collection metadata"
     )
-    
+
     # Processing results
     processing_started_at: Optional[str] = Field(
-        default=None,
-        alias="processingStartedAt",
-        description="When processing started"
+        default=None, alias="processingStartedAt", description="When processing started"
     )
     processing_completed_at: Optional[str] = Field(
         default=None,
         alias="processingCompletedAt",
-        description="When processing completed"
+        description="When processing completed",
     )
     error_details: Optional[List[Dict[str, Any]]] = Field(
-        default=None,
-        alias="errorDetails",
-        description="Details of processing errors"
+        default=None, alias="errorDetails", description="Details of processing errors"
     )
 
     # Validation constants
@@ -128,12 +118,16 @@ class HNItemCollection(CyodaEntity):
 
     def start_processing(self) -> None:
         """Mark processing as started"""
-        self.processing_started_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.processing_started_at = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
         self.update_timestamp()
 
     def complete_processing(self) -> None:
         """Mark processing as completed"""
-        self.processing_completed_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.processing_completed_at = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
         self.update_timestamp()
 
     def increment_processed(self) -> None:
@@ -186,8 +180,8 @@ class HNItemCollection(CyodaEntity):
     def all_items_processed_successfully(self) -> bool:
         """Check if all items were processed successfully"""
         return (
-            self.total_items > 0 
-            and self.processed_items == self.total_items 
+            self.total_items > 0
+            and self.processed_items == self.total_items
             and self.failed_items == 0
         )
 
@@ -200,7 +194,7 @@ class HNItemCollection(CyodaEntity):
             "success_rate": self.get_success_rate(),
             "failure_rate": self.get_failure_rate(),
             "is_complete": self.is_processing_complete(),
-            "has_failures": self.has_failures()
+            "has_failures": self.has_failures(),
         }
 
     def to_api_response(self) -> Dict[str, Any]:

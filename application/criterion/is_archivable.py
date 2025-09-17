@@ -7,22 +7,22 @@ Checks if an HNItem can be archived based on age or status as specified in workf
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.hnitem.version_1.hnitem import HNItem
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.hnitem.version_1.hnitem import HNItem
 
 
 class IsArchivableCriterion(CyodaCriteriaChecker):
     """
     Criterion to check if an HNItem should be archived.
-    
+
     Checks if item age > 30 days OR item is marked as deleted/dead.
     """
 
     def __init__(self) -> None:
         super().__init__(
             name="is_archivable",
-            description="Checks if item can be archived based on age or status"
+            description="Checks if item can be archived based on age or status",
         )
 
     async def check(self, entity: CyodaEntity, **kwargs: Any) -> bool:
@@ -62,7 +62,9 @@ class IsArchivableCriterion(CyodaCriteriaChecker):
 
             # Check if item has been inactive for too long (no recent updates)
             if hn_item.updated_at:
-                last_update_age_days = self._calculate_update_age_in_days(hn_item.updated_at)
+                last_update_age_days = self._calculate_update_age_in_days(
+                    hn_item.updated_at
+                )
                 if last_update_age_days > 30:
                     self.logger.info(
                         f"HNItem {hn_item.technical_id} is archivable: last updated {last_update_age_days} days ago"
@@ -70,9 +72,7 @@ class IsArchivableCriterion(CyodaCriteriaChecker):
                     return True
 
             # Item is not archivable
-            self.logger.info(
-                f"HNItem {hn_item.technical_id} is not archivable"
-            )
+            self.logger.info(f"HNItem {hn_item.technical_id} is not archivable")
             return False
 
         except Exception as e:
@@ -95,13 +95,15 @@ class IsArchivableCriterion(CyodaCriteriaChecker):
             # Convert Unix timestamp to datetime
             item_datetime = datetime.fromtimestamp(unix_timestamp, tz=timezone.utc)
             current_datetime = datetime.now(timezone.utc)
-            
+
             # Calculate age in days
             age_delta = current_datetime - item_datetime
             return age_delta.days
-            
+
         except Exception as e:
-            self.logger.warning(f"Error calculating age from timestamp {unix_timestamp}: {str(e)}")
+            self.logger.warning(
+                f"Error calculating age from timestamp {unix_timestamp}: {str(e)}"
+            )
             return 0
 
     def _calculate_update_age_in_days(self, updated_at: str) -> int:
@@ -118,11 +120,13 @@ class IsArchivableCriterion(CyodaCriteriaChecker):
             # Parse ISO timestamp
             update_datetime = datetime.fromisoformat(updated_at.replace("Z", "+00:00"))
             current_datetime = datetime.now(timezone.utc)
-            
+
             # Calculate age in days
             age_delta = current_datetime - update_datetime
             return age_delta.days
-            
+
         except Exception as e:
-            self.logger.warning(f"Error calculating update age from timestamp {updated_at}: {str(e)}")
+            self.logger.warning(
+                f"Error calculating update age from timestamp {updated_at}: {str(e)}"
+            )
             return 0

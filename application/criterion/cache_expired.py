@@ -6,22 +6,21 @@ Checks if cached search results have expired as specified in workflow requiremen
 
 from typing import Any
 
+from application.entity.searchquery.version_1.searchquery import SearchQuery
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.searchquery.version_1.searchquery import SearchQuery
 
 
 class CacheExpiredCriterion(CyodaCriteriaChecker):
     """
     Criterion to check if cached search results have expired.
-    
+
     Checks if current time > cached_at + cache_ttl (24 hours default).
     """
 
     def __init__(self) -> None:
         super().__init__(
-            name="cache_expired",
-            description="Checks if cached results have expired"
+            name="cache_expired", description="Checks if cached results have expired"
         )
 
     async def check(self, entity: CyodaEntity, **kwargs: Any) -> bool:

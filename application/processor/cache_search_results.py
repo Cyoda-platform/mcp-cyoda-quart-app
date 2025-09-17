@@ -7,22 +7,22 @@ Caches search results for improved performance as specified in workflow requirem
 import logging
 from typing import Any
 
+from application.entity.searchquery.version_1.searchquery import SearchQuery
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.searchquery.version_1.searchquery import SearchQuery
 
 
 class CacheSearchResultsProcessor(CyodaProcessor):
     """
     Processor for caching search results for improved performance.
-    
+
     Stores results in cache with TTL and creates cache keys.
     """
 
     def __init__(self) -> None:
         super().__init__(
             name="cache_search_results",
-            description="Caches search results for improved performance"
+            description="Caches search results for improved performance",
         )
         self.logger: logging.Logger = getattr(
             self, "logger", logging.getLogger(__name__)
@@ -70,11 +70,13 @@ class CacheSearchResultsProcessor(CyodaProcessor):
                 "filters": search_query.filters,
                 "sort_by": search_query.sort_by,
                 "limit": search_query.limit,
-                "offset": search_query.offset
+                "offset": search_query.offset,
             }
 
             # Simulate cache storage
-            await self._store_in_cache(search_query.cache_key, cache_data, search_query.cache_ttl)
+            await self._store_in_cache(
+                search_query.cache_key, cache_data, search_query.cache_ttl
+            )
 
             # Mark as cached
             search_query.set_cached(search_query.cache_key)
@@ -112,21 +114,23 @@ class CacheSearchResultsProcessor(CyodaProcessor):
         # In a real system, you would use a proper cache backend
         try:
             # Simulate cache storage
-            self.logger.info(f"Storing data in cache with key: {cache_key}, TTL: {ttl}s")
-            
+            self.logger.info(
+                f"Storing data in cache with key: {cache_key}, TTL: {ttl}s"
+            )
+
             # Here you would typically:
             # 1. Connect to cache backend (Redis, Memcached, etc.)
             # 2. Serialize the data (JSON, pickle, etc.)
             # 3. Store with expiration
-            # 
+            #
             # Example with Redis:
             # import redis
             # redis_client = redis.Redis(host='localhost', port=6379, db=0)
             # redis_client.setex(cache_key, ttl, json.dumps(data))
-            
+
             # For now, just log the operation
             self.logger.info(f"Cache storage simulated for key: {cache_key}")
-            
+
         except Exception as e:
             self.logger.error(f"Error storing data in cache: {str(e)}")
             raise
@@ -145,7 +149,7 @@ class CacheSearchResultsProcessor(CyodaProcessor):
         # In a real system, you would retrieve from actual cache backend
         try:
             self.logger.info(f"Retrieving data from cache with key: {cache_key}")
-            
+
             # Here you would typically:
             # 1. Connect to cache backend
             # 2. Retrieve data by key
@@ -157,10 +161,10 @@ class CacheSearchResultsProcessor(CyodaProcessor):
             # redis_client = redis.Redis(host='localhost', port=6379, db=0)
             # cached_data = redis_client.get(cache_key)
             # return json.loads(cached_data) if cached_data else None
-            
+
             # For now, return None (cache miss)
             return None
-            
+
         except Exception as e:
             self.logger.error(f"Error retrieving data from cache: {str(e)}")
             return None
@@ -174,7 +178,7 @@ class CacheSearchResultsProcessor(CyodaProcessor):
         """
         try:
             self.logger.info(f"Invalidating cache for key: {cache_key}")
-            
+
             # Here you would typically:
             # 1. Connect to cache backend
             # 2. Delete the key
@@ -183,10 +187,10 @@ class CacheSearchResultsProcessor(CyodaProcessor):
             # import redis
             # redis_client = redis.Redis(host='localhost', port=6379, db=0)
             # redis_client.delete(cache_key)
-            
+
             # For now, just log the operation
             self.logger.info(f"Cache invalidation simulated for key: {cache_key}")
-            
+
         except Exception as e:
             self.logger.error(f"Error invalidating cache: {str(e)}")
             raise

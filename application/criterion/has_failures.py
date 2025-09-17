@@ -1,28 +1,29 @@
 """
 HasFailuresCriterion for Cyoda Client Application
 
-Checks if any items in an HNItemCollection failed processing 
+Checks if any items in an HNItemCollection failed processing
 as specified in workflow requirements.
 """
 
 from typing import Any
 
+from application.entity.hnitemcollection.version_1.hnitemcollection import (
+    HNItemCollection,
+)
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.hnitemcollection.version_1.hnitemcollection import HNItemCollection
 
 
 class HasFailuresCriterion(CyodaCriteriaChecker):
     """
     Criterion to check if any items in a collection failed processing.
-    
+
     Checks if failed_items > 0.
     """
 
     def __init__(self) -> None:
         super().__init__(
-            name="has_failures",
-            description="Checks if any items failed processing"
+            name="has_failures", description="Checks if any items failed processing"
         )
 
     async def check(self, entity: CyodaEntity, **kwargs: Any) -> bool:
@@ -52,7 +53,7 @@ class HasFailuresCriterion(CyodaCriteriaChecker):
                     f"HNItemCollection {collection.technical_id} has processing failures. "
                     f"Failed items: {collection.failed_items}, Total: {collection.total_items}"
                 )
-                
+
                 # Log error details if available
                 if collection.error_details:
                     self.logger.info(

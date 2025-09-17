@@ -8,25 +8,25 @@ import logging
 import time
 from typing import Any, Dict, List
 
+from application.entity.hnitem.version_1.hnitem import HNItem
+from application.entity.searchquery.version_1.searchquery import SearchQuery
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
 from common.service.entity_service import SearchConditionRequest
-from application.entity.searchquery.version_1.searchquery import SearchQuery
-from application.entity.hnitem.version_1.hnitem import HNItem
 from services.services import get_entity_service
 
 
 class ExecuteSearchQueryProcessor(CyodaProcessor):
     """
     Processor for executing search queries against HN items database.
-    
+
     Parses query, applies filters, searches indices, and ranks results.
     """
 
     def __init__(self) -> None:
         super().__init__(
             name="execute_search_query",
-            description="Executes search query against HN items database"
+            description="Executes search query against HN items database",
         )
         self.logger: logging.Logger = getattr(
             self, "logger", logging.getLogger(__name__)
@@ -45,7 +45,7 @@ class ExecuteSearchQueryProcessor(CyodaProcessor):
         """
         try:
             start_time = time.time()
-            
+
             self.logger.info(
                 f"Executing SearchQuery {getattr(entity, 'technical_id', '<unknown>')}"
             )
@@ -100,7 +100,9 @@ class ExecuteSearchQueryProcessor(CyodaProcessor):
             )
             raise
 
-    async def _build_search_conditions(self, search_query: SearchQuery) -> SearchConditionRequest:
+    async def _build_search_conditions(
+        self, search_query: SearchQuery
+    ) -> SearchConditionRequest:
         """
         Build search conditions from SearchQuery parameters.
 
@@ -152,16 +154,26 @@ class ExecuteSearchQueryProcessor(CyodaProcessor):
         for result in search_results:
             try:
                 # Extract HNItem data
-                hn_item_data = result.data.model_dump(by_alias=True) if hasattr(result.data, 'model_dump') else result.data
+                hn_item_data = (
+                    result.data.model_dump(by_alias=True)
+                    if hasattr(result.data, "model_dump")
+                    else result.data
+                )
 
                 # Calculate relevance score
-                relevance_score = self._calculate_relevance_score(hn_item_data, search_query)
+                relevance_score = self._calculate_relevance_score(
+                    hn_item_data, search_query
+                )
 
                 # Create result entry
                 result_entry = {
-                    "item_id": result.metadata.id if result.metadata else hn_item_data.get("entity_id"),
+                    "item_id": (
+                        result.metadata.id
+                        if result.metadata
+                        else hn_item_data.get("entity_id")
+                    ),
                     "relevance_score": relevance_score,
-                    "data": hn_item_data
+                    "data": hn_item_data,
                 }
 
                 # Include children if requested
@@ -181,7 +193,9 @@ class ExecuteSearchQueryProcessor(CyodaProcessor):
 
         return processed_results
 
-    def _calculate_relevance_score(self, item_data: Dict[str, Any], search_query: SearchQuery) -> float:
+    def _calculate_relevance_score(
+        self, item_data: Dict[str, Any], search_query: SearchQuery
+    ) -> float:
         """
         Calculate relevance score for search result.
 
@@ -221,7 +235,9 @@ class ExecuteSearchQueryProcessor(CyodaProcessor):
         # Normalize score to 0-1 range
         return min(score, 1.0)
 
-    def _sort_results(self, results: List[Dict[str, Any]], sort_by: str) -> List[Dict[str, Any]]:
+    def _sort_results(
+        self, results: List[Dict[str, Any]], sort_by: str
+    ) -> List[Dict[str, Any]]:
         """
         Sort search results by specified criteria.
 
@@ -235,14 +251,18 @@ class ExecuteSearchQueryProcessor(CyodaProcessor):
         if sort_by == "relevance":
             return sorted(results, key=lambda x: x["relevance_score"], reverse=True)
         elif sort_by == "score":
-            return sorted(results, key=lambda x: x["data"].get("score", 0), reverse=True)
+            return sorted(
+                results, key=lambda x: x["data"].get("score", 0), reverse=True
+            )
         elif sort_by == "time":
             return sorted(results, key=lambda x: x["data"].get("time", 0), reverse=True)
         else:
             # Default to relevance
             return sorted(results, key=lambda x: x["relevance_score"], reverse=True)
 
-    def _apply_pagination(self, results: List[Dict[str, Any]], offset: int, limit: int) -> List[Dict[str, Any]]:
+    def _apply_pagination(
+        self, results: List[Dict[str, Any]], offset: int, limit: int
+    ) -> List[Dict[str, Any]]:
         """
         Apply pagination to search results.
 
@@ -270,4 +290,6 @@ class ExecuteSearchQueryProcessor(CyodaProcessor):
         """
         # This is a simplified implementation
         # In a real system, you'd fetch the actual child items
-        return [{"id": child_id, "type": "comment"} for child_id in child_ids[:10]]  # Limit to 10 children
+        return [
+            {"id": child_id, "type": "comment"} for child_id in child_ids[:10]
+        ]  # Limit to 10 children

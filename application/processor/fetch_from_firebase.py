@@ -8,22 +8,24 @@ import logging
 from typing import Any, Dict, List, Optional
 
 import httpx
+
+from application.entity.hnitemcollection.version_1.hnitemcollection import (
+    HNItemCollection,
+)
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.hnitemcollection.version_1.hnitemcollection import HNItemCollection
 
 
 class FetchFromFirebaseProcessor(CyodaProcessor):
     """
     Processor for fetching items from Firebase HN API.
-    
+
     Calls Firebase API, retrieves items, and populates collection.
     """
 
     def __init__(self) -> None:
         super().__init__(
-            name="fetch_from_firebase",
-            description="Fetches items from Firebase HN API"
+            name="fetch_from_firebase", description="Fetches items from Firebase HN API"
         )
         self.logger: logging.Logger = getattr(
             self, "logger", logging.getLogger(__name__)
@@ -50,7 +52,11 @@ class FetchFromFirebaseProcessor(CyodaProcessor):
             collection = cast_entity(entity, HNItemCollection)
 
             # Get API parameters from metadata
-            api_endpoint = collection.metadata.get("api_endpoint", "topstories") if collection.metadata else "topstories"
+            api_endpoint = (
+                collection.metadata.get("api_endpoint", "topstories")
+                if collection.metadata
+                else "topstories"
+            )
             limit = collection.metadata.get("limit", 50) if collection.metadata else 50
 
             # Fetch items from Firebase API
@@ -59,14 +65,14 @@ class FetchFromFirebaseProcessor(CyodaProcessor):
             if items:
                 # Add items to collection
                 collection.add_items(items)
-                
+
                 # Update metadata
                 if not collection.metadata:
                     collection.metadata = {}
                 collection.metadata["firebase_fetch_completed"] = True
                 collection.metadata["api_endpoint_used"] = api_endpoint
                 collection.metadata["items_fetched"] = len(items)
-                
+
                 self.logger.info(
                     f"Successfully fetched {len(items)} items from Firebase API endpoint '{api_endpoint}'"
                 )
@@ -83,7 +89,9 @@ class FetchFromFirebaseProcessor(CyodaProcessor):
             )
             raise
 
-    async def _fetch_items_from_api(self, endpoint: str, limit: int) -> List[Dict[str, Any]]:
+    async def _fetch_items_from_api(
+        self, endpoint: str, limit: int
+    ) -> List[Dict[str, Any]]:
         """
         Fetch items from Firebase HN API.
 
@@ -99,10 +107,10 @@ class FetchFromFirebaseProcessor(CyodaProcessor):
                 # First, get the list of item IDs
                 ids_url = f"{self.firebase_base_url}/{endpoint}.json"
                 self.logger.info(f"Fetching item IDs from: {ids_url}")
-                
+
                 ids_response = await client.get(ids_url)
                 ids_response.raise_for_status()
-                
+
                 item_ids = ids_response.json()
                 if not item_ids:
                     self.logger.warning(f"No item IDs returned from {endpoint}")
@@ -110,7 +118,7 @@ class FetchFromFirebaseProcessor(CyodaProcessor):
 
                 # Limit the number of items to fetch
                 item_ids = item_ids[:limit]
-                
+
                 self.logger.info(f"Fetching details for {len(item_ids)} items")
 
                 # Fetch details for each item
@@ -120,22 +128,28 @@ class FetchFromFirebaseProcessor(CyodaProcessor):
                         item_url = f"{self.firebase_base_url}/item/{item_id}.json"
                         item_response = await client.get(item_url)
                         item_response.raise_for_status()
-                        
+
                         item_data = item_response.json()
                         if item_data:
                             items.append(item_data)
                         else:
                             self.logger.warning(f"No data returned for item {item_id}")
-                            
+
                     except Exception as item_error:
-                        self.logger.error(f"Error fetching item {item_id}: {str(item_error)}")
+                        self.logger.error(
+                            f"Error fetching item {item_id}: {str(item_error)}"
+                        )
                         continue
 
-                self.logger.info(f"Successfully fetched {len(items)} items from Firebase API")
+                self.logger.info(
+                    f"Successfully fetched {len(items)} items from Firebase API"
+                )
                 return items
 
         except httpx.HTTPError as http_error:
-            self.logger.error(f"HTTP error fetching from Firebase API: {str(http_error)}")
+            self.logger.error(
+                f"HTTP error fetching from Firebase API: {str(http_error)}"
+            )
             raise
         except Exception as e:
             self.logger.error(f"Error fetching from Firebase API: {str(e)}")
@@ -145,9 +159,9 @@ class FetchFromFirebaseProcessor(CyodaProcessor):
         """Get list of available Firebase HN API endpoints"""
         return [
             "topstories",
-            "newstories", 
+            "newstories",
             "beststories",
             "askstories",
             "showstories",
-            "jobstories"
+            "jobstories",
         ]

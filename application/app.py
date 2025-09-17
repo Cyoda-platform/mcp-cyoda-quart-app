@@ -5,12 +5,14 @@ from typing import Callable, Dict, Optional
 from quart import Quart, Response
 from quart_schema import QuartSchema, ResponseSchemaValidationError, hide
 
+# Import blueprints for different route groups
+from application.routes.hnitem_routes import hnitem_bp
+from application.routes.hnitemcollection_routes import hnitemcollection_bp
+from application.routes.searchquery_routes import searchquery_bp
 from common.exception.exception_handler import (
     register_error_handlers as _register_error_handlers,
 )
 from services.services import get_grpc_client, initialize_services
-
-# Import blueprints for different route groups
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -23,10 +25,14 @@ QuartSchema(
     info={"title": "Cyoda Client Application", "version": "1.0.0"},
     tags=[
         {
-            "name": "ExampleEntities",
-            "description": "ExampleEntity management endpoints",
+            "name": "hnitem",
+            "description": "HNItem management endpoints",
         },
-        {"name": "OtherEntities", "description": "OtherEntity management endpoints"},
+        {
+            "name": "hnitemcollection",
+            "description": "HNItemCollection management endpoints",
+        },
+        {"name": "searchquery", "description": "SearchQuery management endpoints"},
         {"name": "System", "description": "System and health endpoints"},
     ],
     security=[{"bearerAuth": []}],
@@ -37,6 +43,11 @@ QuartSchema(
         }
     },
 )
+
+# Register blueprints
+app.register_blueprint(hnitem_bp)
+app.register_blueprint(hnitemcollection_bp)
+app.register_blueprint(searchquery_bp)
 
 # Global holder for the background task to satisfy mypy
 # (avoid setting arbitrary attrs on app)

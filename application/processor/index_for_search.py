@@ -8,22 +8,22 @@ import logging
 import re
 from typing import Any
 
+from application.entity.hnitem.version_1.hnitem import HNItem
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.hnitem.version_1.hnitem import HNItem
 
 
 class IndexForSearchProcessor(CyodaProcessor):
     """
     Processor for indexing HNItem content for search functionality.
-    
+
     Extracts searchable content, creates search indices, and updates search database.
     """
 
     def __init__(self) -> None:
         super().__init__(
             name="index_for_search",
-            description="Indexes item content for search functionality"
+            description="Indexes item content for search functionality",
         )
         self.logger: logging.Logger = getattr(
             self, "logger", logging.getLogger(__name__)
@@ -50,47 +50,47 @@ class IndexForSearchProcessor(CyodaProcessor):
 
             # Extract searchable content
             search_content_parts = []
-            
+
             # Add title if present
             if hn_item.title:
                 clean_title = self._clean_html(hn_item.title)
                 search_content_parts.append(clean_title)
-            
+
             # Add text content if present
             if hn_item.text:
                 clean_text = self._clean_html(hn_item.text)
                 search_content_parts.append(clean_text)
-            
+
             # Add URL domain if present
             if hn_item.url:
                 domain = self._extract_domain(hn_item.url)
                 if domain:
                     search_content_parts.append(domain)
-            
+
             # Add author if present
             if hn_item.by:
                 search_content_parts.append(hn_item.by)
-            
+
             # Combine all searchable content
             search_content = " ".join(search_content_parts).strip()
-            
+
             # Set search content
             hn_item.set_search_content(search_content)
-            
+
             # Mark as indexed
             hn_item.set_indexed()
-            
+
             # Add indexing metadata
             if not hn_item.metadata:
                 hn_item.metadata = {}
             hn_item.metadata["search_indexed"] = True
             hn_item.metadata["search_content_length"] = len(search_content)
             hn_item.metadata["indexing_timestamp"] = hn_item.indexed_at
-            
+
             # Create search keywords for better matching
             keywords = self._extract_keywords(search_content)
             hn_item.metadata["search_keywords"] = keywords
-            
+
             self.logger.info(
                 f"HNItem {hn_item.technical_id} indexed successfully. "
                 f"Content length: {len(search_content)}, Keywords: {len(keywords)}"
@@ -108,36 +108,36 @@ class IndexForSearchProcessor(CyodaProcessor):
         """Remove HTML tags and clean up content for search indexing"""
         if not html_content:
             return ""
-        
+
         # Remove HTML tags
-        clean_text = re.sub(r'<[^>]+>', '', html_content)
-        
+        clean_text = re.sub(r"<[^>]+>", "", html_content)
+
         # Decode common HTML entities
-        clean_text = clean_text.replace('&amp;', '&')
-        clean_text = clean_text.replace('&lt;', '<')
-        clean_text = clean_text.replace('&gt;', '>')
-        clean_text = clean_text.replace('&quot;', '"')
-        clean_text = clean_text.replace('&#x27;', "'")
-        clean_text = clean_text.replace('&#x2F;', '/')
-        
+        clean_text = clean_text.replace("&amp;", "&")
+        clean_text = clean_text.replace("&lt;", "<")
+        clean_text = clean_text.replace("&gt;", ">")
+        clean_text = clean_text.replace("&quot;", '"')
+        clean_text = clean_text.replace("&#x27;", "'")
+        clean_text = clean_text.replace("&#x2F;", "/")
+
         # Normalize whitespace
-        clean_text = re.sub(r'\s+', ' ', clean_text).strip()
-        
+        clean_text = re.sub(r"\s+", " ", clean_text).strip()
+
         return clean_text
 
     def _extract_domain(self, url: str) -> str:
         """Extract domain from URL for search indexing"""
         if not url:
             return ""
-        
+
         # Simple domain extraction
         try:
             # Remove protocol
-            domain = url.replace('http://', '').replace('https://', '')
+            domain = url.replace("http://", "").replace("https://", "")
             # Remove path and query parameters
-            domain = domain.split('/')[0]
+            domain = domain.split("/")[0]
             # Remove www prefix
-            if domain.startswith('www.'):
+            if domain.startswith("www."):
                 domain = domain[4:]
             return domain
         except Exception:
@@ -147,25 +147,68 @@ class IndexForSearchProcessor(CyodaProcessor):
         """Extract keywords from content for search indexing"""
         if not content:
             return []
-        
+
         # Convert to lowercase and split into words
-        words = re.findall(r'\b\w+\b', content.lower())
-        
+        words = re.findall(r"\b\w+\b", content.lower())
+
         # Filter out common stop words and short words
         stop_words = {
-            'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
-            'of', 'with', 'by', 'is', 'are', 'was', 'were', 'be', 'been', 'have',
-            'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should',
-            'this', 'that', 'these', 'those', 'i', 'you', 'he', 'she', 'it', 'we',
-            'they', 'me', 'him', 'her', 'us', 'them', 'my', 'your', 'his', 'its',
-            'our', 'their'
+            "the",
+            "a",
+            "an",
+            "and",
+            "or",
+            "but",
+            "in",
+            "on",
+            "at",
+            "to",
+            "for",
+            "of",
+            "with",
+            "by",
+            "is",
+            "are",
+            "was",
+            "were",
+            "be",
+            "been",
+            "have",
+            "has",
+            "had",
+            "do",
+            "does",
+            "did",
+            "will",
+            "would",
+            "could",
+            "should",
+            "this",
+            "that",
+            "these",
+            "those",
+            "i",
+            "you",
+            "he",
+            "she",
+            "it",
+            "we",
+            "they",
+            "me",
+            "him",
+            "her",
+            "us",
+            "them",
+            "my",
+            "your",
+            "his",
+            "its",
+            "our",
+            "their",
         }
-        
-        keywords = [
-            word for word in words 
-            if len(word) > 2 and word not in stop_words
-        ]
-        
+
+        keywords = [word for word in words if len(word) > 2 and word not in stop_words]
+
         # Remove duplicates while preserving order
         unique_keywords = []
         seen = set()
@@ -173,6 +216,6 @@ class IndexForSearchProcessor(CyodaProcessor):
             if keyword not in seen:
                 unique_keywords.append(keyword)
                 seen.add(keyword)
-        
+
         # Limit to top 50 keywords
         return unique_keywords[:50]

@@ -3,7 +3,7 @@
 """
 HNItem for Cyoda Client Application
 
-Represents individual Hacker News items from the Firebase HN API, including stories, 
+Represents individual Hacker News items from the Firebase HN API, including stories,
 comments, jobs, Ask HNs, and polls as specified in functional requirements.
 """
 
@@ -18,7 +18,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class HNItem(CyodaEntity):
     """
     HNItem represents individual Hacker News items from the Firebase HN API.
-    
+
     Supports all HN item types: stories, comments, jobs, polls, and pollopts.
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     The state field manages workflow states: initial_state -> pending_validation -> validated -> indexed -> active -> archived
@@ -32,42 +32,64 @@ class HNItem(CyodaEntity):
     id: int = Field(..., description="Unique integer identifier from HN API")
     type: str = Field(..., description="Item type: story, comment, job, poll, pollopt")
     by: Optional[str] = Field(default=None, description="Username of the item's author")
-    time: Optional[int] = Field(default=None, description="Creation date in Unix timestamp")
-    
+    time: Optional[int] = Field(
+        default=None, description="Creation date in Unix timestamp"
+    )
+
     # Content fields
-    title: Optional[str] = Field(default=None, description="Title of the story, poll or job (HTML)")
-    text: Optional[str] = Field(default=None, description="Comment, story or poll text (HTML)")
+    title: Optional[str] = Field(
+        default=None, description="Title of the story, poll or job (HTML)"
+    )
+    text: Optional[str] = Field(
+        default=None, description="Comment, story or poll text (HTML)"
+    )
     url: Optional[str] = Field(default=None, description="URL of the story")
-    
+
     # Scoring and metrics
-    score: Optional[int] = Field(default=None, description="Story's score or votes for pollopt")
-    descendants: Optional[int] = Field(default=None, description="Total comment count for stories/polls")
-    
+    score: Optional[int] = Field(
+        default=None, description="Story's score or votes for pollopt"
+    )
+    descendants: Optional[int] = Field(
+        default=None, description="Total comment count for stories/polls"
+    )
+
     # Relationship fields
-    parent: Optional[int] = Field(default=None, description="Parent item ID for comments")
-    kids: Optional[List[int]] = Field(default=None, description="Array of child comment IDs")
-    poll: Optional[int] = Field(default=None, description="Associated poll ID for pollopts")
-    parts: Optional[List[int]] = Field(default=None, description="Related pollopt IDs for polls")
-    
+    parent: Optional[int] = Field(
+        default=None, description="Parent item ID for comments"
+    )
+    kids: Optional[List[int]] = Field(
+        default=None, description="Array of child comment IDs"
+    )
+    poll: Optional[int] = Field(
+        default=None, description="Associated poll ID for pollopts"
+    )
+    parts: Optional[List[int]] = Field(
+        default=None, description="Related pollopt IDs for polls"
+    )
+
     # Status fields
-    deleted: Optional[bool] = Field(default=None, description="Boolean indicating if item is deleted")
-    dead: Optional[bool] = Field(default=None, description="Boolean indicating if item is dead")
-    
+    deleted: Optional[bool] = Field(
+        default=None, description="Boolean indicating if item is deleted"
+    )
+    dead: Optional[bool] = Field(
+        default=None, description="Boolean indicating if item is dead"
+    )
+
     # Processing fields (populated during workflow)
     indexed_at: Optional[str] = Field(
         default=None,
         alias="indexedAt",
-        description="Timestamp when item was indexed for search"
+        description="Timestamp when item was indexed for search",
     )
     validation_status: Optional[str] = Field(
         default=None,
-        alias="validationStatus", 
-        description="Status of validation checks"
+        alias="validationStatus",
+        description="Status of validation checks",
     )
     search_content: Optional[str] = Field(
         default=None,
         alias="searchContent",
-        description="Processed content for search indexing"
+        description="Processed content for search indexing",
     )
 
     # Validation constants

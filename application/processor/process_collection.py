@@ -7,24 +7,26 @@ Processes all items in an HNItemCollection as specified in workflow requirements
 import logging
 from typing import Any, Dict
 
+from application.entity.hnitem.version_1.hnitem import HNItem
+from application.entity.hnitemcollection.version_1.hnitemcollection import (
+    HNItemCollection,
+)
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.hnitemcollection.version_1.hnitemcollection import HNItemCollection
-from application.entity.hnitem.version_1.hnitem import HNItem
 from services.services import get_entity_service
 
 
 class ProcessCollectionProcessor(CyodaProcessor):
     """
     Processor for processing all items in an HNItemCollection.
-    
+
     Validates, creates, and indexes individual HN items from the collection.
     """
 
     def __init__(self) -> None:
         super().__init__(
             name="process_collection",
-            description="Processes all items in the collection"
+            description="Processes all items in the collection",
         )
         self.logger: logging.Logger = getattr(
             self, "logger", logging.getLogger(__name__)
@@ -61,28 +63,32 @@ class ProcessCollectionProcessor(CyodaProcessor):
                     try:
                         # Create HNItem from data
                         hn_item = await self._create_hn_item(item_data, entity_service)
-                        
+
                         if hn_item:
                             collection.increment_processed()
                             self.logger.info(
                                 f"Successfully processed HN item {item_data.get('id', 'unknown')}"
                             )
                         else:
-                            collection.increment_failed({
-                                "item_id": item_data.get("id", "unknown"),
-                                "error": "Failed to create HN item",
-                                "item_data": item_data
-                            })
-                            
+                            collection.increment_failed(
+                                {
+                                    "item_id": item_data.get("id", "unknown"),
+                                    "error": "Failed to create HN item",
+                                    "item_data": item_data,
+                                }
+                            )
+
                     except Exception as item_error:
                         self.logger.error(
                             f"Error processing item {item_data.get('id', 'unknown')}: {str(item_error)}"
                         )
-                        collection.increment_failed({
-                            "item_id": item_data.get("id", "unknown"),
-                            "error": str(item_error),
-                            "item_data": item_data
-                        })
+                        collection.increment_failed(
+                            {
+                                "item_id": item_data.get("id", "unknown"),
+                                "error": str(item_error),
+                                "item_data": item_data,
+                            }
+                        )
 
             # Complete processing
             collection.complete_processing()
@@ -91,7 +97,9 @@ class ProcessCollectionProcessor(CyodaProcessor):
             if not collection.metadata:
                 collection.metadata = {}
             collection.metadata["processing_completed"] = True
-            collection.metadata["processing_summary"] = collection.get_processing_summary()
+            collection.metadata["processing_summary"] = (
+                collection.get_processing_summary()
+            )
 
             self.logger.info(
                 f"HNItemCollection {collection.technical_id} processing completed. "
@@ -106,7 +114,9 @@ class ProcessCollectionProcessor(CyodaProcessor):
             )
             raise
 
-    async def _create_hn_item(self, item_data: Dict[str, Any], entity_service: Any) -> bool:
+    async def _create_hn_item(
+        self, item_data: Dict[str, Any], entity_service: Any
+    ) -> bool:
         """
         Create an HNItem from item data.
 
@@ -124,7 +134,9 @@ class ProcessCollectionProcessor(CyodaProcessor):
                 return False
 
             if "type" not in item_data:
-                self.logger.warning(f"Item {item_data['id']} missing required 'type' field")
+                self.logger.warning(
+                    f"Item {item_data['id']} missing required 'type' field"
+                )
                 return False
 
             # Create HNItem instance
@@ -144,7 +156,9 @@ class ProcessCollectionProcessor(CyodaProcessor):
                 self.logger.info(f"Created HNItem with ID: {response.metadata.id}")
                 return True
             else:
-                self.logger.warning(f"Failed to create HNItem for item {item_data['id']}")
+                self.logger.warning(
+                    f"Failed to create HNItem for item {item_data['id']}"
+                )
                 return False
 
         except Exception as e:
