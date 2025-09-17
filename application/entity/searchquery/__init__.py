@@ -1,0 +1,1 @@
+# SearchQuery entity package
