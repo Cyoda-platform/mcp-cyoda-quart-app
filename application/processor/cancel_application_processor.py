@@ -145,7 +145,7 @@ class CancelApplicationProcessor(CyodaProcessor):
                 if hasattr(pet_data, "model_dump"):
                     pet_dict = pet_data.model_dump(by_alias=True)
                 else:
-                    pet_dict = pet_data
+                    pet_dict = pet_data if isinstance(pet_data, dict) else pet_data.__dict__
 
                 # Clear adoption_id reference
                 pet_dict["adoption_id"] = None
@@ -188,7 +188,7 @@ class CancelApplicationProcessor(CyodaProcessor):
                 if hasattr(owner_data, "model_dump"):
                     owner_dict = owner_data.model_dump(by_alias=True)
                 else:
-                    owner_dict = owner_data
+                    owner_dict = owner_data if isinstance(owner_data, dict) else owner_data.__dict__
 
                 # Remove adoption from lists if present
                 adoption_id = adoption.technical_id or adoption.entity_id

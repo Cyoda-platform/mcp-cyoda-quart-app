@@ -92,7 +92,7 @@ class ApproveApplicationProcessor(CyodaProcessor):
         if not adoption.owner_id or len(adoption.owner_id.strip()) == 0:
             raise ValueError("Owner ID is required for approval")
 
-        self.logger.info(f"Adoption application validation passed for approval")
+        self.logger.info("Adoption application validation passed for approval")
 
     def _approve_adoption_application(self, adoption: Adoption) -> None:
         """

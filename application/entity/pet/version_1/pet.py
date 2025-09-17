@@ -5,7 +5,6 @@ Represents pets available in the Purrfect Pets store for adoption.
 Entity state is managed internally via workflow engine.
 """
 
-from datetime import datetime, timezone
 from typing import ClassVar, Optional
 
 from pydantic import ConfigDict, Field, field_validator
