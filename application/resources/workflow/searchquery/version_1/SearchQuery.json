@@ -1,0 +1,75 @@
+{
+  "version": "1.0",
+  "name": "SearchQuery",
+  "desc": "Workflow for processing search queries with hierarchy joins",
+  "initialState": "initial_state",
+  "active": true,
+  "states": {
+    "initial_state": {
+      "transitions": [
+        {
+          "name": "validate_query",
+          "next": "validated",
+          "manual": false,
+          "processors": [
+            {
+              "name": "parse_and_validate_query",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "validated": {
+      "transitions": [
+        {
+          "name": "execute_search",
+          "next": "executed",
+          "manual": true,
+          "processors": [
+            {
+              "name": "perform_search",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 10000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "executed": {
+      "transitions": [
+        {
+          "name": "return_results",
+          "next": "completed",
+          "manual": false,
+          "processors": [
+            {
+              "name": "format_search_results",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 5000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "completed": {
+      "transitions": []
+    }
+  }
+}
