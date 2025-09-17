@@ -1,0 +1,93 @@
+{
+  "version": "1.0",
+  "name": "HNItem",
+  "desc": "Workflow for managing Hacker News items from creation to archival",
+  "initialState": "initial_state",
+  "active": true,
+  "states": {
+    "initial_state": {
+      "transitions": [
+        {
+          "name": "validate_item",
+          "next": "pending_validation",
+          "manual": false
+        }
+      ]
+    },
+    "pending_validation": {
+      "transitions": [
+        {
+          "name": "validation_complete",
+          "next": "validated",
+          "manual": true,
+          "processors": [
+            {
+              "name": "validate_hn_item",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "validated": {
+      "transitions": [
+        {
+          "name": "index_item",
+          "next": "indexed",
+          "manual": true,
+          "processors": [
+            {
+              "name": "index_for_search",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 5000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "indexed": {
+      "transitions": [
+        {
+          "name": "activate_item",
+          "next": "active",
+          "manual": false
+        }
+      ]
+    },
+    "active": {
+      "transitions": [
+        {
+          "name": "archive_item",
+          "next": "archived",
+          "manual": true,
+          "criterion": {
+            "type": "function",
+            "function": {
+              "name": "is_archivable",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "archived": {
+      "transitions": []
+    }
+  }
+}

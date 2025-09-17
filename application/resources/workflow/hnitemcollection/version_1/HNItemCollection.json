@@ -1,0 +1,97 @@
+{
+  "version": "1.0",
+  "name": "HNItemCollection",
+  "desc": "Workflow for managing bulk operations on Hacker News item collections",
+  "initialState": "initial_state",
+  "active": true,
+  "states": {
+    "initial_state": {
+      "transitions": [
+        {
+          "name": "start_processing",
+          "next": "pending_processing",
+          "manual": false
+        }
+      ]
+    },
+    "pending_processing": {
+      "transitions": [
+        {
+          "name": "begin_processing",
+          "next": "processing",
+          "manual": true,
+          "processors": [
+            {
+              "name": "process_collection",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 30000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "processing": {
+      "transitions": [
+        {
+          "name": "complete_success",
+          "next": "completed",
+          "manual": false,
+          "criterion": {
+            "type": "function",
+            "function": {
+              "name": "all_items_processed",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          }
+        },
+        {
+          "name": "complete_partial",
+          "next": "partial_failure",
+          "manual": false,
+          "criterion": {
+            "type": "function",
+            "function": {
+              "name": "has_failures",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          }
+        },
+        {
+          "name": "complete_failure",
+          "next": "failed",
+          "manual": false,
+          "criterion": {
+            "type": "simple",
+            "jsonPath": "$.processed_items",
+            "operation": "EQUALS",
+            "value": 0
+          }
+        }
+      ]
+    },
+    "completed": {
+      "transitions": []
+    },
+    "partial_failure": {
+      "transitions": []
+    },
+    "failed": {
+      "transitions": []
+    }
+  }
+}
