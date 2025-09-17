@@ -125,18 +125,16 @@ class PerformSearch(CyodaProcessor):
             if "from" in search_query.date_range:
                 # Convert date to Unix timestamp for comparison
                 # This is simplified - in practice you'd need proper date conversion
-                builder.greaterThanOrEqual("time", search_query.date_range["from"])
+                builder.equals("time_from", search_query.date_range["from"])
             if "to" in search_query.date_range:
-                builder.lessThanOrEqual("time", search_query.date_range["to"])
+                builder.equals("time_to", search_query.date_range["to"])
 
         # Apply score range filter
         if search_query.score_range:
             if "min" in search_query.score_range:
-                builder.greaterThanOrEqual(
-                    "score", str(search_query.score_range["min"])
-                )
+                builder.equals("score_min", str(search_query.score_range["min"]))
             if "max" in search_query.score_range:
-                builder.lessThanOrEqual("score", str(search_query.score_range["max"]))
+                builder.equals("score_max", str(search_query.score_range["max"]))
 
         return builder.build()
 
@@ -152,8 +150,9 @@ class PerformSearch(CyodaProcessor):
         quoted_phrases = search_query.parsed_query.get("quoted_phrases", [])
 
         for result in results:
+            search_fields = search_query.search_fields or ["title", "text"]
             if self._matches_text_criteria(
-                result, search_terms, quoted_phrases, search_query.search_fields
+                result, search_terms, quoted_phrases, search_fields
             ):
                 filtered_results.append(result)
 
