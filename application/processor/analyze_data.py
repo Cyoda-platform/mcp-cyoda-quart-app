@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 from typing import Any, Dict
 
 import httpx
-import pandas as pd
+import pandas as pd  # type: ignore
 
 from application.entity.dataanalysis.version_1.dataanalysis import DataAnalysis
 from application.entity.datasource.version_1.datasource import DataSource
