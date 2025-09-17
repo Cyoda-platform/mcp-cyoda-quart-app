@@ -1,0 +1,270 @@
+{
+  "version": "1.0",
+  "name": "BulkUpload",
+  "desc": "Workflow for managing bulk upload of HN items from JSON files with validation and processing",
+  "initialState": "initial_state",
+  "active": true,
+  "states": {
+    "initial_state": {
+      "transitions": [
+        {
+          "name": "initial_to_uploaded",
+          "next": "uploaded",
+          "manual": false
+        }
+      ]
+    },
+    "uploaded": {
+      "transitions": [
+        {
+          "name": "validate_upload",
+          "next": "validating",
+          "manual": true,
+          "processors": [
+            {
+              "name": "validate_upload_processor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 15000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "validating": {
+      "transitions": [
+        {
+          "name": "validation_success",
+          "next": "validated",
+          "manual": false,
+          "criterion": {
+            "type": "function",
+            "function": {
+              "name": "validation_success_criterion",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          }
+        },
+        {
+          "name": "validation_failure",
+          "next": "failed",
+          "manual": false,
+          "processors": [
+            {
+              "name": "handle_validation_failure_processor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ],
+          "criterion": {
+            "type": "function",
+            "function": {
+              "name": "validation_failure_criterion",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "validated": {
+      "transitions": [
+        {
+          "name": "start_processing",
+          "next": "processing",
+          "manual": true,
+          "processors": [
+            {
+              "name": "start_processing_processor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 10000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "processing": {
+      "transitions": [
+        {
+          "name": "processing_complete_success",
+          "next": "completed",
+          "manual": false,
+          "processors": [
+            {
+              "name": "finalize_success_processor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 10000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ],
+          "criterion": {
+            "type": "function",
+            "function": {
+              "name": "processing_complete_success_criterion",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          }
+        },
+        {
+          "name": "processing_partial_success",
+          "next": "partial_success",
+          "manual": false,
+          "processors": [
+            {
+              "name": "handle_partial_success_processor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 5000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ],
+          "criterion": {
+            "type": "function",
+            "function": {
+              "name": "processing_partial_success_criterion",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          }
+        },
+        {
+          "name": "processing_complete_failure",
+          "next": "failed",
+          "manual": false,
+          "processors": [
+            {
+              "name": "handle_processing_failure_processor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 5000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ],
+          "criterion": {
+            "type": "function",
+            "function": {
+              "name": "processing_complete_failure_criterion",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "completed": {
+      "transitions": []
+    },
+    "partial_success": {
+      "transitions": [
+        {
+          "name": "retry_failed_items",
+          "next": "processing",
+          "manual": true,
+          "processors": [
+            {
+              "name": "retry_failed_items_processor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 5000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ],
+          "criterion": {
+            "type": "function",
+            "function": {
+              "name": "retry_allowed_criterion",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "failed": {
+      "transitions": [
+        {
+          "name": "retry_upload",
+          "next": "uploaded",
+          "manual": true,
+          "processors": [
+            {
+              "name": "reset_upload_processor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ],
+          "criterion": {
+            "type": "function",
+            "function": {
+              "name": "retry_allowed_criterion",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
