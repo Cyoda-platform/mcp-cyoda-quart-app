@@ -108,7 +108,15 @@ async def get_customer(entity_id: str) -> ResponseReturnValue:
 @validate_querystring(CustomerUpdateQueryParams)
 @tag(["customers"])
 @operation_id("update_customer")
-@validate(request=Customer)
+@validate(
+    request=Customer,
+    responses={
+        200: (CustomerResponse, None),
+        404: (ErrorResponse, None),
+        400: (ValidationErrorResponse, None),
+        500: (ErrorResponse, None),
+    },
+)
 async def update_customer(entity_id: str, data: Customer, query_args: CustomerUpdateQueryParams) -> ResponseReturnValue:
     """Update Customer and optionally trigger workflow transition"""
     try:

@@ -27,11 +27,11 @@ QuartSchema(
     app,
     info={"title": "Cyoda Client Application", "version": "1.0.0"},
     tags=[
-        {
-            "name": "ExampleEntities",
-            "description": "ExampleEntity management endpoints",
-        },
-        {"name": "OtherEntities", "description": "OtherEntity management endpoints"},
+        {"name": "pets", "description": "Pet management endpoints"},
+        {"name": "stores", "description": "Store management endpoints"},
+        {"name": "customers", "description": "Customer management endpoints"},
+        {"name": "adoption-applications", "description": "Adoption application management endpoints"},
+        {"name": "adoptions", "description": "Adoption management endpoints"},
         {"name": "System", "description": "System and health endpoints"},
     ],
     security=[{"bearerAuth": []}],
@@ -42,6 +42,13 @@ QuartSchema(
         }
     },
 )
+
+# Register Purrfect Pets API blueprints
+app.register_blueprint(pets_bp)
+app.register_blueprint(stores_bp)
+app.register_blueprint(customers_bp)
+app.register_blueprint(adoption_applications_bp)
+app.register_blueprint(adoptions_bp)
 
 # Global holder for the background task to satisfy mypy
 # (avoid setting arbitrary attrs on app)

@@ -108,7 +108,15 @@ async def get_store(entity_id: str) -> ResponseReturnValue:
 @validate_querystring(StoreUpdateQueryParams)
 @tag(["stores"])
 @operation_id("update_store")
-@validate(request=Store)
+@validate(
+    request=Store,
+    responses={
+        200: (StoreResponse, None),
+        404: (ErrorResponse, None),
+        400: (ValidationErrorResponse, None),
+        500: (ErrorResponse, None),
+    },
+)
 async def update_store(entity_id: str, data: Store, query_args: StoreUpdateQueryParams) -> ResponseReturnValue:
     """Update Store and optionally trigger workflow transition"""
     try:
