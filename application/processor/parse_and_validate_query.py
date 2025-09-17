@@ -146,10 +146,11 @@ class ParseAndValidateQuery(CyodaProcessor):
         # Extract field searches (e.g., "author:username", "type:story")
         field_pattern = r"(\w+):(\w+)"
         field_matches = re.findall(field_pattern, text_without_quotes)
+        field_searches = parsed["field_searches"]
         for field, value in field_matches:
-            if field not in parsed["field_searches"]:
-                parsed["field_searches"][field] = []
-            parsed["field_searches"][field].append(value)
+            if field not in field_searches:
+                field_searches[field] = []
+            field_searches[field].append(value)
 
         # Remove field searches from text
         text_without_fields = re.sub(field_pattern, "", text_without_quotes)

@@ -157,7 +157,7 @@ class FormatSearchResults(CyodaProcessor):
         self, result: Dict[str, Any], search_query: SearchQuery
     ) -> List[str]:
         """Identify which fields matched the search query."""
-        match_fields = []
+        match_fields: List[str] = []
 
         if not search_query.query_text:
             return match_fields

@@ -5,7 +5,7 @@ Checks if all items in the collection have been processed successfully
 to determine if the collection can transition to completed state.
 """
 
-from typing import Any
+from typing import Any, List
 
 from application.entity.hnitemcollection.version_1.hnitemcollection import (
     HNItemCollection,
@@ -107,7 +107,7 @@ class AllItemsProcessedSuccessfully(CyodaCriteriaChecker):
             )
             return False
 
-    def _count_critical_errors(self, processing_errors: list) -> int:
+    def _count_critical_errors(self, processing_errors: List[Any]) -> int:
         """
         Count the number of critical errors in the processing errors list.
 

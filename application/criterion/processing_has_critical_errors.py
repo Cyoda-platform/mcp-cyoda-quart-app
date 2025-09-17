@@ -5,7 +5,7 @@ Checks if the collection processing has encountered critical errors
 that would cause it to transition to failed state.
 """
 
-from typing import Any
+from typing import Any, List
 
 from application.entity.hnitemcollection.version_1.hnitemcollection import (
     HNItemCollection,
@@ -113,7 +113,7 @@ class ProcessingHasCriticalErrors(CyodaCriteriaChecker):
             # In case of error checking, assume critical error exists for safety
             return True
 
-    def _identify_critical_errors(self, processing_errors: list) -> list:
+    def _identify_critical_errors(self, processing_errors: List[Any]) -> List[Any]:
         """
         Identify critical errors from the processing errors list.
 
@@ -142,7 +142,7 @@ class ProcessingHasCriticalErrors(CyodaCriteriaChecker):
 
         return critical_errors
 
-    def _identify_system_errors(self, critical_errors: list) -> list:
+    def _identify_system_errors(self, critical_errors: List[Any]) -> List[Any]:
         """
         Identify system-level errors that prevent processing.
 
@@ -167,7 +167,7 @@ class ProcessingHasCriticalErrors(CyodaCriteriaChecker):
 
         return system_errors
 
-    def _identify_validation_errors(self, critical_errors: list) -> list:
+    def _identify_validation_errors(self, critical_errors: List[Any]) -> List[Any]:
         """
         Identify validation errors that affect collection structure.
 
