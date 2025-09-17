@@ -13,10 +13,10 @@ from typing import Any, Dict
 import httpx
 import pandas as pd
 
-from common.entity.entity_casting import cast_entity
-from common.processor.base import CyodaEntity, CyodaProcessor
 from application.entity.dataanalysis.version_1.dataanalysis import DataAnalysis
 from application.entity.datasource.version_1.datasource import DataSource
+from common.entity.entity_casting import cast_entity
+from common.processor.base import CyodaEntity, CyodaProcessor
 from services.services import get_entity_service
 
 

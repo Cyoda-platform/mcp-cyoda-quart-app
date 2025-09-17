@@ -7,9 +7,9 @@ by verifying that results and metrics are populated according to workflow requir
 
 from typing import Any
 
+from application.entity.dataanalysis.version_1.dataanalysis import DataAnalysis
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.dataanalysis.version_1.dataanalysis import DataAnalysis
 
 
 class AnalysisCompleteCriterion(CyodaCriteriaChecker):

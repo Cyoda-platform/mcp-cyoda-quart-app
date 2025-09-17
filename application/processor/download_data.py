@@ -11,9 +11,9 @@ from typing import Any
 
 import httpx
 
+from application.entity.datasource.version_1.datasource import DataSource
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.datasource.version_1.datasource import DataSource
 
 
 class DownloadDataProcessor(CyodaProcessor):

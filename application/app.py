@@ -10,9 +10,10 @@ from common.exception.exception_handler import (
 )
 from services.services import get_grpc_client, initialize_services
 
+from .routes.dataanalysis import dataanalysis_bp
+
 # Import blueprints for different route groups
 from .routes.datasources import datasources_bp
-from .routes.dataanalysis import dataanalysis_bp
 from .routes.reports import reports_bp
 
 logging.basicConfig(level=logging.INFO)

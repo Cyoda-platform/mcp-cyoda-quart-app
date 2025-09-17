@@ -9,10 +9,10 @@ import logging
 from datetime import datetime, timezone
 from typing import Any, Dict
 
+from application.entity.dataanalysis.version_1.dataanalysis import DataAnalysis
+from application.entity.report.version_1.report import Report
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.report.version_1.report import Report
-from application.entity.dataanalysis.version_1.dataanalysis import DataAnalysis
 from services.services import get_entity_service
 
 

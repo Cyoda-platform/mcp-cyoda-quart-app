@@ -7,9 +7,9 @@ by verifying the status field according to workflow requirements.
 
 from typing import Any
 
+from application.entity.datasource.version_1.datasource import DataSource
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.datasource.version_1.datasource import DataSource
 
 
 class DownloadFailedCriterion(CyodaCriteriaChecker):

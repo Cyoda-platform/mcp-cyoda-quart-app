@@ -8,9 +8,9 @@ Updates delivery status according to workflow requirements.
 import logging
 from typing import Any
 
+from application.entity.report.version_1.report import Report
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.report.version_1.report import Report
 
 
 class SendEmailProcessor(CyodaProcessor):
@@ -97,7 +97,8 @@ class SendEmailProcessor(CyodaProcessor):
                     continue
 
                 # Simulate sending email
-                await self._simulate_send_email(email, report.report_content)
+                content = report.report_content or ""
+                await self._simulate_send_email(email, content)
                 self.logger.info(f"Email sent to: {email}")
 
             self.logger.info("All emails sent successfully")
