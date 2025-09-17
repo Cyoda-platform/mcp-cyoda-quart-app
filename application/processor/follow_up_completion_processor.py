@@ -77,7 +77,8 @@ class FollowUpCompletionProcessor(CyodaProcessor):
                     adoption.adoption_notes = f"Follow-up completed: {follow_up_notes}"
 
             # Validate follow-up outcome
-            self._validate_follow_up_outcome(follow_up_outcome)
+            if follow_up_outcome:
+                self._validate_follow_up_outcome(follow_up_outcome)
 
             # Create follow-up completion record (in a real system)
             # This would create a detailed follow-up report
@@ -108,7 +109,7 @@ class FollowUpCompletionProcessor(CyodaProcessor):
             )
             raise
 
-    def _validate_follow_up_outcome(self, follow_up_outcome: str) -> None:
+    def _validate_follow_up_outcome(self, follow_up_outcome: Optional[str]) -> None:
         """
         Validate follow-up outcome.
 

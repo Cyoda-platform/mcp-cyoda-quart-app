@@ -6,7 +6,7 @@ Schedules a follow-up for a completed adoption.
 
 import logging
 from datetime import datetime, timedelta
-from typing import Any
+from typing import Any, Optional
 
 from application.entity.adoption.version_1.adoption import Adoption
 from common.entity.entity_casting import cast_entity
@@ -97,7 +97,7 @@ class FollowUpSchedulingProcessor(CyodaProcessor):
             raise
 
     def _calculate_follow_up_date(
-        self, adoption: Adoption, days_after_adoption: int = None
+        self, adoption: Adoption, days_after_adoption: Optional[int] = None
     ) -> str:
         """
         Calculate follow-up date based on adoption date.
