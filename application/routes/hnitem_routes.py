@@ -48,16 +48,17 @@ async def create_hnitem() -> ResponseReturnValue:
         service = get_entity_service()
 
         # Save the entity
+        response = await service.save(
+            entity=entity_data,
+            entity_class=HNItem.ENTITY_NAME,
+            entity_version=str(HNItem.ENTITY_VERSION),
+        )
+
+        # Execute transition if provided
         if transition:
-            response = await service.save(
-                entity=entity_data,
-                entity_class=HNItem.ENTITY_NAME,
-                entity_version=str(HNItem.ENTITY_VERSION),
+            response = await service.execute_transition(
+                entity_id=response.metadata.id,
                 transition=transition,
-            )
-        else:
-            response = await service.save(
-                entity=entity_data,
                 entity_class=HNItem.ENTITY_NAME,
                 entity_version=str(HNItem.ENTITY_VERSION),
             )
@@ -222,8 +223,9 @@ async def search_hnitems() -> ResponseReturnValue:
             result_entry = {"item_id": result.metadata.id, "data": item_data}
 
             # Include children if requested
-            if include_children and item_data.get("kids"):
-                result_entry["children_count"] = len(item_data.get("kids", []))
+            kids = item_data.get("kids")
+            if include_children and kids:
+                result_entry["children_count"] = len(kids)
 
             processed_results.append(result_entry)
 
