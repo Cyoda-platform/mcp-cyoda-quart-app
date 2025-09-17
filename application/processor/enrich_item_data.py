@@ -147,9 +147,10 @@ class EnrichItemData(CyodaProcessor):
                     # Try to find the parent item
                     # This is a simplified approach - in practice you might need
                     # to search by the HN item ID field rather than entity ID
+                    from common.service.entity_service import SearchConditionRequest
                     parent_results = await entity_service.search(
                         entity_class=HNItem.ENTITY_NAME,
-                        condition=entity_service.SearchConditionRequest.builder()
+                        condition=SearchConditionRequest.builder()
                         .equals("id", str(current_parent_id))
                         .build(),
                         entity_version=str(HNItem.ENTITY_VERSION),

@@ -198,17 +198,23 @@ class PerformSearch(CyodaProcessor):
         for result in results:
             # Include parents if requested
             if search_query.include_parents and result.get("parent"):
-                parent_items = await self._get_parent_chain(
-                    result["parent"], search_query.max_depth, entity_service
-                )
-                expanded_results.extend(parent_items)
+                parent_id = result["parent"]
+                if isinstance(parent_id, int):
+                    max_depth = search_query.max_depth or 5
+                    parent_items = await self._get_parent_chain(
+                        parent_id, max_depth, entity_service
+                    )
+                    expanded_results.extend(parent_items)
 
             # Include children if requested
             if search_query.include_children and result.get("kids"):
-                child_items = await self._get_child_items(
-                    result["kids"], search_query.max_depth, entity_service
-                )
-                expanded_results.extend(child_items)
+                kids = result["kids"]
+                if isinstance(kids, list):
+                    max_depth = search_query.max_depth or 5
+                    child_items = await self._get_child_items(
+                        kids, max_depth, entity_service
+                    )
+                    expanded_results.extend(child_items)
 
         # Remove duplicates based on HN item ID
         seen_ids = set()
