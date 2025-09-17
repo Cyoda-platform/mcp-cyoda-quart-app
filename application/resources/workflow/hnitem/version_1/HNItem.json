@@ -1,0 +1,105 @@
+{
+  "version": "1.0",
+  "name": "HNItem",
+  "desc": "Workflow for processing Hacker News items from Firebase API format",
+  "initialState": "initial_state",
+  "active": true,
+  "states": {
+    "initial_state": {
+      "transitions": [
+        {
+          "name": "receive_item",
+          "next": "pending",
+          "manual": false,
+          "processors": [
+            {
+              "name": "validate_item_structure",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "pending": {
+      "transitions": [
+        {
+          "name": "validation_complete",
+          "next": "validated",
+          "manual": true,
+          "processors": [
+            {
+              "name": "enrich_item_data",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 5000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "validated": {
+      "transitions": [
+        {
+          "name": "store_item",
+          "next": "stored",
+          "manual": true,
+          "processors": [
+            {
+              "name": "persist_item",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "stored": {
+      "transitions": [
+        {
+          "name": "index_item",
+          "next": "indexed",
+          "manual": false,
+          "processors": [
+            {
+              "name": "create_search_index",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 5000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "indexed": {
+      "transitions": [
+        {
+          "name": "publish_item",
+          "next": "published",
+          "manual": false
+        }
+      ]
+    },
+    "published": {
+      "transitions": []
+    }
+  }
+}
