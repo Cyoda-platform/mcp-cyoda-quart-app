@@ -1,0 +1,111 @@
+{
+    "entities": [
+        {
+            "Pet": {
+                "entity_data_example": {
+                    "adoptionDate": null,
+                    "age": 3,
+                    "arrivalDate": "2023-01-01T10:00:00",
+                    "breed": "Golden Retriever",
+                    "category": "Dog",
+                    "color": "Golden",
+                    "description": "Friendly and energetic",
+                    "id": 1,
+                    "imageUrl": "http://example.com/buddy.jpg",
+                    "microchipped": true,
+                    "name": "Buddy",
+                    "neutered": true,
+                    "price": 500.0,
+                    "specialNeeds": "None",
+                    "vaccinated": true,
+                    "weight": 30.5
+                }
+            }
+        },
+        {
+            "Store": {
+                "entity_data_example": {
+                    "address": "123 Pet Lane",
+                    "capacity": 50,
+                    "city": "Pet City",
+                    "currentPetCount": 20,
+                    "email": "info@purrfectpets.com",
+                    "id": 1,
+                    "managerName": "Alice Johnson",
+                    "name": "Purrfect Pets",
+                    "openingHours": "Mon-Fri 9AM-6PM",
+                    "phone": "555-1234",
+                    "state": "CA",
+                    "zipCode": "90210"
+                }
+            }
+        },
+        {
+            "Customer": {
+                "entity_data_example": {
+                    "address": "456 Home St",
+                    "city": "Pet City",
+                    "dateOfBirth": "1990-01-01",
+                    "email": "john.doe@example.com",
+                    "firstName": "John",
+                    "hasOtherPets": false,
+                    "hasYard": true,
+                    "housingType": "House",
+                    "id": 1,
+                    "lastName": "Doe",
+                    "occupation": "Engineer",
+                    "otherPetsDescription": "",
+                    "phone": "555-5678",
+                    "previousPetExperience": "Yes",
+                    "registrationDate": "2023-02-01T12:00:00",
+                    "state": "CA",
+                    "zipCode": "90210"
+                }
+            }
+        },
+        {
+            "AdoptionApplication": {
+                "entity_data_example": {
+                    "applicationDate": "2023-02-02T14:00:00",
+                    "applicationNotes": "Looking forward to adopting!",
+                    "approvalDate": null,
+                    "customerId": 1,
+                    "id": 1,
+                    "livingArrangement": "House",
+                    "petCareExperience": "Previous dog owner",
+                    "petId": 1,
+                    "preferredPickupDate": "2023-02-10",
+                    "reasonForAdoption": "Companionship",
+                    "references": "Jane Smith, 555-4321",
+                    "rejectionDate": null,
+                    "rejectionReason": "",
+                    "reviewNotes": "",
+                    "storeId": 1,
+                    "veterinarianContact": "555-8765",
+                    "workSchedule": "9-5"
+                }
+            }
+        },
+        {
+            "Adoption": {
+                "entity_data_example": {
+                    "adoptionDate": "2023-02-11T10:00:00",
+                    "adoptionFee": 100.0,
+                    "adoptionNotes": "Great match!",
+                    "applicationId": 1,
+                    "contractSigned": true,
+                    "customerId": 1,
+                    "followUpCompleted": false,
+                    "followUpDate": "2023-03-01",
+                    "id": 1,
+                    "microchipTransferred": true,
+                    "petId": 1,
+                    "returnDate": null,
+                    "returnReason": "",
+                    "storeId": 1,
+                    "vaccinationRecordsProvided": true
+                }
+            }
+        }
+    ]
+}
