@@ -8,12 +8,12 @@ and tracking processing progress.
 import logging
 from typing import Any, Dict, List
 
-from common.entity.entity_casting import cast_entity
-from common.processor.base import CyodaEntity, CyodaProcessor
+from application.entity.hnitem.version_1.hnitem import HNItem
 from application.entity.hnitemcollection.version_1.hnitemcollection import (
     HNItemCollection,
 )
-from application.entity.hnitem.version_1.hnitem import HNItem
+from common.entity.entity_casting import cast_entity
+from common.processor.base import CyodaEntity, CyodaProcessor
 from services.services import get_entity_service
 
 

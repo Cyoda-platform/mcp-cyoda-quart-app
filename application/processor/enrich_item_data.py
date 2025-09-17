@@ -9,9 +9,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any, List
 
+from application.entity.hnitem.version_1.hnitem import HNItem
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.hnitem.version_1.hnitem import HNItem
 from services.services import get_entity_service
 
 

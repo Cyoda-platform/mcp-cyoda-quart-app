@@ -7,11 +7,11 @@ that would cause it to transition to failed state.
 
 from typing import Any
 
-from common.entity.entity_casting import cast_entity
-from common.processor.base import CyodaCriteriaChecker, CyodaEntity
 from application.entity.hnitemcollection.version_1.hnitemcollection import (
     HNItemCollection,
 )
+from common.entity.entity_casting import cast_entity
+from common.processor.base import CyodaCriteriaChecker, CyodaEntity
 
 
 class ProcessingHasCriticalErrors(CyodaCriteriaChecker):

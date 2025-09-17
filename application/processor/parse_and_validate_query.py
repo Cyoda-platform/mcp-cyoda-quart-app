@@ -9,9 +9,9 @@ import logging
 import re
 from typing import Any, Dict, List
 
+from application.entity.searchquery.version_1.searchquery import SearchQuery
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.searchquery.version_1.searchquery import SearchQuery
 
 
 class ParseAndValidateQuery(CyodaProcessor):
@@ -128,7 +128,7 @@ class ParseAndValidateQuery(CyodaProcessor):
         Returns:
             Dictionary with parsed query components
         """
-        parsed = {
+        parsed: Dict[str, Any] = {
             "terms": [],
             "operators": [],
             "quoted_phrases": [],

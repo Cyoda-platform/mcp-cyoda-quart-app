@@ -8,9 +8,9 @@ before it can proceed to the enrichment stage.
 import logging
 from typing import Any
 
+from application.entity.hnitem.version_1.hnitem import HNItem
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.hnitem.version_1.hnitem import HNItem
 
 
 class ValidateItemStructure(CyodaProcessor):
@@ -113,6 +113,6 @@ class ValidateItemStructure(CyodaProcessor):
             )
             # Set validation error on the entity
             if hasattr(entity, "validation_error"):
-                entity.validation_error = f"Validation processing error: {str(e)}"
-                entity.validation_status = "error"
+                setattr(entity, 'validation_error', f"Validation processing error: {str(e)}")
+                setattr(entity, 'validation_status', "error")
             raise

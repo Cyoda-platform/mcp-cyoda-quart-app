@@ -8,11 +8,11 @@ before batch processing can begin.
 import logging
 from typing import Any, Dict, List
 
-from common.entity.entity_casting import cast_entity
-from common.processor.base import CyodaEntity, CyodaProcessor
 from application.entity.hnitemcollection.version_1.hnitemcollection import (
     HNItemCollection,
 )
+from common.entity.entity_casting import cast_entity
+from common.processor.base import CyodaEntity, CyodaProcessor
 
 
 class ValidateCollection(CyodaProcessor):
