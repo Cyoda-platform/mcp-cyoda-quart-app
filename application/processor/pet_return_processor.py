@@ -5,7 +5,7 @@ Processes the return of an adopted pet.
 """
 
 import logging
-from typing import Any
+from typing import Any, Optional
 
 from application.entity.adoption.version_1.adoption import Adoption
 from application.entity.pet.version_1.pet import Pet
@@ -80,7 +80,7 @@ class PetReturnProcessor(CyodaProcessor):
             raise
 
     async def _update_adoption_record(
-        self, pet: Pet, return_reason: str, return_date: str = None
+        self, pet: Pet, return_reason: str, return_date: Optional[str] = None
     ) -> None:
         """
         Find and update the related adoption record with return information.

@@ -6,7 +6,7 @@ Expires an adoption application that has been inactive too long.
 
 import logging
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, Dict
 
 from application.entity.adoption_application.version_1.adoption_application import (
     AdoptionApplication,
@@ -100,7 +100,7 @@ class ApplicationExpirationProcessor(CyodaProcessor):
             raise
 
     def _validate_expiration_criteria(
-        self, application: AdoptionApplication, kwargs: dict
+        self, application: AdoptionApplication, kwargs: Dict[str, Any]
     ) -> None:
         """
         Validate that expiration criteria are met.

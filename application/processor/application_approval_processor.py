@@ -5,7 +5,7 @@ Approves an adoption application after successful review.
 """
 
 import logging
-from typing import Any
+from typing import Any, Dict
 
 from application.entity.adoption_application.version_1.adoption_application import (
     AdoptionApplication,
@@ -92,7 +92,7 @@ class ApplicationApprovalProcessor(CyodaProcessor):
             )
             raise
 
-    def _validate_approval_criteria(self, kwargs: dict) -> None:
+    def _validate_approval_criteria(self, kwargs: Dict[str, Any]) -> None:
         """
         Validate that all approval criteria are met.
 

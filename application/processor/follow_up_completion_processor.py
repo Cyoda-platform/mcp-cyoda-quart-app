@@ -5,7 +5,7 @@ Completes a scheduled follow-up for an adoption.
 """
 
 import logging
-from typing import Any
+from typing import Any, Optional
 
 from application.entity.adoption.version_1.adoption import Adoption
 from common.entity.entity_casting import cast_entity

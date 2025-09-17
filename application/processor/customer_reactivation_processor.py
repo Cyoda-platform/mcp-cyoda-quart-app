@@ -5,7 +5,7 @@ Reactivates a suspended customer account.
 """
 
 import logging
-from typing import Any
+from typing import Any, Dict
 
 from application.entity.customer.version_1.customer import Customer
 from common.entity.entity_casting import cast_entity
@@ -84,7 +84,7 @@ class CustomerReactivationProcessor(CyodaProcessor):
             raise
 
     def _validate_reactivation_eligibility(
-        self, customer: Customer, kwargs: dict
+        self, customer: Customer, kwargs: Dict[str, Any]
     ) -> None:
         """
         Validate that customer is eligible for reactivation.
