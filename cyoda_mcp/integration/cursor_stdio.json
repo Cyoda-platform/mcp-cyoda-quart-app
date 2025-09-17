@@ -2,7 +2,7 @@
   "mcpServers": {
     "cyoda-mcp": {
       "command": "python",
-      "args": ["/tmp/quart-client-template/cyoda_mcp/server.py"]
+      "args": ["/tmp/mcp-cyoda-quart-app/cyoda_mcp/server.py"]
     }
   }
 }

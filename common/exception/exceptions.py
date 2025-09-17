@@ -1,18 +1,19 @@
-
-class ChatNotFoundException(Exception):
-    def __init__(self, message="Chat not found"):
+class ChatNotFoundError(Exception):
+    def __init__(self, message: str = "Chat not found") -> None:
         self.message = message
         self.status_code = 404
         super().__init__(self.message)
 
-class UnauthorizedAccessException(Exception):
-    def __init__(self, message="Unauthorized access"):
+
+class UnauthorizedAccessError(Exception):
+    def __init__(self, message: str = "Unauthorized access") -> None:
         self.message = message
         self.status_code = 401
         super().__init__(self.message)
 
-class ForbiddenAccessException(Exception):
-    def __init__(self, message="Forbidden access"):
+
+class ForbiddenAccessError(Exception):
+    def __init__(self, message: str = "Forbidden access") -> None:
         self.message = message
         self.status_code = 403
         super().__init__(self.message)

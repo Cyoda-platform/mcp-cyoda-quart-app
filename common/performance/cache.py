@@ -1,8 +1,9 @@
 """
 Simple cache manager stub.
 """
+
 import logging
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -10,8 +11,8 @@ logger = logging.getLogger(__name__)
 class SimpleCacheManager:
     """Simple in-memory cache manager with both sync and async methods."""
 
-    def __init__(self):
-        self._cache = {}
+    def __init__(self) -> None:
+        self._cache: Dict[str, Any] = {}
 
     def get(self, key: str) -> Optional[Any]:
         """Get value from cache (synchronous)."""

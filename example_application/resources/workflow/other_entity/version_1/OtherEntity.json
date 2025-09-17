@@ -1,0 +1,41 @@
+[
+    {
+        "version": "1.0",
+        "name": "OtherEntity Workflow",
+        "desc": "The OtherEntity workflow represents a simple lifecycle for entities that are updated by ExampleEntity processing.",
+        "initialState": "initial_state",
+        "active": true,
+        "states": {
+            "initial_state": {
+                "transitions": [
+                    {
+                        "name": "transition_to_pending",
+                        "next": "pending",
+                        "manual": false
+                    }
+                ]
+            },
+            "pending": {
+                "transitions": [
+                    {
+                        "name": "transition_to_active",
+                        "next": "active",
+                        "manual": false
+                    }
+                ]
+            },
+            "active": {
+                "transitions": [
+                    {
+                        "name": "transition_to_archived",
+                        "next": "archived",
+                        "manual": false
+                    }
+                ]
+            },
+            "archived": {
+                "transitions": []
+            }
+        }
+    }
+]

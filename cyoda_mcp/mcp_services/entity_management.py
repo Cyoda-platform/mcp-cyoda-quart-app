@@ -6,27 +6,36 @@ using the existing dependency injection system.
 """
 
 import logging
-from typing import Dict, Any, Optional
-from common.service.entity_service import EntityService, SearchConditionRequest
+from typing import Any, Dict
+
 from common.config.config import ENTITY_VERSION
+from common.service.entity_service import (
+    CYODA_OPERATOR_MAPPING,
+    EntityService,
+    LogicalOperator,
+    SearchConditionRequest,
+    SearchOperator,
+)
 
 logger = logging.getLogger(__name__)
 
 
 class EntityManagementService:
     """Service class for entity management operations."""
-    
+
     def __init__(self, entity_service: EntityService):
         """
         Initialize the entity management service.
-        
+
         Args:
             entity_service: The injected entity service
         """
         self.entity_service = entity_service
         logger.info("EntityManagementService initialized")
-    
-    async def get_entity(self, entity_model: str, entity_id: str, entity_version: str = ENTITY_VERSION) -> Dict[str, Any]:
+
+    async def get_entity(
+        self, entity_model: str, entity_id: str, entity_version: str = ENTITY_VERSION
+    ) -> Dict[str, Any]:
         """
         Retrieve a single entity by its technical ID.
 
@@ -44,17 +53,19 @@ class EntityManagementService:
                     "success": False,
                     "error": "Entity service not available",
                     "entity_id": entity_id,
-                    "entity_model": entity_model
+                    "entity_model": entity_model,
                 }
 
-            result = await self.entity_service.get_by_id(entity_id, entity_model, entity_version)
+            result = await self.entity_service.get_by_id(
+                entity_id, entity_model, entity_version
+            )
 
             if not result:
                 return {
                     "success": False,
                     "error": "Entity not found",
                     "entity_id": entity_id,
-                    "entity_model": entity_model
+                    "entity_model": entity_model,
                 }
 
             return {
@@ -63,8 +74,8 @@ class EntityManagementService:
                 "metadata": {
                     "id": result.get_id(),
                     "state": result.metadata.state,
-                    "entity_type": entity_model
-                }
+                    "entity_type": entity_model,
+                },
             }
 
         except Exception as e:
@@ -73,10 +84,12 @@ class EntityManagementService:
                 "success": False,
                 "error": str(e),
                 "entity_id": entity_id,
-                "entity_model": entity_model
+                "entity_model": entity_model,
             }
-    
-    async def list_entities(self, entity_model: str, entity_version: str = ENTITY_VERSION) -> Dict[str, Any]:
+
+    async def list_entities(
+        self, entity_model: str, entity_version: str = ENTITY_VERSION
+    ) -> Dict[str, Any]:
         """
         List all entities of a specific type.
 
@@ -92,17 +105,13 @@ class EntityManagementService:
                 return {
                     "success": False,
                     "error": "Entity service not available",
-                    "entity_model": entity_model
+                    "entity_model": entity_model,
                 }
 
             results = await self.entity_service.find_all(entity_model, entity_version)
 
             entities = [
-                {
-                    "id": r.get_id(),
-                    "data": r.data,
-                    "state": r.metadata.state
-                }
+                {"id": r.get_id(), "data": r.data, "state": r.metadata.state}
                 for r in results
             ]
 
@@ -110,18 +119,19 @@ class EntityManagementService:
                 "success": True,
                 "count": len(entities),
                 "entities": entities,
-                "entity_model": entity_model
+                "entity_model": entity_model,
             }
 
         except Exception as e:
             logger.exception("list_entities")
-            return {
-                "success": False,
-                "error": str(e),
-                "entity_model": entity_model
-            }
-    
-    async def create_entity(self, entity_model: str, entity_data: Dict[str, Any], entity_version: str = ENTITY_VERSION) -> Dict[str, Any]:
+            return {"success": False, "error": str(e), "entity_model": entity_model}
+
+    async def create_entity(
+        self,
+        entity_model: str,
+        entity_data: Dict[str, Any],
+        entity_version: str = ENTITY_VERSION,
+    ) -> Dict[str, Any]:
         """
         Create a new entity of a given model.
 
@@ -138,16 +148,18 @@ class EntityManagementService:
                 return {
                     "success": False,
                     "error": "Entity service not available",
-                    "entity_model": entity_model
+                    "entity_model": entity_model,
                 }
 
-            result = await self.entity_service.save(entity_data, entity_model, entity_version)
+            result = await self.entity_service.save(
+                entity_data, entity_model, entity_version
+            )
 
             return {
                 "success": True,
                 "entity_id": result.get_id(),
                 "data": result.data,
-                "entity_model": entity_model
+                "entity_model": entity_model,
             }
 
         except Exception as e:
@@ -156,10 +168,16 @@ class EntityManagementService:
                 "success": False,
                 "error": str(e),
                 "entity_model": entity_model,
-                "entity_data": entity_data
+                "entity_data": entity_data,
             }
-    
-    async def update_entity(self, entity_model: str, entity_id: str, entity_data: Dict[str, Any], entity_version: str = ENTITY_VERSION) -> Dict[str, Any]:
+
+    async def update_entity(
+        self,
+        entity_model: str,
+        entity_id: str,
+        entity_data: Dict[str, Any],
+        entity_version: str = ENTITY_VERSION,
+    ) -> Dict[str, Any]:
         """
         Update an existing entity.
 
@@ -178,16 +196,18 @@ class EntityManagementService:
                     "success": False,
                     "error": "Entity service not available",
                     "entity_model": entity_model,
-                    "entity_id": entity_id
+                    "entity_id": entity_id,
                 }
 
-            result = await self.entity_service.update(entity_id, entity_data, entity_model, None, entity_version)
+            result = await self.entity_service.update(
+                entity_id, entity_data, entity_model, None, entity_version
+            )
 
             return {
                 "success": True,
                 "entity_id": result.get_id(),
                 "data": result.data,
-                "entity_model": entity_model
+                "entity_model": entity_model,
             }
 
         except Exception as e:
@@ -196,10 +216,12 @@ class EntityManagementService:
                 "success": False,
                 "error": str(e),
                 "entity_id": entity_id,
-                "entity_model": entity_model
+                "entity_model": entity_model,
             }
-    
-    async def delete_entity(self, entity_model: str, entity_id: str, entity_version: str = ENTITY_VERSION) -> Dict[str, Any]:
+
+    async def delete_entity(
+        self, entity_model: str, entity_id: str, entity_version: str = ENTITY_VERSION
+    ) -> Dict[str, Any]:
         """
         Delete an entity by ID.
 
@@ -217,15 +239,17 @@ class EntityManagementService:
                     "success": False,
                     "error": "Entity service not available",
                     "entity_model": entity_model,
-                    "entity_id": entity_id
+                    "entity_id": entity_id,
                 }
 
-            deleted_id = await self.entity_service.delete_by_id(entity_id, entity_model, entity_version)
+            deleted_id = await self.entity_service.delete_by_id(
+                entity_id, entity_model, entity_version
+            )
 
             return {
                 "success": True,
                 "deleted_entity_id": deleted_id,
-                "entity_model": entity_model
+                "entity_model": entity_model,
             }
 
         except Exception as e:
@@ -234,10 +258,15 @@ class EntityManagementService:
                 "success": False,
                 "error": str(e),
                 "entity_id": entity_id,
-                "entity_model": entity_model
+                "entity_model": entity_model,
             }
-    
-    async def search_entities(self, entity_model: str, search_conditions: Dict[str, Any], entity_version: str = ENTITY_VERSION) -> Dict[str, Any]:
+
+    async def search_entities(
+        self,
+        entity_model: str,
+        search_conditions: Dict[str, Any],
+        entity_version: str = ENTITY_VERSION,
+    ) -> Dict[str, Any]:
         """
         Search entities with Cyoda-style search conditions.
 
@@ -254,26 +283,31 @@ class EntityManagementService:
                 return {
                     "success": False,
                     "error": "Entity service not available",
-                    "entity_model": entity_model
+                    "entity_model": entity_model,
                 }
 
             # Build search request from conditions
             builder = SearchConditionRequest.builder()
 
             # Check if this is a Cyoda-style search condition
-            if isinstance(search_conditions, dict) and search_conditions.get("type") == "group":
+            if (
+                isinstance(search_conditions, dict)
+                and search_conditions.get("type") == "group"
+            ):
                 # Handle complex Cyoda search structure (multiple conditions)
-                operator = search_conditions.get("operator", "AND").lower()
-                if operator == "and":
-                    builder.operator("and")
-                elif operator == "or":
-                    builder.operator("or")
+                operator = search_conditions.get("operator", "AND").upper()
+                if operator == "AND":
+                    builder.operator(LogicalOperator.AND)
+                elif operator == "OR":
+                    builder.operator(LogicalOperator.OR)
 
                 conditions = search_conditions.get("conditions", [])
                 for condition in conditions:
                     self._process_cyoda_condition(condition, builder)
 
-            elif isinstance(search_conditions, dict) and search_conditions.get("type") in ["simple", "lifecycle"]:
+            elif isinstance(search_conditions, dict) and search_conditions.get(
+                "type"
+            ) in ["simple", "lifecycle"]:
                 # Handle single Cyoda condition (not wrapped in group)
                 self._process_cyoda_condition(search_conditions, builder)
 
@@ -283,14 +317,12 @@ class EntityManagementService:
                     builder.equals(field, value)
 
             search_request = builder.build()
-            results = await self.entity_service.search(entity_model, search_request, entity_version)
+            results = await self.entity_service.search(
+                entity_model, search_request, entity_version
+            )
 
             entities = [
-                {
-                    "id": r.get_id(),
-                    "data": r.data,
-                    "state": r.metadata.state
-                }
+                {"id": r.get_id(), "data": r.data, "state": r.metadata.state}
                 for r in results
             ]
 
@@ -299,7 +331,7 @@ class EntityManagementService:
                 "count": len(entities),
                 "entities": entities,
                 "search_conditions": search_conditions,
-                "entity_model": entity_model
+                "entity_model": entity_model,
             }
 
         except Exception as e:
@@ -308,10 +340,10 @@ class EntityManagementService:
                 "success": False,
                 "error": str(e),
                 "search_conditions": search_conditions,
-                "entity_model": entity_model
+                "entity_model": entity_model,
             }
 
-    def _process_cyoda_condition(self, condition: Dict[str, Any], builder):
+    def _process_cyoda_condition(self, condition: Dict[str, Any], builder: Any) -> None:
         """Process a single Cyoda condition and add it to the builder."""
         condition_type = condition.get("type")
 
@@ -321,14 +353,11 @@ class EntityManagementService:
             operator_type = condition.get("operatorType", "EQUALS")
             value = condition.get("value")
 
-            # Map Cyoda operators to internal operators
-            op_mapping = {
-                "EQUALS": "eq",
-                "NOT_EQUALS": "ne",
-                "CONTAINS": "contains"
-            }
-            op = op_mapping.get(operator_type, "eq")
-            builder.add_condition(field, op, value)
+            # Map Cyoda operators to internal operators using enum mapping
+            search_operator = CYODA_OPERATOR_MAPPING.get(
+                operator_type, SearchOperator.EQUALS
+            )
+            builder.add_condition(field, search_operator, value)
 
         elif condition_type == "simple":
             # Handle simple JSON path conditions
@@ -337,23 +366,12 @@ class EntityManagementService:
             value = condition.get("value")
 
             # Convert JSON path to field name (remove $. prefix)
-            field = json_path.replace("$.", "") if json_path.startswith("$.") else json_path
+            field = (
+                json_path.replace("$.", "") if json_path.startswith("$.") else json_path
+            )
 
-            # Map Cyoda operators to internal operators
-            op_mapping = {
-                "EQUALS": "eq",
-                "IEQUALS": "ieq",  # Case-insensitive equals
-                "NOT_EQUALS": "ne",
-                "CONTAINS": "contains",
-                "ICONTAINS": "icontains",  # Case-insensitive contains
-                "GREATER_THAN": "gt",
-                "LESS_THAN": "lt",
-                "GREATER_THAN_OR_EQUAL": "gte",
-                "LESS_THAN_OR_EQUAL": "lte",
-                "STARTS_WITH": "startswith",
-                "ENDS_WITH": "endswith",
-                "IN": "in",
-                "NOT_IN": "not_in"
-            }
-            op = op_mapping.get(operator_type, "eq")
-            builder.add_condition(field, op, value)
+            # Map Cyoda operators to internal operators using enum mapping
+            search_operator = CYODA_OPERATOR_MAPPING.get(
+                operator_type, SearchOperator.EQUALS
+            )
+            builder.add_condition(field, search_operator, value)

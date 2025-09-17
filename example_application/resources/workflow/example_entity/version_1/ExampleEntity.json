@@ -1,0 +1,68 @@
+[
+    {
+        "version": "1.0",
+        "name": "ExampleEntity Workflow",
+        "desc": "Description of the workflow for ExampleEntity",
+        "initialState": "initial_state",
+        "active": true,
+        "states": {
+            "initial_state": {
+                "transitions": [
+                    {
+                        "name": "transition_to_created",
+                        "next": "created",
+                        "manual": false
+                    }
+                ]
+            },
+            "created": {
+                "transitions": [
+                    {
+                        "name": "transition_to_validated",
+                        "next": "validated",
+                        "manual": false,
+                        "criterion": {
+                            "type": "function",
+                            "function": {
+                                "name": "ExampleEntityValidationCriterion",
+                                "config": {
+                                    "calculationNodesTags": "cyoda_application"
+                                }
+                            }
+                        }
+                    }
+                ]
+            },
+            "validated": {
+                "transitions": [
+                    {
+                        "name": "transition_to_processed",
+                        "next": "processed",
+                        "manual": false,
+                        "processors": [
+                            {
+                                "name": "ExampleEntityProcessor",
+                                "executionMode": "SYNC",
+                                "config": {
+                                    "calculationNodesTags": "cyoda_application"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            },
+            "processed": {
+                "transitions": [
+                    {
+                        "name": "transition_to_completed",
+                        "next": "completed",
+                        "manual": false
+                    }
+                ]
+            },
+            "completed": {
+                "transitions": []
+            }
+        }
+    }
+]

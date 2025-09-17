@@ -12,20 +12,20 @@ export CYODA_CLIENT_SECRET="your-client-secret"
 export CYODA_HOST="client-<id>.eu.cyoda.net"
 
 # Run immediately with pipx
-pipx run mcp-cyoda-client
+pipx run mcp-cyoda
 ```
 
 ### Install once and run repeatedly
 ```bash
 # Install the package
-pipx install mcp-cyoda-client
+pipx install mcp-cyoda
 
 # Run the server
-mcp-cyoda-client
+mcp-cyoda
 
 # Or with custom options
-mcp-cyoda-client --transport http --port 9000
-mcp-cyoda-client --help
+mcp-cyoda --transport http --port 9000
+mcp-cyoda --help
 ```
 
 ## Getting Your Cyoda Environment
@@ -61,7 +61,7 @@ Add this to your MCP configuration (e.g., in Cursor, Claude Desktop, or other MC
 {
   "mcpServers": {
     "cyoda": {
-      "command": "mcp-cyoda-client",
+      "command": "mcp-cyoda",
       "env": {
         "CYODA_CLIENT_ID": "your-client-id-here",
         "CYODA_CLIENT_SECRET": "your-client-secret-here",
@@ -137,6 +137,60 @@ This template also provides a structured framework for developing a web client u
 - **Extensibility**: A flexible and configurable project structure designed for easy customization.
 - **MCP Integration**: Full Model Context Protocol server for AI assistant integration
 
+## Utility Scripts
+
+The project includes standalone utility scripts for common operations:
+
+### Workflow Import Script
+
+Import workflows manually without using MCP tools:
+
+```bash
+# Import a specific workflow
+python scripts/import_workflows.py --entity ExampleEntity --version 1 --file example_application/resources/workflow/exampleentity/version_1/ExampleEntity.json
+
+# List available workflow files
+python scripts/import_workflows.py --list
+
+# Validate a workflow file
+python scripts/import_workflows.py --entity ExampleEntity --version 1 --file path/to/workflow.json --validate-only
+
+# Get help
+python scripts/import_workflows.py --help
+```
+
+This script provides:
+- ✅ Workflow validation before import
+- ✅ File listing and discovery
+- ✅ Comprehensive error handling
+- ✅ Support for both relative and absolute paths
+- ✅ Detailed success/failure reporting
+
+## Contributing
+
+We welcome contributions! Please see our comprehensive guides:
+
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** - Complete contributor guide with development workflow, code quality standards, and testing requirements
+- **[AI_TESTING_GUIDE.md](AI_TESTING_GUIDE.md)** - Specific commands for testing with AI assistants
+- **[CYODA_E2E_TESTING_GUIDE.md](CYODA_E2E_TESTING_GUIDE.md)** - End-to-end testing procedures
+
+### Quick Contributor Setup
+```bash
+git clone <repository-url>
+cd mcp-cyoda-quart-app
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+
+# Run code quality checks
+python -m black . && python -m isort . && python -m mypy . && python -m flake8 . && python -m bandit -r .
+
+# Run integration tests
+python -m pytest tests/integration/test_grpc_handlers_e2e.py -v
+```
+
+**Important**: Contributors can edit all code except the `application/` directory, which is reserved for end users.
+
 ## Development Installation Guide
 
 For development or if you want to modify the source code:
@@ -198,10 +252,10 @@ pip install build twine
 python -m build
 
 # Install locally for testing
-pipx install dist/mcp_cyoda_client-0.1.2-py3-none-any.whl
+pipx install dist/mcp_cyoda-0.1.2-py3-none-any.whl
 
 # Test the installed package
-mcp-cyoda-client --version
+mcp-cyoda --version
 ```
 
 ## Project Structure Overview

@@ -1,3 +1,13 @@
+# cyoda_mcp/server.py
+from __future__ import annotations
+
+# Add the parent directory to the path so we can import from the main app
+# This MUST be done before any other imports that depend on the main app modules
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 """
 Main MCP Server for Cyoda Integration
 
@@ -5,34 +15,35 @@ This module provides a unified FastMCP server that composes all category servers
 with proper prefixes for organized tool catalogs.
 """
 
-import os
-import sys
-import asyncio
-import logging
-from fastmcp import FastMCP
+import asyncio  # noqa: E402
+import logging  # noqa: E402
+from typing import Literal  # noqa: E402
 
-# Add the parent directory to the path so we can import from the main app
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from fastmcp import FastMCP  # noqa: E402
 
-# Import presentation-only category servers
-from cyoda_mcp.tools.entity_management import mcp as mcp_entity
-from cyoda_mcp.tools.search import mcp as mcp_search
-from cyoda_mcp.tools.edge_message import mcp as mcp_edge_message
-from cyoda_mcp.tools.workflow_management import mcp as mcp_workflow_management
-from cyoda_mcp.tools.deployment import mcp as mcp_deployment
+from cyoda_mcp.tools.edge_message import mcp as mcp_edge_message  # noqa: E402
+from cyoda_mcp.tools.entity_management import mcp as mcp_entity  # noqa: E402
+from cyoda_mcp.tools.search import mcp as mcp_search  # noqa: E402
+from cyoda_mcp.tools.workflow_management import (  # noqa: E402
+    mcp as mcp_workflow_management,
+)
 
 logger = logging.getLogger(__name__)
 
-# Initialize services with dependency injection when MCP server starts
-def initialize_mcp_services():
-    """Initialize all services with proper dependency injection configuration."""
-    from service.config import get_service_config, validate_configuration
-    from service.services import initialize_services
+
+def initialize_mcp_services() -> bool:
+    """Initialize all services with proper dependency injection configuration.
+
+    Returns:
+        bool: True if services initialized successfully, False otherwise.
+    """
+    from services.config import get_service_config, validate_configuration
+    from services.services import initialize_services
 
     try:
         # Validate configuration first
         validation = validate_configuration()
-        if not validation['valid']:
+        if not validation["valid"]:
             logger.error("MCP service configuration validation failed!")
             return False
 
@@ -46,22 +57,22 @@ def initialize_mcp_services():
         logger.error(f"Failed to initialize MCP services: {e}")
         return False
 
+
 # Initialize services when the module is loaded
-_services_initialized = initialize_mcp_services()
+_services_initialized: bool = initialize_mcp_services()
 
 # Single, unified server
-main = FastMCP("Cyoda Client Tools 🚀")
+mcp: FastMCP = FastMCP("Cyoda Client Tools 🚀")
 
 
-async def setup():
+async def setup() -> None:
     """Setup the main server by importing all category servers with prefixes."""
     try:
         # Namespace each category to keep the catalog tidy
-        await main.import_server(mcp_entity, prefix="entity")
-        await main.import_server(mcp_search, prefix="search")
-        await main.import_server(mcp_edge_message, prefix="edge_message")
-        await main.import_server(mcp_workflow_management, prefix="workflow_mgmt")
-        await main.import_server(mcp_deployment, prefix="deployment")
+        await mcp.import_server(mcp_entity, prefix="entity")
+        await mcp.import_server(mcp_search, prefix="search")
+        await mcp.import_server(mcp_edge_message, prefix="edge_message")
+        await mcp.import_server(mcp_workflow_management, prefix="workflow_mgmt")
 
         logger.info("All MCP category servers imported successfully")
     except Exception as e:
@@ -69,23 +80,27 @@ async def setup():
         raise
 
 
-def set_integrated_mode():
+def set_integrated_mode() -> None:
     """Set the server to integrated mode (not standalone)."""
     # Services are already initialized, nothing to do
-    pass
+    return None
 
 
 def get_mcp() -> FastMCP:
     """
     Get the configured FastMCP server instance.
-    
+
     Returns:
-        The FastMCP server instance
+        FastMCP: The FastMCP server instance.
     """
-    return main
+    return mcp
 
 
-def run_mcp(transport: str = "stdio", host: str = "127.0.0.1", port: int = 8002):
+def run_mcp(
+    transport: Literal["stdio", "http", "sse"] = "stdio",
+    host: str = "127.0.0.1",
+    port: int = 8002,
+) -> None:
     """
     Run the FastMCP server (synchronous).
 
@@ -96,18 +111,22 @@ def run_mcp(transport: str = "stdio", host: str = "127.0.0.1", port: int = 8002)
     """
     if transport == "stdio":
         logger.info("Starting FastMCP server with STDIO transport")
-        main.run()
+        mcp.run()
     elif transport == "http":
         logger.info(f"Starting FastMCP server with HTTP transport on {host}:{port}")
-        main.run(transport="http", host=host, port=port)
+        mcp.run(transport="http", host=host, port=port)
     elif transport == "sse":
         logger.info(f"Starting FastMCP server with SSE transport on {host}:{port}")
-        main.run(transport="sse", host=host, port=port)
+        mcp.run(transport="sse", host=host, port=port)
     else:
         raise ValueError(f"Unsupported transport: {transport}")
 
 
-def start(transport: str = "stdio", host: str = "127.0.0.1", port: int = 8002):
+def start(
+    transport: Literal["stdio", "http", "sse"] = "stdio",
+    host: str = "127.0.0.1",
+    port: int = 8002,
+) -> None:
     """
     Boot the MCP server with the specified transport.
     Read any API keys from env vars.
@@ -130,12 +149,15 @@ def start(transport: str = "stdio", host: str = "127.0.0.1", port: int = 8002):
 if __name__ == "__main__":
     # Setup the server composition
     asyncio.run(setup())
-    
+
     # Run the MCP server standalone
-    MCP_TRANSPORT = os.getenv('MCP_TRANSPORT')
+    MCP_TRANSPORT = os.getenv("MCP_TRANSPORT")
+    mcp_host = os.getenv("MCP_HOST", "127.0.0.1")  # Default to localhost for security
+    mcp_port = int(os.getenv("MCP_PORT", "8002"))
+
     if MCP_TRANSPORT == "http":
-        run_mcp(transport="http", host="0.0.0.0", port=8002)
+        run_mcp(transport="http", host=mcp_host, port=mcp_port)
     elif MCP_TRANSPORT == "sse":
-        run_mcp(transport="sse", host="0.0.0.0", port=8002)
+        run_mcp(transport="sse", host=mcp_host, port=mcp_port)
     else:
         run_mcp(transport="stdio")
