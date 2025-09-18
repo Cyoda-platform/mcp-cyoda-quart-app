@@ -7,9 +7,9 @@ Handles the approval of Order instances when they are approved for processing.
 import logging
 from typing import Any
 
+from application.entity.order.version_1.order import Order
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.order.version_1.order import Order
 
 
 class ApproveOrderProcessor(CyodaProcessor):
@@ -49,9 +49,7 @@ class ApproveOrderProcessor(CyodaProcessor):
             # Set approved date and update timestamp
             order.set_approved_date()
 
-            self.logger.info(
-                f"Order {order.technical_id} approved successfully"
-            )
+            self.logger.info(f"Order {order.technical_id} approved successfully")
 
             return order
 

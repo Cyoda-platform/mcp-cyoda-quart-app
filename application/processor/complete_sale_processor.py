@@ -7,9 +7,9 @@ Handles the completion of Pet sales when they are sold.
 import logging
 from typing import Any
 
+from application.entity.pet.version_1.pet import Pet
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.pet.version_1.pet import Pet
 
 
 class CompleteSaleProcessor(CyodaProcessor):
@@ -49,9 +49,7 @@ class CompleteSaleProcessor(CyodaProcessor):
             # Set sold date and update timestamp
             pet.set_sold_date()
 
-            self.logger.info(
-                f"Pet {pet.technical_id} sale completed successfully"
-            )
+            self.logger.info(f"Pet {pet.technical_id} sale completed successfully")
 
             return pet
 

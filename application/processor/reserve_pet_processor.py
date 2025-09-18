@@ -7,9 +7,9 @@ Handles the reservation of Pet instances when they are reserved for sale.
 import logging
 from typing import Any
 
+from application.entity.pet.version_1.pet import Pet
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.pet.version_1.pet import Pet
 
 
 class ReservePetProcessor(CyodaProcessor):
@@ -49,9 +49,7 @@ class ReservePetProcessor(CyodaProcessor):
             # Set reserved date and update timestamp
             pet.set_reserved_date()
 
-            self.logger.info(
-                f"Pet {pet.technical_id} reserved successfully"
-            )
+            self.logger.info(f"Pet {pet.technical_id} reserved successfully")
 
             return pet
 

@@ -7,9 +7,9 @@ Handles the delivery of Order instances when they are delivered to customers.
 import logging
 from typing import Any
 
+from application.entity.order.version_1.order import Order
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.order.version_1.order import Order
 
 
 class DeliverOrderProcessor(CyodaProcessor):
@@ -49,9 +49,7 @@ class DeliverOrderProcessor(CyodaProcessor):
             # Set delivered date and update timestamp
             order.set_delivered_date()
 
-            self.logger.info(
-                f"Order {order.technical_id} delivered successfully"
-            )
+            self.logger.info(f"Order {order.technical_id} delivered successfully")
 
             return order
 

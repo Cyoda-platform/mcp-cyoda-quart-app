@@ -7,9 +7,9 @@ Handles the restoration of Category instances when they are reactivated from arc
 import logging
 from typing import Any
 
+from application.entity.category.version_1.category import Category
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.category.version_1.category import Category
 
 
 class RestoreCategoryProcessor(CyodaProcessor):
@@ -49,9 +49,7 @@ class RestoreCategoryProcessor(CyodaProcessor):
             # Clear archived date and update timestamp
             category.clear_archived_date()
 
-            self.logger.info(
-                f"Category {category.technical_id} restored successfully"
-            )
+            self.logger.info(f"Category {category.technical_id} restored successfully")
 
             return category
 

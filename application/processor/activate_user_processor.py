@@ -7,9 +7,9 @@ Handles the activation of User instances when they are activated.
 import logging
 from typing import Any
 
+from application.entity.user.version_1.user import User
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.user.version_1.user import User
 
 
 class ActivateUserProcessor(CyodaProcessor):
@@ -49,9 +49,7 @@ class ActivateUserProcessor(CyodaProcessor):
             # Set activated date and update timestamp
             user.set_activated_date()
 
-            self.logger.info(
-                f"User {user.technical_id} activated successfully"
-            )
+            self.logger.info(f"User {user.technical_id} activated successfully")
 
             return user
 

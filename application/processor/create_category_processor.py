@@ -7,9 +7,9 @@ Handles the creation of Category instances when they are first created.
 import logging
 from typing import Any
 
+from application.entity.category.version_1.category import Category
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.category.version_1.category import Category
 
 
 class CreateCategoryProcessor(CyodaProcessor):
@@ -49,9 +49,7 @@ class CreateCategoryProcessor(CyodaProcessor):
             # Set created date and update timestamp
             category.set_created_date()
 
-            self.logger.info(
-                f"Category {category.technical_id} created successfully"
-            )
+            self.logger.info(f"Category {category.technical_id} created successfully")
 
             return category
 

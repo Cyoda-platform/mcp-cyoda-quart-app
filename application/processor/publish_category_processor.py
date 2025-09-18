@@ -7,9 +7,9 @@ Handles the publishing of Category instances when they are activated.
 import logging
 from typing import Any
 
+from application.entity.category.version_1.category import Category
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.category.version_1.category import Category
 
 
 class PublishCategoryProcessor(CyodaProcessor):
@@ -49,9 +49,7 @@ class PublishCategoryProcessor(CyodaProcessor):
             # Set published date and update timestamp
             category.set_published_date()
 
-            self.logger.info(
-                f"Category {category.technical_id} published successfully"
-            )
+            self.logger.info(f"Category {category.technical_id} published successfully")
 
             return category
 

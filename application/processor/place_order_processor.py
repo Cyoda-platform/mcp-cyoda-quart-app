@@ -7,9 +7,9 @@ Handles the placement of Order instances when they are first created.
 import logging
 from typing import Any
 
+from application.entity.order.version_1.order import Order
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.order.version_1.order import Order
 
 
 class PlaceOrderProcessor(CyodaProcessor):
@@ -49,9 +49,7 @@ class PlaceOrderProcessor(CyodaProcessor):
             # Set placed date and update timestamp
             order.set_placed_date()
 
-            self.logger.info(
-                f"Order {order.technical_id} placed successfully"
-            )
+            self.logger.info(f"Order {order.technical_id} placed successfully")
 
             return order
 

@@ -297,14 +297,21 @@ async def trigger_transition(
             entity_version=str(User.ENTITY_VERSION),
         )
 
-        logger.info("Executed transition '%s' on User %s", data.transition_name, entity_id)
+        logger.info(
+            "Executed transition '%s' on User %s", data.transition_name, entity_id
+        )
 
-        return jsonify({
-            "id": response.metadata.id,
-            "message": "Transition executed successfully",
-            "previousState": previous_state,
-            "newState": response.metadata.state,
-        }), 200
+        return (
+            jsonify(
+                {
+                    "id": response.metadata.id,
+                    "message": "Transition executed successfully",
+                    "previousState": previous_state,
+                    "newState": response.metadata.state,
+                }
+            ),
+            200,
+        )
     except Exception as e:
         logger.exception("Error executing transition on User %s: %s", entity_id, str(e))
         return jsonify({"error": str(e)}), 500

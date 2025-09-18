@@ -7,9 +7,9 @@ Handles the reactivation of User instances when they are reactivated from inacti
 import logging
 from typing import Any
 
+from application.entity.user.version_1.user import User
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.user.version_1.user import User
 
 
 class ReactivateUserProcessor(CyodaProcessor):
@@ -49,9 +49,7 @@ class ReactivateUserProcessor(CyodaProcessor):
             # Clear deactivated date and update timestamp
             user.clear_deactivated_date()
 
-            self.logger.info(
-                f"User {user.technical_id} reactivated successfully"
-            )
+            self.logger.info(f"User {user.technical_id} reactivated successfully")
 
             return user
 

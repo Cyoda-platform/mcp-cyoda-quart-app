@@ -17,7 +17,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class Pet(CyodaEntity):
     """
     Pet represents a pet available in the Purrfect Pets store.
-    
+
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     The state field manages workflow states: initial_state -> available -> pending -> sold
     """
@@ -29,38 +29,29 @@ class Pet(CyodaEntity):
     # Required fields from functional requirements
     name: str = Field(..., description="Pet's name")
     category: str = Field(..., description="Pet category reference")
-    
+
     # Optional fields
     photo_urls: Optional[List[str]] = Field(
-        default_factory=list,
-        alias="photoUrls",
-        description="List of photo URLs"
+        default_factory=list, alias="photoUrls", description="List of photo URLs"
     )
     tags: Optional[List[str]] = Field(
-        default_factory=list,
-        description="List of tags for categorization"
+        default_factory=list, description="List of tags for categorization"
     )
-    
+
     # Processing-related fields (populated during processing)
     availability_date: Optional[str] = Field(
         default=None,
         alias="availabilityDate",
-        description="Date when pet became available"
+        description="Date when pet became available",
     )
     reserved_date: Optional[str] = Field(
-        default=None,
-        alias="reservedDate", 
-        description="Date when pet was reserved"
+        default=None, alias="reservedDate", description="Date when pet was reserved"
     )
     sold_date: Optional[str] = Field(
-        default=None,
-        alias="soldDate",
-        description="Date when pet was sold"
+        default=None, alias="soldDate", description="Date when pet was sold"
     )
     last_updated: Optional[str] = Field(
-        default=None,
-        alias="lastUpdated",
-        description="Last update timestamp"
+        default=None, alias="lastUpdated", description="Last update timestamp"
     )
 
     @field_validator("name")
@@ -111,16 +102,22 @@ class Pet(CyodaEntity):
 
     def update_timestamp(self) -> None:
         """Update the last_updated timestamp to current time"""
-        self.last_updated = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.last_updated = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
 
     def set_availability_date(self) -> None:
         """Set availability date and update timestamp"""
-        self.availability_date = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.availability_date = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
         self.update_timestamp()
 
     def set_reserved_date(self) -> None:
         """Set reserved date and update timestamp"""
-        self.reserved_date = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.reserved_date = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
         self.update_timestamp()
 
     def set_sold_date(self) -> None:

@@ -17,7 +17,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class User(CyodaEntity):
     """
     User represents a customer in the Purrfect Pets store.
-    
+
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     The state field manages workflow states: initial_state -> registered -> active -> inactive
     """
@@ -29,47 +29,33 @@ class User(CyodaEntity):
     # Required fields from functional requirements
     username: str = Field(..., description="Unique username")
     email: str = Field(..., description="Email address")
-    
+
     # Optional fields
     first_name: Optional[str] = Field(
-        default=None,
-        alias="firstName",
-        description="User's first name"
+        default=None, alias="firstName", description="User's first name"
     )
     last_name: Optional[str] = Field(
-        default=None,
-        alias="lastName",
-        description="User's last name"
+        default=None, alias="lastName", description="User's last name"
     )
-    phone: Optional[str] = Field(
-        default=None,
-        description="Phone number"
-    )
-    address: Optional[str] = Field(
-        default=None,
-        description="Physical address"
-    )
-    
+    phone: Optional[str] = Field(default=None, description="Phone number")
+    address: Optional[str] = Field(default=None, description="Physical address")
+
     # Processing-related fields (populated during processing)
     registered_date: Optional[str] = Field(
         default=None,
         alias="registeredDate",
-        description="Date when user was registered"
+        description="Date when user was registered",
     )
     activated_date: Optional[str] = Field(
-        default=None,
-        alias="activatedDate",
-        description="Date when user was activated"
+        default=None, alias="activatedDate", description="Date when user was activated"
     )
     deactivated_date: Optional[str] = Field(
         default=None,
         alias="deactivatedDate",
-        description="Date when user was deactivated"
+        description="Date when user was deactivated",
     )
     last_updated: Optional[str] = Field(
-        default=None,
-        alias="lastUpdated",
-        description="Last update timestamp"
+        default=None, alias="lastUpdated", description="Last update timestamp"
     )
 
     @field_validator("username")
@@ -85,7 +71,9 @@ class User(CyodaEntity):
         # Basic alphanumeric validation
         username = v.strip()
         if not username.replace("_", "").replace("-", "").isalnum():
-            raise ValueError("Username can only contain letters, numbers, underscores, and hyphens")
+            raise ValueError(
+                "Username can only contain letters, numbers, underscores, and hyphens"
+            )
         return username
 
     @field_validator("email")
@@ -153,21 +141,29 @@ class User(CyodaEntity):
 
     def update_timestamp(self) -> None:
         """Update the last_updated timestamp to current time"""
-        self.last_updated = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.last_updated = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
 
     def set_registered_date(self) -> None:
         """Set registered date and update timestamp"""
-        self.registered_date = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.registered_date = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
         self.update_timestamp()
 
     def set_activated_date(self) -> None:
         """Set activated date and update timestamp"""
-        self.activated_date = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.activated_date = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
         self.update_timestamp()
 
     def set_deactivated_date(self) -> None:
         """Set deactivated date and update timestamp"""
-        self.deactivated_date = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.deactivated_date = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
         self.update_timestamp()
 
     def clear_deactivated_date(self) -> None:

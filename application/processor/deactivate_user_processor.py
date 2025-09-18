@@ -7,9 +7,9 @@ Handles the deactivation of User instances when they are deactivated.
 import logging
 from typing import Any
 
+from application.entity.user.version_1.user import User
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.user.version_1.user import User
 
 
 class DeactivateUserProcessor(CyodaProcessor):
@@ -49,9 +49,7 @@ class DeactivateUserProcessor(CyodaProcessor):
             # Set deactivated date and update timestamp
             user.set_deactivated_date()
 
-            self.logger.info(
-                f"User {user.technical_id} deactivated successfully"
-            )
+            self.logger.info(f"User {user.technical_id} deactivated successfully")
 
             return user
 

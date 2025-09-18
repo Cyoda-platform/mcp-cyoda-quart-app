@@ -17,7 +17,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class Category(CyodaEntity):
     """
     Category represents a pet category for organizing pets in the Purrfect Pets store.
-    
+
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     The state field manages workflow states: initial_state -> draft -> active -> archived
     """
@@ -28,33 +28,26 @@ class Category(CyodaEntity):
 
     # Required fields from functional requirements
     name: str = Field(..., description="Category name")
-    
+
     # Optional fields
-    description: Optional[str] = Field(
-        default=None,
-        description="Category description"
-    )
-    
+    description: Optional[str] = Field(default=None, description="Category description")
+
     # Processing-related fields (populated during processing)
     created_date: Optional[str] = Field(
-        default=None,
-        alias="createdDate",
-        description="Date when category was created"
+        default=None, alias="createdDate", description="Date when category was created"
     )
     published_date: Optional[str] = Field(
         default=None,
         alias="publishedDate",
-        description="Date when category was published"
+        description="Date when category was published",
     )
     archived_date: Optional[str] = Field(
         default=None,
         alias="archivedDate",
-        description="Date when category was archived"
+        description="Date when category was archived",
     )
     last_updated: Optional[str] = Field(
-        default=None,
-        alias="lastUpdated",
-        description="Last update timestamp"
+        default=None, alias="lastUpdated", description="Last update timestamp"
     )
 
     @field_validator("name")
@@ -83,21 +76,29 @@ class Category(CyodaEntity):
 
     def update_timestamp(self) -> None:
         """Update the last_updated timestamp to current time"""
-        self.last_updated = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.last_updated = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
 
     def set_created_date(self) -> None:
         """Set created date and update timestamp"""
-        self.created_date = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.created_date = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
         self.update_timestamp()
 
     def set_published_date(self) -> None:
         """Set published date and update timestamp"""
-        self.published_date = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.published_date = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
         self.update_timestamp()
 
     def set_archived_date(self) -> None:
         """Set archived date and update timestamp"""
-        self.archived_date = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.archived_date = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
         self.update_timestamp()
 
     def clear_archived_date(self) -> None:

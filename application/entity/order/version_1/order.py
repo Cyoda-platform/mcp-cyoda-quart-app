@@ -17,7 +17,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class Order(CyodaEntity):
     """
     Order represents a pet purchase order in the Purrfect Pets store.
-    
+
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     The state field manages workflow states: initial_state -> placed -> approved -> delivered
     """
@@ -27,42 +27,34 @@ class Order(CyodaEntity):
     ENTITY_VERSION: ClassVar[int] = 1
 
     # Required fields from functional requirements
-    pet_id: str = Field(..., alias="petId", description="Reference to the pet being ordered")
-    user_id: str = Field(..., alias="userId", description="Reference to the user placing the order")
-    
+    pet_id: str = Field(
+        ..., alias="petId", description="Reference to the pet being ordered"
+    )
+    user_id: str = Field(
+        ..., alias="userId", description="Reference to the user placing the order"
+    )
+
     # Optional fields with defaults
     quantity: int = Field(default=1, description="Number of pets ordered")
     ship_date: Optional[str] = Field(
-        default=None,
-        alias="shipDate",
-        description="Expected shipping date (ISO date)"
+        default=None, alias="shipDate", description="Expected shipping date (ISO date)"
     )
     total_amount: Optional[float] = Field(
-        default=None,
-        alias="totalAmount",
-        description="Total order amount"
+        default=None, alias="totalAmount", description="Total order amount"
     )
-    
+
     # Processing-related fields (populated during processing)
     placed_date: Optional[str] = Field(
-        default=None,
-        alias="placedDate",
-        description="Date when order was placed"
+        default=None, alias="placedDate", description="Date when order was placed"
     )
     approved_date: Optional[str] = Field(
-        default=None,
-        alias="approvedDate",
-        description="Date when order was approved"
+        default=None, alias="approvedDate", description="Date when order was approved"
     )
     delivered_date: Optional[str] = Field(
-        default=None,
-        alias="deliveredDate",
-        description="Date when order was delivered"
+        default=None, alias="deliveredDate", description="Date when order was delivered"
     )
     last_updated: Optional[str] = Field(
-        default=None,
-        alias="lastUpdated",
-        description="Last update timestamp"
+        default=None, alias="lastUpdated", description="Last update timestamp"
     )
 
     @field_validator("pet_id")
@@ -112,7 +104,9 @@ class Order(CyodaEntity):
 
     def update_timestamp(self) -> None:
         """Update the last_updated timestamp to current time"""
-        self.last_updated = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.last_updated = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
 
     def set_placed_date(self) -> None:
         """Set placed date and update timestamp"""
@@ -121,12 +115,16 @@ class Order(CyodaEntity):
 
     def set_approved_date(self) -> None:
         """Set approved date and update timestamp"""
-        self.approved_date = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.approved_date = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
         self.update_timestamp()
 
     def set_delivered_date(self) -> None:
         """Set delivered date and update timestamp"""
-        self.delivered_date = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.delivered_date = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
         self.update_timestamp()
 
     def is_placed(self) -> bool:

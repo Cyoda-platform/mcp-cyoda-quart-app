@@ -7,9 +7,9 @@ Handles the initialization of Pet instances when they are first created.
 import logging
 from typing import Any
 
+from application.entity.pet.version_1.pet import Pet
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.pet.version_1.pet import Pet
 
 
 class InitializePetProcessor(CyodaProcessor):
@@ -49,9 +49,7 @@ class InitializePetProcessor(CyodaProcessor):
             # Set availability date and update timestamp
             pet.set_availability_date()
 
-            self.logger.info(
-                f"Pet {pet.technical_id} initialized successfully"
-            )
+            self.logger.info(f"Pet {pet.technical_id} initialized successfully")
 
             return pet
 

@@ -10,10 +10,11 @@ from common.exception.exception_handler import (
 )
 from services.services import get_grpc_client, initialize_services
 
-# Import blueprints for different route groups
-from .routes.pets import pets_bp
 from .routes.categories import categories_bp
 from .routes.orders import orders_bp
+
+# Import blueprints for different route groups
+from .routes.pets import pets_bp
 from .routes.users import users_bp
 
 logging.basicConfig(level=logging.INFO)
@@ -30,18 +31,9 @@ QuartSchema(
             "name": "pets",
             "description": "Pet management endpoints",
         },
-        {
-            "name": "categories",
-            "description": "Category management endpoints"
-        },
-        {
-            "name": "orders",
-            "description": "Order management endpoints"
-        },
-        {
-            "name": "users",
-            "description": "User management endpoints"
-        },
+        {"name": "categories", "description": "Category management endpoints"},
+        {"name": "orders", "description": "Order management endpoints"},
+        {"name": "users", "description": "User management endpoints"},
         {"name": "System", "description": "System and health endpoints"},
     ],
     security=[{"bearerAuth": []}],

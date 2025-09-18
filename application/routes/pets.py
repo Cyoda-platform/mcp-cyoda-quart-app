@@ -63,9 +63,7 @@ def _to_entity_dict(data: Any) -> Dict[str, Any]:
     return data.model_dump(by_alias=True) if hasattr(data, "model_dump") else data
 
 
-pets_bp = Blueprint(
-    "pets", __name__, url_prefix="/api/pets"
-)
+pets_bp = Blueprint("pets", __name__, url_prefix="/api/pets")
 
 
 # ---- Routes -----------------------------------------------------------------
@@ -178,10 +176,14 @@ async def list_pets(
 
         if query_args.tags:
             # Handle comma-separated tags
-            tags_list = [tag.strip() for tag in query_args.tags.split(",") if tag.strip()]
+            tags_list = [
+                tag.strip() for tag in query_args.tags.split(",") if tag.strip()
+            ]
             if tags_list:
                 # For simplicity, search for pets that have any of the specified tags
-                search_conditions["tags"] = tags_list[0]  # Search for first tag only for now
+                search_conditions["tags"] = tags_list[
+                    0
+                ]  # Search for first tag only for now
 
         # Get entities
         if search_conditions:
@@ -263,9 +265,7 @@ async def update_pet(
         return jsonify(_to_entity_dict(response.data)), 200
 
     except ValueError as e:
-        logger.warning(
-            "Validation error updating Pet %s: %s", entity_id, str(e)
-        )
+        logger.warning("Validation error updating Pet %s: %s", entity_id, str(e))
         return jsonify({"error": str(e), "code": "VALIDATION_ERROR"}), 400
     except Exception as e:  # pragma: no cover
         logger.exception("Error updating Pet %s: %s", entity_id, str(e))
@@ -305,7 +305,7 @@ async def delete_pet(entity_id: str) -> ResponseReturnValue:
         response = DeleteResponse(
             success=True,
             message="Pet deleted successfully",
-            entity_id=entity_id,
+            entityId=entity_id,
         )
         return response.model_dump(), 200
 
@@ -333,13 +333,11 @@ async def check_exists(entity_id: str) -> ResponseReturnValue:
             entity_version=str(Pet.ENTITY_VERSION),
         )
 
-        response = ExistsResponse(exists=exists, entity_id=entity_id)
+        response = ExistsResponse(exists=exists, entityId=entity_id)
         return response.model_dump(), 200
 
     except Exception as e:
-        logger.exception(
-            "Error checking Pet existence %s: %s", entity_id, str(e)
-        )
+        logger.exception("Error checking Pet existence %s: %s", entity_id, str(e))
         return {"error": str(e)}, 500
 
 
@@ -385,16 +383,14 @@ async def get_available_transitions(entity_id: str) -> ResponseReturnValue:
         )
 
         response = TransitionsResponse(
-            entity_id=entity_id,
-            available_transitions=transitions,
-            current_state=None,  # Could be enhanced to get current state
+            entityId=entity_id,
+            availableTransitions=transitions,
+            currentState=None,  # Could be enhanced to get current state
         )
         return jsonify(response.model_dump()), 200
 
     except Exception as e:
-        logger.exception(
-            "Error getting transitions for Pet %s: %s", entity_id, str(e)
-        )
+        logger.exception("Error getting transitions for Pet %s: %s", entity_id, str(e))
         return jsonify({"error": str(e)}), 500
 
 
@@ -454,7 +450,5 @@ async def trigger_transition(
         )
 
     except Exception as e:  # pragma: no cover
-        logger.exception(
-            "Error executing transition on Pet %s: %s", entity_id, str(e)
-        )
+        logger.exception("Error executing transition on Pet %s: %s", entity_id, str(e))
         return jsonify({"error": str(e)}), 500

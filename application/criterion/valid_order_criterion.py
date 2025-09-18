@@ -7,9 +7,9 @@ be approved for processing as specified in functional requirements.
 
 from typing import Any
 
+from application.entity.order.version_1.order import Order
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.order.version_1.order import Order
 
 
 class ValidOrderCriterion(CyodaCriteriaChecker):
