@@ -27,14 +27,12 @@ from ..models import (
     CountResponse,
     DeleteResponse,
     ErrorResponse,
-    ExistsResponse,
     OrderListResponse,
     OrderQueryParams,
     OrderResponse,
     OrderUpdateQueryParams,
     TransitionRequest,
     TransitionResponse,
-    TransitionsResponse,
     ValidationErrorResponse,
 )
 

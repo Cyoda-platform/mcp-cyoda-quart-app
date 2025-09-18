@@ -31,10 +31,8 @@ from ..models import (
     CountResponse,
     DeleteResponse,
     ErrorResponse,
-    ExistsResponse,
     TransitionRequest,
     TransitionResponse,
-    TransitionsResponse,
     ValidationErrorResponse,
 )
 
