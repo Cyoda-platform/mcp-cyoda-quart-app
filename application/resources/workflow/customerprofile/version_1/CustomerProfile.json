@@ -1,0 +1,285 @@
+{
+  "version": "1.0",
+  "name": "CustomerProfile",
+  "desc": "Customer onboarding workflow for regulated businesses",
+  "initialState": "initial_state",
+  "active": true,
+  "states": {
+    "initial_state": {
+      "transitions": [
+        {
+          "name": "auto_initialize",
+          "next": "draft",
+          "manual": false,
+          "processors": [
+            {
+              "name": "InitializeProfile",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "draft": {
+      "transitions": [
+        {
+          "name": "submit_profile",
+          "next": "submitted",
+          "manual": true,
+          "processors": [
+            {
+              "name": "ValidateSubmission",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 5000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ],
+          "criterion": {
+            "type": "function",
+            "function": {
+              "name": "MandatoryFieldsComplete",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          }
+        },
+        {
+          "name": "reject_profile",
+          "next": "rejected",
+          "manual": true,
+          "processors": [
+            {
+              "name": "ProcessRejection",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "submitted": {
+      "transitions": [
+        {
+          "name": "start_review",
+          "next": "inreview",
+          "manual": false,
+          "processors": [
+            {
+              "name": "StartComplianceChecks",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 10000,
+                "retryPolicy": "EXPONENTIAL"
+              }
+            }
+          ]
+        },
+        {
+          "name": "reject_profile",
+          "next": "rejected",
+          "manual": true,
+          "processors": [
+            {
+              "name": "ProcessRejection",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "inreview": {
+      "transitions": [
+        {
+          "name": "request_documents",
+          "next": "pendingdocs",
+          "manual": true,
+          "criterion": {
+            "type": "function",
+            "function": {
+              "name": "DocumentsRequired",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          }
+        },
+        {
+          "name": "approve_profile",
+          "next": "approved",
+          "manual": true,
+          "processors": [
+            {
+              "name": "FinalizeApproval",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 5000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ],
+          "criterion": {
+            "type": "function",
+            "function": {
+              "name": "ApprovalRequirements",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 5000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          }
+        },
+        {
+          "name": "reject_profile",
+          "next": "rejected",
+          "manual": true,
+          "processors": [
+            {
+              "name": "ProcessRejection",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "pendingdocs": {
+      "transitions": [
+        {
+          "name": "resubmit_documents",
+          "next": "inreview",
+          "manual": true,
+          "processors": [
+            {
+              "name": "ValidateDocuments",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 5000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        },
+        {
+          "name": "reject_profile",
+          "next": "rejected",
+          "manual": true,
+          "processors": [
+            {
+              "name": "ProcessRejection",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        },
+        {
+          "name": "archive_profile",
+          "next": "archived",
+          "manual": true,
+          "processors": [
+            {
+              "name": "ArchiveProfile",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "approved": {
+      "transitions": [
+        {
+          "name": "archive_profile",
+          "next": "archived",
+          "manual": true,
+          "processors": [
+            {
+              "name": "ArchiveProfile",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "rejected": {
+      "transitions": [
+        {
+          "name": "archive_profile",
+          "next": "archived",
+          "manual": true,
+          "processors": [
+            {
+              "name": "ArchiveProfile",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "archived": {
+      "transitions": []
+    }
+  }
+}
