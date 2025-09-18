@@ -236,7 +236,7 @@ async def delete_order(entity_id: str) -> ResponseReturnValue:
         response = DeleteResponse(
             success=True,
             message="Order deleted successfully",
-            entity_id=entity_id,
+            entityId=entity_id,
         )
         return response.model_dump(), 200
     except Exception as e:
