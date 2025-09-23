@@ -1,0 +1,85 @@
+[
+    {
+        "version": "1.0",
+        "name": "EggAlarm Workflow",
+        "desc": "Workflow for managing egg cooking alarms with scheduling and completion",
+        "initialState": "initial_state",
+        "active": true,
+        "states": {
+            "initial_state": {
+                "transitions": [
+                    {
+                        "name": "create",
+                        "next": "created",
+                        "manual": false
+                    }
+                ]
+            },
+            "created": {
+                "transitions": [
+                    {
+                        "name": "schedule",
+                        "next": "scheduled",
+                        "manual": false,
+                        "criterion": {
+                            "type": "function",
+                            "function": {
+                                "name": "EggAlarmValidationCriterion",
+                                "config": {
+                                    "calculationNodesTags": "cyoda_application"
+                                }
+                            }
+                        }
+                    }
+                ]
+            },
+            "scheduled": {
+                "transitions": [
+                    {
+                        "name": "activate",
+                        "next": "active",
+                        "manual": false,
+                        "processors": [
+                            {
+                                "name": "EggAlarmSchedulingProcessor",
+                                "executionMode": "SYNC",
+                                "config": {
+                                    "calculationNodesTags": "cyoda_application"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            },
+            "active": {
+                "transitions": [
+                    {
+                        "name": "complete",
+                        "next": "completed",
+                        "manual": false,
+                        "processors": [
+                            {
+                                "name": "EggAlarmCompletionProcessor",
+                                "executionMode": "SYNC",
+                                "config": {
+                                    "calculationNodesTags": "cyoda_application"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "name": "cancel",
+                        "next": "cancelled",
+                        "manual": true
+                    }
+                ]
+            },
+            "completed": {
+                "transitions": []
+            },
+            "cancelled": {
+                "transitions": []
+            }
+        }
+    }
+]
