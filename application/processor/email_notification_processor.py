@@ -6,9 +6,6 @@ as specified in functional requirements.
 """
 
 import logging
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 from typing import Any
 
 from application.entity.report.version_1.report import Report

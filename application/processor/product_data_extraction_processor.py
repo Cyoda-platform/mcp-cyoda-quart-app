@@ -130,7 +130,8 @@ class ProductDataExtractionProcessor(CyodaProcessor):
                     )
 
                     current_count = results.get("products_created", 0)
-                    results["products_created"] = current_count + 1
+                    if isinstance(current_count, int):
+                        results["products_created"] = current_count + 1
 
                     self.logger.debug(
                         f"Created Product entity {response.metadata.id} for {product_data.get('name', 'Unknown')}"
@@ -139,7 +140,8 @@ class ProductDataExtractionProcessor(CyodaProcessor):
                 except Exception as e:
                     self.logger.warning(f"Failed to create Product entity: {str(e)}")
                     current_failed = results.get("records_failed", 0)
-                    results["records_failed"] = current_failed + 1
+                    if isinstance(current_failed, int):
+                        results["records_failed"] = current_failed + 1
                     continue
 
             results["success"] = True

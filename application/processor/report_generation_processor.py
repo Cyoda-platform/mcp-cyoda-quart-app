@@ -103,12 +103,14 @@ class ReportGenerationProcessor(CyodaProcessor):
                 try:
                     if hasattr(response.data, "model_dump"):
                         product_data = response.data.model_dump()
-                    else:
-                        product_data = dict(response.data) if hasattr(response.data, '__dict__') else response.data
-
-                    if isinstance(product_data, dict):
-                        product = Product(**product_data)
-                        products.append(product)
+                        if isinstance(product_data, dict):
+                            product = Product(**product_data)
+                            products.append(product)
+                    elif hasattr(response.data, '__dict__'):
+                        product_data = dict(response.data.__dict__)
+                        if isinstance(product_data, dict):
+                            product = Product(**product_data)
+                            products.append(product)
                 except Exception as e:
                     self.logger.warning(f"Failed to convert product data: {str(e)}")
                     continue
