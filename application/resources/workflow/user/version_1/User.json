@@ -1,0 +1,113 @@
+{
+  "version": "1.0",
+  "name": "User",
+  "desc": "User account management workflow for weather notification system",
+  "initialState": "initial_state",
+  "active": true,
+  "states": {
+    "initial_state": {
+      "transitions": [
+        {
+          "name": "register_user",
+          "next": "registered",
+          "manual": false,
+          "processors": [
+            {
+              "name": "RegisterUserProcessor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "registered": {
+      "transitions": [
+        {
+          "name": "activate_user",
+          "next": "active",
+          "manual": true,
+          "processors": [
+            {
+              "name": "ActivateUserProcessor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "active": {
+      "transitions": [
+        {
+          "name": "suspend_user",
+          "next": "suspended",
+          "manual": true,
+          "processors": [
+            {
+              "name": "SuspendUserProcessor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        },
+        {
+          "name": "delete_user",
+          "next": "deleted",
+          "manual": true,
+          "processors": [
+            {
+              "name": "DeleteUserProcessor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "suspended": {
+      "transitions": [
+        {
+          "name": "reactivate_user",
+          "next": "active",
+          "manual": true,
+          "processors": [
+            {
+              "name": "ReactivateUserProcessor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "deleted": {
+      "transitions": []
+    }
+  }
+}
