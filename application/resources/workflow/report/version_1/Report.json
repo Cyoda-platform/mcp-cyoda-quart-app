@@ -1,0 +1,68 @@
+[
+    {
+        "version": "1.0",
+        "name": "Report Workflow",
+        "desc": "Workflow for Report generation and email delivery for weekly performance analysis",
+        "initialState": "initial_state",
+        "active": true,
+        "states": {
+            "initial_state": {
+                "transitions": [
+                    {
+                        "name": "create",
+                        "next": "created",
+                        "manual": false
+                    }
+                ]
+            },
+            "created": {
+                "transitions": [
+                    {
+                        "name": "generate",
+                        "next": "generated",
+                        "manual": false,
+                        "processors": [
+                            {
+                                "name": "ReportGenerationProcessor",
+                                "executionMode": "SYNC",
+                                "config": {
+                                    "calculationNodesTags": "cyoda_application"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            },
+            "generated": {
+                "transitions": [
+                    {
+                        "name": "send",
+                        "next": "sent",
+                        "manual": false,
+                        "processors": [
+                            {
+                                "name": "ReportEmailProcessor",
+                                "executionMode": "SYNC",
+                                "config": {
+                                    "calculationNodesTags": "cyoda_application"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            },
+            "sent": {
+                "transitions": [
+                    {
+                        "name": "complete",
+                        "next": "completed",
+                        "manual": false
+                    }
+                ]
+            },
+            "completed": {
+                "transitions": []
+            }
+        }
+    }
+]
