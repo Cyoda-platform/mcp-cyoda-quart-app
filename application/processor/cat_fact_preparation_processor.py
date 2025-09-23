@@ -6,7 +6,6 @@ Enriches the fact data and performs final quality checks.
 """
 
 import logging
-from datetime import datetime, timezone
 from typing import Any
 
 from application.entity.cat_fact.version_1.cat_fact import CatFact

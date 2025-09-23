@@ -90,14 +90,14 @@ class EmailCampaignReportingProcessor(CyodaProcessor):
             if result:
                 # Update cat fact to mark as used
                 cat_fact_data = result.data
+                cat_fact_dict: Dict[str, Any]
                 if hasattr(cat_fact_data, "model_dump"):
                     cat_fact_dict = cat_fact_data.model_dump(by_alias=True)
+                elif hasattr(cat_fact_data, "__dict__"):
+                    cat_fact_dict = dict(cat_fact_data.__dict__)
                 else:
-                    cat_fact_dict = (
-                        dict(cat_fact_data)
-                        if hasattr(cat_fact_data, "__dict__")
-                        else cat_fact_data
-                    )
+                    # Fallback - create a basic dict representation
+                    cat_fact_dict = {"id": str(cat_fact_data) if cat_fact_data else ""}
 
                 # Mark as used
                 cat_fact_dict["isUsed"] = True
