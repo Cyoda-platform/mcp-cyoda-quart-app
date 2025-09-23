@@ -129,7 +129,8 @@ class ProductDataExtractionProcessor(CyodaProcessor):
                         entity_version=str(Product.ENTITY_VERSION),
                     )
 
-                    results["products_created"] = results.get("products_created", 0) + 1
+                    current_count = results.get("products_created", 0)
+                    results["products_created"] = current_count + 1
 
                     self.logger.debug(
                         f"Created Product entity {response.metadata.id} for {product_data.get('name', 'Unknown')}"
@@ -137,7 +138,8 @@ class ProductDataExtractionProcessor(CyodaProcessor):
 
                 except Exception as e:
                     self.logger.warning(f"Failed to create Product entity: {str(e)}")
-                    results["records_failed"] = results.get("records_failed", 0) + 1
+                    current_failed = results.get("records_failed", 0)
+                    results["records_failed"] = current_failed + 1
                     continue
 
             results["success"] = True
@@ -175,7 +177,8 @@ class ProductDataExtractionProcessor(CyodaProcessor):
                 try:
                     self.logger.info(f"Calling Pet Store API: {endpoint}")
 
-                    async with session.get(endpoint, timeout=30) as response:
+                    timeout = aiohttp.ClientTimeout(total=30)
+                    async with session.get(endpoint, timeout=timeout) as response:
                         # Record API call
                         extraction_entity.add_api_call(endpoint, response.status)
 

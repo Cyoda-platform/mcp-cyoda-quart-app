@@ -104,7 +104,7 @@ class ReportGenerationProcessor(CyodaProcessor):
                     if hasattr(response.data, "model_dump"):
                         product_data = response.data.model_dump()
                     else:
-                        product_data = response.data
+                        product_data = dict(response.data) if hasattr(response.data, '__dict__') else response.data
 
                     if isinstance(product_data, dict):
                         product = Product(**product_data)
@@ -336,15 +336,22 @@ class ReportGenerationProcessor(CyodaProcessor):
                 category_stats[category] = {"count": 0, "revenue": 0.0, "scores": []}
 
             stats = category_stats[category]
-            stats["count"] = stats["count"] + 1
-            stats["revenue"] = stats["revenue"] + (product.revenue or 0)
-            if product.performance_score is not None:
-                stats["scores"].append(product.performance_score)
+            count = stats["count"]
+            revenue = stats["revenue"]
+            scores = stats["scores"]
+
+            if isinstance(count, int):
+                stats["count"] = count + 1
+            if isinstance(revenue, (int, float)):
+                stats["revenue"] = revenue + (product.revenue or 0)
+            if product.performance_score is not None and isinstance(scores, list):
+                scores.append(product.performance_score)
 
         # Calculate averages
         for category, stats in category_stats.items():
-            if stats["scores"]:
-                stats["avg_score"] = sum(stats["scores"]) / len(stats["scores"])
+            scores = stats["scores"]
+            if isinstance(scores, list) and scores:
+                stats["avg_score"] = sum(scores) / len(scores)
             else:
                 stats["avg_score"] = 0.0
 
