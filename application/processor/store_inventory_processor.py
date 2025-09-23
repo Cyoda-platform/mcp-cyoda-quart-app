@@ -14,7 +14,7 @@ import httpx
 from application.entity.store.version_1.store import Store
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from services.services import get_entity_service
+
 
 
 class StoreInventoryProcessor(CyodaProcessor):

@@ -11,7 +11,7 @@ import logging
 from typing import Any, Dict, Optional
 
 from pydantic import BaseModel, Field
-from quart import Blueprint, jsonify, request
+from quart import Blueprint
 from quart.typing import ResponseReturnValue
 from quart_schema import operation_id, tag, validate, validate_querystring
 
@@ -128,7 +128,7 @@ async def create_report(data: Report) -> ResponseReturnValue:
 async def create_weekly_report(data: WeeklyReportRequest) -> ResponseReturnValue:
     """Create a new weekly performance report"""
     try:
-        from datetime import datetime, timezone
+
 
         # Create Report entity for weekly report
         report_data = {
