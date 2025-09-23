@@ -113,7 +113,9 @@ class Product(CyodaEntity):
         if not v or len(v.strip()) == 0:
             raise ValueError("Product name must be non-empty")
         if len(v) > 200:
-            raise ValueError("Product name must be at most 200 characters long")
+            raise ValueError(
+                "Product name must be at most 200 characters long"
+            )
         return v.strip()
 
     @field_validator("status")
@@ -121,7 +123,9 @@ class Product(CyodaEntity):
     def validate_status(cls, v: str) -> str:
         """Validate status field"""
         if v not in cls.ALLOWED_STATUSES:
-            raise ValueError(f"Status must be one of: {cls.ALLOWED_STATUSES}")
+            raise ValueError(
+                f"Status must be one of: {cls.ALLOWED_STATUSES}"
+            )
         return v
 
     @field_validator("trend_indicator")
@@ -129,7 +133,9 @@ class Product(CyodaEntity):
     def validate_trend_indicator(cls, v: Optional[str]) -> Optional[str]:
         """Validate trend indicator field"""
         if v is not None and v not in cls.ALLOWED_TRENDS:
-            raise ValueError(f"Trend indicator must be one of: {cls.ALLOWED_TRENDS}")
+            raise ValueError(
+                f"Trend indicator must be one of: {cls.ALLOWED_TRENDS}"
+            )
         return v
 
     @field_validator("performance_score")
@@ -137,7 +143,9 @@ class Product(CyodaEntity):
     def validate_performance_score(cls, v: Optional[float]) -> Optional[float]:
         """Validate performance score is between 0 and 100"""
         if v is not None and (v < 0 or v > 100):
-            raise ValueError("Performance score must be between 0 and 100")
+            raise ValueError(
+                "Performance score must be between 0 and 100"
+            )
         return v
 
     @model_validator(mode="after")
@@ -151,7 +159,10 @@ class Product(CyodaEntity):
                 )
 
         # If inventory_count is 0 and status is available, suggest restocking
-        if self.inventory_count == 0 and self.status == "available":
+        if (
+            self.inventory_count == 0
+            and self.status == "available"
+        ):
             self.restock_needed = True
 
         return self
