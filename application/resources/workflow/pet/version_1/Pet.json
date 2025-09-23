@@ -10,7 +10,16 @@
         {
           "name": "ingest",
           "next": "ingested",
-          "manual": false
+          "manual": false,
+          "processors": [
+            {
+              "name": "PetDataIngestionProcessor",
+              "executionMode": "SYNC",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          ]
         }
       ]
     },

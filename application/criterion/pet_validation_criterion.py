@@ -7,9 +7,9 @@ proceed to the transformation stage as specified in functional requirements.
 
 from typing import Any
 
+from application.entity.pet.version_1.pet import Pet
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.pet.version_1.pet import Pet
 
 
 class PetValidationCriterion(CyodaCriteriaChecker):
@@ -68,12 +68,10 @@ class PetValidationCriterion(CyodaCriteriaChecker):
 
     def _validate_required_fields(self, pet: Pet) -> bool:
         """Validate that all required fields are present and valid."""
-        
+
         # Validate name
         if not pet.name or len(pet.name.strip()) == 0:
-            self.logger.warning(
-                f"Pet {pet.technical_id} has empty or missing name"
-            )
+            self.logger.warning(f"Pet {pet.technical_id} has empty or missing name")
             return False
 
         if len(pet.name) > 100:
@@ -101,18 +99,22 @@ class PetValidationCriterion(CyodaCriteriaChecker):
 
     def _validate_business_rules(self, pet: Pet) -> bool:
         """Validate business logic rules specific to pet search application."""
-        
+
         # Rule 1: Available pets must have at least one photo
-        if pet.status == "available" and (not pet.photo_urls or len(pet.photo_urls) == 0):
+        if pet.status == "available" and (
+            not pet.photo_urls or len(pet.photo_urls) == 0
+        ):
             self.logger.warning(
                 f"Pet {pet.technical_id} is available but has no photos"
             )
             return False
 
         # Rule 2: Pet must have either category or tags for species identification
-        has_category = pet.category and isinstance(pet.category, dict) and pet.category.get("name")
+        has_category = (
+            pet.category and isinstance(pet.category, dict) and pet.category.get("name")
+        )
         has_tags = pet.tags and len(pet.tags) > 0
-        
+
         if not has_category and not has_tags:
             self.logger.warning(
                 f"Pet {pet.technical_id} has no category or tags for species identification"
@@ -121,7 +123,15 @@ class PetValidationCriterion(CyodaCriteriaChecker):
 
         # Rule 3: If search parameters are provided, they should be valid
         if pet.search_species:
-            allowed_species = ["dog", "cat", "bird", "fish", "rabbit", "hamster", "other"]
+            allowed_species = [
+                "dog",
+                "cat",
+                "bird",
+                "fish",
+                "rabbit",
+                "hamster",
+                "other",
+            ]
             if pet.search_species not in allowed_species:
                 self.logger.warning(
                     f"Pet {pet.technical_id} has invalid search species: {pet.search_species}"
@@ -139,7 +149,7 @@ class PetValidationCriterion(CyodaCriteriaChecker):
 
     def _validate_data_consistency(self, pet: Pet) -> bool:
         """Validate data consistency and logical relationships."""
-        
+
         # Check if ingested data is present (should be set by ingestion processor)
         if not pet.ingested_at:
             self.logger.warning(
@@ -154,22 +164,18 @@ class PetValidationCriterion(CyodaCriteriaChecker):
                     f"Pet {pet.technical_id} has invalid category format"
                 )
                 return False
-            
+
             # Category should have at least a name
             if "name" not in pet.category or not pet.category["name"]:
-                self.logger.warning(
-                    f"Pet {pet.technical_id} has category without name"
-                )
+                self.logger.warning(f"Pet {pet.technical_id} has category without name")
                 return False
 
         # Validate tags structure if present
         if pet.tags:
             if not isinstance(pet.tags, list):
-                self.logger.warning(
-                    f"Pet {pet.technical_id} has invalid tags format"
-                )
+                self.logger.warning(f"Pet {pet.technical_id} has invalid tags format")
                 return False
-            
+
             for i, tag in enumerate(pet.tags):
                 if not isinstance(tag, dict):
                     self.logger.warning(
@@ -184,7 +190,7 @@ class PetValidationCriterion(CyodaCriteriaChecker):
                     f"Pet {pet.technical_id} has invalid photo URLs format"
                 )
                 return False
-            
+
             for i, url in enumerate(pet.photo_urls):
                 if not isinstance(url, str) or len(url.strip()) == 0:
                     self.logger.warning(

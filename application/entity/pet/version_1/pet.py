@@ -3,7 +3,7 @@
 """
 Pet Entity for Cyoda Pet Search Application
 
-Represents a pet with search and transformation capabilities as specified 
+Represents a pet with search and transformation capabilities as specified
 in functional requirements. Supports data ingestion from external APIs,
 transformation to user-friendly format, and filtering by species, status, and category.
 """
@@ -18,6 +18,7 @@ from common.entity.cyoda_entity import CyodaEntity
 
 class PetCategory(dict):
     """Pet category with id and name"""
+
     def __init__(self, id: Optional[int] = None, name: Optional[str] = None):
         super().__init__()
         if id is not None:
@@ -28,6 +29,7 @@ class PetCategory(dict):
 
 class PetTag(dict):
     """Pet tag with id and name"""
+
     def __init__(self, id: Optional[int] = None, name: Optional[str] = None):
         super().__init__()
         if id is not None:
@@ -51,86 +53,88 @@ class Pet(CyodaEntity):
 
     # Core pet fields from external API
     pet_id: Optional[int] = Field(
-        default=None,
-        alias="petId",
-        description="External pet ID from the API"
+        default=None, alias="petId", description="External pet ID from the API"
     )
     name: str = Field(..., description="Name of the pet")
     category: Optional[Dict[str, Any]] = Field(
-        default=None,
-        description="Pet category with id and name"
+        default=None, description="Pet category with id and name"
     )
     photo_urls: List[str] = Field(
         default_factory=list,
         alias="photoUrls",
-        description="Array of photo URLs for the pet"
+        description="Array of photo URLs for the pet",
     )
     tags: List[Dict[str, Any]] = Field(
-        default_factory=list,
-        description="Array of tags associated with the pet"
+        default_factory=list, description="Array of tags associated with the pet"
     )
     status: str = Field(
         default="available",
-        description="Pet status in the store (available, pending, sold)"
+        description="Pet status in the store (available, pending, sold)",
     )
 
     # Search parameters for data ingestion
     search_species: Optional[str] = Field(
         default=None,
         alias="searchSpecies",
-        description="Species filter used for searching (e.g., 'dog', 'cat')"
+        description="Species filter used for searching (e.g., 'dog', 'cat')",
     )
     search_status: Optional[str] = Field(
         default=None,
         alias="searchStatus",
-        description="Status filter used for searching"
+        description="Status filter used for searching",
     )
     search_category_id: Optional[int] = Field(
         default=None,
         alias="searchCategoryId",
-        description="Category ID filter used for searching"
+        description="Category ID filter used for searching",
     )
 
     # Transformation fields - user-friendly format
     display_name: Optional[str] = Field(
         default=None,
         alias="displayName",
-        description="User-friendly display name (transformed from 'name')"
+        description="User-friendly display name (transformed from 'name')",
     )
     availability_status: Optional[str] = Field(
         default=None,
         alias="availabilityStatus",
-        description="User-friendly availability status"
+        description="User-friendly availability status",
     )
     species: Optional[str] = Field(
-        default=None,
-        description="Derived species information"
+        default=None, description="Derived species information"
     )
     description: Optional[str] = Field(
-        default=None,
-        description="Generated description for the pet"
+        default=None, description="Generated description for the pet"
     )
 
     # Processing metadata
     ingested_at: Optional[str] = Field(
         default=None,
         alias="ingestedAt",
-        description="Timestamp when data was ingested from external API"
+        description="Timestamp when data was ingested from external API",
     )
     transformed_at: Optional[str] = Field(
         default=None,
         alias="transformedAt",
-        description="Timestamp when data was transformed to user-friendly format"
+        description="Timestamp when data was transformed to user-friendly format",
     )
     transformation_data: Optional[Dict[str, Any]] = Field(
         default=None,
         alias="transformationData",
-        description="Additional transformation metadata"
+        description="Additional transformation metadata",
     )
 
     # Validation constants
     ALLOWED_STATUSES: ClassVar[List[str]] = ["available", "pending", "sold"]
-    ALLOWED_SPECIES: ClassVar[List[str]] = ["dog", "cat", "bird", "fish", "rabbit", "hamster", "other"]
+    ALLOWED_SPECIES: ClassVar[List[str]] = [
+        "dog",
+        "cat",
+        "bird",
+        "fish",
+        "rabbit",
+        "hamster",
+        "other",
+    ]
 
     @field_validator("name")
     @classmethod
@@ -164,7 +168,7 @@ class Pet(CyodaEntity):
         # Ensure photo_urls is not empty for available pets
         if self.status == "available" and not self.photo_urls:
             raise ValueError("Available pets must have at least one photo URL")
-        
+
         return self
 
     def update_timestamp(self) -> None:
@@ -175,7 +179,7 @@ class Pet(CyodaEntity):
     def set_ingested_data(self, api_data: Dict[str, Any]) -> None:
         """Set data from external API ingestion"""
         self.ingested_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-        
+
         # Map API data to entity fields
         if "id" in api_data:
             self.pet_id = api_data["id"]
@@ -192,20 +196,22 @@ class Pet(CyodaEntity):
 
     def set_transformed_data(self, transformation_data: Dict[str, Any]) -> None:
         """Set transformed user-friendly data"""
-        self.transformed_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.transformed_at = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
         self.transformation_data = transformation_data
-        
+
         # Apply transformations
         self.display_name = f"🐾 {self.name}"  # User-friendly name with emoji
-        
+
         # Transform status to user-friendly format
         status_mapping = {
             "available": "✅ Available for Adoption",
             "pending": "⏳ Adoption Pending",
-            "sold": "❤️ Already Adopted"
+            "sold": "❤️ Already Adopted",
         }
         self.availability_status = status_mapping.get(self.status, self.status)
-        
+
         # Derive species from category or tags
         if self.category and "name" in self.category:
             category_name = self.category["name"].lower()
@@ -219,7 +225,7 @@ class Pet(CyodaEntity):
                 self.species = "fish"
             else:
                 self.species = "other"
-        
+
         # Generate description
         species_text = self.species or "pet"
         self.description = f"A lovely {species_text} named {self.name} that is {self.availability_status.lower()}"
@@ -232,9 +238,12 @@ class Pet(CyodaEntity):
         """Check if pet has been transformed"""
         return self.state == "transformed" or self.state == "displayed"
 
-    def matches_search_criteria(self, species: Optional[str] = None, 
-                              status: Optional[str] = None, 
-                              category_id: Optional[int] = None) -> bool:
+    def matches_search_criteria(
+        self,
+        species: Optional[str] = None,
+        status: Optional[str] = None,
+        category_id: Optional[int] = None,
+    ) -> bool:
         """Check if pet matches the given search criteria"""
         if species and self.species != species:
             return False

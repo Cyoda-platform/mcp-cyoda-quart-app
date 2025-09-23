@@ -41,23 +41,28 @@ from ..models import (
     ValidationErrorResponse,
 )
 
+
 # Module-level service proxy
 class _ServiceProxy:
     def __getattr__(self, name: str) -> Any:
         return getattr(get_entity_service(), name)
 
+
 service = _ServiceProxy()
 
 logger = logging.getLogger(__name__)
+
 
 # Helper to normalize entity data from service
 def _to_entity_dict(data: Any) -> Dict[str, Any]:
     return data.model_dump(by_alias=True) if hasattr(data, "model_dump") else data
 
+
 pets_bp = Blueprint("pets", __name__, url_prefix="/api/pets")
 
 
 # ---- Core CRUD Operations ----
+
 
 @pets_bp.route("", methods=["POST"])
 @tag(["pets"])
@@ -134,6 +139,7 @@ async def get_pet(entity_id: str) -> ResponseReturnValue:
 
 # ---- Pet Search Endpoints ----
 
+
 @pets_bp.route("", methods=["GET"])
 @validate_querystring(PetQueryParams)
 @tag(["pets"])
@@ -185,7 +191,7 @@ async def list_pets(query_args: PetQueryParams) -> ResponseReturnValue:
 
         # Convert to list and apply pagination
         entity_list = [_to_entity_dict(r.data) for r in entities]
-        
+
         start = query_args.offset
         end = start + query_args.limit
         paginated_entities = entity_list[start:end]
@@ -236,11 +242,7 @@ async def search_pets(data: PetSearchRequest) -> ResponseReturnValue:
         # Convert results
         pets = [_to_entity_dict(r.data) for r in results]
 
-        return {
-            "pets": pets,
-            "total": len(pets),
-            "searchCriteria": search_data
-        }, 200
+        return {"pets": pets, "total": len(pets), "searchCriteria": search_data}, 200
 
     except Exception as e:
         logger.exception("Error searching Pets: %s", str(e))
@@ -248,6 +250,7 @@ async def search_pets(data: PetSearchRequest) -> ResponseReturnValue:
 
 
 # ---- Pet Search with External API Integration ----
+
 
 @pets_bp.route("/search-external", methods=["POST"])
 @tag(["pets"])
@@ -275,7 +278,7 @@ async def search_pets_external(data: PetSearchRequest) -> ResponseReturnValue:
             "searchStatus": search_data.get("status", "available"),
             "searchCategoryId": search_data.get("categoryId"),
             "status": "available",
-            "photoUrls": []  # Will be populated by ingestion processor
+            "photoUrls": [],  # Will be populated by ingestion processor
         }
 
         # Save the pet entity - this will trigger the workflow
@@ -286,14 +289,14 @@ async def search_pets_external(data: PetSearchRequest) -> ResponseReturnValue:
         )
 
         created_pet = _to_entity_dict(response.data)
-        
+
         logger.info("Created Pet for external search with ID: %s", response.metadata.id)
 
         return {
             "pets": [created_pet],
             "total": 1,
             "searchCriteria": search_data,
-            "message": "Pet created and will be processed through ingestion and transformation workflow"
+            "message": "Pet created and will be processed through ingestion and transformation workflow",
         }, 200
 
     except Exception as e:
@@ -302,6 +305,7 @@ async def search_pets_external(data: PetSearchRequest) -> ResponseReturnValue:
 
 
 # ---- Update and Delete Operations ----
+
 
 @pets_bp.route("/<entity_id>", methods=["PUT"])
 @validate_querystring(PetUpdateQueryParams)
@@ -387,6 +391,7 @@ async def delete_pet(entity_id: str) -> ResponseReturnValue:
 
 
 # ---- Additional Service Endpoints ----
+
 
 @pets_bp.route("/count", methods=["GET"])
 @tag(["pets"])
@@ -497,14 +502,21 @@ async def trigger_pet_transition(
             entity_version=str(Pet.ENTITY_VERSION),
         )
 
-        logger.info("Executed transition '%s' on Pet %s", data.transition_name, entity_id)
+        logger.info(
+            "Executed transition '%s' on Pet %s", data.transition_name, entity_id
+        )
 
-        return jsonify({
-            "id": response.metadata.id,
-            "message": "Transition executed successfully",
-            "previousState": previous_state,
-            "newState": response.metadata.state,
-        }), 200
+        return (
+            jsonify(
+                {
+                    "id": response.metadata.id,
+                    "message": "Transition executed successfully",
+                    "previousState": previous_state,
+                    "newState": response.metadata.state,
+                }
+            ),
+            200,
+        )
 
     except Exception as e:
         logger.exception("Error executing transition on Pet %s: %s", entity_id, str(e))
@@ -512,6 +524,7 @@ async def trigger_pet_transition(
 
 
 # ---- Pet Search Application Specific Endpoints ----
+
 
 @pets_bp.route("/find-all", methods=["GET"])
 @tag(["pets"])

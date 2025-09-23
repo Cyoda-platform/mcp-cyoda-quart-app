@@ -9,9 +9,9 @@ in functional requirements.
 import logging
 from typing import Any, Dict
 
+from application.entity.pet.version_1.pet import Pet
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.pet.version_1.pet import Pet
 
 
 class PetDataTransformationProcessor(CyodaProcessor):
@@ -91,18 +91,22 @@ class PetDataTransformationProcessor(CyodaProcessor):
             # Add appropriate emoji based on species or category
             emoji = self._get_species_emoji(pet)
             transformed_name = f"{emoji} {original_name}"
-            enhancements.append(f"Added emoji to name: '{original_name}' -> '{transformed_name}'")
+            enhancements.append(
+                f"Added emoji to name: '{original_name}' -> '{transformed_name}'"
+            )
 
         # 2. Transform status to availability status
         if pet.status:
             original_status = pet.status
             status_mapping = {
                 "available": "✅ Available for Adoption",
-                "pending": "⏳ Adoption Pending", 
-                "sold": "❤️ Already Adopted"
+                "pending": "⏳ Adoption Pending",
+                "sold": "❤️ Already Adopted",
             }
             transformed_status = status_mapping.get(original_status, original_status)
-            enhancements.append(f"Enhanced status: '{original_status}' -> '{transformed_status}'")
+            enhancements.append(
+                f"Enhanced status: '{original_status}' -> '{transformed_status}'"
+            )
 
         # 3. Derive species information
         species = self._derive_species(pet)
@@ -117,7 +121,9 @@ class PetDataTransformationProcessor(CyodaProcessor):
         # 5. Add additional user-friendly attributes
         additional_attributes = self._create_additional_attributes(pet, species)
         if additional_attributes:
-            enhancements.append(f"Added {len(additional_attributes)} additional attributes")
+            enhancements.append(
+                f"Added {len(additional_attributes)} additional attributes"
+            )
 
         transformation_data["enhancements_applied"] = enhancements
         transformation_data["additional_attributes"] = additional_attributes
@@ -127,16 +133,16 @@ class PetDataTransformationProcessor(CyodaProcessor):
     def _get_species_emoji(self, pet: Pet) -> str:
         """Get appropriate emoji based on pet species/category."""
         species = self._derive_species(pet)
-        
+
         emoji_mapping = {
             "dog": "🐕",
-            "cat": "🐱", 
+            "cat": "🐱",
             "bird": "🐦",
             "fish": "🐠",
             "rabbit": "🐰",
             "hamster": "🐹",
         }
-        
+
         return emoji_mapping.get(species, "🐾")
 
     def _derive_species(self, pet: Pet) -> str:
@@ -162,9 +168,13 @@ class PetDataTransformationProcessor(CyodaProcessor):
             for tag in pet.tags:
                 if isinstance(tag, dict) and "name" in tag:
                     tag_name = tag["name"].lower()
-                    if any(species in tag_name for species in ["dog", "canine", "puppy"]):
+                    if any(
+                        species in tag_name for species in ["dog", "canine", "puppy"]
+                    ):
                         return "dog"
-                    elif any(species in tag_name for species in ["cat", "feline", "kitten"]):
+                    elif any(
+                        species in tag_name for species in ["cat", "feline", "kitten"]
+                    ):
                         return "cat"
                     elif any(species in tag_name for species in ["bird", "avian"]):
                         return "bird"
@@ -180,42 +190,51 @@ class PetDataTransformationProcessor(CyodaProcessor):
     def _generate_description(self, pet: Pet, species: str) -> str:
         """Generate a user-friendly description for the pet."""
         name = pet.name or "this pet"
-        
+
         # Get availability status
         status_text = "available"
         if pet.status == "pending":
             status_text = "pending adoption"
         elif pet.status == "sold":
             status_text = "already adopted"
-        
+
         # Create personality traits based on tags
         personality_traits = []
         if pet.tags:
             for tag in pet.tags:
                 if isinstance(tag, dict) and "name" in tag:
                     tag_name = tag["name"].lower()
-                    if tag_name in ["friendly", "playful", "gentle", "energetic", "calm", "loving"]:
+                    if tag_name in [
+                        "friendly",
+                        "playful",
+                        "gentle",
+                        "energetic",
+                        "calm",
+                        "loving",
+                    ]:
                         personality_traits.append(tag_name)
-        
+
         # Build description
         description = f"Meet {name}, a lovely {species}"
-        
+
         if personality_traits:
             if len(personality_traits) == 1:
                 description += f" who is {personality_traits[0]}"
             elif len(personality_traits) == 2:
-                description += f" who is {personality_traits[0]} and {personality_traits[1]}"
+                description += (
+                    f" who is {personality_traits[0]} and {personality_traits[1]}"
+                )
             else:
                 description += f" who is {', '.join(personality_traits[:-1])}, and {personality_traits[-1]}"
-        
+
         description += f". This pet is currently {status_text}."
-        
+
         return description
 
     def _create_additional_attributes(self, pet: Pet, species: str) -> Dict[str, Any]:
         """Create additional user-friendly attributes."""
         attributes = {}
-        
+
         # Add care level based on species
         care_levels = {
             "dog": "Medium - needs daily walks and attention",
@@ -224,23 +243,25 @@ class PetDataTransformationProcessor(CyodaProcessor):
             "fish": "Low - needs regular feeding and tank maintenance",
             "rabbit": "Medium - needs daily exercise and fresh vegetables",
             "hamster": "Low - needs regular feeding and cage cleaning",
-            "other": "Varies - please consult with our staff"
+            "other": "Varies - please consult with our staff",
         }
         attributes["care_level"] = care_levels.get(species, care_levels["other"])
-        
+
         # Add photo count
         photo_count = len(pet.photo_urls) if pet.photo_urls else 0
         attributes["photo_count"] = photo_count
         attributes["has_photos"] = photo_count > 0
-        
+
         # Add tag count and summary
         tag_count = len(pet.tags) if pet.tags else 0
         attributes["tag_count"] = tag_count
-        
+
         if pet.tags:
-            tag_names = [tag.get("name", "") for tag in pet.tags if isinstance(tag, dict)]
+            tag_names = [
+                tag.get("name", "") for tag in pet.tags if isinstance(tag, dict)
+            ]
             attributes["tag_summary"] = ", ".join(tag_names[:3])  # Show first 3 tags
-        
+
         # Add adoption readiness score (simple calculation)
         readiness_score = 0
         if pet.status == "available":
@@ -251,7 +272,7 @@ class PetDataTransformationProcessor(CyodaProcessor):
             readiness_score += 20
         if pet.name and len(pet.name) > 0:
             readiness_score += 10
-        
+
         attributes["adoption_readiness_score"] = min(readiness_score, 100)
-        
+
         return attributes

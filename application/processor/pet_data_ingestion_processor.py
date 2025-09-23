@@ -9,9 +9,10 @@ import logging
 from typing import Any, Dict, List, Optional
 
 import httpx
+
+from application.entity.pet.version_1.pet import Pet
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.pet.version_1.pet import Pet
 
 
 class PetDataIngestionProcessor(CyodaProcessor):
@@ -94,29 +95,35 @@ class PetDataIngestionProcessor(CyodaProcessor):
                 # Try to fetch pets by status first
                 status = pet.search_status or "available"
                 url = f"{self.api_base_url}/pet/findByStatus"
-                
+
                 self.logger.info(f"Fetching pets from API: {url} with status={status}")
-                
+
                 response = await client.get(url, params={"status": status})
-                
+
                 if response.status_code == 200:
                     pets_data = response.json()
-                    
+
                     if pets_data and isinstance(pets_data, list) and len(pets_data) > 0:
                         # Filter by additional criteria if provided
                         filtered_pet = self._filter_pet_data(pets_data, pet)
                         if filtered_pet:
-                            self.logger.info(f"Found matching pet: {filtered_pet.get('name', 'Unknown')}")
+                            self.logger.info(
+                                f"Found matching pet: {filtered_pet.get('name', 'Unknown')}"
+                            )
                             return filtered_pet
-                
-                self.logger.warning(f"No pets found matching criteria for Pet {pet.technical_id}")
+
+                self.logger.warning(
+                    f"No pets found matching criteria for Pet {pet.technical_id}"
+                )
                 return None
 
         except Exception as e:
             self.logger.error(f"Error fetching data from external API: {str(e)}")
             return None
 
-    def _filter_pet_data(self, pets_data: List[Dict[str, Any]], pet: Pet) -> Optional[Dict[str, Any]]:
+    def _filter_pet_data(
+        self, pets_data: List[Dict[str, Any]], pet: Pet
+    ) -> Optional[Dict[str, Any]]:
         """
         Filter pet data based on search criteria.
 
@@ -133,17 +140,17 @@ class PetDataIngestionProcessor(CyodaProcessor):
                 category = pet_data.get("category", {})
                 if category.get("id") != pet.search_category_id:
                     continue
-            
+
             # Check species filter (derived from category name or tags)
             if pet.search_species:
                 species_match = False
-                
+
                 # Check category name
                 category = pet_data.get("category", {})
                 category_name = category.get("name", "").lower()
                 if pet.search_species.lower() in category_name:
                     species_match = True
-                
+
                 # Check tags
                 tags = pet_data.get("tags", [])
                 for tag in tags:
@@ -151,13 +158,13 @@ class PetDataIngestionProcessor(CyodaProcessor):
                     if pet.search_species.lower() in tag_name:
                         species_match = True
                         break
-                
+
                 if not species_match:
                     continue
-            
+
             # If we reach here, the pet matches all criteria
             return pet_data
-        
+
         return None
 
     def _create_mock_data(self, pet: Pet) -> Dict[str, Any]:
@@ -173,26 +180,23 @@ class PetDataIngestionProcessor(CyodaProcessor):
         species = pet.search_species or "dog"
         status = pet.search_status or "available"
         category_id = pet.search_category_id or 1
-        
+
         # Generate mock data based on search criteria
         mock_data = {
             "id": 12345,
             "name": f"Buddy the {species.title()}",
-            "category": {
-                "id": category_id,
-                "name": species.title() + "s"
-            },
+            "category": {"id": category_id, "name": species.title() + "s"},
             "photoUrls": [
                 f"https://example.com/photos/{species}1.jpg",
-                f"https://example.com/photos/{species}2.jpg"
+                f"https://example.com/photos/{species}2.jpg",
             ],
             "tags": [
                 {"id": 1, "name": species},
                 {"id": 2, "name": "friendly"},
-                {"id": 3, "name": "playful"}
+                {"id": 3, "name": "playful"},
             ],
-            "status": status
+            "status": status,
         }
-        
+
         self.logger.info(f"Created mock data for {species} with status {status}")
         return mock_data
