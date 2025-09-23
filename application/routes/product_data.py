@@ -252,22 +252,21 @@ async def trigger_data_extraction() -> tuple[Dict[str, Any], int]:
         )
 
         processed_count = 0
-        if hasattr(response, "entities") and response.entities:
-            for entity_data in response.entities:
-                if entity_data.metadata.state == "validated":
+        if response:
+            for entity_response in response:
+                if entity_response.get_state() == "validated":
                     try:
                         # Trigger extraction by transitioning to data extraction
-                        await entity_service.update_with_transition(
-                            entity_id=entity_data.metadata.id,
-                            entity=entity_data.entity,
+                        await entity_service.execute_transition(
+                            entity_id=entity_response.get_id(),
+                            transition="extract_data",
                             entity_class=ProductData.ENTITY_NAME,
                             entity_version=str(ProductData.ENTITY_VERSION),
-                            transition="extract_data",
                         )
                         processed_count += 1
                     except Exception as e:
                         logger.warning(
-                            f"Failed to trigger extraction for entity {entity_data.metadata.id}: {str(e)}"
+                            f"Failed to trigger extraction for entity {entity_response.get_id()}: {str(e)}"
                         )
 
         result = {
@@ -298,11 +297,9 @@ async def get_product_analytics() -> tuple[Dict[str, Any], int]:
         entity_service = get_entity_service()
 
         # Get all product data entities
-        response = await entity_service.search(
+        response = await entity_service.find_all(
             entity_class=ProductData.ENTITY_NAME,
             entity_version=str(ProductData.ENTITY_VERSION),
-            query={},
-            page_size=1000,
         )
 
         # Initialize analytics
@@ -318,12 +315,12 @@ async def get_product_analytics() -> tuple[Dict[str, Any], int]:
             "average_performance_score": 0.0,
         }
 
-        if hasattr(response, "entities") and response.entities:
+        if response:
             total_score = 0.0
             score_count = 0
 
-            for entity_data in response.entities:
-                entity = entity_data.entity
+            for entity_response in response:
+                entity = entity_response.data.model_dump(by_alias=True) if hasattr(entity_response.data, 'model_dump') else entity_response.data
                 analytics["total_products"] += 1
 
                 # Aggregate metrics
