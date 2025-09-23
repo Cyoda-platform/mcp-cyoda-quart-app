@@ -1,0 +1,1 @@
+# EmailNotification entity package
