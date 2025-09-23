@@ -1,0 +1,317 @@
+"""
+Product Routes for Product Performance Analysis and Reporting System
+
+Manages all Product-related API endpoints including CRUD operations
+and performance analysis as specified in functional requirements.
+"""
+
+from __future__ import annotations
+
+import logging
+from typing import Any, Dict, Optional
+
+from quart import Blueprint, jsonify, request
+from quart.typing import ResponseReturnValue
+from quart_schema import operation_id, tag, validate, validate_querystring
+
+from common.service.entity_service import SearchConditionRequest
+from services.services import get_entity_service
+
+from application.entity.product.version_1.product import Product
+
+logger = logging.getLogger(__name__)
+
+
+class _ServiceProxy:
+    def __getattr__(self, name: str) -> Any:
+        return getattr(get_entity_service(), name)
+
+
+service = _ServiceProxy()
+
+
+def _to_entity_dict(data: Any) -> Dict[str, Any]:
+    """Helper to normalize entity data from service"""
+    return data.model_dump(by_alias=True) if hasattr(data, "model_dump") else data
+
+
+products_bp = Blueprint("products", __name__, url_prefix="/api/products")
+
+
+@products_bp.route("", methods=["POST"])
+@tag(["products"])
+@operation_id("create_product")
+async def create_product() -> ResponseReturnValue:
+    """Create a new Product entity"""
+    try:
+        data = await request.get_json()
+        if not data:
+            return {"error": "Request body is required", "code": "MISSING_DATA"}, 400
+
+        # Create Product entity
+        product = Product(**data)
+        entity_data = product.model_dump(by_alias=True)
+
+        # Save the entity
+        response = await service.save(
+            entity=entity_data,
+            entity_class=Product.ENTITY_NAME,
+            entity_version=str(Product.ENTITY_VERSION),
+        )
+
+        logger.info("Created Product with ID: %s", response.metadata.id)
+        return _to_entity_dict(response.data), 201
+
+    except ValueError as e:
+        logger.warning("Validation error creating Product: %s", str(e))
+        return {"error": str(e), "code": "VALIDATION_ERROR"}, 400
+    except Exception as e:
+        logger.exception("Error creating Product: %s", str(e))
+        return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
+
+
+@products_bp.route("/<entity_id>", methods=["GET"])
+@tag(["products"])
+@operation_id("get_product")
+async def get_product(entity_id: str) -> ResponseReturnValue:
+    """Get Product by ID"""
+    try:
+        if not entity_id or len(entity_id.strip()) == 0:
+            return {"error": "Entity ID is required", "code": "INVALID_ID"}, 400
+
+        response = await service.get_by_id(
+            entity_id=entity_id,
+            entity_class=Product.ENTITY_NAME,
+            entity_version=str(Product.ENTITY_VERSION),
+        )
+
+        if not response:
+            return {"error": "Product not found", "code": "NOT_FOUND"}, 404
+
+        return _to_entity_dict(response.data), 200
+
+    except ValueError as e:
+        logger.warning("Invalid entity ID %s: %s", entity_id, str(e))
+        return {"error": str(e), "code": "INVALID_ID"}, 400
+    except Exception as e:
+        logger.exception("Error getting Product %s: %s", entity_id, str(e))
+        return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
+
+
+@products_bp.route("", methods=["GET"])
+@tag(["products"])
+@operation_id("list_products")
+async def list_products() -> ResponseReturnValue:
+    """List Products with optional filtering"""
+    try:
+        # Get query parameters
+        category = request.args.get("category")
+        status = request.args.get("status")
+        min_score = request.args.get("min_score", type=float)
+        limit = request.args.get("limit", default=50, type=int)
+        offset = request.args.get("offset", default=0, type=int)
+
+        # Build search conditions
+        search_conditions: Dict[str, str] = {}
+        if category:
+            search_conditions["category"] = category
+        if status:
+            search_conditions["status"] = status
+
+        # Get entities
+        if search_conditions:
+            builder = SearchConditionRequest.builder()
+            for field, value in search_conditions.items():
+                builder.equals(field, value)
+            condition = builder.build()
+
+            entities = await service.search(
+                entity_class=Product.ENTITY_NAME,
+                condition=condition,
+                entity_version=str(Product.ENTITY_VERSION),
+            )
+        else:
+            entities = await service.find_all(
+                entity_class=Product.ENTITY_NAME,
+                entity_version=str(Product.ENTITY_VERSION),
+            )
+
+        # Convert to list and apply additional filters
+        entity_list = [_to_entity_dict(r.data) for r in entities]
+        
+        # Filter by performance score if specified
+        if min_score is not None:
+            entity_list = [e for e in entity_list if e.get("performanceScore", 0) >= min_score]
+
+        # Apply pagination
+        total = len(entity_list)
+        paginated_entities = entity_list[offset:offset + limit]
+
+        return jsonify({
+            "products": paginated_entities,
+            "total": total,
+            "limit": limit,
+            "offset": offset
+        }), 200
+
+    except Exception as e:
+        logger.exception("Error listing Products: %s", str(e))
+        return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
+
+
+@products_bp.route("/<entity_id>", methods=["PUT"])
+@tag(["products"])
+@operation_id("update_product")
+async def update_product(entity_id: str) -> ResponseReturnValue:
+    """Update Product and optionally trigger workflow transition"""
+    try:
+        if not entity_id or len(entity_id.strip()) == 0:
+            return {"error": "Entity ID is required", "code": "INVALID_ID"}, 400
+
+        data = await request.get_json()
+        if not data:
+            return {"error": "Request body is required", "code": "MISSING_DATA"}, 400
+
+        # Get transition from query parameters
+        transition = request.args.get("transition")
+
+        # Update the entity
+        response = await service.update(
+            entity_id=entity_id,
+            entity=data,
+            entity_class=Product.ENTITY_NAME,
+            transition=transition,
+            entity_version=str(Product.ENTITY_VERSION),
+        )
+
+        logger.info("Updated Product %s", entity_id)
+        return _to_entity_dict(response.data), 200
+
+    except ValueError as e:
+        logger.warning("Validation error updating Product %s: %s", entity_id, str(e))
+        return {"error": str(e), "code": "VALIDATION_ERROR"}, 400
+    except Exception as e:
+        logger.exception("Error updating Product %s: %s", entity_id, str(e))
+        return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
+
+
+@products_bp.route("/<entity_id>", methods=["DELETE"])
+@tag(["products"])
+@operation_id("delete_product")
+async def delete_product(entity_id: str) -> ResponseReturnValue:
+    """Delete Product"""
+    try:
+        if not entity_id or len(entity_id.strip()) == 0:
+            return {"error": "Entity ID is required", "code": "INVALID_ID"}, 400
+
+        await service.delete_by_id(
+            entity_id=entity_id,
+            entity_class=Product.ENTITY_NAME,
+            entity_version=str(Product.ENTITY_VERSION),
+        )
+
+        logger.info("Deleted Product %s", entity_id)
+        return {"success": True, "message": "Product deleted successfully", "entity_id": entity_id}, 200
+
+    except ValueError as e:
+        logger.warning("Invalid entity ID %s: %s", entity_id, str(e))
+        return {"error": str(e), "code": "INVALID_ID"}, 400
+    except Exception as e:
+        logger.exception("Error deleting Product %s: %s", entity_id, str(e))
+        return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
+
+
+@products_bp.route("/search", methods=["POST"])
+@tag(["products"])
+@operation_id("search_products")
+async def search_products() -> ResponseReturnValue:
+    """Search Products using field-value conditions"""
+    try:
+        data = await request.get_json()
+        if not data:
+            return {"error": "Search conditions required", "code": "EMPTY_SEARCH"}, 400
+
+        # Build search conditions
+        builder = SearchConditionRequest.builder()
+        for field, value in data.items():
+            builder.equals(field, value)
+
+        search_request = builder.build()
+        results = await service.search(
+            entity_class=Product.ENTITY_NAME,
+            condition=search_request,
+            entity_version=str(Product.ENTITY_VERSION),
+        )
+
+        entities = [_to_entity_dict(r.data) for r in results]
+        return {"products": entities, "total": len(entities)}, 200
+
+    except Exception as e:
+        logger.exception("Error searching Products: %s", str(e))
+        return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
+
+
+@products_bp.route("/performance", methods=["GET"])
+@tag(["products"])
+@operation_id("get_product_performance")
+async def get_product_performance() -> ResponseReturnValue:
+    """Get product performance summary"""
+    try:
+        # Get all products
+        entities = await service.find_all(
+            entity_class=Product.ENTITY_NAME,
+            entity_version=str(Product.ENTITY_VERSION),
+        )
+
+        products = [_to_entity_dict(r.data) for r in entities]
+        
+        # Calculate performance metrics
+        total_products = len(products)
+        total_revenue = sum(p.get("revenue", 0) or 0 for p in products)
+        high_performers = [p for p in products if (p.get("performanceScore") or 0) >= 70]
+        low_stock = [p for p in products if (p.get("inventoryLevel") or 0) <= 10]
+        
+        performance_summary = {
+            "total_products": total_products,
+            "total_revenue": total_revenue,
+            "high_performers_count": len(high_performers),
+            "low_stock_count": len(low_stock),
+            "average_performance_score": sum(p.get("performanceScore", 0) or 0 for p in products) / total_products if total_products > 0 else 0,
+            "top_performers": sorted(products, key=lambda p: p.get("performanceScore", 0) or 0, reverse=True)[:5],
+            "products_needing_restock": [p for p in products if (p.get("inventoryLevel") or 0) <= 5]
+        }
+
+        return performance_summary, 200
+
+    except Exception as e:
+        logger.exception("Error getting product performance: %s", str(e))
+        return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
+
+
+@products_bp.route("/<entity_id>/analyze", methods=["POST"])
+@tag(["products"])
+@operation_id("analyze_product")
+async def analyze_product(entity_id: str) -> ResponseReturnValue:
+    """Trigger product analysis"""
+    try:
+        if not entity_id or len(entity_id.strip()) == 0:
+            return {"error": "Entity ID is required", "code": "INVALID_ID"}, 400
+
+        # Trigger analyze transition
+        response = await service.execute_transition(
+            entity_id=entity_id,
+            transition="analyze",
+            entity_class=Product.ENTITY_NAME,
+            entity_version=str(Product.ENTITY_VERSION),
+        )
+
+        logger.info("Triggered analysis for Product %s", entity_id)
+        return {
+            "id": response.metadata.id,
+            "message": "Product analysis triggered successfully",
+            "new_state": response.metadata.state
+        }, 200
+
+    except Exception as e:
+        logger.exception("Error analyzing Product %s: %s", entity_id, str(e))
+        return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
