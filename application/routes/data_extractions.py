@@ -278,11 +278,11 @@ async def schedule_weekly_extraction() -> ResponseReturnValue:
 
         # Create extraction data
         extraction = DataExtraction(
-            extraction_type="pet_store_products",
-            source_url="https://petstore.swagger.io/v2",
-            schedule_pattern="weekly_monday",
-            scheduled_for=next_monday.isoformat().replace("+00:00", "Z"),
-            extraction_config={"auto_analyze": True, "create_report": True}
+            extractionType="pet_store_products",
+            sourceUrl="https://petstore.swagger.io/v2",
+            schedulePattern="weekly_monday",
+            scheduledFor=next_monday.isoformat().replace("+00:00", "Z"),
+            extractionConfig={"auto_analyze": True, "create_report": True}
         )
         entity_data = extraction.model_dump(by_alias=True)
 
@@ -369,10 +369,10 @@ async def trigger_manual_extraction() -> ResponseReturnValue:
     try:
         # Create manual extraction
         extraction = DataExtraction(
-            extraction_type="pet_store_products",
-            source_url="https://petstore.swagger.io/v2",
-            schedule_pattern="manual",
-            scheduled_for=datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            extractionType="pet_store_products",
+            sourceUrl="https://petstore.swagger.io/v2",
+            schedulePattern="manual",
+            scheduledFor=datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
         )
         entity_data = extraction.model_dump(by_alias=True)
 

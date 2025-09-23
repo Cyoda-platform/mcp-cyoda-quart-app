@@ -108,7 +108,7 @@ class ReportGenerationProcessor(CyodaProcessor):
 
                     if isinstance(product_data, dict):
                         product = Product(**product_data)
-                    products.append(product)
+                        products.append(product)
                 except Exception as e:
                     self.logger.warning(f"Failed to convert product data: {str(e)}")
                     continue
@@ -335,10 +335,11 @@ class ReportGenerationProcessor(CyodaProcessor):
             if category not in category_stats:
                 category_stats[category] = {"count": 0, "revenue": 0.0, "scores": []}
 
-            category_stats[category]["count"] += 1
-            category_stats[category]["revenue"] += product.revenue or 0
+            stats = category_stats[category]
+            stats["count"] = stats["count"] + 1
+            stats["revenue"] = stats["revenue"] + (product.revenue or 0)
             if product.performance_score is not None:
-                category_stats[category]["scores"].append(product.performance_score)
+                stats["scores"].append(product.performance_score)
 
         # Calculate averages
         for category, stats in category_stats.items():

@@ -315,7 +315,7 @@ async def create_weekly_report() -> ResponseReturnValue:
         return {
             "id": report_id,
             "message": "Weekly report created and generation triggered",
-            "title": report_data["title"],
+            "title": "Weekly Product Performance Report",
         }, 201
 
     except Exception as e:
