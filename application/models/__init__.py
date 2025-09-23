@@ -24,7 +24,7 @@ from .response_models import (
 __all__ = [
     # Request models
     "EggAlarmQueryParams",
-    "EggAlarmUpdateQueryParams", 
+    "EggAlarmUpdateQueryParams",
     "SearchRequest",
     "TransitionRequest",
     # Response models

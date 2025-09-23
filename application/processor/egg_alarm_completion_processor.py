@@ -10,9 +10,9 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict
 
+from application.entity.egg_alarm.version_1.egg_alarm import EggAlarm
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.egg_alarm.version_1.egg_alarm import EggAlarm
 
 
 class EggAlarmCompletionProcessor(CyodaProcessor):
@@ -93,7 +93,9 @@ class EggAlarmCompletionProcessor(CyodaProcessor):
                     entity.scheduled_data["scheduled_at"].replace("Z", "+00:00")
                 )
                 completed_at = datetime.now(timezone.utc)
-                actual_cooking_time = int((completed_at - scheduled_at).total_seconds() / 60)
+                actual_cooking_time = int(
+                    (completed_at - scheduled_at).total_seconds() / 60
+                )
             except (ValueError, KeyError):
                 # Fallback to expected cooking time
                 actual_cooking_time = entity.cooking_duration
@@ -103,7 +105,8 @@ class EggAlarmCompletionProcessor(CyodaProcessor):
             "completion_id": completion_id,
             "egg_type": entity.egg_type.value,
             "expected_cooking_duration": entity.cooking_duration,
-            "actual_cooking_time_minutes": actual_cooking_time or entity.cooking_duration,
+            "actual_cooking_time_minutes": actual_cooking_time
+            or entity.cooking_duration,
             "completion_status": "SUCCESS",
             "created_by": entity.created_by,
             "completion_message": f"Your {entity.egg_type.value} egg is ready! Cooked for {entity.get_cooking_time_display()}.",

@@ -7,12 +7,12 @@ from scheduled to active state. Sets up alarm timing and activation data.
 
 import logging
 import uuid
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict
 
+from application.entity.egg_alarm.version_1.egg_alarm import EggAlarm
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.egg_alarm.version_1.egg_alarm import EggAlarm
 
 
 class EggAlarmSchedulingProcessor(CyodaProcessor):
@@ -55,7 +55,9 @@ class EggAlarmSchedulingProcessor(CyodaProcessor):
             # Set alarm time if not already set
             if not egg_alarm.alarm_time:
                 # Set alarm time to current time + cooking duration
-                alarm_time = datetime.now(timezone.utc) + timedelta(minutes=egg_alarm.cooking_duration)
+                alarm_time = datetime.now(timezone.utc) + timedelta(
+                    minutes=egg_alarm.cooking_duration
+                )
                 egg_alarm.alarm_time = alarm_time.isoformat().replace("+00:00", "Z")
 
             # Update status and timestamp
@@ -92,17 +94,29 @@ class EggAlarmSchedulingProcessor(CyodaProcessor):
         # Calculate expected completion time
         if entity.alarm_time:
             try:
-                alarm_dt = datetime.fromisoformat(entity.alarm_time.replace("Z", "+00:00"))
+                alarm_dt = datetime.fromisoformat(
+                    entity.alarm_time.replace("Z", "+00:00")
+                )
                 expected_completion = alarm_dt.isoformat().replace("+00:00", "Z")
             except ValueError:
                 # Fallback if alarm_time is invalid
                 expected_completion = (
-                    datetime.now(timezone.utc) + timedelta(minutes=entity.cooking_duration)
-                ).isoformat().replace("+00:00", "Z")
+                    (
+                        datetime.now(timezone.utc)
+                        + timedelta(minutes=entity.cooking_duration)
+                    )
+                    .isoformat()
+                    .replace("+00:00", "Z")
+                )
         else:
             expected_completion = (
-                datetime.now(timezone.utc) + timedelta(minutes=entity.cooking_duration)
-            ).isoformat().replace("+00:00", "Z")
+                (
+                    datetime.now(timezone.utc)
+                    + timedelta(minutes=entity.cooking_duration)
+                )
+                .isoformat()
+                .replace("+00:00", "Z")
+            )
 
         scheduling_data: Dict[str, Any] = {
             "scheduled_at": current_timestamp,

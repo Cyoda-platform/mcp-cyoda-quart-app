@@ -8,9 +8,9 @@ proceed to the scheduling stage as specified in functional requirements.
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.egg_alarm.version_1.egg_alarm import EggAlarm, EggType
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.egg_alarm.version_1.egg_alarm import EggAlarm, EggType
 
 
 class EggAlarmValidationCriterion(CyodaCriteriaChecker):
@@ -77,7 +77,9 @@ class EggAlarmValidationCriterion(CyodaCriteriaChecker):
             # Validate alarm time format if provided
             if egg_alarm.alarm_time:
                 try:
-                    alarm_dt = datetime.fromisoformat(egg_alarm.alarm_time.replace("Z", "+00:00"))
+                    alarm_dt = datetime.fromisoformat(
+                        egg_alarm.alarm_time.replace("Z", "+00:00")
+                    )
                     # Check if alarm time is not in the past (with 1 minute tolerance)
                     current_time = datetime.now(timezone.utc)
                     if alarm_dt < current_time:
@@ -106,7 +108,10 @@ class EggAlarmValidationCriterion(CyodaCriteriaChecker):
                 return False
 
             # Business logic validation: ensure alarm is in correct status for scheduling
-            if egg_alarm.status and egg_alarm.status.value not in ["pending", "scheduled"]:
+            if egg_alarm.status and egg_alarm.status.value not in [
+                "pending",
+                "scheduled",
+            ]:
                 self.logger.warning(
                     f"EggAlarm {egg_alarm.technical_id} has invalid status for scheduling: {egg_alarm.status}"
                 )

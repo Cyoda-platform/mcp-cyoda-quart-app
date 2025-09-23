@@ -18,6 +18,7 @@ from common.entity.cyoda_entity import CyodaEntity
 
 class EggType(str, Enum):
     """Enumeration of supported egg cooking types"""
+
     SOFT_BOILED = "soft-boiled"
     MEDIUM_BOILED = "medium-boiled"
     HARD_BOILED = "hard-boiled"
@@ -25,6 +26,7 @@ class EggType(str, Enum):
 
 class AlarmStatus(str, Enum):
     """Enumeration of alarm status values"""
+
     PENDING = "pending"
     SCHEDULED = "scheduled"
     ACTIVE = "active"
@@ -36,8 +38,8 @@ class EggAlarm(CyodaEntity):
     """
     EggAlarm represents an egg cooking alarm that manages timing for different
     egg cooking types with workflow-managed states.
-    
-    The state field manages workflow states: 
+
+    The state field manages workflow states:
     initial_state -> created -> scheduled -> active -> completed/cancelled
     """
 
@@ -47,34 +49,29 @@ class EggAlarm(CyodaEntity):
 
     # Core alarm fields
     egg_type: EggType = Field(
-        ..., 
-        description="Type of egg cooking: soft-boiled, medium-boiled, or hard-boiled"
+        ...,
+        description="Type of egg cooking: soft-boiled, medium-boiled, or hard-boiled",
     )
     cooking_duration: int = Field(
-        ..., 
-        description="Cooking duration in minutes for the selected egg type"
+        ..., description="Cooking duration in minutes for the selected egg type"
     )
     alarm_time: Optional[str] = Field(
         default=None,
         alias="alarmTime",
-        description="ISO 8601 timestamp when the alarm should trigger"
+        description="ISO 8601 timestamp when the alarm should trigger",
     )
     status: AlarmStatus = Field(
-        default=AlarmStatus.PENDING,
-        description="Current status of the alarm"
+        default=AlarmStatus.PENDING, description="Current status of the alarm"
     )
-    
+
     # User and metadata fields
     created_by: str = Field(
-        ...,
-        alias="createdBy", 
-        description="User who created the alarm"
+        ..., alias="createdBy", description="User who created the alarm"
     )
     notes: Optional[str] = Field(
-        default=None,
-        description="Optional user notes about the alarm"
+        default=None, description="Optional user notes about the alarm"
     )
-    
+
     # Timestamps
     created_at: Optional[str] = Field(
         default_factory=lambda: datetime.now(timezone.utc)
@@ -88,24 +85,24 @@ class EggAlarm(CyodaEntity):
         alias="updatedAt",
         description="Timestamp when the alarm was last updated (ISO 8601 format)",
     )
-    
+
     # Processing fields (populated during workflow processing)
     scheduled_data: Optional[Dict[str, Any]] = Field(
         default=None,
         alias="scheduledData",
-        description="Data populated when alarm is scheduled"
+        description="Data populated when alarm is scheduled",
     )
     completion_data: Optional[Dict[str, Any]] = Field(
         default=None,
-        alias="completionData", 
-        description="Data populated when alarm completes"
+        alias="completionData",
+        description="Data populated when alarm completes",
     )
 
     # Cooking duration mappings
     COOKING_DURATIONS: ClassVar[Dict[EggType, int]] = {
-        EggType.SOFT_BOILED: 4,    # 4 minutes
-        EggType.MEDIUM_BOILED: 7,  # 7 minutes  
-        EggType.HARD_BOILED: 10,   # 10 minutes
+        EggType.SOFT_BOILED: 4,  # 4 minutes
+        EggType.MEDIUM_BOILED: 7,  # 7 minutes
+        EggType.HARD_BOILED: 10,  # 10 minutes
     }
 
     @field_validator("egg_type")
@@ -206,7 +203,9 @@ class EggAlarm(CyodaEntity):
 
     def get_cooking_time_display(self) -> str:
         """Get human-readable cooking time display"""
-        return f"{self.cooking_duration} minute{'s' if self.cooking_duration != 1 else ''}"
+        return (
+            f"{self.cooking_duration} minute{'s' if self.cooking_duration != 1 else ''}"
+        )
 
     def to_api_response(self) -> Dict[str, Any]:
         """Convert to API response format"""

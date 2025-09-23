@@ -63,9 +63,7 @@ def _to_entity_dict(data: Any) -> Dict[str, Any]:
     return data.model_dump(by_alias=True) if hasattr(data, "model_dump") else data
 
 
-egg_alarms_bp = Blueprint(
-    "egg_alarms", __name__, url_prefix="/api/egg-alarms"
-)
+egg_alarms_bp = Blueprint("egg_alarms", __name__, url_prefix="/api/egg-alarms")
 
 
 # ---- Routes -----------------------------------------------------------------
@@ -262,9 +260,7 @@ async def update_egg_alarm(
         return jsonify(_to_entity_dict(response.data)), 200
 
     except ValueError as e:
-        logger.warning(
-            "Validation error updating EggAlarm %s: %s", entity_id, str(e)
-        )
+        logger.warning("Validation error updating EggAlarm %s: %s", entity_id, str(e))
         return jsonify({"error": str(e), "code": "VALIDATION_ERROR"}), 400
     except Exception as e:  # pragma: no cover
         logger.exception("Error updating EggAlarm %s: %s", entity_id, str(e))
@@ -332,7 +328,9 @@ async def delete_egg_alarm(entity_id: str) -> ResponseReturnValue:
 async def get_by_business_id(business_id: str) -> ResponseReturnValue:
     """Get EggAlarm by business ID (created_by field by default)"""
     try:
-        business_id_field = request.args.get("field", "createdBy")  # Default to createdBy field
+        business_id_field = request.args.get(
+            "field", "createdBy"
+        )  # Default to createdBy field
 
         result = await service.find_by_business_id(
             entity_class=EggAlarm.ENTITY_NAME,
@@ -371,9 +369,7 @@ async def check_exists(entity_id: str) -> ResponseReturnValue:
         return response.model_dump(), 200
 
     except Exception as e:
-        logger.exception(
-            "Error checking EggAlarm existence %s: %s", entity_id, str(e)
-        )
+        logger.exception("Error checking EggAlarm existence %s: %s", entity_id, str(e))
         return {"error": str(e)}, 500
 
 
@@ -547,9 +543,7 @@ async def search_entities(data: SearchRequest) -> ResponseReturnValue:
 @egg_alarms_bp.route("/find-all", methods=["GET"])
 @tag(["egg-alarms"])
 @operation_id("find_all_egg_alarms")
-@validate(
-    responses={200: (EggAlarmListResponse, None), 500: (ErrorResponse, None)}
-)
+@validate(responses={200: (EggAlarmListResponse, None), 500: (ErrorResponse, None)})
 async def find_all_entities() -> ResponseReturnValue:
     """Find all EggAlarms without filtering"""
     try:
