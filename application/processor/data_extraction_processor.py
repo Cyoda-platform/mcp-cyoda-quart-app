@@ -310,21 +310,21 @@ class DataExtractionProcessor(CyodaProcessor):
         try:
             # Create Product entity
             product = Product(
-                pet_id=record.get("pet_id"),
+                petId=record.get("pet_id"),
                 name=record["name"],
-                category_id=record.get("category_id"),
-                category_name=record.get("category_name"),
+                categoryId=record.get("category_id"),
+                categoryName=record.get("category_name"),
                 status=record["status"],
-                photo_urls=record.get("photo_urls", []),
+                photoUrls=record.get("photo_urls", []),
                 tags=record.get("tags", []),
-                extracted_at=record.get("extracted_at"),
+                extractedAt=record.get("extracted_at"),
                 # Initialize performance metrics with defaults
-                sales_volume=0,
+                salesVolume=0,
                 revenue=0.0,
-                inventory_count=10,  # Default inventory
-                performance_score=None,
-                trend_indicator=None,
-                restock_needed=False,
+                inventoryCount=10,  # Default inventory
+                performanceScore=None,
+                trendIndicator=None,
+                restockNeeded=False,
             )
 
             # Save the product
@@ -374,12 +374,14 @@ class DataExtractionProcessor(CyodaProcessor):
             entity_service = get_entity_service()
             product_data = existing_product.model_dump(by_alias=True)
 
-            response = await entity_service.update(
-                entity_id=existing_product.technical_id or existing_product.entity_id,
-                entity=product_data,
-                entity_class=Product.ENTITY_NAME,
-                entity_version=str(Product.ENTITY_VERSION),
-            )
+            entity_id = existing_product.technical_id or existing_product.entity_id
+            if entity_id:
+                response = await entity_service.update(
+                    entity_id=entity_id,
+                    entity=product_data,
+                    entity_class=Product.ENTITY_NAME,
+                    entity_version=str(Product.ENTITY_VERSION),
+                )
 
             return existing_product
 
