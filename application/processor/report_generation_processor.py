@@ -106,14 +106,13 @@ class ReportGenerationProcessor(CyodaProcessor):
                 entity_version=str(Pet.ENTITY_VERSION),
             )
 
-            pet_data = []
+            pet_data: List[Dict[str, Any]] = []
             for result in pet_results:
                 if hasattr(result, "data"):
-                    pet_dict = (
-                        result.data.model_dump()
-                        if hasattr(result.data, "model_dump")
-                        else result.data
-                    )
+                    if hasattr(result.data, "model_dump"):
+                        pet_dict = result.data.model_dump()
+                    else:
+                        pet_dict = result.data if isinstance(result.data, dict) else {}
                     pet_data.append(pet_dict)
 
             self.logger.info(f"Collected data from {len(pet_data)} pets")
@@ -139,14 +138,13 @@ class ReportGenerationProcessor(CyodaProcessor):
                 entity_version=str(Store.ENTITY_VERSION),
             )
 
-            store_data = []
+            store_data: List[Dict[str, Any]] = []
             for result in store_results:
                 if hasattr(result, "data"):
-                    store_dict = (
-                        result.data.model_dump()
-                        if hasattr(result.data, "model_dump")
-                        else result.data
-                    )
+                    if hasattr(result.data, "model_dump"):
+                        store_dict = result.data.model_dump()
+                    else:
+                        store_dict = result.data if isinstance(result.data, dict) else {}
                     store_data.append(store_dict)
 
             self.logger.info(f"Collected data from {len(store_data)} stores")
