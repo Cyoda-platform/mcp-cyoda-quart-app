@@ -7,8 +7,7 @@ functional requirements.
 """
 
 import logging
-from datetime import datetime, timezone
-from typing import Any, Dict, List
+from typing import Any, List
 
 from application.entity.product.version_1.product import Product
 from application.entity.report.version_1.report import Report
@@ -235,7 +234,7 @@ class ReportGenerationProcessor(CyodaProcessor):
             f"<p><strong>Report Period:</strong> {report.report_period_start} to {report.report_period_end}</p>",
             f"<p><strong>Generated:</strong> {report.generated_at}</p>",
             "<hr>",
-            f"<h2>Executive Summary</h2>",
+            "<h2>Executive Summary</h2>",
             f"<pre>{report.executive_summary}</pre>",
             "<hr>",
         ]
