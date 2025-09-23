@@ -1,0 +1,72 @@
+[
+    {
+        "version": "1.0",
+        "name": "DataExtraction Workflow",
+        "desc": "Workflow for DataExtraction jobs that fetch data from Pet Store API",
+        "initialState": "initial_state",
+        "active": true,
+        "states": {
+            "initial_state": {
+                "transitions": [
+                    {
+                        "name": "schedule",
+                        "next": "scheduled",
+                        "manual": false
+                    }
+                ]
+            },
+            "scheduled": {
+                "transitions": [
+                    {
+                        "name": "execute",
+                        "next": "running",
+                        "manual": false,
+                        "processors": [
+                            {
+                                "name": "DataExtractionProcessor",
+                                "executionMode": "SYNC",
+                                "config": {
+                                    "calculationNodesTags": "cyoda_application"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            },
+            "running": {
+                "transitions": [
+                    {
+                        "name": "complete",
+                        "next": "completed",
+                        "manual": false
+                    },
+                    {
+                        "name": "fail",
+                        "next": "failed",
+                        "manual": true
+                    }
+                ]
+            },
+            "failed": {
+                "transitions": [
+                    {
+                        "name": "retry",
+                        "next": "scheduled",
+                        "manual": true
+                    },
+                    {
+                        "name": "cancel",
+                        "next": "cancelled",
+                        "manual": true
+                    }
+                ]
+            },
+            "completed": {
+                "transitions": []
+            },
+            "cancelled": {
+                "transitions": []
+            }
+        }
+    }
+]
