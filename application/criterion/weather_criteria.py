@@ -8,12 +8,16 @@ email recipients, and retry limits as specified in workflow definitions.
 import logging
 from typing import Any
 
+from application.entity.emailnotification.version_1.email_notification import (
+    EmailNotification,
+)
+from application.entity.user.version_1.user import User
+from application.entity.weatherdata.version_1.weather_data import WeatherData
+from application.entity.weathersubscription.version_1.weather_subscription import (
+    WeatherSubscription,
+)
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.weathersubscription.version_1.weather_subscription import WeatherSubscription
-from application.entity.weatherdata.version_1.weather_data import WeatherData
-from application.entity.emailnotification.version_1.email_notification import EmailNotification
-from application.entity.user.version_1.user import User
 from services.services import get_entity_service
 
 
@@ -105,21 +109,21 @@ class ValidLocationCriteria(CyodaCriteriaChecker):
     async def _validate_associated_user(self, user_id: str) -> bool:
         """
         Validate that the associated user exists and is active.
-        
+
         Args:
             user_id: The user ID to validate
-            
+
         Returns:
             True if user exists and is active, False otherwise
         """
         try:
             entity_service = get_entity_service()
-            
+
             # TODO: Implement user lookup when User entity service integration is available
             # For now, assume user is valid if user_id is provided
             self.logger.info(f"Validating user {user_id} (simulated)")
             return True
-            
+
         except Exception as e:
             self.logger.error(f"Failed to validate user {user_id}: {str(e)}")
             return False
@@ -157,7 +161,10 @@ class ValidWeatherDataCriteria(CyodaCriteriaChecker):
             weather_data = cast_entity(entity, WeatherData)
 
             # Validate required fields are present
-            if not weather_data.subscription_id or len(weather_data.subscription_id.strip()) == 0:
+            if (
+                not weather_data.subscription_id
+                or len(weather_data.subscription_id.strip()) == 0
+            ):
                 self.logger.warning(
                     f"Weather data {weather_data.technical_id} has invalid subscription_id"
                 )
@@ -201,7 +208,10 @@ class ValidWeatherDataCriteria(CyodaCriteriaChecker):
                 )
                 return False
 
-            if not weather_data.weather_condition or len(weather_data.weather_condition.strip()) == 0:
+            if (
+                not weather_data.weather_condition
+                or len(weather_data.weather_condition.strip()) == 0
+            ):
                 self.logger.warning(
                     f"Weather data {weather_data.technical_id} has invalid weather condition"
                 )
@@ -271,7 +281,10 @@ class ValidRecipientCriteria(CyodaCriteriaChecker):
             notification = cast_entity(entity, EmailNotification)
 
             # Validate recipient email format (already done by entity validation)
-            if not notification.recipient_email or len(notification.recipient_email.strip()) == 0:
+            if (
+                not notification.recipient_email
+                or len(notification.recipient_email.strip()) == 0
+            ):
                 self.logger.warning(
                     f"Notification {notification.technical_id} has invalid recipient email"
                 )
@@ -285,7 +298,9 @@ class ValidRecipientCriteria(CyodaCriteriaChecker):
                 return False
 
             # Check if associated user is active and eligible for notifications
-            user_is_eligible = await self._validate_user_eligibility(notification.user_id)
+            user_is_eligible = await self._validate_user_eligibility(
+                notification.user_id
+            )
             if not user_is_eligible:
                 self.logger.warning(
                     f"Notification {notification.technical_id} user is not eligible: {notification.user_id}"
@@ -319,23 +334,25 @@ class ValidRecipientCriteria(CyodaCriteriaChecker):
     async def _validate_user_eligibility(self, user_id: str) -> bool:
         """
         Validate that the user is eligible to receive notifications.
-        
+
         Args:
             user_id: The user ID to validate
-            
+
         Returns:
             True if user is eligible, False otherwise
         """
         try:
             entity_service = get_entity_service()
-            
+
             # TODO: Implement user eligibility check when User entity service integration is available
             # This would check if user is active and in a state that allows notifications
             self.logger.info(f"Validating user eligibility {user_id} (simulated)")
             return True
-            
+
         except Exception as e:
-            self.logger.error(f"Failed to validate user eligibility {user_id}: {str(e)}")
+            self.logger.error(
+                f"Failed to validate user eligibility {user_id}: {str(e)}"
+            )
             return False
 
 
@@ -371,7 +388,9 @@ class MaxRetriesCriteria(CyodaCriteriaChecker):
             notification = cast_entity(entity, EmailNotification)
 
             # Check if maximum retry attempts have been reached
-            max_retries_reached = notification.retry_count >= notification.MAX_RETRY_ATTEMPTS
+            max_retries_reached = (
+                notification.retry_count >= notification.MAX_RETRY_ATTEMPTS
+            )
 
             if max_retries_reached:
                 self.logger.info(

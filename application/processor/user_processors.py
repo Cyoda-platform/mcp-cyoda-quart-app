@@ -8,9 +8,9 @@ Implements processors for user registration, activation, suspension, reactivatio
 import logging
 from typing import Any
 
+from application.entity.user.version_1.user import User
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.user.version_1.user import User
 from services.services import get_entity_service
 
 
@@ -52,13 +52,13 @@ class RegisterUserProcessor(CyodaProcessor):
             # Set default values if not provided
             if not user.timezone:
                 user.timezone = "UTC"
-            
+
             if not user.notification_time:
                 user.notification_time = "08:00"
-            
+
             # Set user as inactive initially (will be activated later)
             user.active = False
-            
+
             # Update timestamp
             user.update_timestamp()
 
@@ -112,9 +112,7 @@ class ActivateUserProcessor(CyodaProcessor):
             # Activate user account
             user.activate()
 
-            self.logger.info(
-                f"User {user.technical_id} activated successfully"
-            )
+            self.logger.info(f"User {user.technical_id} activated successfully")
 
             return user
 
@@ -162,9 +160,7 @@ class SuspendUserProcessor(CyodaProcessor):
             # Deactivate user account
             user.deactivate()
 
-            self.logger.info(
-                f"User {user.technical_id} suspended successfully"
-            )
+            self.logger.info(f"User {user.technical_id} suspended successfully")
 
             return user
 
@@ -212,9 +208,7 @@ class ReactivateUserProcessor(CyodaProcessor):
             # Activate user account
             user.activate()
 
-            self.logger.info(
-                f"User {user.technical_id} reactivated successfully"
-            )
+            self.logger.info(f"User {user.technical_id} reactivated successfully")
 
             return user
 
@@ -265,9 +259,7 @@ class DeleteUserProcessor(CyodaProcessor):
             # Deactivate user account
             user.deactivate()
 
-            self.logger.info(
-                f"User {user.technical_id} deleted successfully"
-            )
+            self.logger.info(f"User {user.technical_id} deleted successfully")
 
             return user
 
@@ -291,16 +283,14 @@ class DeleteUserProcessor(CyodaProcessor):
             # Note: This would require implementing a search for WeatherSubscription entities
             # For now, we'll log the intent - the actual implementation would depend on
             # the WeatherSubscription entity being available
-            
-            self.logger.info(
-                f"Deactivating all subscriptions for user {user_id}"
-            )
-            
+
+            self.logger.info(f"Deactivating all subscriptions for user {user_id}")
+
             # TODO: Implement subscription deactivation when WeatherSubscription processors are available
             # This would involve:
             # 1. Search for all WeatherSubscription entities with user_id = user_id
             # 2. For each subscription, trigger the cancel_subscription transition
-            
+
         except Exception as e:
             self.logger.error(
                 f"Failed to deactivate subscriptions for user {user_id}: {str(e)}"

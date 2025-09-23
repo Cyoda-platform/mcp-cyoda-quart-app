@@ -19,11 +19,6 @@ from quart_schema import (
     validate_querystring,
 )
 
-from common.service.entity_service import (
-    SearchConditionRequest,
-)
-from services.services import get_entity_service
-
 # Import User entity and models
 from application.entity.user.version_1.user import User
 from application.models.user_models import (
@@ -42,24 +37,33 @@ from application.models.user_models import (
     UserUpdateQueryParams,
     ValidationErrorResponse,
 )
+from common.service.entity_service import (
+    SearchConditionRequest,
+)
+from services.services import get_entity_service
+
 
 # Module-level service instance to avoid repeated lookups
 class _ServiceProxy:
     def __getattr__(self, name: str) -> Any:
         return getattr(get_entity_service(), name)
 
+
 service = _ServiceProxy()
 
 logger = logging.getLogger(__name__)
+
 
 # Helper to normalize entity data from service (Pydantic model or dict)
 def _to_entity_dict(data: Any) -> Dict[str, Any]:
     return data.model_dump(by_alias=True) if hasattr(data, "model_dump") else data
 
+
 users_bp = Blueprint("users", __name__, url_prefix="/api/users")
 
 
 # ---- Routes -----------------------------------------------------------------
+
 
 @users_bp.route("", methods=["POST"])
 @tag(["users"])
@@ -302,6 +306,7 @@ async def delete_user(entity_id: str) -> ResponseReturnValue:
 
 # ---- Additional Entity Service Endpoints ----------------------------------------
 
+
 @users_bp.route("/by-email/<email>", methods=["GET"])
 @tag(["users"])
 @operation_id("get_user_by_email")
@@ -407,6 +412,7 @@ async def get_available_transitions(entity_id: str) -> ResponseReturnValue:
 
 # ---- Search Endpoints -----------------------------------------------------------
 
+
 @users_bp.route("/search", methods=["POST"])
 @tag(["users"])
 @operation_id("search_users")
@@ -464,7 +470,9 @@ async def search_entities(data: SearchRequest) -> ResponseReturnValue:
         500: (ErrorResponse, None),
     },
 )
-async def trigger_transition(entity_id: str, data: TransitionRequest) -> ResponseReturnValue:
+async def trigger_transition(
+    entity_id: str, data: TransitionRequest
+) -> ResponseReturnValue:
     """Trigger a specific workflow transition with validation"""
     try:
         # Get current entity state
@@ -487,7 +495,9 @@ async def trigger_transition(entity_id: str, data: TransitionRequest) -> Respons
             entity_version=str(User.ENTITY_VERSION),
         )
 
-        logger.info("Executed transition '%s' on User %s", data.transition_name, entity_id)
+        logger.info(
+            "Executed transition '%s' on User %s", data.transition_name, entity_id
+        )
 
         return (
             jsonify(

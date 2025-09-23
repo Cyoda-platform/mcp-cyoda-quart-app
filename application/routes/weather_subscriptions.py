@@ -14,22 +14,30 @@ from quart import Blueprint, jsonify, request
 from quart.typing import ResponseReturnValue
 from quart_schema import operation_id, tag, validate
 
+from application.entity.weathersubscription.version_1.weather_subscription import (
+    WeatherSubscription,
+)
 from services.services import get_entity_service
-from application.entity.weathersubscription.version_1.weather_subscription import WeatherSubscription
+
 
 # Module-level service instance to avoid repeated lookups
 class _ServiceProxy:
     def __getattr__(self, name: str) -> Any:
         return getattr(get_entity_service(), name)
 
+
 service = _ServiceProxy()
 logger = logging.getLogger(__name__)
+
 
 # Helper to normalize entity data from service
 def _to_entity_dict(data: Any) -> Dict[str, Any]:
     return data.model_dump(by_alias=True) if hasattr(data, "model_dump") else data
 
-weather_subscriptions_bp = Blueprint("weather_subscriptions", __name__, url_prefix="/api/weather-subscriptions")
+
+weather_subscriptions_bp = Blueprint(
+    "weather_subscriptions", __name__, url_prefix="/api/weather-subscriptions"
+)
 
 
 @weather_subscriptions_bp.route("", methods=["POST"])
@@ -39,7 +47,7 @@ async def create_weather_subscription() -> ResponseReturnValue:
     """Create a new WeatherSubscription"""
     try:
         data = await request.get_json()
-        
+
         # Save the entity
         response = await service.save(
             entity=data,
@@ -134,7 +142,10 @@ async def delete_weather_subscription(entity_id: str) -> ResponseReturnValue:
         )
 
         logger.info("Deleted WeatherSubscription %s", entity_id)
-        return {"success": True, "message": "WeatherSubscription deleted successfully"}, 200
+        return {
+            "success": True,
+            "message": "WeatherSubscription deleted successfully",
+        }, 200
 
     except Exception as e:
         logger.exception("Error deleting WeatherSubscription %s: %s", entity_id, str(e))
@@ -148,7 +159,7 @@ async def get_subscriptions_by_user(user_id: str) -> ResponseReturnValue:
     """Get all subscriptions for a specific user"""
     try:
         from common.service.entity_service import SearchConditionRequest
-        
+
         builder = SearchConditionRequest.builder()
         builder.equals("user_id", user_id)
         condition = builder.build()

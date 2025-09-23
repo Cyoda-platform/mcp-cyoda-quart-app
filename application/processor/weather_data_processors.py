@@ -9,9 +9,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any, Dict
 
+from application.entity.weatherdata.version_1.weather_data import WeatherData
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.weatherdata.version_1.weather_data import WeatherData
 from services.services import get_entity_service
 
 
@@ -51,8 +51,10 @@ class StartFetchProcessor(CyodaProcessor):
 
             # Set fetch timestamp if not already set
             if not weather_data.fetch_timestamp:
-                weather_data.fetch_timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-            
+                weather_data.fetch_timestamp = (
+                    datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+                )
+
             # Update timestamp
             weather_data.update_timestamp()
 
@@ -108,16 +110,24 @@ class ProcessWeatherDataProcessor(CyodaProcessor):
             # 1. Fetch data from MSC GeoMet API using coordinates
             # 2. Parse and validate the response
             # 3. Update the weather data fields
-            
+
             processed_data = await self._fetch_from_msc_geomet_api(weather_data)
-            
+
             # Update weather data with processed information
             if processed_data:
-                weather_data.temperature = processed_data.get("temperature", weather_data.temperature)
-                weather_data.humidity = processed_data.get("humidity", weather_data.humidity)
-                weather_data.wind_speed = processed_data.get("wind_speed", weather_data.wind_speed)
-                weather_data.weather_condition = processed_data.get("weather_condition", weather_data.weather_condition)
-            
+                weather_data.temperature = processed_data.get(
+                    "temperature", weather_data.temperature
+                )
+                weather_data.humidity = processed_data.get(
+                    "humidity", weather_data.humidity
+                )
+                weather_data.wind_speed = processed_data.get(
+                    "wind_speed", weather_data.wind_speed
+                )
+                weather_data.weather_condition = processed_data.get(
+                    "weather_condition", weather_data.weather_condition
+                )
+
             # Update timestamp
             weather_data.update_timestamp()
 
@@ -133,13 +143,15 @@ class ProcessWeatherDataProcessor(CyodaProcessor):
             )
             raise
 
-    async def _fetch_from_msc_geomet_api(self, weather_data: WeatherData) -> Dict[str, Any]:
+    async def _fetch_from_msc_geomet_api(
+        self, weather_data: WeatherData
+    ) -> Dict[str, Any]:
         """
         Fetch weather data from MSC GeoMet API.
-        
+
         Args:
             weather_data: The weather data entity with coordinates
-            
+
         Returns:
             Dictionary with processed weather data
         """
@@ -150,7 +162,7 @@ class ProcessWeatherDataProcessor(CyodaProcessor):
                 f"Fetching weather data from MSC GeoMet API for coordinates "
                 f"({weather_data.latitude}, {weather_data.longitude})"
             )
-            
+
             # Simulate API response processing
             return {
                 "temperature": weather_data.temperature,
@@ -158,7 +170,7 @@ class ProcessWeatherDataProcessor(CyodaProcessor):
                 "wind_speed": weather_data.wind_speed,
                 "weather_condition": weather_data.weather_condition,
             }
-            
+
         except Exception as e:
             self.logger.error(f"Failed to fetch from MSC GeoMet API: {str(e)}")
             return {}
@@ -200,7 +212,7 @@ class PrepareNotificationProcessor(CyodaProcessor):
 
             # Create email notifications for users subscribed to this location
             await self._create_email_notifications(weather_data)
-            
+
             # Update timestamp
             weather_data.update_timestamp()
 
@@ -219,24 +231,24 @@ class PrepareNotificationProcessor(CyodaProcessor):
     async def _create_email_notifications(self, weather_data: WeatherData) -> None:
         """
         Create email notifications for weather data.
-        
+
         Args:
             weather_data: The weather data to create notifications for
         """
         try:
             entity_service = get_entity_service()
-            
+
             self.logger.info(
                 f"Creating email notifications for weather data {weather_data.technical_id}"
             )
-            
+
             # TODO: Implement email notification creation when EmailNotification processors are available
             # This would involve:
             # 1. Find the subscription associated with this weather data
             # 2. Find the user associated with the subscription
             # 3. Create EmailNotification entities with formatted content
             # 4. Save the notifications to trigger the email workflow
-            
+
         except Exception as e:
             self.logger.error(
                 f"Failed to create email notifications for weather data {weather_data.technical_id}: {str(e)}"
@@ -284,7 +296,7 @@ class ExpireDataProcessor(CyodaProcessor):
                     f"Weather data {weather_data.technical_id} is not yet expired, "
                     f"but expiration was requested"
                 )
-            
+
             # Update timestamp to mark expiration processing
             weather_data.update_timestamp()
 

@@ -14,20 +14,24 @@ from quart import Blueprint, jsonify, request
 from quart.typing import ResponseReturnValue
 from quart_schema import operation_id, tag
 
-from services.services import get_entity_service
 from application.entity.weatherdata.version_1.weather_data import WeatherData
+from services.services import get_entity_service
+
 
 # Module-level service instance to avoid repeated lookups
 class _ServiceProxy:
     def __getattr__(self, name: str) -> Any:
         return getattr(get_entity_service(), name)
 
+
 service = _ServiceProxy()
 logger = logging.getLogger(__name__)
+
 
 # Helper to normalize entity data from service
 def _to_entity_dict(data: Any) -> Dict[str, Any]:
     return data.model_dump(by_alias=True) if hasattr(data, "model_dump") else data
+
 
 weather_data_bp = Blueprint("weather_data", __name__, url_prefix="/api/weather-data")
 
@@ -39,7 +43,7 @@ async def create_weather_data() -> ResponseReturnValue:
     """Create new WeatherData"""
     try:
         data = await request.get_json()
-        
+
         response = await service.save(
             entity=data,
             entity_class=WeatherData.ENTITY_NAME,
@@ -147,7 +151,7 @@ async def get_weather_data_by_subscription(subscription_id: str) -> ResponseRetu
     """Get all weather data for a specific subscription"""
     try:
         from common.service.entity_service import SearchConditionRequest
-        
+
         builder = SearchConditionRequest.builder()
         builder.equals("subscription_id", subscription_id)
         condition = builder.build()
@@ -162,5 +166,9 @@ async def get_weather_data_by_subscription(subscription_id: str) -> ResponseRetu
         return {"weather_data": entity_list, "total": len(entity_list)}, 200
 
     except Exception as e:
-        logger.exception("Error getting weather data for subscription %s: %s", subscription_id, str(e))
+        logger.exception(
+            "Error getting weather data for subscription %s: %s",
+            subscription_id,
+            str(e),
+        )
         return {"error": str(e)}, 500

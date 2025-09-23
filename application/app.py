@@ -5,12 +5,16 @@ from typing import Callable, Dict, Optional
 from quart import Quart, Response
 from quart_schema import QuartSchema, ResponseSchemaValidationError, hide
 
+from application.routes.email_notifications import email_notifications_bp
+
+# Import blueprints for different route groups
+from application.routes.users import users_bp
+from application.routes.weather_data import weather_data_bp
+from application.routes.weather_subscriptions import weather_subscriptions_bp
 from common.exception.exception_handler import (
     register_error_handlers as _register_error_handlers,
 )
 from services.services import get_grpc_client, initialize_services
-
-# Import blueprints for different route groups
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -23,10 +27,21 @@ QuartSchema(
     info={"title": "Cyoda Client Application", "version": "1.0.0"},
     tags=[
         {
-            "name": "ExampleEntities",
-            "description": "ExampleEntity management endpoints",
+            "name": "users",
+            "description": "User management endpoints",
         },
-        {"name": "OtherEntities", "description": "OtherEntity management endpoints"},
+        {
+            "name": "weather-subscriptions",
+            "description": "Weather subscription management endpoints",
+        },
+        {
+            "name": "weather-data",
+            "description": "Weather data management endpoints",
+        },
+        {
+            "name": "email-notifications",
+            "description": "Email notification management endpoints",
+        },
         {"name": "System", "description": "System and health endpoints"},
     ],
     security=[{"bearerAuth": []}],
@@ -109,6 +124,13 @@ async def shutdown() -> None:
             _background_task = None
 
     logger.info("Application shutdown complete")
+
+
+# Register all blueprints
+app.register_blueprint(users_bp)
+app.register_blueprint(weather_subscriptions_bp)
+app.register_blueprint(weather_data_bp)
+app.register_blueprint(email_notifications_bp)
 
 
 # Middleware to add CORS headers to every response

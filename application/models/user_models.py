@@ -75,7 +75,13 @@ class UserQueryParams(BaseModel):
     def validate_state(cls, v: Optional[str]) -> Optional[str]:
         if v is None:
             return v
-        allowed_states = ["initial_state", "registered", "active", "suspended", "deleted"]
+        allowed_states = [
+            "initial_state",
+            "registered",
+            "active",
+            "suspended",
+            "deleted",
+        ]
         if v not in allowed_states:
             raise ValueError(f"State must be one of: {allowed_states}")
         return v
@@ -95,10 +101,10 @@ class UserUpdateQueryParams(BaseModel):
             return v
         allowed_transitions = [
             "register_user",
-            "activate_user", 
+            "activate_user",
             "suspend_user",
             "reactivate_user",
-            "delete_user"
+            "delete_user",
         ]
         if v not in allowed_transitions:
             raise ValueError(f"Transition must be one of: {allowed_transitions}")
@@ -120,10 +126,10 @@ class TransitionRequest(BaseModel):
     def validate_transition_name(cls, v: str) -> str:
         allowed_transitions = [
             "register_user",
-            "activate_user", 
+            "activate_user",
             "suspend_user",
             "reactivate_user",
-            "delete_user"
+            "delete_user",
         ]
         if v not in allowed_transitions:
             raise ValueError(f"Transition must be one of: {allowed_transitions}")

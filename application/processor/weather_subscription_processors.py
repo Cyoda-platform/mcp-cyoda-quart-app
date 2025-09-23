@@ -8,9 +8,11 @@ Implements processors for subscription creation, activation, pausing, resuming, 
 import logging
 from typing import Any
 
+from application.entity.weathersubscription.version_1.weather_subscription import (
+    WeatherSubscription,
+)
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.weathersubscription.version_1.weather_subscription import WeatherSubscription
 from services.services import get_entity_service
 
 
@@ -51,10 +53,10 @@ class CreateSubscriptionProcessor(CyodaProcessor):
             # Set default values if not provided
             if not subscription.frequency:
                 subscription.frequency = "daily"
-            
+
             # Set subscription as active by default
             subscription.active = True
-            
+
             # Update timestamp
             subscription.update_timestamp()
 
@@ -287,16 +289,16 @@ class CancelSubscriptionProcessor(CyodaProcessor):
             # Note: This would require implementing a search for WeatherData entities
             # For now, we'll log the intent - the actual implementation would depend on
             # the WeatherData entity being available
-            
+
             self.logger.info(
                 f"Cancelling weather data fetching for subscription {subscription_id}"
             )
-            
+
             # TODO: Implement weather data cancellation when WeatherData processors are available
             # This would involve:
             # 1. Search for all WeatherData entities with subscription_id = subscription_id
             # 2. For each weather data, trigger the expire_data transition if in active states
-            
+
         except Exception as e:
             self.logger.error(
                 f"Failed to cancel weather data for subscription {subscription_id}: {str(e)}"

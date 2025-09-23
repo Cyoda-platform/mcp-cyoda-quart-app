@@ -14,22 +14,30 @@ from quart import Blueprint, jsonify, request
 from quart.typing import ResponseReturnValue
 from quart_schema import operation_id, tag
 
+from application.entity.emailnotification.version_1.email_notification import (
+    EmailNotification,
+)
 from services.services import get_entity_service
-from application.entity.emailnotification.version_1.email_notification import EmailNotification
+
 
 # Module-level service instance to avoid repeated lookups
 class _ServiceProxy:
     def __getattr__(self, name: str) -> Any:
         return getattr(get_entity_service(), name)
 
+
 service = _ServiceProxy()
 logger = logging.getLogger(__name__)
+
 
 # Helper to normalize entity data from service
 def _to_entity_dict(data: Any) -> Dict[str, Any]:
     return data.model_dump(by_alias=True) if hasattr(data, "model_dump") else data
 
-email_notifications_bp = Blueprint("email_notifications", __name__, url_prefix="/api/email-notifications")
+
+email_notifications_bp = Blueprint(
+    "email_notifications", __name__, url_prefix="/api/email-notifications"
+)
 
 
 @email_notifications_bp.route("", methods=["POST"])
@@ -39,7 +47,7 @@ async def create_email_notification() -> ResponseReturnValue:
     """Create new EmailNotification"""
     try:
         data = await request.get_json()
-        
+
         response = await service.save(
             entity=data,
             entity_class=EmailNotification.ENTITY_NAME,
@@ -133,7 +141,10 @@ async def delete_email_notification(entity_id: str) -> ResponseReturnValue:
         )
 
         logger.info("Deleted EmailNotification %s", entity_id)
-        return {"success": True, "message": "EmailNotification deleted successfully"}, 200
+        return {
+            "success": True,
+            "message": "EmailNotification deleted successfully",
+        }, 200
 
     except Exception as e:
         logger.exception("Error deleting EmailNotification %s: %s", entity_id, str(e))
@@ -147,7 +158,7 @@ async def get_notifications_by_user(user_id: str) -> ResponseReturnValue:
     """Get all notifications for a specific user"""
     try:
         from common.service.entity_service import SearchConditionRequest
-        
+
         builder = SearchConditionRequest.builder()
         builder.equals("user_id", user_id)
         condition = builder.build()
@@ -173,7 +184,7 @@ async def get_notifications_by_status(status: str) -> ResponseReturnValue:
     """Get all notifications with specific delivery status"""
     try:
         from common.service.entity_service import SearchConditionRequest
-        
+
         builder = SearchConditionRequest.builder()
         builder.equals("delivery_status", status)
         condition = builder.build()

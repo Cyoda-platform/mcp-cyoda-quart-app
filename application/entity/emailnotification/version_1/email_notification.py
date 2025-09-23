@@ -19,7 +19,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class EmailNotification(CyodaEntity):
     """
     EmailNotification entity represents an email notification for weather updates.
-    
+
     Manages email delivery with status tracking, retry logic, and content management.
     The state field manages workflow states: initial_state -> pending -> sending -> sent/failed
     """
@@ -64,7 +64,12 @@ class EmailNotification(CyodaEntity):
 
     # Business constants
     MAX_RETRY_ATTEMPTS: ClassVar[int] = 3
-    ALLOWED_DELIVERY_STATUSES: ClassVar[List[str]] = ["pending", "sending", "sent", "failed"]
+    ALLOWED_DELIVERY_STATUSES: ClassVar[List[str]] = [
+        "pending",
+        "sending",
+        "sent",
+        "failed",
+    ]
 
     @field_validator("user_id")
     @classmethod
@@ -72,10 +77,10 @@ class EmailNotification(CyodaEntity):
         """Validate user_id field"""
         if not v or len(v.strip()) == 0:
             raise ValueError("User ID must be non-empty")
-        
+
         if len(v) > 255:
             raise ValueError("User ID must be at most 255 characters long")
-        
+
         return v.strip()
 
     @field_validator("weather_data_id")
@@ -84,10 +89,10 @@ class EmailNotification(CyodaEntity):
         """Validate weather_data_id field"""
         if not v or len(v.strip()) == 0:
             raise ValueError("Weather Data ID must be non-empty")
-        
+
         if len(v) > 255:
             raise ValueError("Weather Data ID must be at most 255 characters long")
-        
+
         return v.strip()
 
     @field_validator("recipient_email")
@@ -96,15 +101,15 @@ class EmailNotification(CyodaEntity):
         """Validate recipient_email field"""
         if not v or len(v.strip()) == 0:
             raise ValueError("Recipient email must be non-empty")
-        
+
         # Basic email format validation
-        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
         if not re.match(email_pattern, v.strip()):
             raise ValueError("Recipient email must be valid format")
-        
+
         if len(v) > 255:
             raise ValueError("Recipient email must be at most 255 characters long")
-        
+
         return v.strip().lower()
 
     @field_validator("subject")
@@ -113,10 +118,10 @@ class EmailNotification(CyodaEntity):
         """Validate subject field"""
         if not v or len(v.strip()) == 0:
             raise ValueError("Subject must be non-empty")
-        
+
         if len(v) > 255:
             raise ValueError("Subject must be at most 255 characters long")
-        
+
         return v.strip()
 
     @field_validator("content")
@@ -125,10 +130,10 @@ class EmailNotification(CyodaEntity):
         """Validate content field"""
         if not v or len(v.strip()) == 0:
             raise ValueError("Content must be non-empty")
-        
+
         if len(v) > 10000:  # Allow longer content for email body
             raise ValueError("Content must be at most 10000 characters long")
-        
+
         return v.strip()
 
     @field_validator("sent_timestamp")
@@ -137,16 +142,16 @@ class EmailNotification(CyodaEntity):
         """Validate sent_timestamp field (ISO 8601 format)"""
         if v is None:
             return v
-        
+
         if len(v.strip()) == 0:
             return None
-        
+
         # Try to parse the timestamp to validate format
         try:
             datetime.fromisoformat(v.replace("Z", "+00:00"))
         except ValueError:
             raise ValueError("Sent timestamp must be in ISO 8601 format")
-        
+
         return v.strip()
 
     @field_validator("delivery_status")
@@ -155,11 +160,13 @@ class EmailNotification(CyodaEntity):
         """Validate delivery_status field"""
         if not v or len(v.strip()) == 0:
             return "pending"
-        
+
         v_clean = v.strip().lower()
         if v_clean not in cls.ALLOWED_DELIVERY_STATUSES:
-            raise ValueError(f"Delivery status must be one of: {cls.ALLOWED_DELIVERY_STATUSES}")
-        
+            raise ValueError(
+                f"Delivery status must be one of: {cls.ALLOWED_DELIVERY_STATUSES}"
+            )
+
         return v_clean
 
     @field_validator("retry_count")
@@ -168,10 +175,10 @@ class EmailNotification(CyodaEntity):
         """Validate retry_count field"""
         if v < 0:
             raise ValueError("Retry count must be non-negative")
-        
+
         if v > cls.MAX_RETRY_ATTEMPTS:
             raise ValueError(f"Retry count must not exceed {cls.MAX_RETRY_ATTEMPTS}")
-        
+
         return v
 
     @model_validator(mode="after")
@@ -179,13 +186,17 @@ class EmailNotification(CyodaEntity):
         """Validate business logic rules"""
         # Business rule: Maximum 3 retry attempts for failed emails
         if self.retry_count > self.MAX_RETRY_ATTEMPTS:
-            raise ValueError(f"Maximum retry attempts ({self.MAX_RETRY_ATTEMPTS}) exceeded")
-        
+            raise ValueError(
+                f"Maximum retry attempts ({self.MAX_RETRY_ATTEMPTS}) exceeded"
+            )
+
         # Business rule: sent_timestamp should be set when status is 'sent'
         if self.delivery_status == "sent" and self.sent_timestamp is None:
             # Auto-set sent_timestamp if not provided
-            self.sent_timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-        
+            self.sent_timestamp = (
+                datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            )
+
         return self
 
     def update_timestamp(self) -> None:
@@ -195,7 +206,9 @@ class EmailNotification(CyodaEntity):
     def mark_as_sent(self) -> None:
         """Mark notification as successfully sent"""
         self.delivery_status = "sent"
-        self.sent_timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.sent_timestamp = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
         self.update_timestamp()
 
     def mark_as_failed(self) -> None:
@@ -212,15 +225,15 @@ class EmailNotification(CyodaEntity):
     def can_retry(self) -> bool:
         """Check if notification can be retried"""
         return (
-            self.delivery_status == "failed" and 
-            self.retry_count < self.MAX_RETRY_ATTEMPTS
+            self.delivery_status == "failed"
+            and self.retry_count < self.MAX_RETRY_ATTEMPTS
         )
 
     def is_delivery_complete(self) -> bool:
         """Check if delivery is complete (sent or permanently failed)"""
-        return (
-            self.delivery_status == "sent" or 
-            (self.delivery_status == "failed" and self.retry_count >= self.MAX_RETRY_ATTEMPTS)
+        return self.delivery_status == "sent" or (
+            self.delivery_status == "failed"
+            and self.retry_count >= self.MAX_RETRY_ATTEMPTS
         )
 
     def to_api_response(self) -> Dict[str, Any]:

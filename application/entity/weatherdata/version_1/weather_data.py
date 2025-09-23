@@ -18,7 +18,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class WeatherData(CyodaEntity):
     """
     WeatherData entity represents weather information fetched from MSC GeoMet API.
-    
+
     Stores weather data including temperature, humidity, wind speed, and conditions for specific locations.
     The state field manages workflow states: initial_state -> fetching -> processed -> notification_ready -> expired
     """
@@ -67,10 +67,10 @@ class WeatherData(CyodaEntity):
         """Validate subscription_id field"""
         if not v or len(v.strip()) == 0:
             raise ValueError("Subscription ID must be non-empty")
-        
+
         if len(v) > 255:
             raise ValueError("Subscription ID must be at most 255 characters long")
-        
+
         return v.strip()
 
     @field_validator("location")
@@ -79,13 +79,13 @@ class WeatherData(CyodaEntity):
         """Validate location field"""
         if not v or len(v.strip()) == 0:
             raise ValueError("Location must be non-empty")
-        
+
         if len(v) < 3:
             raise ValueError("Location must be at least 3 characters long")
-        
+
         if len(v) > 255:
             raise ValueError("Location must be at most 255 characters long")
-        
+
         return v.strip()
 
     @field_validator("latitude")
@@ -94,7 +94,7 @@ class WeatherData(CyodaEntity):
         """Validate latitude field (must be between -90 and 90)"""
         if v < -90.0 or v > 90.0:
             raise ValueError("Latitude must be between -90 and 90 degrees")
-        
+
         return v
 
     @field_validator("longitude")
@@ -103,7 +103,7 @@ class WeatherData(CyodaEntity):
         """Validate longitude field (must be between -180 and 180)"""
         if v < -180.0 or v > 180.0:
             raise ValueError("Longitude must be between -180 and 180 degrees")
-        
+
         return v
 
     @field_validator("temperature")
@@ -112,7 +112,7 @@ class WeatherData(CyodaEntity):
         """Validate temperature field (reasonable range in Celsius)"""
         if v < -100.0 or v > 100.0:
             raise ValueError("Temperature must be between -100 and 100 degrees Celsius")
-        
+
         return v
 
     @field_validator("humidity")
@@ -121,7 +121,7 @@ class WeatherData(CyodaEntity):
         """Validate humidity field (percentage 0-100)"""
         if v < 0.0 or v > 100.0:
             raise ValueError("Humidity must be between 0 and 100 percent")
-        
+
         return v
 
     @field_validator("wind_speed")
@@ -130,10 +130,10 @@ class WeatherData(CyodaEntity):
         """Validate wind_speed field (non-negative km/h)"""
         if v < 0.0:
             raise ValueError("Wind speed must be non-negative")
-        
+
         if v > 500.0:  # Reasonable upper limit
             raise ValueError("Wind speed must be less than 500 km/h")
-        
+
         return v
 
     @field_validator("weather_condition")
@@ -142,10 +142,10 @@ class WeatherData(CyodaEntity):
         """Validate weather_condition field"""
         if not v or len(v.strip()) == 0:
             raise ValueError("Weather condition must be non-empty")
-        
+
         if len(v) > 100:
             raise ValueError("Weather condition must be at most 100 characters long")
-        
+
         return v.strip()
 
     @field_validator("fetch_timestamp")
@@ -154,13 +154,13 @@ class WeatherData(CyodaEntity):
         """Validate fetch_timestamp field (ISO 8601 format)"""
         if not v or len(v.strip()) == 0:
             raise ValueError("Fetch timestamp must be non-empty")
-        
+
         # Try to parse the timestamp to validate format
         try:
             datetime.fromisoformat(v.replace("Z", "+00:00"))
         except ValueError:
             raise ValueError("Fetch timestamp must be in ISO 8601 format")
-        
+
         return v.strip()
 
     @field_validator("forecast_date")
@@ -169,13 +169,13 @@ class WeatherData(CyodaEntity):
         """Validate forecast_date field (YYYY-MM-DD format)"""
         if not v or len(v.strip()) == 0:
             raise ValueError("Forecast date must be non-empty")
-        
+
         # Try to parse the date to validate format
         try:
             datetime.strptime(v.strip(), "%Y-%m-%d")
         except ValueError:
             raise ValueError("Forecast date must be in YYYY-MM-DD format")
-        
+
         return v.strip()
 
     @model_validator(mode="after")
@@ -183,7 +183,7 @@ class WeatherData(CyodaEntity):
         """Validate business logic rules"""
         # Business rule: Data expires after 24 hours
         # This is enforced at the application level through workflow transitions
-        
+
         return self
 
     def update_timestamp(self) -> None:
@@ -193,7 +193,9 @@ class WeatherData(CyodaEntity):
     def is_expired(self) -> bool:
         """Check if weather data is expired (older than 24 hours)"""
         try:
-            fetch_time = datetime.fromisoformat(self.fetch_timestamp.replace("Z", "+00:00"))
+            fetch_time = datetime.fromisoformat(
+                self.fetch_timestamp.replace("Z", "+00:00")
+            )
             current_time = datetime.now(timezone.utc)
             age_hours = (current_time - fetch_time).total_seconds() / 3600
             return age_hours > 24

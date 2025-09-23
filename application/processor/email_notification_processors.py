@@ -9,9 +9,11 @@ import logging
 from datetime import datetime, timezone
 from typing import Any, Dict
 
+from application.entity.emailnotification.version_1.email_notification import (
+    EmailNotification,
+)
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.emailnotification.version_1.email_notification import EmailNotification
 from services.services import get_entity_service
 
 
@@ -52,10 +54,10 @@ class CreateNotificationProcessor(CyodaProcessor):
             # Set default values if not provided
             if not notification.delivery_status:
                 notification.delivery_status = "pending"
-            
+
             if notification.retry_count is None:
                 notification.retry_count = 0
-            
+
             # Update timestamp
             notification.update_timestamp()
 
@@ -112,7 +114,7 @@ class SendEmailProcessor(CyodaProcessor):
 
             # Attempt to send email
             success = await self._send_email_via_smtp(notification)
-            
+
             if success:
                 # Mark as sent
                 notification.mark_as_sent()
@@ -142,10 +144,10 @@ class SendEmailProcessor(CyodaProcessor):
     async def _send_email_via_smtp(self, notification: EmailNotification) -> bool:
         """
         Send email via SMTP service.
-        
+
         Args:
             notification: The email notification to send
-            
+
         Returns:
             True if email was sent successfully, False otherwise
         """
@@ -155,11 +157,11 @@ class SendEmailProcessor(CyodaProcessor):
             self.logger.info(
                 f"Sending email to {notification.recipient_email} with subject: {notification.subject}"
             )
-            
+
             # Simulate email sending success/failure
             # In real implementation, this would use SMTP library
             return True  # Simulate success
-            
+
         except Exception as e:
             self.logger.error(f"SMTP sending failed: {str(e)}")
             return False
@@ -320,7 +322,7 @@ class RetrySendProcessor(CyodaProcessor):
 
             # Attempt to send email again
             success = await self._send_email_via_smtp(notification)
-            
+
             if success:
                 # Mark as sent
                 notification.mark_as_sent()
@@ -350,10 +352,10 @@ class RetrySendProcessor(CyodaProcessor):
     async def _send_email_via_smtp(self, notification: EmailNotification) -> bool:
         """
         Send email via SMTP service (same as SendEmailProcessor).
-        
+
         Args:
             notification: The email notification to send
-            
+
         Returns:
             True if email was sent successfully, False otherwise
         """
@@ -363,11 +365,11 @@ class RetrySendProcessor(CyodaProcessor):
             self.logger.info(
                 f"Retrying email to {notification.recipient_email} with subject: {notification.subject}"
             )
-            
+
             # Simulate email sending success/failure
             # In real implementation, this would use SMTP library
             return True  # Simulate success
-            
+
         except Exception as e:
             self.logger.error(f"SMTP retry sending failed: {str(e)}")
             return False

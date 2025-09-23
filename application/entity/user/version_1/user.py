@@ -19,7 +19,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class User(CyodaEntity):
     """
     User entity represents a user account for weather notification system.
-    
+
     Manages user information including email, timezone preferences, and notification settings.
     The state field manages workflow states: initial_state -> registered -> active -> suspended/deleted
     """
@@ -37,11 +37,10 @@ class User(CyodaEntity):
         default="UTC", description="User's timezone for scheduling notifications"
     )
     notification_time: str = Field(
-        default="08:00", description="Preferred time for daily notifications (24-hour format)"
+        default="08:00",
+        description="Preferred time for daily notifications (24-hour format)",
     )
-    active: bool = Field(
-        default=True, description="Whether user account is active"
-    )
+    active: bool = Field(default=True, description="Whether user account is active")
 
     # Timestamps (inherited created_at from CyodaEntity)
     created_at: Optional[str] = Field(
@@ -63,15 +62,15 @@ class User(CyodaEntity):
         """Validate email field according to business rules"""
         if not v or len(v.strip()) == 0:
             raise ValueError("Email must be non-empty")
-        
+
         # Basic email format validation
-        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
         if not re.match(email_pattern, v.strip()):
             raise ValueError("Email must be valid format")
-        
+
         if len(v) > 255:
             raise ValueError("Email must be at most 255 characters long")
-        
+
         return v.strip().lower()
 
     @field_validator("name")
@@ -80,13 +79,13 @@ class User(CyodaEntity):
         """Validate name field"""
         if v is None:
             return v
-        
+
         if len(v.strip()) == 0:
             return None  # Empty string becomes None
-        
+
         if len(v) > 100:
             raise ValueError("Name must be at most 100 characters long")
-        
+
         return v.strip()
 
     @field_validator("timezone")
@@ -95,18 +94,24 @@ class User(CyodaEntity):
         """Validate timezone field"""
         if not v or len(v.strip()) == 0:
             return "UTC"
-        
+
         # Basic timezone validation - accept common formats
         valid_timezones = [
-            "UTC", "America/Toronto", "America/Vancouver", "America/New_York",
-            "America/Los_Angeles", "Europe/London", "Europe/Paris", "Asia/Tokyo"
+            "UTC",
+            "America/Toronto",
+            "America/Vancouver",
+            "America/New_York",
+            "America/Los_Angeles",
+            "Europe/London",
+            "Europe/Paris",
+            "Asia/Tokyo",
         ]
-        
+
         if v not in valid_timezones:
             # Allow any timezone format that looks reasonable
-            if not re.match(r'^[A-Za-z_/]+$', v):
+            if not re.match(r"^[A-Za-z_/]+$", v):
                 raise ValueError("Timezone must be a valid timezone identifier")
-        
+
         return v
 
     @field_validator("notification_time")
@@ -115,12 +120,12 @@ class User(CyodaEntity):
         """Validate notification_time field (24-hour format)"""
         if not v or len(v.strip()) == 0:
             return "08:00"
-        
+
         # Validate 24-hour format HH:MM
-        time_pattern = r'^([01]?[0-9]|2[0-3]):[0-5][0-9]$'
+        time_pattern = r"^([01]?[0-9]|2[0-3]):[0-5][0-9]$"
         if not re.match(time_pattern, v.strip()):
             raise ValueError("Notification time must be in 24-hour format (HH:MM)")
-        
+
         return v.strip()
 
     @model_validator(mode="after")
@@ -128,7 +133,7 @@ class User(CyodaEntity):
         """Validate business logic rules"""
         # Business rule: Only active users receive notifications
         # This is enforced at the application level, not at the entity level
-        
+
         return self
 
     def update_timestamp(self) -> None:

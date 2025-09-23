@@ -18,7 +18,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class WeatherSubscription(CyodaEntity):
     """
     WeatherSubscription entity represents a user's subscription to weather updates for a specific location.
-    
+
     Manages location-based subscriptions with coordinates, frequency, and active status.
     The state field manages workflow states: initial_state -> created -> active -> paused/cancelled
     """
@@ -30,7 +30,8 @@ class WeatherSubscription(CyodaEntity):
     # Required fields from functional requirements
     user_id: str = Field(..., description="Reference to User entity (required)")
     location: str = Field(
-        ..., description="Geographic location (city, province/state, country) (required)"
+        ...,
+        description="Geographic location (city, province/state, country) (required)",
     )
     latitude: float = Field(
         ..., description="Location latitude for API calls (required)"
@@ -41,9 +42,7 @@ class WeatherSubscription(CyodaEntity):
     frequency: str = Field(
         default="daily", description="Notification frequency (daily, weekly)"
     )
-    active: bool = Field(
-        default=True, description="Whether subscription is active"
-    )
+    active: bool = Field(default=True, description="Whether subscription is active")
 
     # Timestamps (inherited created_at from CyodaEntity)
     created_at: Optional[str] = Field(
@@ -68,10 +67,10 @@ class WeatherSubscription(CyodaEntity):
         """Validate user_id field"""
         if not v or len(v.strip()) == 0:
             raise ValueError("User ID must be non-empty")
-        
+
         if len(v) > 255:
             raise ValueError("User ID must be at most 255 characters long")
-        
+
         return v.strip()
 
     @field_validator("location")
@@ -80,13 +79,13 @@ class WeatherSubscription(CyodaEntity):
         """Validate location field"""
         if not v or len(v.strip()) == 0:
             raise ValueError("Location must be non-empty")
-        
+
         if len(v) < 3:
             raise ValueError("Location must be at least 3 characters long")
-        
+
         if len(v) > 255:
             raise ValueError("Location must be at most 255 characters long")
-        
+
         return v.strip()
 
     @field_validator("latitude")
@@ -95,7 +94,7 @@ class WeatherSubscription(CyodaEntity):
         """Validate latitude field (must be between -90 and 90)"""
         if v < -90.0 or v > 90.0:
             raise ValueError("Latitude must be between -90 and 90 degrees")
-        
+
         return v
 
     @field_validator("longitude")
@@ -104,7 +103,7 @@ class WeatherSubscription(CyodaEntity):
         """Validate longitude field (must be between -180 and 180)"""
         if v < -180.0 or v > 180.0:
             raise ValueError("Longitude must be between -180 and 180 degrees")
-        
+
         return v
 
     @field_validator("frequency")
@@ -113,11 +112,11 @@ class WeatherSubscription(CyodaEntity):
         """Validate frequency field"""
         if not v or len(v.strip()) == 0:
             return "daily"
-        
+
         v_clean = v.strip().lower()
         if v_clean not in cls.ALLOWED_FREQUENCIES:
             raise ValueError(f"Frequency must be one of: {cls.ALLOWED_FREQUENCIES}")
-        
+
         return v_clean
 
     @model_validator(mode="after")
@@ -125,10 +124,10 @@ class WeatherSubscription(CyodaEntity):
         """Validate business logic rules"""
         # Business rule: Location coordinates must be valid
         # This is already handled by individual field validators
-        
+
         # Business rule: Only active subscriptions generate notifications
         # This is enforced at the application level
-        
+
         return self
 
     def update_timestamp(self) -> None:
