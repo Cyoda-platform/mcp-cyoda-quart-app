@@ -11,6 +11,8 @@ from common.exception.exception_handler import (
 from services.services import get_grpc_client, initialize_services
 
 # Import blueprints for different route groups
+from application.routes.weather_stations import weather_stations_bp
+from application.routes.weather_data import weather_data_bp
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -18,10 +20,22 @@ logger.setLevel(logging.INFO)
 
 app = Quart(__name__)
 
+# Register blueprints
+app.register_blueprint(weather_stations_bp)
+app.register_blueprint(weather_data_bp)
+
 QuartSchema(
     app,
     info={"title": "Cyoda Client Application", "version": "1.0.0"},
     tags=[
+        {
+            "name": "weather-stations",
+            "description": "Weather station management endpoints",
+        },
+        {
+            "name": "weather-data",
+            "description": "Weather data management endpoints",
+        },
         {
             "name": "ExampleEntities",
             "description": "ExampleEntity management endpoints",
