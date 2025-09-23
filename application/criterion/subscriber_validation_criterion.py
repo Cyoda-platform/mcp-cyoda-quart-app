@@ -7,9 +7,9 @@ proceed to the active state as specified in functional requirements.
 
 from typing import Any
 
+from application.entity.subscriber.version_1.subscriber import Subscriber
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.subscriber.version_1.subscriber import Subscriber
 
 
 class SubscriberValidationCriterion(CyodaCriteriaChecker):
@@ -70,11 +70,11 @@ class SubscriberValidationCriterion(CyodaCriteriaChecker):
                     parts = subscriber.preferred_time.split(":")
                     if len(parts) != 2:
                         raise ValueError("Invalid time format")
-                    
+
                     hour, minute = int(parts[0]), int(parts[1])
                     if not (0 <= hour <= 23) or not (0 <= minute <= 59):
                         raise ValueError("Invalid time values")
-                        
+
                 except (ValueError, IndexError):
                     self.logger.warning(
                         f"Subscriber {subscriber.technical_id} has invalid preferred time: {subscriber.preferred_time}"

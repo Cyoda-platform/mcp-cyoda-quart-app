@@ -18,7 +18,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class EmailCampaign(CyodaEntity):
     """
     EmailCampaign represents a weekly email campaign that sends cat facts to subscribers.
-    
+
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     The state field manages workflow states: initial_state -> created -> sending -> completed
     """
@@ -28,108 +28,111 @@ class EmailCampaign(CyodaEntity):
     ENTITY_VERSION: ClassVar[int] = 1
 
     # Required fields
-    campaign_name: str = Field(..., alias="campaignName", description="Name of the email campaign")
-    campaign_date: str = Field(..., alias="campaignDate", description="Date of the campaign (YYYY-MM-DD)")
-    
+    campaign_name: str = Field(
+        ..., alias="campaignName", description="Name of the email campaign"
+    )
+    campaign_date: str = Field(
+        ..., alias="campaignDate", description="Date of the campaign (YYYY-MM-DD)"
+    )
+
     # Cat fact reference
-    cat_fact_id: str = Field(..., alias="catFactId", description="ID of the cat fact to send")
+    cat_fact_id: str = Field(
+        ..., alias="catFactId", description="ID of the cat fact to send"
+    )
     cat_fact_text: Optional[str] = Field(
         default=None,
-        alias="catFactText", 
-        description="Cached cat fact text for quick access"
+        alias="catFactText",
+        description="Cached cat fact text for quick access",
     )
-    
+
     # Campaign status and metrics
-    status: str = Field(default="created", description="Campaign status: created, sending, completed, failed")
-    
+    status: str = Field(
+        default="created",
+        description="Campaign status: created, sending, completed, failed",
+    )
+
     # Subscriber metrics
     total_subscribers: int = Field(
         default=0,
         alias="totalSubscribers",
-        description="Total number of active subscribers at campaign time"
+        description="Total number of active subscribers at campaign time",
     )
     emails_sent: int = Field(
-        default=0,
-        alias="emailsSent",
-        description="Number of emails successfully sent"
+        default=0, alias="emailsSent", description="Number of emails successfully sent"
     )
     emails_failed: int = Field(
         default=0,
         alias="emailsFailed",
-        description="Number of emails that failed to send"
+        description="Number of emails that failed to send",
     )
     emails_opened: int = Field(
         default=0,
         alias="emailsOpened",
-        description="Number of emails opened by recipients"
+        description="Number of emails opened by recipients",
     )
     emails_clicked: int = Field(
         default=0,
         alias="emailsClicked",
-        description="Number of emails with link clicks"
+        description="Number of emails with link clicks",
     )
-    
+
     # Timestamps
     created_at: Optional[str] = Field(
         default_factory=lambda: datetime.now(timezone.utc)
         .isoformat()
         .replace("+00:00", "Z"),
         alias="createdAt",
-        description="Timestamp when campaign was created (ISO 8601 format)"
+        description="Timestamp when campaign was created (ISO 8601 format)",
     )
     started_at: Optional[str] = Field(
         default=None,
         alias="startedAt",
-        description="Timestamp when campaign sending started"
+        description="Timestamp when campaign sending started",
     )
     completed_at: Optional[str] = Field(
         default=None,
         alias="completedAt",
-        description="Timestamp when campaign was completed"
+        description="Timestamp when campaign was completed",
     )
-    
+
     # Configuration
     email_subject: str = Field(
         default="Your Weekly Cat Fact! 🐱",
         alias="emailSubject",
-        description="Subject line for the campaign emails"
+        description="Subject line for the campaign emails",
     )
     email_template: str = Field(
         default="default",
         alias="emailTemplate",
-        description="Email template to use for the campaign"
+        description="Email template to use for the campaign",
     )
-    
+
     # Error tracking
     error_messages: List[str] = Field(
         default_factory=list,
         alias="errorMessages",
-        description="List of error messages encountered during campaign"
+        description="List of error messages encountered during campaign",
     )
-    
+
     # Reporting data
     delivery_rate: Optional[float] = Field(
         default=None,
         alias="deliveryRate",
-        description="Percentage of emails successfully delivered"
+        description="Percentage of emails successfully delivered",
     )
     open_rate: Optional[float] = Field(
-        default=None,
-        alias="openRate",
-        description="Percentage of emails opened"
+        default=None, alias="openRate", description="Percentage of emails opened"
     )
     click_rate: Optional[float] = Field(
-        default=None,
-        alias="clickRate",
-        description="Percentage of emails with clicks"
+        default=None, alias="clickRate", description="Percentage of emails with clicks"
     )
 
     # Validation constants
     ALLOWED_STATUSES: ClassVar[List[str]] = [
         "created",
-        "sending", 
+        "sending",
         "completed",
-        "failed"
+        "failed",
     ]
 
     @field_validator("campaign_name")
@@ -138,10 +141,10 @@ class EmailCampaign(CyodaEntity):
         """Validate campaign name"""
         if not v or len(v.strip()) == 0:
             raise ValueError("Campaign name must be non-empty")
-        
+
         if len(v) > 200:
             raise ValueError("Campaign name must be at most 200 characters long")
-            
+
         return v.strip()
 
     @field_validator("campaign_date")
@@ -150,7 +153,7 @@ class EmailCampaign(CyodaEntity):
         """Validate campaign date format (YYYY-MM-DD)"""
         if not v or len(v.strip()) == 0:
             raise ValueError("Campaign date must be non-empty")
-        
+
         try:
             # Validate date format
             datetime.strptime(v, "%Y-%m-%d")
@@ -174,16 +177,22 @@ class EmailCampaign(CyodaEntity):
     def complete_campaign(self) -> None:
         """Mark campaign as completed and calculate metrics"""
         self.status = "completed"
-        self.completed_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.completed_at = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
         self._calculate_metrics()
 
     def fail_campaign(self, error_message: str) -> None:
         """Mark campaign as failed"""
         self.status = "failed"
         self.error_messages.append(error_message)
-        self.completed_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.completed_at = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
 
-    def update_email_stats(self, sent: int = 0, failed: int = 0, opened: int = 0, clicked: int = 0) -> None:
+    def update_email_stats(
+        self, sent: int = 0, failed: int = 0, opened: int = 0, clicked: int = 0
+    ) -> None:
         """Update email statistics"""
         self.emails_sent += sent
         self.emails_failed += failed
@@ -194,10 +203,10 @@ class EmailCampaign(CyodaEntity):
     def _calculate_metrics(self) -> None:
         """Calculate delivery, open, and click rates"""
         total_attempted = self.emails_sent + self.emails_failed
-        
+
         if total_attempted > 0:
             self.delivery_rate = (self.emails_sent / total_attempted) * 100
-        
+
         if self.emails_sent > 0:
             self.open_rate = (self.emails_opened / self.emails_sent) * 100
             self.click_rate = (self.emails_clicked / self.emails_sent) * 100

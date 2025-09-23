@@ -41,21 +41,24 @@ from ..models import (
     ValidationErrorResponse,
 )
 
+
 # Module-level service proxy
 class _ServiceProxy:
     def __getattr__(self, name: str) -> Any:
         return getattr(get_entity_service(), name)
 
+
 service = _ServiceProxy()
 logger = logging.getLogger(__name__)
+
 
 # Helper to normalize entity data
 def _to_entity_dict(data: Any) -> Dict[str, Any]:
     return data.model_dump(by_alias=True) if hasattr(data, "model_dump") else data
 
-cat_facts_bp = Blueprint(
-    "cat_facts", __name__, url_prefix="/api/cat-facts"
-)
+
+cat_facts_bp = Blueprint("cat_facts", __name__, url_prefix="/api/cat-facts")
+
 
 @cat_facts_bp.route("", methods=["POST"])
 @tag(["cat-facts"])
@@ -88,6 +91,7 @@ async def create_cat_fact(data: CatFact) -> ResponseReturnValue:
     except Exception as e:
         logger.exception("Error creating CatFact: %s", str(e))
         return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
+
 
 @cat_facts_bp.route("/<entity_id>", methods=["GET"])
 @tag(["cat-facts"])
@@ -123,6 +127,7 @@ async def get_cat_fact(entity_id: str) -> ResponseReturnValue:
     except Exception as e:
         logger.exception("Error getting CatFact %s: %s", entity_id, str(e))
         return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
+
 
 @cat_facts_bp.route("", methods=["GET"])
 @validate_querystring(CatFactQueryParams)
@@ -183,6 +188,7 @@ async def list_cat_facts(query_args: CatFactQueryParams) -> ResponseReturnValue:
         logger.exception("Error listing CatFacts: %s", str(e))
         return jsonify({"error": str(e)}), 500
 
+
 @cat_facts_bp.route("/<entity_id>", methods=["PUT"])
 @validate_querystring(CatFactUpdateQueryParams)
 @tag(["cat-facts"])
@@ -224,6 +230,7 @@ async def update_cat_fact(
     except Exception as e:
         logger.exception("Error updating CatFact %s: %s", entity_id, str(e))
         return jsonify({"error": str(e), "code": "INTERNAL_ERROR"}), 500
+
 
 @cat_facts_bp.route("/<entity_id>", methods=["DELETE"])
 @tag(["cat-facts"])

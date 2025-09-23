@@ -29,6 +29,9 @@ from .response_models import (
     EmailCampaignListResponse,
     EmailCampaignResponse,
     EmailCampaignSearchResponse,
+)
+from .response_models import ErrorResponse as ResponseErrorResponse
+from .response_models import (
     ExistsResponse,
     HealthResponse,
     StatusResponse,
@@ -40,12 +43,11 @@ from .response_models import (
     ValidationErrorResponse,
     WorkflowStateResponse,
 )
-from .response_models import ErrorResponse as ResponseErrorResponse
 
 __all__ = [
     # Request models
     "CatFactQueryParams",
-    "CatFactSearchRequest", 
+    "CatFactSearchRequest",
     "CatFactUpdateQueryParams",
     "EmailCampaignQueryParams",
     "EmailCampaignSearchRequest",

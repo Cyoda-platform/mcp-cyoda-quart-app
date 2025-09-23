@@ -8,11 +8,11 @@ Manages the email delivery process and tracks sending statistics.
 import logging
 from typing import Any, List
 
+from application.entity.email_campaign.version_1.email_campaign import EmailCampaign
+from application.entity.subscriber.version_1.subscriber import Subscriber
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
 from common.service.entity_service import SearchConditionRequest
-from application.entity.email_campaign.version_1.email_campaign import EmailCampaign
-from application.entity.subscriber.version_1.subscriber import Subscriber
 from services.services import get_entity_service
 
 
@@ -73,17 +73,23 @@ class EmailSendingProcessor(CyodaProcessor):
             for subscriber in active_subscribers:
                 try:
                     # Simulate email sending (in real implementation, this would use an email service)
-                    success = await self._send_email_to_subscriber(subscriber, campaign, cat_fact_content)
-                    
+                    success = await self._send_email_to_subscriber(
+                        subscriber, campaign, cat_fact_content
+                    )
+
                     if success:
                         sent_count += 1
                         # Update subscriber statistics
-                        await self._update_subscriber_stats(subscriber.technical_id, sent=True)
+                        await self._update_subscriber_stats(
+                            subscriber.technical_id, sent=True
+                        )
                     else:
                         failed_count += 1
-                        
+
                 except Exception as e:
-                    self.logger.error(f"Failed to send email to subscriber {subscriber.technical_id}: {str(e)}")
+                    self.logger.error(
+                        f"Failed to send email to subscriber {subscriber.technical_id}: {str(e)}"
+                    )
                     failed_count += 1
 
             # Update campaign statistics
@@ -106,7 +112,7 @@ class EmailSendingProcessor(CyodaProcessor):
         """Get all active subscribers from the database."""
         try:
             entity_service = get_entity_service()
-            
+
             # Search for active subscribers
             builder = SearchConditionRequest.builder()
             builder.equals("subscriptionStatus", "active")
@@ -137,17 +143,17 @@ class EmailSendingProcessor(CyodaProcessor):
         """Get cat fact content by ID."""
         try:
             entity_service = get_entity_service()
-            
+
             result = await entity_service.get_by_id(
                 entity_id=cat_fact_id,
                 entity_class="CatFact",
                 entity_version="1",
             )
 
-            if result and hasattr(result.data, 'fact_text'):
+            if result and hasattr(result.data, "fact_text"):
                 return result.data.fact_text
             elif result and isinstance(result.data, dict):
-                return result.data.get('factText', 'No cat fact available')
+                return result.data.get("factText", "No cat fact available")
             else:
                 return "No cat fact available"
 
@@ -155,7 +161,9 @@ class EmailSendingProcessor(CyodaProcessor):
             self.logger.error(f"Error getting cat fact content: {str(e)}")
             return "No cat fact available"
 
-    async def _send_email_to_subscriber(self, subscriber: Subscriber, campaign: EmailCampaign, cat_fact: str) -> bool:
+    async def _send_email_to_subscriber(
+        self, subscriber: Subscriber, campaign: EmailCampaign, cat_fact: str
+    ) -> bool:
         """
         Send email to a single subscriber.
         In a real implementation, this would integrate with an email service like SendGrid, AWS SES, etc.
@@ -165,13 +173,13 @@ class EmailSendingProcessor(CyodaProcessor):
             self.logger.info(
                 f"Sending email to {subscriber.email} for campaign {campaign.campaign_name}"
             )
-            
+
             # In real implementation, you would:
             # 1. Format the email template with cat fact content
             # 2. Send via email service API
             # 3. Handle delivery confirmations
             # 4. Track opens and clicks
-            
+
             # For now, we'll simulate successful sending
             return True
 
@@ -179,11 +187,13 @@ class EmailSendingProcessor(CyodaProcessor):
             self.logger.error(f"Error sending email to {subscriber.email}: {str(e)}")
             return False
 
-    async def _update_subscriber_stats(self, subscriber_id: str, sent: bool = False, opened: bool = False) -> None:
+    async def _update_subscriber_stats(
+        self, subscriber_id: str, sent: bool = False, opened: bool = False
+    ) -> None:
         """Update subscriber email statistics."""
         try:
             entity_service = get_entity_service()
-            
+
             # Get current subscriber
             result = await entity_service.get_by_id(
                 entity_id=subscriber_id,
@@ -194,7 +204,7 @@ class EmailSendingProcessor(CyodaProcessor):
             if result:
                 subscriber = cast_entity(result.data, Subscriber)
                 subscriber.update_email_stats(sent=sent, opened=opened)
-                
+
                 # Update subscriber in database
                 await entity_service.update(
                     entity_id=subscriber_id,

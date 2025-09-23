@@ -9,9 +9,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.cat_fact.version_1.cat_fact import CatFact
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.cat_fact.version_1.cat_fact import CatFact
 
 
 class CatFactPreparationProcessor(CyodaProcessor):
@@ -51,7 +51,9 @@ class CatFactPreparationProcessor(CyodaProcessor):
             # Calculate quality score if not already set
             if cat_fact.quality_score is None:
                 quality_score = self._calculate_quality_score(cat_fact)
-                cat_fact.set_quality_score(quality_score, "Auto-calculated during preparation")
+                cat_fact.set_quality_score(
+                    quality_score, "Auto-calculated during preparation"
+                )
 
             # Ensure fact is marked as appropriate and ready
             if cat_fact.is_appropriate and cat_fact.quality_score >= 0.5:
@@ -85,7 +87,7 @@ class CatFactPreparationProcessor(CyodaProcessor):
             Quality score between 0.0 and 1.0
         """
         score = 0.0
-        
+
         # Length scoring (prefer facts between 50-300 characters)
         length = len(cat_fact.fact_text)
         if 50 <= length <= 300:
@@ -106,7 +108,7 @@ class CatFactPreparationProcessor(CyodaProcessor):
 
         # Content quality indicators
         fact_lower = cat_fact.fact_text.lower()
-        
+
         # Positive indicators
         positive_words = ["cat", "cats", "feline", "kitten", "purr", "meow"]
         positive_count = sum(1 for word in positive_words if word in fact_lower)

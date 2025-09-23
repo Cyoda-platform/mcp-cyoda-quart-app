@@ -41,21 +41,26 @@ from ..models import (
     ValidationErrorResponse,
 )
 
+
 # Module-level service proxy
 class _ServiceProxy:
     def __getattr__(self, name: str) -> Any:
         return getattr(get_entity_service(), name)
 
+
 service = _ServiceProxy()
 logger = logging.getLogger(__name__)
+
 
 # Helper to normalize entity data
 def _to_entity_dict(data: Any) -> Dict[str, Any]:
     return data.model_dump(by_alias=True) if hasattr(data, "model_dump") else data
 
+
 email_campaigns_bp = Blueprint(
     "email_campaigns", __name__, url_prefix="/api/email-campaigns"
 )
+
 
 @email_campaigns_bp.route("", methods=["POST"])
 @tag(["email-campaigns"])
@@ -88,6 +93,7 @@ async def create_email_campaign(data: EmailCampaign) -> ResponseReturnValue:
     except Exception as e:
         logger.exception("Error creating EmailCampaign: %s", str(e))
         return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
+
 
 @email_campaigns_bp.route("/<entity_id>", methods=["GET"])
 @tag(["email-campaigns"])
@@ -124,6 +130,7 @@ async def get_email_campaign(entity_id: str) -> ResponseReturnValue:
         logger.exception("Error getting EmailCampaign %s: %s", entity_id, str(e))
         return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
 
+
 @email_campaigns_bp.route("", methods=["GET"])
 @validate_querystring(EmailCampaignQueryParams)
 @tag(["email-campaigns"])
@@ -135,7 +142,9 @@ async def get_email_campaign(entity_id: str) -> ResponseReturnValue:
         500: (ErrorResponse, None),
     }
 )
-async def list_email_campaigns(query_args: EmailCampaignQueryParams) -> ResponseReturnValue:
+async def list_email_campaigns(
+    query_args: EmailCampaignQueryParams,
+) -> ResponseReturnValue:
     """List EmailCampaigns with optional filtering and validation"""
     try:
         search_conditions: Dict[str, str] = {}
@@ -180,6 +189,7 @@ async def list_email_campaigns(query_args: EmailCampaignQueryParams) -> Response
         logger.exception("Error listing EmailCampaigns: %s", str(e))
         return jsonify({"error": str(e)}), 500
 
+
 @email_campaigns_bp.route("/<entity_id>", methods=["PUT"])
 @validate_querystring(EmailCampaignUpdateQueryParams)
 @tag(["email-campaigns"])
@@ -216,11 +226,14 @@ async def update_email_campaign(
         return jsonify(_to_entity_dict(response.data)), 200
 
     except ValueError as e:
-        logger.warning("Validation error updating EmailCampaign %s: %s", entity_id, str(e))
+        logger.warning(
+            "Validation error updating EmailCampaign %s: %s", entity_id, str(e)
+        )
         return jsonify({"error": str(e), "code": "VALIDATION_ERROR"}), 400
     except Exception as e:
         logger.exception("Error updating EmailCampaign %s: %s", entity_id, str(e))
         return jsonify({"error": str(e), "code": "INTERNAL_ERROR"}), 500
+
 
 @email_campaigns_bp.route("/<entity_id>", methods=["DELETE"])
 @tag(["email-campaigns"])
@@ -301,12 +314,17 @@ async def send_campaign(entity_id: str) -> ResponseReturnValue:
 
         logger.info("Triggered send transition on EmailCampaign %s", entity_id)
 
-        return jsonify({
-            "id": response.metadata.id,
-            "message": "Campaign sending initiated successfully",
-            "previousState": previous_state,
-            "newState": response.metadata.state,
-        }), 200
+        return (
+            jsonify(
+                {
+                    "id": response.metadata.id,
+                    "message": "Campaign sending initiated successfully",
+                    "previousState": previous_state,
+                    "newState": response.metadata.state,
+                }
+            ),
+            200,
+        )
 
     except Exception as e:
         logger.exception("Error sending EmailCampaign %s: %s", entity_id, str(e))
@@ -330,7 +348,9 @@ async def check_exists(entity_id: str) -> ResponseReturnValue:
         return response.model_dump(), 200
 
     except Exception as e:
-        logger.exception("Error checking EmailCampaign existence %s: %s", entity_id, str(e))
+        logger.exception(
+            "Error checking EmailCampaign existence %s: %s", entity_id, str(e)
+        )
         return {"error": str(e)}, 500
 
 

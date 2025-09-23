@@ -8,9 +8,9 @@ Calculates final metrics and marks campaigns as completed.
 import logging
 from typing import Any
 
+from application.entity.email_campaign.version_1.email_campaign import EmailCampaign
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.email_campaign.version_1.email_campaign import EmailCampaign
 from services.services import get_entity_service
 
 
@@ -50,14 +50,16 @@ class EmailCampaignReportingProcessor(CyodaProcessor):
 
             # Mark cat fact as used if campaign was successful
             if campaign.emails_sent > 0:
-                await self._mark_cat_fact_as_used(campaign.cat_fact_id, campaign.technical_id)
+                await self._mark_cat_fact_as_used(
+                    campaign.cat_fact_id, campaign.technical_id
+                )
 
             # Complete the campaign (this calculates final metrics)
             campaign.complete_campaign()
 
             # Generate completion report
             report = self._generate_campaign_report(campaign)
-            
+
             self.logger.info(
                 f"Campaign {campaign.technical_id} completed successfully. Report: {report}"
             )
@@ -69,7 +71,7 @@ class EmailCampaignReportingProcessor(CyodaProcessor):
                 f"Error finalizing campaign {getattr(entity, 'technical_id', '<unknown>')}: {str(e)}"
             )
             # Mark campaign as failed
-            if hasattr(entity, 'fail_campaign'):
+            if hasattr(entity, "fail_campaign"):
                 entity.fail_campaign(f"Reporting failed: {str(e)}")
             raise
 
@@ -77,7 +79,7 @@ class EmailCampaignReportingProcessor(CyodaProcessor):
         """Mark the cat fact as used in this campaign."""
         try:
             entity_service = get_entity_service()
-            
+
             # Get the cat fact
             result = await entity_service.get_by_id(
                 entity_id=cat_fact_id,
@@ -88,17 +90,24 @@ class EmailCampaignReportingProcessor(CyodaProcessor):
             if result:
                 # Update cat fact to mark as used
                 cat_fact_data = result.data
-                if hasattr(cat_fact_data, 'model_dump'):
+                if hasattr(cat_fact_data, "model_dump"):
                     cat_fact_dict = cat_fact_data.model_dump(by_alias=True)
                 else:
-                    cat_fact_dict = dict(cat_fact_data) if hasattr(cat_fact_data, '__dict__') else cat_fact_data
+                    cat_fact_dict = (
+                        dict(cat_fact_data)
+                        if hasattr(cat_fact_data, "__dict__")
+                        else cat_fact_data
+                    )
 
                 # Mark as used
-                cat_fact_dict['isUsed'] = True
-                cat_fact_dict['usedInCampaignId'] = campaign_id
-                
+                cat_fact_dict["isUsed"] = True
+                cat_fact_dict["usedInCampaignId"] = campaign_id
+
                 from datetime import datetime, timezone
-                cat_fact_dict['usedAt'] = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+
+                cat_fact_dict["usedAt"] = (
+                    datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+                )
 
                 # Update with transition to 'used' state
                 await entity_service.update(
@@ -106,10 +115,12 @@ class EmailCampaignReportingProcessor(CyodaProcessor):
                     entity=cat_fact_dict,
                     entity_class="CatFact",
                     entity_version="1",
-                    transition="use"
+                    transition="use",
                 )
 
-                self.logger.info(f"Marked cat fact {cat_fact_id} as used in campaign {campaign_id}")
+                self.logger.info(
+                    f"Marked cat fact {cat_fact_id} as used in campaign {campaign_id}"
+                )
 
         except Exception as e:
             self.logger.error(f"Error marking cat fact as used: {str(e)}")
@@ -130,5 +141,5 @@ class EmailCampaignReportingProcessor(CyodaProcessor):
             "click_rate": campaign.click_rate,
             "success_rate": campaign.get_success_rate(),
             "status": campaign.status,
-            "completed_at": campaign.completed_at
+            "completed_at": campaign.completed_at,
         }

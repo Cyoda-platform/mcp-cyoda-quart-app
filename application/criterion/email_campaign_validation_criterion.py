@@ -7,9 +7,9 @@ proceed to the sending stage as specified in functional requirements.
 
 from typing import Any
 
+from application.entity.email_campaign.version_1.email_campaign import EmailCampaign
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.email_campaign.version_1.email_campaign import EmailCampaign
 
 
 class EmailCampaignValidationCriterion(CyodaCriteriaChecker):
@@ -59,6 +59,7 @@ class EmailCampaignValidationCriterion(CyodaCriteriaChecker):
 
             try:
                 from datetime import datetime
+
                 datetime.strptime(campaign.campaign_date, "%Y-%m-%d")
             except ValueError:
                 self.logger.warning(

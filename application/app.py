@@ -5,15 +5,15 @@ from typing import Callable, Dict, Optional
 from quart import Quart, Response
 from quart_schema import QuartSchema, ResponseSchemaValidationError, hide
 
+from application.routes.cat_facts import cat_facts_bp
+from application.routes.email_campaigns import email_campaigns_bp
+
+# Import blueprints for different route groups
+from application.routes.subscribers import subscribers_bp
 from common.exception.exception_handler import (
     register_error_handlers as _register_error_handlers,
 )
 from services.services import get_grpc_client, initialize_services
-
-# Import blueprints for different route groups
-from application.routes.subscribers import subscribers_bp
-from application.routes.cat_facts import cat_facts_bp
-from application.routes.email_campaigns import email_campaigns_bp
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -26,10 +26,17 @@ QuartSchema(
     info={"title": "Cyoda Client Application", "version": "1.0.0"},
     tags=[
         {
-            "name": "ExampleEntities",
-            "description": "ExampleEntity management endpoints",
+            "name": "subscribers",
+            "description": "Subscriber management endpoints for cat fact subscriptions",
         },
-        {"name": "OtherEntities", "description": "OtherEntity management endpoints"},
+        {
+            "name": "cat-facts",
+            "description": "Cat fact management endpoints for content ingestion",
+        },
+        {
+            "name": "email-campaigns",
+            "description": "Email campaign management endpoints for weekly distributions",
+        },
         {"name": "System", "description": "System and health endpoints"},
     ],
     security=[{"bearerAuth": []}],
@@ -112,6 +119,12 @@ async def shutdown() -> None:
             _background_task = None
 
     logger.info("Application shutdown complete")
+
+
+# Register blueprints
+app.register_blueprint(subscribers_bp)
+app.register_blueprint(cat_facts_bp)
+app.register_blueprint(email_campaigns_bp)
 
 
 # Middleware to add CORS headers to every response

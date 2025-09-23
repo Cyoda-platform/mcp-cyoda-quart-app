@@ -7,9 +7,9 @@ proceed to the preparation stage as specified in functional requirements.
 
 from typing import Any
 
+from application.entity.cat_fact.version_1.cat_fact import CatFact
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.cat_fact.version_1.cat_fact import CatFact
 
 
 class CatFactValidationCriterion(CyodaCriteriaChecker):
@@ -59,7 +59,7 @@ class CatFactValidationCriterion(CyodaCriteriaChecker):
             # Check for inappropriate content (basic filtering)
             inappropriate_words = ["inappropriate", "offensive", "bad", "terrible"]
             fact_lower = cat_fact.fact_text.lower()
-            
+
             for word in inappropriate_words:
                 if word in fact_lower:
                     self.logger.warning(
@@ -69,9 +69,7 @@ class CatFactValidationCriterion(CyodaCriteriaChecker):
 
             # Validate source
             if not cat_fact.source or len(cat_fact.source.strip()) == 0:
-                self.logger.warning(
-                    f"CatFact {cat_fact.technical_id} has empty source"
-                )
+                self.logger.warning(f"CatFact {cat_fact.technical_id} has empty source")
                 return False
 
             # Check if fact is marked as appropriate
@@ -88,7 +86,7 @@ class CatFactValidationCriterion(CyodaCriteriaChecker):
                         f"CatFact {cat_fact.technical_id} has invalid quality score: {cat_fact.quality_score}"
                     )
                     return False
-                
+
                 # Require minimum quality score
                 if cat_fact.quality_score < 0.5:
                     self.logger.warning(

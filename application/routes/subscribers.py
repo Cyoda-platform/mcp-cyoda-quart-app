@@ -41,21 +41,24 @@ from ..models import (
     ValidationErrorResponse,
 )
 
+
 # Module-level service proxy
 class _ServiceProxy:
     def __getattr__(self, name: str) -> Any:
         return getattr(get_entity_service(), name)
 
+
 service = _ServiceProxy()
 logger = logging.getLogger(__name__)
+
 
 # Helper to normalize entity data
 def _to_entity_dict(data: Any) -> Dict[str, Any]:
     return data.model_dump(by_alias=True) if hasattr(data, "model_dump") else data
 
-subscribers_bp = Blueprint(
-    "subscribers", __name__, url_prefix="/api/subscribers"
-)
+
+subscribers_bp = Blueprint("subscribers", __name__, url_prefix="/api/subscribers")
+
 
 @subscribers_bp.route("", methods=["POST"])
 @tag(["subscribers"])
@@ -88,6 +91,7 @@ async def create_subscriber(data: Subscriber) -> ResponseReturnValue:
     except Exception as e:
         logger.exception("Error creating Subscriber: %s", str(e))
         return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
+
 
 @subscribers_bp.route("/<entity_id>", methods=["GET"])
 @tag(["subscribers"])
@@ -123,6 +127,7 @@ async def get_subscriber(entity_id: str) -> ResponseReturnValue:
     except Exception as e:
         logger.exception("Error getting Subscriber %s: %s", entity_id, str(e))
         return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
+
 
 @subscribers_bp.route("", methods=["GET"])
 @validate_querystring(SubscriberQueryParams)
@@ -177,6 +182,7 @@ async def list_subscribers(query_args: SubscriberQueryParams) -> ResponseReturnV
         logger.exception("Error listing Subscribers: %s", str(e))
         return jsonify({"error": str(e)}), 500
 
+
 @subscribers_bp.route("/<entity_id>", methods=["PUT"])
 @validate_querystring(SubscriberUpdateQueryParams)
 @tag(["subscribers"])
@@ -218,6 +224,7 @@ async def update_subscriber(
     except Exception as e:
         logger.exception("Error updating Subscriber %s: %s", entity_id, str(e))
         return jsonify({"error": str(e), "code": "INTERNAL_ERROR"}), 500
+
 
 @subscribers_bp.route("/<entity_id>", methods=["DELETE"])
 @tag(["subscribers"])
@@ -306,7 +313,9 @@ async def check_exists(entity_id: str) -> ResponseReturnValue:
         return response.model_dump(), 200
 
     except Exception as e:
-        logger.exception("Error checking Subscriber existence %s: %s", entity_id, str(e))
+        logger.exception(
+            "Error checking Subscriber existence %s: %s", entity_id, str(e)
+        )
         return {"error": str(e)}, 500
 
 
