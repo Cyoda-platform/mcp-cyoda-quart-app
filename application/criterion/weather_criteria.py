@@ -337,8 +337,6 @@ class ValidRecipientCriteria(CyodaCriteriaChecker):
             True if user is eligible, False otherwise
         """
         try:
-            entity_service = get_entity_service()
-
             # TODO: Implement user eligibility check when User entity service integration is available
             # This would check if user is active and in a state that allows notifications
             self.logger.info(f"Validating user eligibility {user_id} (simulated)")

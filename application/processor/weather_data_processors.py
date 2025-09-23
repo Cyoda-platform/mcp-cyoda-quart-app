@@ -236,8 +236,6 @@ class PrepareNotificationProcessor(CyodaProcessor):
             weather_data: The weather data to create notifications for
         """
         try:
-            entity_service = get_entity_service()
-
             self.logger.info(
                 f"Creating email notifications for weather data {weather_data.technical_id}"
             )

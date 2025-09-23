@@ -6,15 +6,13 @@ Implements processors for notification creation, email sending, delivery confirm
 """
 
 import logging
-from datetime import datetime, timezone
-from typing import Any, Dict
+from typing import Any
 
 from application.entity.emailnotification.version_1.email_notification import (
     EmailNotification,
 )
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from services.services import get_entity_service
 
 
 class CreateNotificationProcessor(CyodaProcessor):

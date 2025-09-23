@@ -10,9 +10,9 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict
 
-from quart import Blueprint, jsonify, request
+from quart import Blueprint, request
 from quart.typing import ResponseReturnValue
-from quart_schema import operation_id, tag, validate
+from quart_schema import operation_id, tag
 
 from application.entity.weathersubscription.version_1.weather_subscription import (
     WeatherSubscription,

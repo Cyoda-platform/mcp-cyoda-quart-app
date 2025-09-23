@@ -277,8 +277,6 @@ class DeleteUserProcessor(CyodaProcessor):
             user_id: The user ID whose subscriptions to deactivate
         """
         try:
-            entity_service = get_entity_service()
-
             # Find all active subscriptions for this user
             # Note: This would require implementing a search for WeatherSubscription entities
             # For now, we'll log the intent - the actual implementation would depend on

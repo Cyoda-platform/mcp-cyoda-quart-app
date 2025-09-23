@@ -283,8 +283,6 @@ class CancelSubscriptionProcessor(CyodaProcessor):
             subscription_id: The subscription ID whose weather data to cancel
         """
         try:
-            entity_service = get_entity_service()
-
             # Find all active weather data for this subscription
             # Note: This would require implementing a search for WeatherData entities
             # For now, we'll log the intent - the actual implementation would depend on
