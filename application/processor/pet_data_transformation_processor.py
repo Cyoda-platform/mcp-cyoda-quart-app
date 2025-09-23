@@ -249,12 +249,12 @@ class PetDataTransformationProcessor(CyodaProcessor):
 
         # Add photo count
         photo_count = len(pet.photo_urls) if pet.photo_urls else 0
-        attributes["photo_count"] = photo_count
-        attributes["has_photos"] = photo_count > 0
+        attributes["photo_count"] = str(photo_count)
+        attributes["has_photos"] = str(photo_count > 0)
 
         # Add tag count and summary
         tag_count = len(pet.tags) if pet.tags else 0
-        attributes["tag_count"] = tag_count
+        attributes["tag_count"] = str(tag_count)
 
         if pet.tags:
             tag_names = [
@@ -273,6 +273,6 @@ class PetDataTransformationProcessor(CyodaProcessor):
         if pet.name and len(pet.name) > 0:
             readiness_score += 10
 
-        attributes["adoption_readiness_score"] = min(readiness_score, 100)
+        attributes["adoption_readiness_score"] = str(min(readiness_score, 100))
 
         return attributes

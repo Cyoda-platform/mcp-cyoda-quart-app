@@ -16,7 +16,7 @@ from pydantic import ConfigDict, Field, field_validator, model_validator
 from common.entity.cyoda_entity import CyodaEntity
 
 
-class PetCategory(dict):
+class PetCategory(dict[str, Any]):
     """Pet category with id and name"""
 
     def __init__(self, id: Optional[int] = None, name: Optional[str] = None):
@@ -27,7 +27,7 @@ class PetCategory(dict):
             self["name"] = name
 
 
-class PetTag(dict):
+class PetTag(dict[str, Any]):
     """Pet tag with id and name"""
 
     def __init__(self, id: Optional[int] = None, name: Optional[str] = None):
