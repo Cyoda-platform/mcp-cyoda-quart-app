@@ -221,7 +221,7 @@ class ReportGenerationProcessor(CyodaProcessor):
         total_pets = len(pet_data)
         performance_scores = []
         status_distribution = {"available": 0, "pending": 0, "sold": 0, "unknown": 0}
-        category_distribution = {}
+        category_distribution: Dict[str, int] = {}
 
         for pet in pet_data:
             # Performance score
@@ -341,7 +341,7 @@ class ReportGenerationProcessor(CyodaProcessor):
 
     def _get_most_common_value(self, data: List[Dict[str, Any]], field: str) -> str:
         """Get most common value for a field"""
-        values = [item.get(field) for item in data if item.get(field)]
+        values = [str(item.get(field)) for item in data if item.get(field) is not None]
         if not values:
             return "Unknown"
         return max(set(values), key=values.count)

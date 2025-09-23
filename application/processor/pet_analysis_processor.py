@@ -147,7 +147,7 @@ class PetAnalysisProcessor(CyodaProcessor):
             "Reptiles": 0.6,
         }
 
-        category_weight = category_weights.get(category_name, 0.5)
+        category_weight = category_weights.get(category_name or "Unknown", 0.5)
         category_score = category_weight * 100.0
 
         return {
