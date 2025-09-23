@@ -492,3 +492,75 @@ async def trigger_transition(
             "Error executing transition on EggAlarm %s: %s", entity_id, str(e)
         )
         return jsonify({"error": str(e)}), 500
+
+
+# ---- Search Endpoints -----------------------------------------------------------
+
+
+@egg_alarms_bp.route("/search", methods=["POST"])
+@tag(["egg-alarms"])
+@operation_id("search_egg_alarms")
+@validate(
+    request=SearchRequest,
+    responses={
+        200: (EggAlarmSearchResponse, None),
+        400: (ValidationErrorResponse, None),
+        500: (ErrorResponse, None),
+    },
+)
+async def search_entities(data: SearchRequest) -> ResponseReturnValue:
+    """Search EggAlarms using simple field-value search with validation"""
+    try:
+        # Convert Pydantic model to dict for search
+        search_data = data.model_dump(by_alias=True, exclude_none=True)
+
+        if not search_data:
+            return {"error": "Search conditions required", "code": "EMPTY_SEARCH"}, 400
+
+        # KISS: Simple field-value search only
+        builder = SearchConditionRequest.builder()
+        for field, value in search_data.items():
+            if field == "eggType" and hasattr(value, "value"):
+                builder.equals(field, value.value)
+            elif field == "status" and hasattr(value, "value"):
+                builder.equals(field, value.value)
+            else:
+                builder.equals(field, value)
+
+        search_request = builder.build()
+        results = await service.search(
+            entity_class=EggAlarm.ENTITY_NAME,
+            condition=search_request,
+            entity_version=str(EggAlarm.ENTITY_VERSION),
+        )
+
+        # Thin proxy: return list of entities directly
+        entities = [_to_entity_dict(r.data) for r in results]
+
+        return {"entities": entities, "total": len(entities)}, 200
+
+    except Exception as e:
+        logger.exception("Error searching EggAlarms: %s", str(e))
+        return {"error": str(e)}, 500
+
+
+@egg_alarms_bp.route("/find-all", methods=["GET"])
+@tag(["egg-alarms"])
+@operation_id("find_all_egg_alarms")
+@validate(
+    responses={200: (EggAlarmListResponse, None), 500: (ErrorResponse, None)}
+)
+async def find_all_entities() -> ResponseReturnValue:
+    """Find all EggAlarms without filtering"""
+    try:
+        results = await service.find_all(
+            entity_class=EggAlarm.ENTITY_NAME,
+            entity_version=str(EggAlarm.ENTITY_VERSION),
+        )
+
+        entities = [_to_entity_dict(r.data) for r in results]
+        return {"entities": entities, "total": len(entities)}, 200
+
+    except Exception as e:
+        logger.exception("Error finding all EggAlarms: %s", str(e))
+        return {"error": str(e)}, 500
