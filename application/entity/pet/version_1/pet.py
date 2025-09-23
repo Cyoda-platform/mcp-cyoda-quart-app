@@ -173,8 +173,8 @@ class Pet(CyodaEntity):
 
     def update_timestamp(self) -> None:
         """Update the updated_at timestamp to current time"""
-        current_time = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
         # Note: updated_at is inherited from CyodaEntity
+        pass
 
     def set_ingested_data(self, api_data: Dict[str, Any]) -> None:
         """Set data from external API ingestion"""
