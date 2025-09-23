@@ -13,6 +13,7 @@ from quart_schema import tag, validate, validate_querystring
 
 from application.entity.product_data.version_1.product_data import ProductData
 from services.services import get_entity_service
+from common.service.entity_service import SearchConditionRequest
 
 # Create blueprint for product data routes
 product_data_bp = Blueprint("product_data", __name__, url_prefix="/api/product-data")
@@ -115,27 +116,19 @@ async def update_product_data(
         product_data_dict = data.model_dump(by_alias=True)
 
         # Update the entity
-        if transition:
-            response = await entity_service.update_with_transition(
-                entity_id=entity_id,
-                entity=product_data_dict,
-                entity_class=ProductData.ENTITY_NAME,
-                entity_version=str(ProductData.ENTITY_VERSION),
-                transition=transition,
-            )
-        else:
-            response = await entity_service.update(
-                entity_id=entity_id,
-                entity=product_data_dict,
-                entity_class=ProductData.ENTITY_NAME,
-                entity_version=str(ProductData.ENTITY_VERSION),
-            )
+        response = await entity_service.update(
+            entity_id=entity_id,
+            entity=product_data_dict,
+            entity_class=ProductData.ENTITY_NAME,
+            entity_version=str(ProductData.ENTITY_VERSION),
+            transition=transition,
+        )
 
         # Return the updated entity
         result = {
-            "id": response.metadata.id,
-            "state": response.metadata.state,
-            "entity": response.entity,
+            "id": response.get_id(),
+            "state": response.get_state(),
+            "entity": response.data.model_dump(by_alias=True) if hasattr(response.data, 'model_dump') else response.data,
         }
 
         logger.info(f"Updated ProductData entity {entity_id}")
@@ -158,7 +151,7 @@ async def delete_product_data(entity_id: str) -> tuple[Dict[str, Any], int]:
         entity_service = get_entity_service()
 
         # Delete the entity
-        await entity_service.delete(
+        await entity_service.delete_by_id(
             entity_id=entity_id,
             entity_class=ProductData.ENTITY_NAME,
             entity_version=str(ProductData.ENTITY_VERSION),
