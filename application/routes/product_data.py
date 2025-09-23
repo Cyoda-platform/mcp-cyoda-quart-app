@@ -9,7 +9,7 @@ import logging
 from typing import Any, Dict, List, Optional
 
 from quart import Blueprint, jsonify, request
-from quart_schema import tag, validate_json, validate_querystring
+from quart_schema import tag, validate, validate_querystring
 
 from application.entity.product_data.version_1.product_data import ProductData
 from services.services import get_entity_service
@@ -22,8 +22,8 @@ logger = logging.getLogger(__name__)
 
 @product_data_bp.route("/", methods=["POST"])
 @tag(["ProductData"])
-@validate_json(ProductData)
-async def create_product_data(json: ProductData) -> tuple[Dict[str, Any], int]:
+@validate(request=ProductData)
+async def create_product_data(data: ProductData) -> tuple[Dict[str, Any], int]:
     """
     Create a new ProductData entity.
 
@@ -34,7 +34,7 @@ async def create_product_data(json: ProductData) -> tuple[Dict[str, Any], int]:
         entity_service = get_entity_service()
 
         # Convert Pydantic model to dict for EntityService
-        product_data_dict = json.model_dump(by_alias=True)
+        product_data_dict = data.model_dump(by_alias=True)
 
         # Save the entity using entity constants
         response = await entity_service.save(
@@ -95,9 +95,9 @@ async def get_product_data(entity_id: str) -> tuple[Dict[str, Any], int]:
 
 @product_data_bp.route("/<entity_id>", methods=["PUT"])
 @tag(["ProductData"])
-@validate_json(ProductData)
+@validate(request=ProductData)
 async def update_product_data(
-    entity_id: str, json: ProductData
+    entity_id: str, data: ProductData
 ) -> tuple[Dict[str, Any], int]:
     """
     Update a ProductData entity.
