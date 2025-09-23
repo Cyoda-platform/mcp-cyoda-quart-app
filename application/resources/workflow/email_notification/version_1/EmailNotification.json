@@ -1,0 +1,84 @@
+{
+  "version": "1.0",
+  "name": "EmailNotification Workflow",
+  "desc": "Workflow for processing email notifications for weekly performance reports",
+  "initialState": "initial_state",
+  "active": true,
+  "states": {
+    "initial_state": {
+      "transitions": [
+        {
+          "name": "create",
+          "next": "created",
+          "manual": false
+        }
+      ]
+    },
+    "created": {
+      "transitions": [
+        {
+          "name": "validate",
+          "next": "validated",
+          "manual": false,
+          "criterion": {
+            "type": "function",
+            "function": {
+              "name": "EmailNotificationValidationCriterion",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "validated": {
+      "transitions": [
+        {
+          "name": "prepare_email",
+          "next": "email_prepared",
+          "manual": false,
+          "processors": [
+            {
+              "name": "EmailNotificationPreparationProcessor",
+              "executionMode": "SYNC",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "email_prepared": {
+      "transitions": [
+        {
+          "name": "send_email",
+          "next": "email_sent",
+          "manual": false,
+          "processors": [
+            {
+              "name": "EmailNotificationSendProcessor",
+              "executionMode": "SYNC",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "email_sent": {
+      "transitions": [
+        {
+          "name": "complete",
+          "next": "completed",
+          "manual": false
+        }
+      ]
+    },
+    "completed": {
+      "transitions": []
+    }
+  }
+}
