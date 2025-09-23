@@ -5,20 +5,17 @@ Implements criteria checkers for validating weather subscriptions, weather data,
 email recipients, and retry limits as specified in workflow definitions.
 """
 
-import logging
 from typing import Any
 
 from application.entity.emailnotification.version_1.email_notification import (
     EmailNotification,
 )
-from application.entity.user.version_1.user import User
 from application.entity.weatherdata.version_1.weather_data import WeatherData
 from application.entity.weathersubscription.version_1.weather_subscription import (
     WeatherSubscription,
 )
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from services.services import get_entity_service
 
 
 class ValidLocationCriteria(CyodaCriteriaChecker):
@@ -117,8 +114,6 @@ class ValidLocationCriteria(CyodaCriteriaChecker):
             True if user exists and is active, False otherwise
         """
         try:
-            entity_service = get_entity_service()
-
             # TODO: Implement user lookup when User entity service integration is available
             # For now, assume user is valid if user_id is provided
             self.logger.info(f"Validating user {user_id} (simulated)")
