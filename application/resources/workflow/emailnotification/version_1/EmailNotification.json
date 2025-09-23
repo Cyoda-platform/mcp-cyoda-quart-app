@@ -1,0 +1,137 @@
+{
+  "version": "1.0",
+  "name": "EmailNotification",
+  "desc": "Email notification workflow for weather updates delivery",
+  "initialState": "initial_state",
+  "active": true,
+  "states": {
+    "initial_state": {
+      "transitions": [
+        {
+          "name": "create_notification",
+          "next": "pending",
+          "manual": false,
+          "processors": [
+            {
+              "name": "CreateNotificationProcessor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "pending": {
+      "transitions": [
+        {
+          "name": "send_email",
+          "next": "sending",
+          "manual": true,
+          "processors": [
+            {
+              "name": "SendEmailProcessor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 10000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ],
+          "criterion": {
+            "type": "function",
+            "function": {
+              "name": "ValidRecipientCriteria",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 5000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "sending": {
+      "transitions": [
+        {
+          "name": "confirm_delivery",
+          "next": "sent",
+          "manual": true,
+          "processors": [
+            {
+              "name": "ConfirmDeliveryProcessor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        },
+        {
+          "name": "mark_failed",
+          "next": "failed",
+          "manual": true,
+          "processors": [
+            {
+              "name": "MarkFailedProcessor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ],
+          "criterion": {
+            "type": "function",
+            "function": {
+              "name": "MaxRetriesCriteria",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 5000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "failed": {
+      "transitions": [
+        {
+          "name": "retry_send",
+          "next": "sending",
+          "manual": true,
+          "processors": [
+            {
+              "name": "RetrySendProcessor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 10000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "sent": {
+      "transitions": []
+    }
+  }
+}

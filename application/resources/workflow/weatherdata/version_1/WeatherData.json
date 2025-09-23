@@ -1,0 +1,108 @@
+{
+  "version": "1.0",
+  "name": "WeatherData",
+  "desc": "Weather data fetching and processing workflow from MSC GeoMet API",
+  "initialState": "initial_state",
+  "active": true,
+  "states": {
+    "initial_state": {
+      "transitions": [
+        {
+          "name": "start_fetch",
+          "next": "fetching",
+          "manual": false,
+          "processors": [
+            {
+              "name": "StartFetchProcessor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "fetching": {
+      "transitions": [
+        {
+          "name": "process_data",
+          "next": "processed",
+          "manual": true,
+          "processors": [
+            {
+              "name": "ProcessWeatherDataProcessor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 10000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ],
+          "criterion": {
+            "type": "function",
+            "function": {
+              "name": "ValidWeatherDataCriteria",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 5000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "processed": {
+      "transitions": [
+        {
+          "name": "prepare_notification",
+          "next": "notification_ready",
+          "manual": true,
+          "processors": [
+            {
+              "name": "PrepareNotificationProcessor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "notification_ready": {
+      "transitions": [
+        {
+          "name": "expire_data",
+          "next": "expired",
+          "manual": true,
+          "processors": [
+            {
+              "name": "ExpireDataProcessor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "expired": {
+      "transitions": []
+    }
+  }
+}
