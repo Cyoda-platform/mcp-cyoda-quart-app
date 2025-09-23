@@ -1,0 +1,66 @@
+{
+  "version": "1.0",
+  "name": "CatFact Workflow",
+  "desc": "Workflow for managing cat fact ingestion, validation, and usage",
+  "initialState": "initial_state",
+  "active": true,
+  "states": {
+    "initial_state": {
+      "transitions": [
+        {
+          "name": "create",
+          "next": "retrieved",
+          "manual": false
+        }
+      ]
+    },
+    "retrieved": {
+      "transitions": [
+        {
+          "name": "validate",
+          "next": "validated",
+          "manual": false,
+          "criterion": {
+            "type": "function",
+            "function": {
+              "name": "CatFactValidationCriterion",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "validated": {
+      "transitions": [
+        {
+          "name": "prepare",
+          "next": "ready_for_use",
+          "manual": false,
+          "processors": [
+            {
+              "name": "CatFactPreparationProcessor",
+              "executionMode": "SYNC",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "ready_for_use": {
+      "transitions": [
+        {
+          "name": "use",
+          "next": "used",
+          "manual": true
+        }
+      ]
+    },
+    "used": {
+      "transitions": []
+    }
+  }
+}
