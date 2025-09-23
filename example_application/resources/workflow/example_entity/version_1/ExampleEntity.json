@@ -9,7 +9,7 @@
             "initial_state": {
                 "transitions": [
                     {
-                        "name": "transition_to_created",
+                        "name": "create",
                         "next": "created",
                         "manual": false
                     }
@@ -18,7 +18,7 @@
             "created": {
                 "transitions": [
                     {
-                        "name": "transition_to_validated",
+                        "name": "validate",
                         "next": "validated",
                         "manual": false,
                         "criterion": {
@@ -36,7 +36,7 @@
             "validated": {
                 "transitions": [
                     {
-                        "name": "transition_to_processed",
+                        "name": "process",
                         "next": "processed",
                         "manual": false,
                         "processors": [
@@ -54,7 +54,7 @@
             "processed": {
                 "transitions": [
                     {
-                        "name": "transition_to_completed",
+                        "name": "complete",
                         "next": "completed",
                         "manual": false
                     }

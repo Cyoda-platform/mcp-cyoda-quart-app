@@ -9,7 +9,7 @@
             "initial_state": {
                 "transitions": [
                     {
-                        "name": "transition_to_pending",
+                        "name": "set_pending",
                         "next": "pending",
                         "manual": false
                     }
@@ -18,7 +18,7 @@
             "pending": {
                 "transitions": [
                     {
-                        "name": "transition_to_active",
+                        "name": "set_active",
                         "next": "active",
                         "manual": false
                     }
@@ -27,7 +27,7 @@
             "active": {
                 "transitions": [
                     {
-                        "name": "transition_to_archived",
+                        "name": "set_archived",
                         "next": "archived",
                         "manual": false
                     }
