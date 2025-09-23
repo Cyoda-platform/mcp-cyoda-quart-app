@@ -277,15 +277,13 @@ async def schedule_weekly_extraction() -> ResponseReturnValue:
         )  # 9 AM UTC
 
         # Create extraction data
-        extraction_data = {
-            "extraction_type": "pet_store_products",
-            "source_url": "https://petstore.swagger.io/v2",
-            "schedule_pattern": "weekly_monday",
-            "scheduled_for": next_monday.isoformat().replace("+00:00", "Z"),
-            "extraction_config": {"auto_analyze": True, "create_report": True},
-        }
-
-        extraction = DataExtraction(**extraction_data)
+        extraction = DataExtraction(
+            extraction_type="pet_store_products",
+            source_url="https://petstore.swagger.io/v2",
+            schedule_pattern="weekly_monday",
+            scheduled_for=next_monday.isoformat().replace("+00:00", "Z"),
+            extraction_config={"auto_analyze": True, "create_report": True}
+        )
         entity_data = extraction.model_dump(by_alias=True)
 
         # Save the entity
