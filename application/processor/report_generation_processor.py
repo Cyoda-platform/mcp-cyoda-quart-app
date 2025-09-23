@@ -101,12 +101,13 @@ class ReportGenerationProcessor(CyodaProcessor):
             products = []
             for response in product_responses:
                 try:
-                    product_data = (
-                        response.data.model_dump()
-                        if hasattr(response.data, "model_dump")
-                        else response.data
-                    )
-                    product = Product(**product_data)
+                    if hasattr(response.data, "model_dump"):
+                        product_data = response.data.model_dump()
+                    else:
+                        product_data = response.data
+
+                    if isinstance(product_data, dict):
+                        product = Product(**product_data)
                     products.append(product)
                 except Exception as e:
                     self.logger.warning(f"Failed to convert product data: {str(e)}")
@@ -421,13 +422,13 @@ class ReportGenerationProcessor(CyodaProcessor):
 
         # Set product lists
         report.top_performing_products = [
-            p.technical_id or p.entity_id for p in stats["top_performers"][:10]
+            p.technical_id or p.entity_id or "" for p in stats["top_performers"][:10]
         ]
         report.underperforming_products = [
-            p.technical_id or p.entity_id for p in stats["underperformers"][:10]
+            p.technical_id or p.entity_id or "" for p in stats["underperformers"][:10]
         ]
         report.products_needing_restock = [
-            p.technical_id or p.entity_id for p in products if p.needs_restocking()
+            p.technical_id or p.entity_id or "" for p in products if p.needs_restocking()
         ]
 
         # Generate email subject

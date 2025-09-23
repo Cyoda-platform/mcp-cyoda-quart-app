@@ -368,16 +368,12 @@ async def trigger_manual_extraction() -> ResponseReturnValue:
     """Trigger a manual data extraction immediately"""
     try:
         # Create manual extraction
-        extraction_data = {
-            "extraction_type": "pet_store_products",
-            "source_url": "https://petstore.swagger.io/v2",
-            "schedule_pattern": "manual",
-            "scheduled_for": datetime.now(timezone.utc)
-            .isoformat()
-            .replace("+00:00", "Z"),
-        }
-
-        extraction = DataExtraction(**extraction_data)
+        extraction = DataExtraction(
+            extraction_type="pet_store_products",
+            source_url="https://petstore.swagger.io/v2",
+            schedule_pattern="manual",
+            scheduled_for=datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
         entity_data = extraction.model_dump(by_alias=True)
 
         # Save the entity
