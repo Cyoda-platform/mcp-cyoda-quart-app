@@ -1,0 +1,88 @@
+[
+    {
+        "version": "1.0",
+        "name": "WeatherStation Workflow",
+        "desc": "Workflow for managing weather station lifecycle from registration to operation",
+        "initialState": "initial_state",
+        "active": true,
+        "states": {
+            "initial_state": {
+                "transitions": [
+                    {
+                        "name": "register",
+                        "next": "registered",
+                        "manual": false
+                    }
+                ]
+            },
+            "registered": {
+                "transitions": [
+                    {
+                        "name": "validate",
+                        "next": "validated",
+                        "manual": false,
+                        "criterion": {
+                            "type": "function",
+                            "function": {
+                                "name": "WeatherStationValidationCriterion",
+                                "config": {
+                                    "calculationNodesTags": "cyoda_application"
+                                }
+                            }
+                        }
+                    }
+                ]
+            },
+            "validated": {
+                "transitions": [
+                    {
+                        "name": "activate",
+                        "next": "active",
+                        "manual": false,
+                        "processors": [
+                            {
+                                "name": "WeatherStationProcessor",
+                                "executionMode": "SYNC",
+                                "config": {
+                                    "calculationNodesTags": "cyoda_application"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            },
+            "active": {
+                "transitions": [
+                    {
+                        "name": "deactivate",
+                        "next": "inactive",
+                        "manual": true
+                    },
+                    {
+                        "name": "refresh",
+                        "next": "active",
+                        "manual": true,
+                        "processors": [
+                            {
+                                "name": "WeatherStationProcessor",
+                                "executionMode": "SYNC",
+                                "config": {
+                                    "calculationNodesTags": "cyoda_application"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            },
+            "inactive": {
+                "transitions": [
+                    {
+                        "name": "reactivate",
+                        "next": "validated",
+                        "manual": true
+                    }
+                ]
+            }
+        }
+    }
+]

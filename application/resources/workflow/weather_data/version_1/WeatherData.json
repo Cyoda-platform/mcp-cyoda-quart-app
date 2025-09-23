@@ -1,0 +1,82 @@
+[
+    {
+        "version": "1.0",
+        "name": "WeatherData Workflow",
+        "desc": "Workflow for managing weather data from collection to archival",
+        "initialState": "initial_state",
+        "active": true,
+        "states": {
+            "initial_state": {
+                "transitions": [
+                    {
+                        "name": "collect",
+                        "next": "collected",
+                        "manual": false
+                    }
+                ]
+            },
+            "collected": {
+                "transitions": [
+                    {
+                        "name": "validate",
+                        "next": "validated",
+                        "manual": false,
+                        "criterion": {
+                            "type": "function",
+                            "function": {
+                                "name": "WeatherDataValidationCriterion",
+                                "config": {
+                                    "calculationNodesTags": "cyoda_application"
+                                }
+                            }
+                        }
+                    }
+                ]
+            },
+            "validated": {
+                "transitions": [
+                    {
+                        "name": "process",
+                        "next": "processed",
+                        "manual": false,
+                        "processors": [
+                            {
+                                "name": "WeatherDataProcessor",
+                                "executionMode": "SYNC",
+                                "config": {
+                                    "calculationNodesTags": "cyoda_application"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            },
+            "processed": {
+                "transitions": [
+                    {
+                        "name": "archive",
+                        "next": "archived",
+                        "manual": false
+                    },
+                    {
+                        "name": "reprocess",
+                        "next": "processed",
+                        "manual": true,
+                        "processors": [
+                            {
+                                "name": "WeatherDataProcessor",
+                                "executionMode": "SYNC",
+                                "config": {
+                                    "calculationNodesTags": "cyoda_application"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            },
+            "archived": {
+                "transitions": []
+            }
+        }
+    }
+]
