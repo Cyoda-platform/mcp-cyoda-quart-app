@@ -16,7 +16,6 @@ from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
 
 
-
 class StoreInventoryProcessor(CyodaProcessor):
     """
     Processor for Store entity that handles inventory synchronization.

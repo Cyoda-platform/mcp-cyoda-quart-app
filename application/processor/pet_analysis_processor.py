@@ -14,7 +14,6 @@ from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
 
 
-
 class PetAnalysisProcessor(CyodaProcessor):
     """
     Processor for Pet entity that handles performance analysis.

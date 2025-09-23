@@ -144,7 +144,9 @@ class ReportGenerationProcessor(CyodaProcessor):
                     if hasattr(result.data, "model_dump"):
                         store_dict = result.data.model_dump()
                     else:
-                        store_dict = result.data if isinstance(result.data, dict) else {}
+                        store_dict = (
+                            result.data if isinstance(result.data, dict) else {}
+                        )
                     store_data.append(store_dict)
 
             self.logger.info(f"Collected data from {len(store_data)} stores")

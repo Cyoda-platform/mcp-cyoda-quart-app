@@ -129,7 +129,6 @@ async def create_weekly_report(data: WeeklyReportRequest) -> ResponseReturnValue
     """Create a new weekly performance report"""
     try:
 
-
         # Create Report entity for weekly report
         report_data = {
             "reportTitle": f"Weekly Pet Store Performance Report - {data.report_period}",
