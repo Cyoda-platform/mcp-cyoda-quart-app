@@ -1,0 +1,1 @@
+# WeatherSubscription entity package
