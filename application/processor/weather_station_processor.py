@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 import aiohttp
+from aiohttp import ClientTimeout
 
 from application.entity.weather_station.version_1.weather_station import WeatherStation
 from common.entity.entity_casting import cast_entity
@@ -100,10 +101,11 @@ class WeatherStationProcessor(CyodaProcessor):
         try:
             # Try to fetch from climate-stations collection
             url = f"{self.msc_geomet_base_url}/collections/climate-stations/items"
-            params = {"f": "json", "limit": 10, "station_id": station_id}
+            params = {"f": "json", "limit": "10", "station_id": station_id}
 
+            timeout = ClientTimeout(total=30)
             async with aiohttp.ClientSession() as session:
-                async with session.get(url, params=params, timeout=30) as response:
+                async with session.get(url, params=params, timeout=timeout) as response:
                     if response.status == 200:
                         data = await response.json()
                         features = data.get("features", [])
