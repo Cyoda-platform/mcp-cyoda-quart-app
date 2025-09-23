@@ -10,16 +10,15 @@ import random
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.product.version_1.product import Product
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-
-from application.entity.product.version_1.product import Product
 
 
 class ProductAnalysisProcessor(CyodaProcessor):
     """
     Processor for analyzing product performance metrics.
-    
+
     Calculates key performance indicators (KPIs) such as sales volume,
     revenue per product, and inventory turnover rates.
     """
@@ -51,12 +50,12 @@ class ProductAnalysisProcessor(CyodaProcessor):
 
             # Cast the entity to Product for type-safe operations
             product_entity = cast_entity(entity, Product)
-            
+
             # Perform performance analysis
             self._analyze_sales_performance(product_entity)
             self._analyze_inventory_performance(product_entity)
             self._calculate_overall_performance_score(product_entity)
-            
+
             # Update analysis timestamp
             product_entity.update_analysis_timestamp()
 
@@ -83,7 +82,7 @@ class ProductAnalysisProcessor(CyodaProcessor):
         try:
             # Since Pet Store API doesn't provide actual sales data,
             # we'll simulate realistic performance metrics based on product status and category
-            
+
             # Simulate sales volume based on product status
             if product.status == "sold":
                 # Products marked as sold have higher sales volume
@@ -94,7 +93,7 @@ class ProductAnalysisProcessor(CyodaProcessor):
             else:  # available
                 # Available products have lower recent sales
                 product.sales_volume = random.randint(0, 30)
-            
+
             # Calculate revenue based on sales volume and estimated price
             if product.price is not None:
                 product.revenue = product.sales_volume * product.price
@@ -102,14 +101,16 @@ class ProductAnalysisProcessor(CyodaProcessor):
                 # Estimate price based on category for revenue calculation
                 estimated_price = self._estimate_price_by_category(product.category)
                 product.revenue = product.sales_volume * estimated_price
-            
+
             self.logger.debug(
                 f"Sales analysis for {product.name}: "
                 f"Volume={product.sales_volume}, Revenue=${product.revenue:.2f}"
             )
-            
+
         except Exception as e:
-            self.logger.warning(f"Failed to analyze sales performance for {product.name}: {str(e)}")
+            self.logger.warning(
+                f"Failed to analyze sales performance for {product.name}: {str(e)}"
+            )
             # Set default values on error
             product.sales_volume = 0
             product.revenue = 0.0
@@ -125,28 +126,36 @@ class ProductAnalysisProcessor(CyodaProcessor):
             # Simulate inventory levels if not provided
             if product.inventory_level is None:
                 if product.status == "sold":
-                    product.inventory_level = random.randint(0, 10)  # Low inventory for sold items
+                    product.inventory_level = random.randint(
+                        0, 10
+                    )  # Low inventory for sold items
                 elif product.status == "pending":
                     product.inventory_level = random.randint(5, 25)  # Medium inventory
                 else:  # available
-                    product.inventory_level = random.randint(15, 100)  # Higher inventory
-            
+                    product.inventory_level = random.randint(
+                        15, 100
+                    )  # Higher inventory
+
             # Calculate inventory turnover rate
             # Formula: Sales Volume / Average Inventory Level
             if product.inventory_level and product.inventory_level > 0:
                 # Assume average inventory is current level + 20% buffer
                 average_inventory = product.inventory_level * 1.2
-                product.inventory_turnover_rate = (product.sales_volume or 0) / average_inventory
+                product.inventory_turnover_rate = (
+                    product.sales_volume or 0
+                ) / average_inventory
             else:
                 product.inventory_turnover_rate = 0.0
-            
+
             self.logger.debug(
                 f"Inventory analysis for {product.name}: "
                 f"Level={product.inventory_level}, Turnover={product.inventory_turnover_rate:.2f}"
             )
-            
+
         except Exception as e:
-            self.logger.warning(f"Failed to analyze inventory performance for {product.name}: {str(e)}")
+            self.logger.warning(
+                f"Failed to analyze inventory performance for {product.name}: {str(e)}"
+            )
             # Set default values on error
             product.inventory_level = 0
             product.inventory_turnover_rate = 0.0
@@ -161,11 +170,13 @@ class ProductAnalysisProcessor(CyodaProcessor):
         try:
             # Use the built-in performance score calculation
             score = product.calculate_performance_score()
-            
+
             self.logger.debug(f"Performance score for {product.name}: {score:.2f}")
-            
+
         except Exception as e:
-            self.logger.warning(f"Failed to calculate performance score for {product.name}: {str(e)}")
+            self.logger.warning(
+                f"Failed to calculate performance score for {product.name}: {str(e)}"
+            )
             product.performance_score = 0.0
 
     def _estimate_price_by_category(self, category: str) -> float:
@@ -186,11 +197,11 @@ class ProductAnalysisProcessor(CyodaProcessor):
             "Fish": 8.99,
             "Reptiles": 35.99,
             "Small Pets": 12.99,
-            "Unknown": 20.00
+            "Unknown": 20.00,
         }
-        
+
         base_price = category_prices.get(category, category_prices["Unknown"])
-        
+
         # Add some variation (+/- 30%)
         variation = random.uniform(0.7, 1.3)
         return round(base_price * variation, 2)
@@ -207,13 +218,13 @@ class ProductAnalysisProcessor(CyodaProcessor):
         """
         # Category performance multipliers based on typical pet popularity
         multipliers = {
-            "Dogs": 1.4,      # Most popular
-            "Cats": 1.3,      # Very popular
-            "Fish": 1.1,      # Moderately popular
-            "Birds": 0.9,     # Less popular
-            "Small Pets": 0.8, # Less popular
+            "Dogs": 1.4,  # Most popular
+            "Cats": 1.3,  # Very popular
+            "Fish": 1.1,  # Moderately popular
+            "Birds": 0.9,  # Less popular
+            "Small Pets": 0.8,  # Less popular
             "Reptiles": 0.7,  # Niche market
-            "Unknown": 1.0    # Baseline
+            "Unknown": 1.0,  # Baseline
         }
-        
+
         return multipliers.get(category, 1.0)

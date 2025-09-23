@@ -7,16 +7,15 @@ with all required content and metadata properly set.
 
 from typing import Any
 
+from application.entity.report.version_1.report import Report
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-
-from application.entity.report.version_1.report import Report
 
 
 class ReportReadyForEmailCriterion(CyodaCriteriaChecker):
     """
     Validation criterion for Report entity to check if it's ready for email delivery.
-    
+
     Ensures the report has all required content, metadata, and is in the correct state
     before attempting to send it via email.
     """

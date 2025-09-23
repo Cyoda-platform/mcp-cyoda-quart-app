@@ -14,10 +14,9 @@ from quart import Blueprint, jsonify, request
 from quart.typing import ResponseReturnValue
 from quart_schema import operation_id, tag
 
+from application.entity.report.version_1.report import Report
 from common.service.entity_service import SearchConditionRequest
 from services.services import get_entity_service
-
-from application.entity.report.version_1.report import Report
 
 logger = logging.getLogger(__name__)
 
@@ -138,14 +137,19 @@ async def list_reports() -> ResponseReturnValue:
         # Apply pagination
         entity_list = [_to_entity_dict(r.data) for r in entities]
         total = len(entity_list)
-        paginated_entities = entity_list[offset:offset + limit]
+        paginated_entities = entity_list[offset : offset + limit]
 
-        return jsonify({
-            "reports": paginated_entities,
-            "total": total,
-            "limit": limit,
-            "offset": offset
-        }), 200
+        return (
+            jsonify(
+                {
+                    "reports": paginated_entities,
+                    "total": total,
+                    "limit": limit,
+                    "offset": offset,
+                }
+            ),
+            200,
+        )
 
     except Exception as e:
         logger.exception("Error listing Reports: %s", str(e))
@@ -204,7 +208,11 @@ async def delete_report(entity_id: str) -> ResponseReturnValue:
         )
 
         logger.info("Deleted Report %s", entity_id)
-        return {"success": True, "message": "Report deleted successfully", "entity_id": entity_id}, 200
+        return {
+            "success": True,
+            "message": "Report deleted successfully",
+            "entity_id": entity_id,
+        }, 200
 
     except ValueError as e:
         logger.warning("Invalid entity ID %s: %s", entity_id, str(e))
@@ -235,7 +243,7 @@ async def generate_report(entity_id: str) -> ResponseReturnValue:
         return {
             "id": response.metadata.id,
             "message": "Report generation triggered successfully",
-            "new_state": response.metadata.state
+            "new_state": response.metadata.state,
         }, 200
 
     except Exception as e:
@@ -264,7 +272,7 @@ async def email_report(entity_id: str) -> ResponseReturnValue:
         return {
             "id": response.metadata.id,
             "message": "Report email delivery triggered successfully",
-            "new_state": response.metadata.state
+            "new_state": response.metadata.state,
         }, 200
 
     except Exception as e:
@@ -282,7 +290,7 @@ async def create_weekly_report() -> ResponseReturnValue:
         report_data = {
             "title": "Weekly Product Performance Report",
             "report_type": "weekly_performance",
-            "email_recipients": ["victoria.sagdieva@cyoda.com"]
+            "email_recipients": ["victoria.sagdieva@cyoda.com"],
         }
 
         report = Report(**report_data)
@@ -309,7 +317,7 @@ async def create_weekly_report() -> ResponseReturnValue:
         return {
             "id": report_id,
             "message": "Weekly report created and generation triggered",
-            "title": report_data["title"]
+            "title": report_data["title"],
         }, 201
 
     except Exception as e:
@@ -330,17 +338,21 @@ async def get_reports_summary() -> ResponseReturnValue:
         )
 
         reports = [_to_entity_dict(r.data) for r in entities]
-        
+
         # Calculate summary metrics
         total_reports = len(reports)
         emailed_reports = len([r for r in reports if r.get("emailSent", False)])
-        pending_reports = len([r for r in reports if r.get("state") in ["generating", "generated"]])
-        
+        pending_reports = len(
+            [r for r in reports if r.get("state") in ["generating", "generated"]]
+        )
+
         summary = {
             "total_reports": total_reports,
             "emailed_reports": emailed_reports,
             "pending_reports": pending_reports,
-            "recent_reports": sorted(reports, key=lambda r: r.get("createdAt", ""), reverse=True)[:5]
+            "recent_reports": sorted(
+                reports, key=lambda r: r.get("createdAt", ""), reverse=True
+            )[:5],
         }
 
         return summary, 200

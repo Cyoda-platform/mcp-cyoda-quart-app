@@ -14,10 +14,9 @@ from quart import Blueprint, jsonify, request
 from quart.typing import ResponseReturnValue
 from quart_schema import operation_id, tag, validate, validate_querystring
 
+from application.entity.product.version_1.product import Product
 from common.service.entity_service import SearchConditionRequest
 from services.services import get_entity_service
-
-from application.entity.product.version_1.product import Product
 
 logger = logging.getLogger(__name__)
 
@@ -138,21 +137,28 @@ async def list_products() -> ResponseReturnValue:
 
         # Convert to list and apply additional filters
         entity_list = [_to_entity_dict(r.data) for r in entities]
-        
+
         # Filter by performance score if specified
         if min_score is not None:
-            entity_list = [e for e in entity_list if e.get("performanceScore", 0) >= min_score]
+            entity_list = [
+                e for e in entity_list if e.get("performanceScore", 0) >= min_score
+            ]
 
         # Apply pagination
         total = len(entity_list)
-        paginated_entities = entity_list[offset:offset + limit]
+        paginated_entities = entity_list[offset : offset + limit]
 
-        return jsonify({
-            "products": paginated_entities,
-            "total": total,
-            "limit": limit,
-            "offset": offset
-        }), 200
+        return (
+            jsonify(
+                {
+                    "products": paginated_entities,
+                    "total": total,
+                    "limit": limit,
+                    "offset": offset,
+                }
+            ),
+            200,
+        )
 
     except Exception as e:
         logger.exception("Error listing Products: %s", str(e))
@@ -211,7 +217,11 @@ async def delete_product(entity_id: str) -> ResponseReturnValue:
         )
 
         logger.info("Deleted Product %s", entity_id)
-        return {"success": True, "message": "Product deleted successfully", "entity_id": entity_id}, 200
+        return {
+            "success": True,
+            "message": "Product deleted successfully",
+            "entity_id": entity_id,
+        }, 200
 
     except ValueError as e:
         logger.warning("Invalid entity ID %s: %s", entity_id, str(e))
@@ -264,21 +274,32 @@ async def get_product_performance() -> ResponseReturnValue:
         )
 
         products = [_to_entity_dict(r.data) for r in entities]
-        
+
         # Calculate performance metrics
         total_products = len(products)
         total_revenue = sum(p.get("revenue", 0) or 0 for p in products)
-        high_performers = [p for p in products if (p.get("performanceScore") or 0) >= 70]
+        high_performers = [
+            p for p in products if (p.get("performanceScore") or 0) >= 70
+        ]
         low_stock = [p for p in products if (p.get("inventoryLevel") or 0) <= 10]
-        
+
         performance_summary = {
             "total_products": total_products,
             "total_revenue": total_revenue,
             "high_performers_count": len(high_performers),
             "low_stock_count": len(low_stock),
-            "average_performance_score": sum(p.get("performanceScore", 0) or 0 for p in products) / total_products if total_products > 0 else 0,
-            "top_performers": sorted(products, key=lambda p: p.get("performanceScore", 0) or 0, reverse=True)[:5],
-            "products_needing_restock": [p for p in products if (p.get("inventoryLevel") or 0) <= 5]
+            "average_performance_score": (
+                sum(p.get("performanceScore", 0) or 0 for p in products)
+                / total_products
+                if total_products > 0
+                else 0
+            ),
+            "top_performers": sorted(
+                products, key=lambda p: p.get("performanceScore", 0) or 0, reverse=True
+            )[:5],
+            "products_needing_restock": [
+                p for p in products if (p.get("inventoryLevel") or 0) <= 5
+            ],
         }
 
         return performance_summary, 200
@@ -309,7 +330,7 @@ async def analyze_product(entity_id: str) -> ResponseReturnValue:
         return {
             "id": response.metadata.id,
             "message": "Product analysis triggered successfully",
-            "new_state": response.metadata.state
+            "new_state": response.metadata.state,
         }, 200
 
     except Exception as e:

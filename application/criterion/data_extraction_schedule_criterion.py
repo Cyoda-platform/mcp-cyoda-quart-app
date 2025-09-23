@@ -8,16 +8,15 @@ timing requirements for automated data extraction.
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.data_extraction.version_1.data_extraction import DataExtraction
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-
-from application.entity.data_extraction.version_1.data_extraction import DataExtraction
 
 
 class DataExtractionScheduleCriterion(CyodaCriteriaChecker):
     """
     Validation criterion for DataExtraction entity to check if it should be executed.
-    
+
     Ensures the data extraction is scheduled for the current time and meets
     all requirements for automated execution.
     """
@@ -97,32 +96,40 @@ class DataExtractionScheduleCriterion(CyodaCriteriaChecker):
             True if extraction should be executed, False otherwise
         """
         current_time = datetime.now(timezone.utc)
-        
+
         # Check if scheduled_for is set
         if not extraction.scheduled_for:
             # If no specific schedule, check schedule pattern
             return self._check_schedule_pattern(extraction, current_time)
-        
+
         try:
             # Parse scheduled time
-            scheduled_time = datetime.fromisoformat(extraction.scheduled_for.replace("Z", "+00:00"))
-            
+            scheduled_time = datetime.fromisoformat(
+                extraction.scheduled_for.replace("Z", "+00:00")
+            )
+
             # Check if current time is past scheduled time (within 1 hour window)
             time_diff = (current_time - scheduled_time).total_seconds()
-            
+
             # Allow execution if within 1 hour of scheduled time
             if 0 <= time_diff <= 3600:  # 0 to 1 hour past scheduled time
-                self.logger.debug(f"Extraction scheduled for {scheduled_time}, current time {current_time}")
+                self.logger.debug(
+                    f"Extraction scheduled for {scheduled_time}, current time {current_time}"
+                )
                 return True
-            
-            self.logger.debug(f"Extraction not in execution window. Scheduled: {scheduled_time}, Current: {current_time}")
+
+            self.logger.debug(
+                f"Extraction not in execution window. Scheduled: {scheduled_time}, Current: {current_time}"
+            )
             return False
-            
+
         except Exception as e:
             self.logger.warning(f"Failed to parse scheduled time: {str(e)}")
             return False
 
-    def _check_schedule_pattern(self, extraction: DataExtraction, current_time: datetime) -> bool:
+    def _check_schedule_pattern(
+        self, extraction: DataExtraction, current_time: datetime
+    ) -> bool:
         """
         Check if extraction should run based on schedule pattern.
 
@@ -134,34 +141,36 @@ class DataExtractionScheduleCriterion(CyodaCriteriaChecker):
             True if extraction should run based on pattern, False otherwise
         """
         pattern = extraction.schedule_pattern
-        
+
         if pattern == "manual":
             # Manual extractions don't run automatically
             return False
-        
+
         elif pattern == "weekly_monday":
             # Run on Mondays (weekday 0)
             is_monday = current_time.weekday() == 0
-            
+
             # Check if it's within business hours (8 AM to 6 PM UTC)
             is_business_hours = 8 <= current_time.hour <= 18
-            
-            self.logger.debug(f"Monday check: {is_monday}, Business hours: {is_business_hours}")
+
+            self.logger.debug(
+                f"Monday check: {is_monday}, Business hours: {is_business_hours}"
+            )
             return is_monday and is_business_hours
-        
+
         elif pattern == "daily":
             # Run daily during business hours
             is_business_hours = 8 <= current_time.hour <= 18
             return is_business_hours
-        
+
         elif pattern == "weekly":
             # Run weekly on Mondays
             return current_time.weekday() == 0
-        
+
         elif pattern == "monthly":
             # Run on the first day of the month
             return current_time.day == 1
-        
+
         else:
             self.logger.warning(f"Unknown schedule pattern: {pattern}")
             return False
@@ -205,11 +214,13 @@ class DataExtractionScheduleCriterion(CyodaCriteriaChecker):
         """
         retry_count = extraction.retry_count or 0
         max_retries = extraction.max_retries or 3
-        
+
         if retry_count >= max_retries:
-            self.logger.debug(f"Extraction has exceeded retry limits: {retry_count}/{max_retries}")
+            self.logger.debug(
+                f"Extraction has exceeded retry limits: {retry_count}/{max_retries}"
+            )
             return False
-        
+
         return True
 
     def _is_supported_extraction_type(self, extraction: DataExtraction) -> bool:
@@ -224,13 +235,15 @@ class DataExtractionScheduleCriterion(CyodaCriteriaChecker):
         """
         supported_types = [
             "pet_store_products",
-            "inventory_update", 
+            "inventory_update",
             "price_update",
-            "full_sync"
+            "full_sync",
         ]
-        
+
         if extraction.extraction_type not in supported_types:
-            self.logger.debug(f"Unsupported extraction type: {extraction.extraction_type}")
+            self.logger.debug(
+                f"Unsupported extraction type: {extraction.extraction_type}"
+            )
             return False
-        
+
         return True

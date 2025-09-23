@@ -8,17 +8,16 @@ and extraction scheduling as specified in functional requirements.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict
 
 from quart import Blueprint, jsonify, request
 from quart.typing import ResponseReturnValue
 from quart_schema import operation_id, tag
 
+from application.entity.data_extraction.version_1.data_extraction import DataExtraction
 from common.service.entity_service import SearchConditionRequest
 from services.services import get_entity_service
-
-from application.entity.data_extraction.version_1.data_extraction import DataExtraction
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +35,9 @@ def _to_entity_dict(data: Any) -> Dict[str, Any]:
     return data.model_dump(by_alias=True) if hasattr(data, "model_dump") else data
 
 
-data_extractions_bp = Blueprint("data_extractions", __name__, url_prefix="/api/data-extractions")
+data_extractions_bp = Blueprint(
+    "data_extractions", __name__, url_prefix="/api/data-extractions"
+)
 
 
 @data_extractions_bp.route("", methods=["POST"])
@@ -142,14 +143,19 @@ async def list_data_extractions() -> ResponseReturnValue:
         # Apply pagination
         entity_list = [_to_entity_dict(r.data) for r in entities]
         total = len(entity_list)
-        paginated_entities = entity_list[offset:offset + limit]
+        paginated_entities = entity_list[offset : offset + limit]
 
-        return jsonify({
-            "extractions": paginated_entities,
-            "total": total,
-            "limit": limit,
-            "offset": offset
-        }), 200
+        return (
+            jsonify(
+                {
+                    "extractions": paginated_entities,
+                    "total": total,
+                    "limit": limit,
+                    "offset": offset,
+                }
+            ),
+            200,
+        )
 
     except Exception as e:
         logger.exception("Error listing DataExtractions: %s", str(e))
@@ -185,7 +191,9 @@ async def update_data_extraction(entity_id: str) -> ResponseReturnValue:
         return _to_entity_dict(response.data), 200
 
     except ValueError as e:
-        logger.warning("Validation error updating DataExtraction %s: %s", entity_id, str(e))
+        logger.warning(
+            "Validation error updating DataExtraction %s: %s", entity_id, str(e)
+        )
         return {"error": str(e), "code": "VALIDATION_ERROR"}, 400
     except Exception as e:
         logger.exception("Error updating DataExtraction %s: %s", entity_id, str(e))
@@ -208,7 +216,11 @@ async def delete_data_extraction(entity_id: str) -> ResponseReturnValue:
         )
 
         logger.info("Deleted DataExtraction %s", entity_id)
-        return {"success": True, "message": "DataExtraction deleted successfully", "entity_id": entity_id}, 200
+        return {
+            "success": True,
+            "message": "DataExtraction deleted successfully",
+            "entity_id": entity_id,
+        }, 200
 
     except ValueError as e:
         logger.warning("Invalid entity ID %s: %s", entity_id, str(e))
@@ -239,7 +251,7 @@ async def execute_data_extraction(entity_id: str) -> ResponseReturnValue:
         return {
             "id": response.metadata.id,
             "message": "Data extraction execution triggered successfully",
-            "new_state": response.metadata.state
+            "new_state": response.metadata.state,
         }, 200
 
     except Exception as e:
@@ -258,9 +270,11 @@ async def schedule_weekly_extraction() -> ResponseReturnValue:
         days_until_monday = (7 - now.weekday()) % 7
         if days_until_monday == 0:  # If today is Monday
             days_until_monday = 7  # Schedule for next Monday
-        
+
         next_monday = now + timedelta(days=days_until_monday)
-        next_monday = next_monday.replace(hour=9, minute=0, second=0, microsecond=0)  # 9 AM UTC
+        next_monday = next_monday.replace(
+            hour=9, minute=0, second=0, microsecond=0
+        )  # 9 AM UTC
 
         # Create extraction data
         extraction_data = {
@@ -268,10 +282,7 @@ async def schedule_weekly_extraction() -> ResponseReturnValue:
             "source_url": "https://petstore.swagger.io/v2",
             "schedule_pattern": "weekly_monday",
             "scheduled_for": next_monday.isoformat().replace("+00:00", "Z"),
-            "extraction_config": {
-                "auto_analyze": True,
-                "create_report": True
-            }
+            "extraction_config": {"auto_analyze": True, "create_report": True},
         }
 
         extraction = DataExtraction(**extraction_data)
@@ -285,13 +296,17 @@ async def schedule_weekly_extraction() -> ResponseReturnValue:
         )
 
         extraction_id = response.metadata.id
-        logger.info("Scheduled weekly DataExtraction with ID: %s for %s", extraction_id, next_monday)
+        logger.info(
+            "Scheduled weekly DataExtraction with ID: %s for %s",
+            extraction_id,
+            next_monday,
+        )
 
         return {
             "id": extraction_id,
             "message": "Weekly data extraction scheduled successfully",
             "scheduled_for": next_monday.isoformat().replace("+00:00", "Z"),
-            "schedule_pattern": "weekly_monday"
+            "schedule_pattern": "weekly_monday",
         }, 201
 
     except Exception as e:
@@ -312,27 +327,33 @@ async def get_extraction_status() -> ResponseReturnValue:
         )
 
         extractions = [_to_entity_dict(r.data) for r in entities]
-        
+
         # Calculate status metrics
         total_extractions = len(extractions)
-        completed_extractions = len([e for e in extractions if e.get("state") == "completed"])
+        completed_extractions = len(
+            [e for e in extractions if e.get("state") == "completed"]
+        )
         failed_extractions = len([e for e in extractions if e.get("state") == "failed"])
-        scheduled_extractions = len([e for e in extractions if e.get("state") == "scheduled"])
-        
+        scheduled_extractions = len(
+            [e for e in extractions if e.get("state") == "scheduled"]
+        )
+
         # Get recent extractions
         recent_extractions = sorted(
-            extractions, 
-            key=lambda e: e.get("createdAt", ""), 
-            reverse=True
+            extractions, key=lambda e: e.get("createdAt", ""), reverse=True
         )[:5]
-        
+
         status_summary = {
             "total_extractions": total_extractions,
             "completed_extractions": completed_extractions,
             "failed_extractions": failed_extractions,
             "scheduled_extractions": scheduled_extractions,
-            "success_rate": (completed_extractions / total_extractions * 100) if total_extractions > 0 else 0,
-            "recent_extractions": recent_extractions
+            "success_rate": (
+                (completed_extractions / total_extractions * 100)
+                if total_extractions > 0
+                else 0
+            ),
+            "recent_extractions": recent_extractions,
         }
 
         return status_summary, 200
@@ -353,7 +374,9 @@ async def trigger_manual_extraction() -> ResponseReturnValue:
             "extraction_type": "pet_store_products",
             "source_url": "https://petstore.swagger.io/v2",
             "schedule_pattern": "manual",
-            "scheduled_for": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            "scheduled_for": datetime.now(timezone.utc)
+            .isoformat()
+            .replace("+00:00", "Z"),
         }
 
         extraction = DataExtraction(**extraction_data)
@@ -380,7 +403,7 @@ async def trigger_manual_extraction() -> ResponseReturnValue:
         return {
             "id": extraction_id,
             "message": "Manual data extraction triggered successfully",
-            "extraction_type": "pet_store_products"
+            "extraction_type": "pet_store_products",
         }, 201
 
     except Exception as e:

@@ -11,16 +11,15 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from typing import Any
 
+from application.entity.report.version_1.report import Report
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-
-from application.entity.report.version_1.report import Report
 
 
 class EmailNotificationProcessor(CyodaProcessor):
     """
     Processor for sending email notifications with performance reports.
-    
+
     Sends generated reports to the sales team via email with
     formatted content and attachments.
     """
@@ -52,19 +51,21 @@ class EmailNotificationProcessor(CyodaProcessor):
 
             # Cast the entity to Report for type-safe operations
             report_entity = cast_entity(entity, Report)
-            
+
             # Validate report is ready for email
             if not report_entity.is_ready_for_email():
-                self.logger.warning(f"Report {report_entity.technical_id} is not ready for email")
+                self.logger.warning(
+                    f"Report {report_entity.technical_id} is not ready for email"
+                )
                 return report_entity
-            
+
             # Send email notification
             success = await self._send_email_notification(report_entity)
-            
+
             if success:
                 # Mark email as sent
                 report_entity.mark_email_sent()
-                
+
                 self.logger.info(
                     f"Email notification sent successfully for report {report_entity.title}"
                 )
@@ -95,29 +96,29 @@ class EmailNotificationProcessor(CyodaProcessor):
             # For this implementation, we'll simulate email sending
             # In a real implementation, you would configure SMTP settings
             # and use a proper email service
-            
+
             self.logger.info("Simulating email send to sales team...")
-            
+
             # Generate email content
             email_content = self._generate_email_content(report)
-            
+
             # Log email details (simulating send)
             self.logger.info(f"Email Subject: {report.email_subject}")
             self.logger.info(f"Recipients: {', '.join(report.email_recipients or [])}")
             self.logger.info(f"Content Length: {len(email_content)} characters")
-            
+
             # In a real implementation, you would:
             # 1. Configure SMTP settings (Gmail, SendGrid, etc.)
             # 2. Create MIMEMultipart message
             # 3. Add HTML/text content
             # 4. Add any attachments
             # 5. Send via SMTP
-            
+
             # Simulate successful email send
             self._log_email_simulation(report, email_content)
-            
+
             return True
-            
+
         except Exception as e:
             self.logger.error(f"Failed to send email notification: {str(e)}")
             return False
@@ -135,7 +136,7 @@ class EmailNotificationProcessor(CyodaProcessor):
         try:
             # Convert markdown content to HTML-friendly format
             html_content = self._markdown_to_html(report.content or "")
-            
+
             # Create email template
             email_html = f"""
             <!DOCTYPE html>
@@ -200,9 +201,9 @@ class EmailNotificationProcessor(CyodaProcessor):
             </body>
             </html>
             """
-            
+
             return email_html
-            
+
         except Exception as e:
             self.logger.error(f"Failed to generate email content: {str(e)}")
             return f"<html><body><h1>Error generating report content</h1><p>{str(e)}</p></body></html>"
@@ -219,48 +220,52 @@ class EmailNotificationProcessor(CyodaProcessor):
         """
         if not markdown_content:
             return ""
-        
+
         # Simple markdown to HTML conversion
         html = markdown_content
-        
+
         # Headers
-        html = html.replace("### ", "<h3>").replace("\n## ", "</h3>\n<h2>").replace("\n# ", "</h2>\n<h1>")
+        html = (
+            html.replace("### ", "<h3>")
+            .replace("\n## ", "</h3>\n<h2>")
+            .replace("\n# ", "</h2>\n<h1>")
+        )
         html = html.replace("## ", "<h2>").replace("# ", "<h1>")
-        
+
         # Bold text
         html = html.replace("**", "<strong>", 1).replace("**", "</strong>", 1)
-        
+
         # Lists
-        lines = html.split('\n')
+        lines = html.split("\n")
         in_list = False
         result_lines = []
-        
+
         for line in lines:
-            if line.strip().startswith('- '):
+            if line.strip().startswith("- "):
                 if not in_list:
-                    result_lines.append('<ul>')
+                    result_lines.append("<ul>")
                     in_list = True
-                result_lines.append(f'<li>{line.strip()[2:]}</li>')
+                result_lines.append(f"<li>{line.strip()[2:]}</li>")
             else:
                 if in_list:
-                    result_lines.append('</ul>')
+                    result_lines.append("</ul>")
                     in_list = False
                 result_lines.append(line)
-        
+
         if in_list:
-            result_lines.append('</ul>')
-        
+            result_lines.append("</ul>")
+
         # Paragraphs
-        html = '\n'.join(result_lines)
-        html = html.replace('\n\n', '</p>\n<p>')
-        html = f'<p>{html}</p>'
-        
+        html = "\n".join(result_lines)
+        html = html.replace("\n\n", "</p>\n<p>")
+        html = f"<p>{html}</p>"
+
         # Clean up empty paragraphs
-        html = html.replace('<p></p>', '')
-        html = html.replace('<p><h', '<h').replace('</h1></p>', '</h1>')
-        html = html.replace('</h2></p>', '</h2>').replace('</h3></p>', '</h3>')
-        html = html.replace('<p><ul>', '<ul>').replace('</ul></p>', '</ul>')
-        
+        html = html.replace("<p></p>", "")
+        html = html.replace("<p><h", "<h").replace("</h1></p>", "</h1>")
+        html = html.replace("</h2></p>", "</h2>").replace("</h3></p>", "</h3>")
+        html = html.replace("<p><ul>", "<ul>").replace("</ul></p>", "</ul>")
+
         return html
 
     def _log_email_simulation(self, report: Report, email_content: str) -> None:
@@ -276,14 +281,18 @@ class EmailNotificationProcessor(CyodaProcessor):
         self.logger.info("=" * 60)
         self.logger.info(f"TO: {', '.join(report.email_recipients or [])}")
         self.logger.info(f"SUBJECT: {report.email_subject}")
-        self.logger.info(f"REPORT PERIOD: {report.report_period_start} to {report.report_period_end}")
+        self.logger.info(
+            f"REPORT PERIOD: {report.report_period_start} to {report.report_period_end}"
+        )
         self.logger.info(f"PRODUCTS ANALYZED: {report.total_products_analyzed}")
         self.logger.info(f"TOTAL REVENUE: ${report.total_revenue or 0:,.2f}")
         self.logger.info(f"INSIGHTS COUNT: {len(report.insights or [])}")
-        
+
         if report.products_needing_restock:
-            self.logger.info(f"⚠️  URGENT: {len(report.products_needing_restock)} products need restocking!")
-        
+            self.logger.info(
+                f"⚠️  URGENT: {len(report.products_needing_restock)} products need restocking!"
+            )
+
         self.logger.info("=" * 60)
         self.logger.info("Email would be sent in production environment")
         self.logger.info("=" * 60)
