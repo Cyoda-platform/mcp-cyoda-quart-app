@@ -6,7 +6,7 @@ Calculates final metrics and marks campaigns as completed.
 """
 
 import logging
-from typing import Any
+from typing import Any, Dict
 
 from application.entity.email_campaign.version_1.email_campaign import EmailCampaign
 from common.entity.entity_casting import cast_entity
@@ -125,7 +125,7 @@ class EmailCampaignReportingProcessor(CyodaProcessor):
         except Exception as e:
             self.logger.error(f"Error marking cat fact as used: {str(e)}")
 
-    def _generate_campaign_report(self, campaign: EmailCampaign) -> dict:
+    def _generate_campaign_report(self, campaign: EmailCampaign) -> Dict[str, Any]:
         """Generate a summary report for the completed campaign."""
         return {
             "campaign_id": campaign.technical_id,
