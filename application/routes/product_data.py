@@ -183,39 +183,46 @@ async def list_product_data() -> tuple[Dict[str, Any], int]:
         status = request.args.get("status")
         high_performer = request.args.get("high_performer")
 
-        # Build search query
-        query = {}
+        # Build search condition
+        builder = SearchConditionRequest.builder()
         if category:
-            query["category"] = category
+            builder.equals("category", category)
         if status:
-            query["status"] = status
+            builder.equals("status", status)
         if high_performer is not None:
-            query["isHighPerformer"] = high_performer.lower() == "true"
+            builder.equals("isHighPerformer", high_performer.lower() == "true")
+
+        # Set pagination
+        if page_size:
+            builder.limit(page_size)
+
+        condition = builder.build()
 
         # Search for entities
-        response = await entity_service.search(
-            entity_class=ProductData.ENTITY_NAME,
-            entity_version=str(ProductData.ENTITY_VERSION),
-            query=query,
-            page_size=page_size,
-            page_token=page_token,
-        )
+        if condition.conditions:
+            response = await entity_service.search(
+                entity_class=ProductData.ENTITY_NAME,
+                condition=condition,
+                entity_version=str(ProductData.ENTITY_VERSION),
+            )
+        else:
+            response = await entity_service.find_all(
+                entity_class=ProductData.ENTITY_NAME,
+                entity_version=str(ProductData.ENTITY_VERSION),
+            )
 
         # Format response
         entities = []
-        if hasattr(response, "entities") and response.entities:
-            for entity_data in response.entities:
-                entities.append(
-                    {
-                        "id": entity_data.metadata.id,
-                        "state": entity_data.metadata.state,
-                        "entity": entity_data.entity,
-                    }
-                )
+        if response:
+            for entity_response in response:
+                entities.append({
+                    "id": entity_response.get_id(),
+                    "state": entity_response.get_state(),
+                    "entity": entity_response.data.model_dump(by_alias=True) if hasattr(entity_response.data, 'model_dump') else entity_response.data
+                })
 
         result = {
             "entities": entities,
-            "page_token": getattr(response, "next_page_token", None),
             "total_count": len(entities),
         }
 
@@ -238,12 +245,10 @@ async def trigger_data_extraction() -> tuple[Dict[str, Any], int]:
     try:
         entity_service = get_entity_service()
 
-        # Search for entities in 'validated' state that can be processed
-        response = await entity_service.search(
+        # Search for all entities
+        response = await entity_service.find_all(
             entity_class=ProductData.ENTITY_NAME,
             entity_version=str(ProductData.ENTITY_VERSION),
-            query={},
-            page_size=100,
         )
 
         processed_count = 0
