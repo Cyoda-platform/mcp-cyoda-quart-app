@@ -11,6 +11,7 @@ from common.exception.exception_handler import (
 from services.services import get_grpc_client, initialize_services
 
 # Import blueprints for different route groups
+from .routes.pets import pets_bp
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -20,8 +21,12 @@ app = Quart(__name__)
 
 QuartSchema(
     app,
-    info={"title": "Cyoda Client Application", "version": "1.0.0"},
+    info={"title": "Cyoda Pet Search Application", "version": "1.0.0"},
     tags=[
+        {
+            "name": "pets",
+            "description": "Pet search and management endpoints",
+        },
         {
             "name": "ExampleEntities",
             "description": "ExampleEntity management endpoints",
@@ -109,6 +114,10 @@ async def shutdown() -> None:
             _background_task = None
 
     logger.info("Application shutdown complete")
+
+
+# Register blueprints
+app.register_blueprint(pets_bp)
 
 
 # Middleware to add CORS headers to every response

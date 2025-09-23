@@ -384,3 +384,175 @@ async def delete_pet(entity_id: str) -> ResponseReturnValue:
     except Exception as e:
         logger.exception("Error deleting Pet %s: %s", entity_id, str(e))
         return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
+
+
+# ---- Additional Service Endpoints ----
+
+@pets_bp.route("/count", methods=["GET"])
+@tag(["pets"])
+@operation_id("count_pets")
+@validate(responses={200: (CountResponse, None), 500: (ErrorResponse, None)})
+async def count_pets() -> ResponseReturnValue:
+    """Count total number of Pets"""
+    try:
+        count = await service.count(
+            entity_class=Pet.ENTITY_NAME,
+            entity_version=str(Pet.ENTITY_VERSION),
+        )
+
+        response = CountResponse(count=count)
+        return jsonify(response.model_dump()), 200
+
+    except Exception as e:
+        logger.exception("Error counting Pets: %s", str(e))
+        return jsonify({"error": str(e)}), 500
+
+
+@pets_bp.route("/<entity_id>/exists", methods=["GET"])
+@tag(["pets"])
+@operation_id("check_pet_exists")
+@validate(responses={200: (ExistsResponse, None), 500: (ErrorResponse, None)})
+async def check_pet_exists(entity_id: str) -> ResponseReturnValue:
+    """Check if Pet exists by ID"""
+    try:
+        exists = await service.exists_by_id(
+            entity_id=entity_id,
+            entity_class=Pet.ENTITY_NAME,
+            entity_version=str(Pet.ENTITY_VERSION),
+        )
+
+        response = ExistsResponse(exists=exists, entity_id=entity_id)
+        return response.model_dump(), 200
+
+    except Exception as e:
+        logger.exception("Error checking Pet existence %s: %s", entity_id, str(e))
+        return {"error": str(e)}, 500
+
+
+@pets_bp.route("/<entity_id>/transitions", methods=["GET"])
+@tag(["pets"])
+@operation_id("get_pet_transitions")
+@validate(
+    responses={
+        200: (TransitionsResponse, None),
+        404: (ErrorResponse, None),
+        500: (ErrorResponse, None),
+    }
+)
+async def get_pet_transitions(entity_id: str) -> ResponseReturnValue:
+    """Get available workflow transitions for Pet"""
+    try:
+        transitions = await service.get_transitions(
+            entity_id=entity_id,
+            entity_class=Pet.ENTITY_NAME,
+            entity_version=str(Pet.ENTITY_VERSION),
+        )
+
+        response = TransitionsResponse(
+            entity_id=entity_id,
+            available_transitions=transitions,
+            current_state=None,
+        )
+        return jsonify(response.model_dump()), 200
+
+    except Exception as e:
+        logger.exception("Error getting transitions for Pet %s: %s", entity_id, str(e))
+        return jsonify({"error": str(e)}), 500
+
+
+@pets_bp.route("/<entity_id>/transitions", methods=["POST"])
+@tag(["pets"])
+@operation_id("trigger_pet_transition")
+@validate(
+    request=TransitionRequest,
+    responses={
+        200: (TransitionResponse, None),
+        404: (ErrorResponse, None),
+        400: (ValidationErrorResponse, None),
+        500: (ErrorResponse, None),
+    },
+)
+async def trigger_pet_transition(
+    entity_id: str, data: TransitionRequest
+) -> ResponseReturnValue:
+    """Trigger a specific workflow transition"""
+    try:
+        # Get current entity state
+        current_entity = await service.get_by_id(
+            entity_id=entity_id,
+            entity_class=Pet.ENTITY_NAME,
+            entity_version=str(Pet.ENTITY_VERSION),
+        )
+
+        if not current_entity:
+            return jsonify({"error": "Pet not found"}), 404
+
+        previous_state = current_entity.metadata.state
+
+        # Execute the transition
+        response = await service.execute_transition(
+            entity_id=entity_id,
+            transition=data.transition_name,
+            entity_class=Pet.ENTITY_NAME,
+            entity_version=str(Pet.ENTITY_VERSION),
+        )
+
+        logger.info("Executed transition '%s' on Pet %s", data.transition_name, entity_id)
+
+        return jsonify({
+            "id": response.metadata.id,
+            "message": "Transition executed successfully",
+            "previousState": previous_state,
+            "newState": response.metadata.state,
+        }), 200
+
+    except Exception as e:
+        logger.exception("Error executing transition on Pet %s: %s", entity_id, str(e))
+        return jsonify({"error": str(e)}), 500
+
+
+# ---- Pet Search Application Specific Endpoints ----
+
+@pets_bp.route("/find-all", methods=["GET"])
+@tag(["pets"])
+@operation_id("find_all_pets")
+@validate(responses={200: (PetListResponse, None), 500: (ErrorResponse, None)})
+async def find_all_pets() -> ResponseReturnValue:
+    """Find all Pets without filtering"""
+    try:
+        results = await service.find_all(
+            entity_class=Pet.ENTITY_NAME,
+            entity_version=str(Pet.ENTITY_VERSION),
+        )
+
+        pets = [_to_entity_dict(r.data) for r in results]
+        return {"pets": pets, "total": len(pets)}, 200
+
+    except Exception as e:
+        logger.exception("Error finding all Pets: %s", str(e))
+        return {"error": str(e)}, 500
+
+
+@pets_bp.route("/available", methods=["GET"])
+@tag(["pets"])
+@operation_id("get_available_pets")
+@validate(responses={200: (PetListResponse, None), 500: (ErrorResponse, None)})
+async def get_available_pets() -> ResponseReturnValue:
+    """Get all available pets for adoption"""
+    try:
+        builder = SearchConditionRequest.builder()
+        builder.equals("status", "available")
+        condition = builder.build()
+
+        results = await service.search(
+            entity_class=Pet.ENTITY_NAME,
+            condition=condition,
+            entity_version=str(Pet.ENTITY_VERSION),
+        )
+
+        pets = [_to_entity_dict(r.data) for r in results]
+        return {"pets": pets, "total": len(pets)}, 200
+
+    except Exception as e:
+        logger.exception("Error getting available pets: %s", str(e))
+        return {"error": str(e)}, 500
