@@ -16,7 +16,6 @@ from aiohttp import ClientTimeout
 from application.entity.weather_data.version_1.weather_data import WeatherData
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from services.services import get_entity_service
 
 
 class WeatherDataProcessor(CyodaProcessor):

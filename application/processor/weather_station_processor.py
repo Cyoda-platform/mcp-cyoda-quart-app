@@ -8,7 +8,7 @@ from MSC GeoMet API and enriching station information.
 import asyncio
 import logging
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 import aiohttp
 from aiohttp import ClientTimeout
