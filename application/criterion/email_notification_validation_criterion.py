@@ -8,16 +8,17 @@ before email preparation as specified in functional requirements.
 import re
 from typing import Any
 
+from application.entity.email_notification.version_1.email_notification import (
+    EmailNotification,
+)
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-
-from application.entity.email_notification.version_1.email_notification import EmailNotification
 
 
 class EmailNotificationValidationCriterion(CyodaCriteriaChecker):
     """
     Validation criterion for EmailNotification entities.
-    
+
     Checks email format, recipient validity, and delivery requirements before
     allowing EmailNotification entities to proceed to email preparation.
     """
@@ -28,7 +29,9 @@ class EmailNotificationValidationCriterion(CyodaCriteriaChecker):
             description="Validates EmailNotification entities for email format and delivery requirements",
         )
         # Email validation regex pattern
-        self.email_pattern = re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
+        self.email_pattern = re.compile(
+            r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+        )
 
     async def check(self, entity: CyodaEntity, **kwargs: Any) -> bool:
         """
@@ -87,21 +90,30 @@ class EmailNotificationValidationCriterion(CyodaCriteriaChecker):
             True if all required fields are valid, False otherwise
         """
         # Validate subject
-        if not email_notification.subject or len(email_notification.subject.strip()) == 0:
+        if (
+            not email_notification.subject
+            or len(email_notification.subject.strip()) == 0
+        ):
             self.logger.warning(
                 f"Entity {email_notification.technical_id} has invalid subject: '{email_notification.subject}'"
             )
             return False
 
         # Validate recipient_email
-        if not email_notification.recipient_email or len(email_notification.recipient_email.strip()) == 0:
+        if (
+            not email_notification.recipient_email
+            or len(email_notification.recipient_email.strip()) == 0
+        ):
             self.logger.warning(
                 f"Entity {email_notification.technical_id} has invalid recipient_email: '{email_notification.recipient_email}'"
             )
             return False
 
         # Validate email_body
-        if not email_notification.email_body or len(email_notification.email_body.strip()) == 0:
+        if (
+            not email_notification.email_body
+            or len(email_notification.email_body.strip()) == 0
+        ):
             self.logger.warning(
                 f"Entity {email_notification.technical_id} has invalid email_body: '{email_notification.email_body}'"
             )
@@ -145,7 +157,9 @@ class EmailNotificationValidationCriterion(CyodaCriteriaChecker):
 
         return True
 
-    def _validate_field_constraints(self, email_notification: EmailNotification) -> bool:
+    def _validate_field_constraints(
+        self, email_notification: EmailNotification
+    ) -> bool:
         """
         Validate field constraints and formats.
 
@@ -212,8 +226,10 @@ class EmailNotificationValidationCriterion(CyodaCriteriaChecker):
             return False
 
         # Validate attachment file size
-        if (email_notification.attachment_file_size is not None and 
-            email_notification.attachment_file_size < 0):
+        if (
+            email_notification.attachment_file_size is not None
+            and email_notification.attachment_file_size < 0
+        ):
             self.logger.warning(
                 f"Entity {email_notification.technical_id} has negative attachment_file_size: "
                 f"{email_notification.attachment_file_size}"
@@ -241,16 +257,19 @@ class EmailNotificationValidationCriterion(CyodaCriteriaChecker):
             return False
 
         # Business rule: If email is marked as sent, it should have actual_send_time
-        if (email_notification.send_status == "sent" and 
-            not email_notification.actual_send_time):
+        if (
+            email_notification.send_status == "sent"
+            and not email_notification.actual_send_time
+        ):
             self.logger.warning(
                 f"Entity {email_notification.technical_id} is marked as sent but has no actual_send_time"
             )
             return False
 
         # Business rule: If email is opened, it should be sent first
-        if (email_notification.email_opened and 
-            email_notification.send_status not in ["sent"]):
+        if email_notification.email_opened and email_notification.send_status not in [
+            "sent"
+        ]:
             self.logger.warning(
                 f"Entity {email_notification.technical_id} is marked as opened but not sent"
             )
@@ -260,13 +279,13 @@ class EmailNotificationValidationCriterion(CyodaCriteriaChecker):
         attachment_fields = [
             email_notification.attachment_file_path,
             email_notification.attachment_file_name,
-            email_notification.attachment_file_size
+            email_notification.attachment_file_size,
         ]
-        
+
         # Check if any attachment field is provided
         has_any_attachment = any(field is not None for field in attachment_fields)
         has_all_attachment = all(field is not None for field in attachment_fields)
-        
+
         if has_any_attachment and not has_all_attachment:
             self.logger.warning(
                 f"Entity {email_notification.technical_id} has incomplete attachment information"
@@ -284,9 +303,15 @@ class EmailNotificationValidationCriterion(CyodaCriteriaChecker):
 
         # Business rule: Email body should contain report-related content for performance reports
         if email_notification.report_id:
-            report_keywords = ["performance", "report", "sales", "inventory", "analysis"]
+            report_keywords = [
+                "performance",
+                "report",
+                "sales",
+                "inventory",
+                "analysis",
+            ]
             body_lower = email_notification.email_body.lower()
-            
+
             if not any(keyword in body_lower for keyword in report_keywords):
                 self.logger.warning(
                     f"Entity {email_notification.technical_id} has report_id but email body "
@@ -308,5 +333,5 @@ class EmailNotificationValidationCriterion(CyodaCriteriaChecker):
         """
         if not email or len(email.strip()) == 0:
             return False
-        
+
         return bool(self.email_pattern.match(email.strip()))

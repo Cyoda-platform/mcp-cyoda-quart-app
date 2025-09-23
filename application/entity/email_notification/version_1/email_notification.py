@@ -18,7 +18,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class EmailNotification(CyodaEntity):
     """
     EmailNotification represents email dispatch tracking for performance reports.
-    
+
     Tracks email notifications sent to the sales team with report attachments
     and delivery status as specified in functional requirements.
     """
@@ -30,120 +30,109 @@ class EmailNotification(CyodaEntity):
     # Email metadata
     subject: str = Field(..., description="Email subject line")
     recipient_email: str = Field(
-        ..., 
-        alias="recipientEmail", 
-        description="Primary recipient email address"
+        ..., alias="recipientEmail", description="Primary recipient email address"
     )
     cc_recipients: List[str] = Field(
         default_factory=list,
         alias="ccRecipients",
-        description="List of CC recipient email addresses"
+        description="List of CC recipient email addresses",
     )
     bcc_recipients: List[str] = Field(
         default_factory=list,
-        alias="bccRecipients", 
-        description="List of BCC recipient email addresses"
+        alias="bccRecipients",
+        description="List of BCC recipient email addresses",
     )
-    
+
     # Email content
     email_body: str = Field(
-        ..., 
-        alias="emailBody", 
-        description="Main body content of the email"
+        ..., alias="emailBody", description="Main body content of the email"
     )
     email_format: str = Field(
         default="html",
         alias="emailFormat",
-        description="Format of the email content (html, text)"
+        description="Format of the email content (html, text)",
     )
-    
+
     # Report attachment information
     report_id: Optional[str] = Field(
         default=None,
         alias="reportId",
-        description="ID of the associated PerformanceReport entity"
+        description="ID of the associated PerformanceReport entity",
     )
     attachment_file_path: Optional[str] = Field(
         default=None,
         alias="attachmentFilePath",
-        description="Path to the report attachment file"
+        description="Path to the report attachment file",
     )
     attachment_file_name: Optional[str] = Field(
         default=None,
         alias="attachmentFileName",
-        description="Name of the attachment file"
+        description="Name of the attachment file",
     )
     attachment_file_size: Optional[int] = Field(
         default=None,
         alias="attachmentFileSize",
-        description="Size of the attachment file in bytes"
+        description="Size of the attachment file in bytes",
     )
-    
+
     # Delivery tracking
     send_status: str = Field(
         default="pending",
         alias="sendStatus",
-        description="Status of email delivery (pending, sent, failed, bounced)"
+        description="Status of email delivery (pending, sent, failed, bounced)",
     )
     scheduled_send_time: Optional[str] = Field(
         default=None,
         alias="scheduledSendTime",
-        description="Scheduled time for email delivery (ISO 8601)"
+        description="Scheduled time for email delivery (ISO 8601)",
     )
     actual_send_time: Optional[str] = Field(
         default=None,
         alias="actualSendTime",
-        description="Actual time when email was sent (ISO 8601)"
+        description="Actual time when email was sent (ISO 8601)",
     )
     delivery_confirmation_time: Optional[str] = Field(
         default=None,
         alias="deliveryConfirmationTime",
-        description="Time when delivery was confirmed (ISO 8601)"
+        description="Time when delivery was confirmed (ISO 8601)",
     )
-    
+
     # Error handling
     error_message: Optional[str] = Field(
         default=None,
         alias="errorMessage",
-        description="Error message if email delivery failed"
+        description="Error message if email delivery failed",
     )
     retry_count: int = Field(
-        default=0,
-        alias="retryCount",
-        description="Number of delivery retry attempts"
+        default=0, alias="retryCount", description="Number of delivery retry attempts"
     )
     max_retries: int = Field(
-        default=3,
-        alias="maxRetries",
-        description="Maximum number of retry attempts"
+        default=3, alias="maxRetries", description="Maximum number of retry attempts"
     )
-    
+
     # Email service configuration
     email_provider: str = Field(
         default="smtp",
         alias="emailProvider",
-        description="Email service provider used for delivery"
+        description="Email service provider used for delivery",
     )
     priority: str = Field(
-        default="normal",
-        description="Email priority level (low, normal, high)"
+        default="normal", description="Email priority level (low, normal, high)"
     )
-    
+
     # Tracking and analytics
     email_opened: bool = Field(
         default=False,
         alias="emailOpened",
-        description="Flag indicating if email was opened by recipient"
+        description="Flag indicating if email was opened by recipient",
     )
     open_timestamp: Optional[str] = Field(
         default=None,
         alias="openTimestamp",
-        description="Timestamp when email was first opened"
+        description="Timestamp when email was first opened",
     )
     click_count: int = Field(
-        default=0,
-        alias="clickCount",
-        description="Number of link clicks in the email"
+        default=0, alias="clickCount", description="Number of link clicks in the email"
     )
 
     @field_validator("subject")
@@ -209,7 +198,9 @@ class EmailNotification(CyodaEntity):
     def mark_as_sent(self) -> None:
         """Mark the email as successfully sent"""
         self.send_status = "sent"
-        self.actual_send_time = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.actual_send_time = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
 
     def mark_as_failed(self, error_message: str) -> None:
         """Mark the email as failed with error message"""
@@ -219,13 +210,17 @@ class EmailNotification(CyodaEntity):
 
     def mark_as_delivered(self) -> None:
         """Mark the email as delivered (confirmation received)"""
-        self.delivery_confirmation_time = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.delivery_confirmation_time = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
 
     def mark_as_opened(self) -> None:
         """Mark the email as opened by recipient"""
         if not self.email_opened:
             self.email_opened = True
-            self.open_timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            self.open_timestamp = (
+                datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            )
 
     def increment_click_count(self) -> None:
         """Increment the click count for email analytics"""
@@ -235,7 +230,9 @@ class EmailNotification(CyodaEntity):
         """Check if email delivery can be retried"""
         return self.retry_count < self.max_retries and self.send_status == "failed"
 
-    def attach_report(self, report_id: str, file_path: str, file_name: str, file_size: int) -> None:
+    def attach_report(
+        self, report_id: str, file_path: str, file_name: str, file_size: int
+    ) -> None:
         """Attach a performance report to the email"""
         self.report_id = report_id
         self.attachment_file_path = file_path
@@ -244,7 +241,9 @@ class EmailNotification(CyodaEntity):
 
     def generate_weekly_report_email(self, report_summary: str) -> None:
         """Generate standard weekly report email content"""
-        self.subject = f"Weekly Product Performance Report - {datetime.now().strftime('%Y-%m-%d')}"
+        self.subject = (
+            f"Weekly Product Performance Report - {datetime.now().strftime('%Y-%m-%d')}"
+        )
         self.email_body = f"""
         <html>
         <body>

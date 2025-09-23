@@ -10,16 +10,17 @@ import os
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.performance_report.version_1.performance_report import (
+    PerformanceReport,
+)
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-
-from application.entity.performance_report.version_1.performance_report import PerformanceReport
 
 
 class PerformanceReportFinalizationProcessor(CyodaProcessor):
     """
     Processor for finalizing performance reports.
-    
+
     Generates PDF files, sets file paths, and prepares reports for
     email delivery to the sales team.
     """
@@ -54,11 +55,11 @@ class PerformanceReportFinalizationProcessor(CyodaProcessor):
 
             # Generate PDF report file
             pdf_file_path = await self._generate_pdf_report(report)
-            
+
             # Update report with file information
             report.report_file_path = pdf_file_path
             report.report_format = "pdf"
-            
+
             # Finalize the report
             report.finalize_report()
 
@@ -89,26 +90,26 @@ class PerformanceReportFinalizationProcessor(CyodaProcessor):
             # Create reports directory if it doesn't exist
             reports_dir = "reports"
             os.makedirs(reports_dir, exist_ok=True)
-            
+
             # Generate filename with timestamp
             timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
             filename = f"performance_report_{timestamp}.pdf"
             file_path = os.path.join(reports_dir, filename)
-            
+
             # Generate HTML content for the report
             html_content = self._generate_html_report(report)
-            
+
             # For now, save as HTML file (in a real implementation, you would use a library like weasyprint or reportlab)
-            html_file_path = file_path.replace('.pdf', '.html')
-            with open(html_file_path, 'w', encoding='utf-8') as f:
+            html_file_path = file_path.replace(".pdf", ".html")
+            with open(html_file_path, "w", encoding="utf-8") as f:
                 f.write(html_content)
-            
+
             # In a real implementation, convert HTML to PDF here
             # For demonstration, we'll use the HTML file path
             self.logger.info(f"Generated report file: {html_file_path}")
-            
+
             return html_file_path
-            
+
         except Exception as e:
             self.logger.error(f"Error generating PDF report: {str(e)}")
             raise
@@ -136,16 +137,16 @@ class PerformanceReportFinalizationProcessor(CyodaProcessor):
                 <td>{product.get('performanceScore', 0):.1f}</td>
             </tr>
             """
-        
+
         # Generate restock items table
         restock_items_html = ""
         for i, item in enumerate(report.items_requiring_restock[:10], 1):
             urgency_class = {
-                'HIGH': 'urgent',
-                'MEDIUM': 'warning', 
-                'LOW': 'normal'
-            }.get(item.get('urgency', 'LOW'), 'normal')
-            
+                "HIGH": "urgent",
+                "MEDIUM": "warning",
+                "LOW": "normal",
+            }.get(item.get("urgency", "LOW"), "normal")
+
             restock_items_html += f"""
             <tr class="{urgency_class}">
                 <td>{i}</td>
@@ -156,7 +157,7 @@ class PerformanceReportFinalizationProcessor(CyodaProcessor):
                 <td><span class="urgency-{urgency_class.lower()}">{item.get('urgency', 'LOW')}</span></td>
             </tr>
             """
-        
+
         # Generate slow moving items table
         slow_moving_html = ""
         for i, item in enumerate(report.slow_moving_inventory[:10], 1):
@@ -170,11 +171,15 @@ class PerformanceReportFinalizationProcessor(CyodaProcessor):
                 <td>{item.get('inventoryTurnover', 0):.2f}</td>
             </tr>
             """
-        
+
         # Generate trends and recommendations
-        trends_html = "".join([f"<li>{trend}</li>" for trend in report.performance_trends])
-        recommendations_html = "".join([f"<li>{rec}</li>" for rec in report.recommendations])
-        
+        trends_html = "".join(
+            [f"<li>{trend}</li>" for trend in report.performance_trends]
+        )
+        recommendations_html = "".join(
+            [f"<li>{rec}</li>" for rec in report.recommendations]
+        )
+
         # Generate category performance
         category_performance_html = ""
         for category, stats in report.category_performance.items():
@@ -187,7 +192,7 @@ class PerformanceReportFinalizationProcessor(CyodaProcessor):
                 <td>{stats.get('avg_turnover', 0):.2f}</td>
             </tr>
             """
-        
+
         html_content = f"""
         <!DOCTYPE html>
         <html>
@@ -314,5 +319,5 @@ class PerformanceReportFinalizationProcessor(CyodaProcessor):
         </body>
         </html>
         """
-        
+
         return html_content

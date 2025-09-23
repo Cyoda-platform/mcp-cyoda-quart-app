@@ -12,16 +12,16 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List
 
 import aiohttp
-from common.entity.entity_casting import cast_entity
-from common.processor.base import CyodaEntity, CyodaProcessor
 
 from application.entity.product_data.version_1.product_data import ProductData
+from common.entity.entity_casting import cast_entity
+from common.processor.base import CyodaEntity, CyodaProcessor
 
 
 class ProductDataExtractionProcessor(CyodaProcessor):
     """
     Processor for extracting product data from Pet Store API.
-    
+
     Fetches product information, sales data, and stock levels from the
     Pet Store API and populates ProductData entities.
     """
@@ -57,14 +57,14 @@ class ProductDataExtractionProcessor(CyodaProcessor):
 
             # Extract data from Pet Store API
             api_data = await self._fetch_product_data_from_api(product_data.product_id)
-            
+
             if api_data:
                 # Update entity with API data
                 product_data.update_from_api_data(api_data)
-                
+
                 # Generate mock sales and performance data (since Pet Store API doesn't provide this)
                 await self._generate_performance_data(product_data)
-                
+
                 self.logger.info(
                     f"Successfully extracted data for product {product_data.product_id}"
                 )
@@ -103,13 +103,15 @@ class ProductDataExtractionProcessor(CyodaProcessor):
                 async with session.get(url) as response:
                     if response.status == 200:
                         data = await response.json()
-                        self.logger.info(f"Successfully fetched data for product {product_id}")
+                        self.logger.info(
+                            f"Successfully fetched data for product {product_id}"
+                        )
                         return data
                     else:
                         self.logger.warning(
                             f"Failed to fetch product {product_id}, status: {response.status}"
                         )
-                        
+
                 # If specific fetch fails, get available pets and pick one
                 url = f"{self.api_base_url}/pet/findByStatus?status=available"
                 async with session.get(url) as response:
@@ -122,10 +124,10 @@ class ProductDataExtractionProcessor(CyodaProcessor):
                                 f"Using available pet {selected_pet.get('id')} as data source"
                             )
                             return selected_pet
-                            
+
         except Exception as e:
             self.logger.error(f"Error fetching from Pet Store API: {str(e)}")
-            
+
         return {}
 
     async def _generate_performance_data(self, product_data: ProductData) -> None:
@@ -143,22 +145,22 @@ class ProductDataExtractionProcessor(CyodaProcessor):
             "Fish": 0.9,
             "Reptiles": 0.6,
         }
-        
+
         base_multiplier = category_multipliers.get(product_data.category, 1.0)
-        
+
         # Generate sales volume (0-500 units)
         product_data.sales_volume = random.randint(0, int(500 * base_multiplier))
-        
+
         # Generate revenue based on sales volume ($10-$100 per unit)
         unit_price = random.uniform(10.0, 100.0)
         product_data.revenue = product_data.sales_volume * unit_price
-        
+
         # Generate stock level (0-200 units)
         product_data.stock_level = random.randint(0, 200)
-        
+
         # Calculate performance metrics
         product_data.calculate_performance_metrics()
-        
+
         self.logger.info(
             f"Generated performance data: sales={product_data.sales_volume}, "
             f"revenue=${product_data.revenue:.2f}, stock={product_data.stock_level}"
@@ -174,21 +176,21 @@ class ProductDataExtractionProcessor(CyodaProcessor):
         # Generate mock product information
         categories = ["Dogs", "Cats", "Birds", "Fish", "Reptiles"]
         statuses = ["available", "pending", "sold"]
-        
+
         if not product_data.name:
             product_data.name = f"Mock Product {product_data.product_id}"
         if not product_data.category:
             product_data.category = random.choice(categories)
         if not product_data.status:
             product_data.status = random.choice(statuses)
-            
+
         # Set API metadata
         product_data.api_source = "petstore_mock"
         product_data.data_format = "json"
-        
+
         # Generate performance data
         await self._generate_performance_data(product_data)
-        
+
         # Create mock raw API data
         product_data.raw_api_data = {
             "id": product_data.product_id,
@@ -197,7 +199,7 @@ class ProductDataExtractionProcessor(CyodaProcessor):
             "status": product_data.status,
             "photoUrls": [],
             "tags": [],
-            "mock_data": True
+            "mock_data": True,
         }
-        
+
         self.logger.info(f"Generated mock data for product {product_data.product_id}")

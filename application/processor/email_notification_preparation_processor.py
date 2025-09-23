@@ -9,18 +9,21 @@ import logging
 import os
 from typing import Any
 
+from application.entity.email_notification.version_1.email_notification import (
+    EmailNotification,
+)
+from application.entity.performance_report.version_1.performance_report import (
+    PerformanceReport,
+)
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
 from services.services import get_entity_service
-
-from application.entity.email_notification.version_1.email_notification import EmailNotification
-from application.entity.performance_report.version_1.performance_report import PerformanceReport
 
 
 class EmailNotificationPreparationProcessor(CyodaProcessor):
     """
     Processor for preparing email notifications.
-    
+
     Prepares email content, attaches performance reports, and sets up
     email notifications for delivery to the sales team.
     """
@@ -55,22 +58,24 @@ class EmailNotificationPreparationProcessor(CyodaProcessor):
 
             # Find the latest finalized performance report
             latest_report = await self._find_latest_performance_report()
-            
+
             if latest_report:
                 # Prepare email content based on the report
                 await self._prepare_email_content(email_notification, latest_report)
-                
+
                 # Attach the report file
                 await self._attach_report_file(email_notification, latest_report)
-                
+
                 self.logger.info(
                     f"Prepared email notification with report attachment: {latest_report.report_title}"
                 )
             else:
                 # Prepare a notification about missing report
                 await self._prepare_fallback_email(email_notification)
-                
-                self.logger.warning("No finalized performance report found, prepared fallback email")
+
+                self.logger.warning(
+                    "No finalized performance report found, prepared fallback email"
+                )
 
             return email_notification
 
@@ -89,46 +94,57 @@ class EmailNotificationPreparationProcessor(CyodaProcessor):
         """
         try:
             entity_service = get_entity_service()
-            
+
             # Search for finalized PerformanceReport entities
             search_response = await entity_service.search(
                 entity_class=PerformanceReport.ENTITY_NAME,
                 entity_version=str(PerformanceReport.ENTITY_VERSION),
                 query={},
-                page_size=100
+                page_size=100,
             )
-            
+
             latest_report = None
             latest_timestamp = None
-            
-            if hasattr(search_response, 'entities') and search_response.entities:
+
+            if hasattr(search_response, "entities") and search_response.entities:
                 for entity_data in search_response.entities:
                     try:
                         report = PerformanceReport(**entity_data.entity)
-                        
+
                         # Check if report is finalized and has a generation timestamp
-                        if (report.report_status == "finalized" and 
-                            report.generation_timestamp and
-                            (latest_timestamp is None or report.generation_timestamp > latest_timestamp)):
+                        if (
+                            report.report_status == "finalized"
+                            and report.generation_timestamp
+                            and (
+                                latest_timestamp is None
+                                or report.generation_timestamp > latest_timestamp
+                            )
+                        ):
                             latest_report = report
                             latest_timestamp = report.generation_timestamp
-                            
+
                     except Exception as e:
-                        self.logger.warning(f"Failed to parse performance report: {str(e)}")
+                        self.logger.warning(
+                            f"Failed to parse performance report: {str(e)}"
+                        )
                         continue
-            
+
             if latest_report:
-                self.logger.info(f"Found latest performance report: {latest_report.report_title}")
+                self.logger.info(
+                    f"Found latest performance report: {latest_report.report_title}"
+                )
             else:
                 self.logger.warning("No finalized performance reports found")
-                
+
             return latest_report
-            
+
         except Exception as e:
             self.logger.error(f"Error finding latest performance report: {str(e)}")
             return None
 
-    async def _prepare_email_content(self, email_notification: EmailNotification, report: PerformanceReport) -> None:
+    async def _prepare_email_content(
+        self, email_notification: EmailNotification, report: PerformanceReport
+    ) -> None:
         """
         Prepare email content based on the performance report.
 
@@ -137,11 +153,13 @@ class EmailNotificationPreparationProcessor(CyodaProcessor):
             report: The PerformanceReport to base content on
         """
         # Generate email subject
-        email_notification.subject = f"Weekly Product Performance Report - {report.report_period_end[:10]}"
-        
+        email_notification.subject = (
+            f"Weekly Product Performance Report - {report.report_period_end[:10]}"
+        )
+
         # Set recipient
         email_notification.recipient_email = "victoria.sagdieva@cyoda.com"
-        
+
         # Generate email body with report summary
         summary_stats = f"""
         • Total Products Analyzed: {report.total_products_analyzed:,}
@@ -151,15 +169,17 @@ class EmailNotificationPreparationProcessor(CyodaProcessor):
         • Items Requiring Restock: {len(report.items_requiring_restock)}
         • Slow-Moving Items: {len(report.slow_moving_inventory)}
         """
-        
+
         # Get top 3 recommendations
         top_recommendations = report.recommendations[:3]
         recommendations_text = ""
         if top_recommendations:
-            recommendations_text = "\n".join([f"• {rec}" for rec in top_recommendations])
+            recommendations_text = "\n".join(
+                [f"• {rec}" for rec in top_recommendations]
+            )
         else:
             recommendations_text = "• Continue monitoring product performance trends"
-        
+
         email_body = f"""
         <html>
         <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
@@ -204,16 +224,18 @@ class EmailNotificationPreparationProcessor(CyodaProcessor):
         </body>
         </html>
         """
-        
+
         email_notification.email_body = email_body
         email_notification.email_format = "html"
-        
+
         # Set report reference
         email_notification.report_id = report.technical_id or report.entity_id
-        
+
         self.logger.info(f"Prepared email content for report: {report.report_title}")
 
-    async def _attach_report_file(self, email_notification: EmailNotification, report: PerformanceReport) -> None:
+    async def _attach_report_file(
+        self, email_notification: EmailNotification, report: PerformanceReport
+    ) -> None:
         """
         Attach the performance report file to the email.
 
@@ -225,29 +247,33 @@ class EmailNotificationPreparationProcessor(CyodaProcessor):
             # Get file information
             file_size = os.path.getsize(report.report_file_path)
             file_name = os.path.basename(report.report_file_path)
-            
+
             # Attach the file to the email notification
             email_notification.attach_report(
                 report_id=report.technical_id or report.entity_id or "unknown",
                 file_path=report.report_file_path,
                 file_name=file_name,
-                file_size=file_size
+                file_size=file_size,
             )
-            
+
             self.logger.info(f"Attached report file: {file_name} ({file_size} bytes)")
         else:
             self.logger.warning(f"Report file not found: {report.report_file_path}")
 
-    async def _prepare_fallback_email(self, email_notification: EmailNotification) -> None:
+    async def _prepare_fallback_email(
+        self, email_notification: EmailNotification
+    ) -> None:
         """
         Prepare a fallback email when no performance report is available.
 
         Args:
             email_notification: The EmailNotification entity to update
         """
-        email_notification.subject = "Weekly Product Performance Report - System Notification"
+        email_notification.subject = (
+            "Weekly Product Performance Report - System Notification"
+        )
         email_notification.recipient_email = "victoria.sagdieva@cyoda.com"
-        
+
         email_body = """
         <html>
         <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
@@ -285,8 +311,8 @@ class EmailNotificationPreparationProcessor(CyodaProcessor):
         </body>
         </html>
         """
-        
+
         email_notification.email_body = email_body
         email_notification.email_format = "html"
-        
+
         self.logger.info("Prepared fallback email notification")

@@ -7,16 +7,15 @@ before processing as specified in functional requirements.
 
 from typing import Any
 
+from application.entity.product_data.version_1.product_data import ProductData
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-
-from application.entity.product_data.version_1.product_data import ProductData
 
 
 class ProductDataValidationCriterion(CyodaCriteriaChecker):
     """
     Validation criterion for ProductData entities.
-    
+
     Checks data quality, required fields, and business rules before
     allowing ProductData entities to proceed to data extraction.
     """
@@ -101,7 +100,11 @@ class ProductDataValidationCriterion(CyodaCriteriaChecker):
             return False
 
         # Validate status (if provided)
-        if product_data.status and product_data.status not in ["available", "pending", "sold"]:
+        if product_data.status and product_data.status not in [
+            "available",
+            "pending",
+            "sold",
+        ]:
             self.logger.warning(
                 f"Entity {product_data.technical_id} has invalid status: '{product_data.status}'"
             )
@@ -138,13 +141,18 @@ class ProductDataValidationCriterion(CyodaCriteriaChecker):
             )
             return False
 
-        if product_data.inventory_turnover_rate is not None and product_data.inventory_turnover_rate < 0:
+        if (
+            product_data.inventory_turnover_rate is not None
+            and product_data.inventory_turnover_rate < 0
+        ):
             self.logger.warning(
                 f"Entity {product_data.technical_id} has negative inventory_turnover_rate: {product_data.inventory_turnover_rate}"
             )
             return False
 
-        if product_data.performance_score is not None and (product_data.performance_score < 0 or product_data.performance_score > 100):
+        if product_data.performance_score is not None and (
+            product_data.performance_score < 0 or product_data.performance_score > 100
+        ):
             self.logger.warning(
                 f"Entity {product_data.technical_id} has invalid performance_score: {product_data.performance_score} (must be 0-100)"
             )
@@ -171,14 +179,16 @@ class ProductDataValidationCriterion(CyodaCriteriaChecker):
         """
         # Business rule: If sales_volume and stock_level are both provided,
         # inventory turnover should be reasonable
-        if (product_data.sales_volume is not None and 
-            product_data.stock_level is not None and 
-            product_data.inventory_turnover_rate is not None):
-            
+        if (
+            product_data.sales_volume is not None
+            and product_data.stock_level is not None
+            and product_data.inventory_turnover_rate is not None
+        ):
+
             if product_data.stock_level > 0:
                 expected_turnover = product_data.sales_volume / product_data.stock_level
                 actual_turnover = product_data.inventory_turnover_rate
-                
+
                 # Allow for some variance in calculation
                 if abs(expected_turnover - actual_turnover) > 0.1:
                     self.logger.warning(
@@ -188,11 +198,13 @@ class ProductDataValidationCriterion(CyodaCriteriaChecker):
                     # This is a warning, not a failure - data might be from different time periods
 
         # Business rule: High performance score should correlate with high sales or revenue
-        if (product_data.performance_score is not None and 
-            product_data.performance_score > 80 and
-            product_data.sales_volume is not None and 
-            product_data.revenue is not None):
-            
+        if (
+            product_data.performance_score is not None
+            and product_data.performance_score > 80
+            and product_data.sales_volume is not None
+            and product_data.revenue is not None
+        ):
+
             if product_data.sales_volume == 0 and product_data.revenue == 0:
                 self.logger.warning(
                     f"Entity {product_data.technical_id} has high performance score ({product_data.performance_score}) "
@@ -201,18 +213,19 @@ class ProductDataValidationCriterion(CyodaCriteriaChecker):
                 return False
 
         # Business rule: Sold items should not require restocking
-        if (product_data.status == "sold" and 
-            product_data.requires_restocking is True):
+        if product_data.status == "sold" and product_data.requires_restocking is True:
             self.logger.warning(
                 f"Entity {product_data.technical_id} is marked as 'sold' but requires restocking"
             )
             # This might be valid if it's a popular item that sold out
 
         # Business rule: API source should be consistent with data format
-        if (product_data.api_source and 
-            product_data.data_format and
-            product_data.api_source == "petstore" and 
-            product_data.data_format not in ["json", "xml"]):
+        if (
+            product_data.api_source
+            and product_data.data_format
+            and product_data.api_source == "petstore"
+            and product_data.data_format not in ["json", "xml"]
+        ):
             self.logger.warning(
                 f"Entity {product_data.technical_id} has inconsistent API source and data format"
             )

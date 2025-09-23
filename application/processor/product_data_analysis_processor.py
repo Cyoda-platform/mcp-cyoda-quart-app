@@ -8,16 +8,15 @@ trend analysis, and performance scoring as specified in functional requirements.
 import logging
 from typing import Any
 
+from application.entity.product_data.version_1.product_data import ProductData
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-
-from application.entity.product_data.version_1.product_data import ProductData
 
 
 class ProductDataAnalysisProcessor(CyodaProcessor):
     """
     Processor for analyzing product performance data.
-    
+
     Performs KPI calculations, trend analysis, and sets performance flags
     for ProductData entities based on business rules.
     """
@@ -80,7 +79,7 @@ class ProductDataAnalysisProcessor(CyodaProcessor):
         """
         # Recalculate performance metrics with updated business rules
         product_data.calculate_performance_metrics()
-        
+
         # Additional performance analysis based on category
         category_performance_thresholds = {
             "Dogs": {"high_sales": 100, "high_revenue": 5000},
@@ -89,19 +88,24 @@ class ProductDataAnalysisProcessor(CyodaProcessor):
             "Fish": {"high_sales": 60, "high_revenue": 3000},
             "Reptiles": {"high_sales": 30, "high_revenue": 2000},
         }
-        
+
         thresholds = category_performance_thresholds.get(
-            product_data.category, 
-            {"high_sales": 50, "high_revenue": 2500}
+            product_data.category, {"high_sales": 50, "high_revenue": 2500}
         )
-        
+
         # Adjust performance score based on category-specific thresholds
-        sales_performance = min((product_data.sales_volume or 0) / thresholds["high_sales"], 1.0)
-        revenue_performance = min((product_data.revenue or 0) / thresholds["high_revenue"], 1.0)
-        
+        sales_performance = min(
+            (product_data.sales_volume or 0) / thresholds["high_sales"], 1.0
+        )
+        revenue_performance = min(
+            (product_data.revenue or 0) / thresholds["high_revenue"], 1.0
+        )
+
         # Weighted performance score (60% sales, 40% revenue)
-        product_data.performance_score = (sales_performance * 60) + (revenue_performance * 40)
-        
+        product_data.performance_score = (sales_performance * 60) + (
+            revenue_performance * 40
+        )
+
         self.logger.info(
             f"Calculated performance metrics for {product_data.product_id}: "
             f"turnover={product_data.inventory_turnover_rate:.2f}, "
@@ -117,7 +121,7 @@ class ProductDataAnalysisProcessor(CyodaProcessor):
         """
         stock_level = product_data.stock_level or 0
         sales_volume = product_data.sales_volume or 0
-        
+
         # Category-specific restocking thresholds
         category_restock_thresholds = {
             "Dogs": 15,
@@ -126,9 +130,9 @@ class ProductDataAnalysisProcessor(CyodaProcessor):
             "Fish": 10,
             "Reptiles": 5,
         }
-        
+
         restock_threshold = category_restock_thresholds.get(product_data.category, 10)
-        
+
         # Set restocking flag based on stock level and sales velocity
         if stock_level < restock_threshold:
             product_data.requires_restocking = True
@@ -137,7 +141,7 @@ class ProductDataAnalysisProcessor(CyodaProcessor):
             product_data.requires_restocking = True
         else:
             product_data.requires_restocking = False
-            
+
         self.logger.info(
             f"Inventory analysis for {product_data.product_id}: "
             f"stock={stock_level}, threshold={restock_threshold}, "
@@ -153,7 +157,7 @@ class ProductDataAnalysisProcessor(CyodaProcessor):
         """
         sales_volume = product_data.sales_volume or 0
         stock_level = product_data.stock_level or 0
-        
+
         # Define slow-moving criteria based on category
         category_slow_moving_thresholds = {
             "Dogs": {"max_sales": 20, "min_stock": 30},
@@ -162,19 +166,20 @@ class ProductDataAnalysisProcessor(CyodaProcessor):
             "Fish": {"max_sales": 12, "min_stock": 25},
             "Reptiles": {"max_sales": 8, "min_stock": 15},
         }
-        
+
         thresholds = category_slow_moving_thresholds.get(
-            product_data.category,
-            {"max_sales": 15, "min_stock": 25}
+            product_data.category, {"max_sales": 15, "min_stock": 25}
         )
-        
+
         # Identify slow-moving inventory
-        if (sales_volume <= thresholds["max_sales"] and 
-            stock_level >= thresholds["min_stock"]):
+        if (
+            sales_volume <= thresholds["max_sales"]
+            and stock_level >= thresholds["min_stock"]
+        ):
             product_data.is_slow_moving = True
         else:
             product_data.is_slow_moving = False
-            
+
         self.logger.info(
             f"Sales trend analysis for {product_data.product_id}: "
             f"sales={sales_volume}, stock={stock_level}, "
@@ -191,14 +196,15 @@ class ProductDataAnalysisProcessor(CyodaProcessor):
         # High performer criteria: score >= 70 OR (high sales AND good turnover)
         high_sales_threshold = 100
         good_turnover_threshold = 2.0
-        
-        if (product_data.performance_score >= 70 or 
-            ((product_data.sales_volume or 0) >= high_sales_threshold and 
-             (product_data.inventory_turnover_rate or 0) >= good_turnover_threshold)):
+
+        if product_data.performance_score >= 70 or (
+            (product_data.sales_volume or 0) >= high_sales_threshold
+            and (product_data.inventory_turnover_rate or 0) >= good_turnover_threshold
+        ):
             product_data.is_high_performer = True
         else:
             product_data.is_high_performer = False
-            
+
         self.logger.info(
             f"Performance flags set for {product_data.product_id}: "
             f"high_performer={product_data.is_high_performer}, "

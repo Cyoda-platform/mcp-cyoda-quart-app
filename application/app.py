@@ -5,15 +5,15 @@ from typing import Callable, Dict, Optional
 from quart import Quart, Response
 from quart_schema import QuartSchema, ResponseSchemaValidationError, hide
 
+from application.routes.email_notifications import email_notifications_bp
+from application.routes.performance_reports import performance_reports_bp
+
+# Import blueprints for different route groups
+from application.routes.product_data import product_data_bp
 from common.exception.exception_handler import (
     register_error_handlers as _register_error_handlers,
 )
 from services.services import get_grpc_client, initialize_services
-
-# Import blueprints for different route groups
-from application.routes.product_data import product_data_bp
-from application.routes.performance_reports import performance_reports_bp
-from application.routes.email_notifications import email_notifications_bp
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -30,9 +30,18 @@ QuartSchema(
             "description": "ExampleEntity management endpoints",
         },
         {"name": "OtherEntities", "description": "OtherEntity management endpoints"},
-        {"name": "ProductData", "description": "Product data management and analytics endpoints"},
-        {"name": "PerformanceReports", "description": "Performance report generation and management endpoints"},
-        {"name": "EmailNotifications", "description": "Email notification and delivery endpoints"},
+        {
+            "name": "ProductData",
+            "description": "Product data management and analytics endpoints",
+        },
+        {
+            "name": "PerformanceReports",
+            "description": "Performance report generation and management endpoints",
+        },
+        {
+            "name": "EmailNotifications",
+            "description": "Email notification and delivery endpoints",
+        },
         {"name": "System", "description": "System and health endpoints"},
     ],
     security=[{"bearerAuth": []}],

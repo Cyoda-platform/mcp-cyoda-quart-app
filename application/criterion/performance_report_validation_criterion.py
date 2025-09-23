@@ -8,16 +8,17 @@ before report generation as specified in functional requirements.
 from datetime import datetime
 from typing import Any
 
+from application.entity.performance_report.version_1.performance_report import (
+    PerformanceReport,
+)
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-
-from application.entity.performance_report.version_1.performance_report import PerformanceReport
 
 
 class PerformanceReportValidationCriterion(CyodaCriteriaChecker):
     """
     Validation criterion for PerformanceReport entities.
-    
+
     Checks report metadata, period validity, and required fields before
     allowing PerformanceReport entities to proceed to report generation.
     """
@@ -92,7 +93,10 @@ class PerformanceReportValidationCriterion(CyodaCriteriaChecker):
             return False
 
         # Validate report period dates
-        if not report.report_period_start or len(report.report_period_start.strip()) == 0:
+        if (
+            not report.report_period_start
+            or len(report.report_period_start.strip()) == 0
+        ):
             self.logger.warning(
                 f"Entity {report.technical_id} has invalid report_period_start: '{report.report_period_start}'"
             )
@@ -125,9 +129,13 @@ class PerformanceReportValidationCriterion(CyodaCriteriaChecker):
         """
         try:
             # Parse the dates
-            start_date = datetime.fromisoformat(report.report_period_start.replace('Z', '+00:00'))
-            end_date = datetime.fromisoformat(report.report_period_end.replace('Z', '+00:00'))
-            
+            start_date = datetime.fromisoformat(
+                report.report_period_start.replace("Z", "+00:00")
+            )
+            end_date = datetime.fromisoformat(
+                report.report_period_end.replace("Z", "+00:00")
+            )
+
             # Check that end date is after start date
             if end_date <= start_date:
                 self.logger.warning(
@@ -135,7 +143,7 @@ class PerformanceReportValidationCriterion(CyodaCriteriaChecker):
                     f"end date ({report.report_period_end}) must be after start date ({report.report_period_start})"
                 )
                 return False
-            
+
             # Check that the period is not too long (e.g., more than 1 year)
             period_days = (end_date - start_date).days
             if period_days > 365:
@@ -143,14 +151,14 @@ class PerformanceReportValidationCriterion(CyodaCriteriaChecker):
                     f"Entity {report.technical_id} has excessively long report period: {period_days} days"
                 )
                 return False
-            
+
             # Check that the period is not too short (e.g., less than 1 day)
             if period_days < 1:
                 self.logger.warning(
                     f"Entity {report.technical_id} has too short report period: {period_days} days"
                 )
                 return False
-            
+
             # Check that the report period is not in the future
             current_date = datetime.now(start_date.tzinfo)
             if start_date > current_date:
@@ -158,9 +166,9 @@ class PerformanceReportValidationCriterion(CyodaCriteriaChecker):
                     f"Entity {report.technical_id} has future report period start date: {report.report_period_start}"
                 )
                 return False
-            
+
             return True
-            
+
         except ValueError as e:
             self.logger.warning(
                 f"Entity {report.technical_id} has invalid date format in report period: {str(e)}"
