@@ -284,11 +284,16 @@ class DataExtractionProcessor(CyodaProcessor):
             if results and len(results) > 0:
                 # Return the first matching product
                 product_data = results[0].data
+                product_dict: Any
                 if hasattr(product_data, "model_dump"):
                     product_dict = product_data.model_dump(by_alias=True)
+                elif hasattr(product_data, '__dict__'):
+                    product_dict = dict(product_data)
                 else:
-                    product_dict = dict(product_data) if hasattr(product_data, '__dict__') else product_data
-                return Product(**product_dict)
+                    product_dict = product_data
+
+                if isinstance(product_dict, dict):
+                    return Product(**product_dict)
 
         except Exception as e:
             self.logger.error(

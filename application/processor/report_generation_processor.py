@@ -95,14 +95,18 @@ class ReportGenerationProcessor(CyodaProcessor):
                 if hasattr(response, "data"):
                     # Convert response data to Product entity
                     product_data = response.data
+                    product_dict: Any
                     if hasattr(product_data, "model_dump"):
                         product_dict = product_data.model_dump(by_alias=True)
+                    elif hasattr(product_data, '__dict__'):
+                        product_dict = dict(product_data)
                     else:
-                        product_dict = dict(product_data) if hasattr(product_data, '__dict__') else product_data
+                        product_dict = product_data
 
                     # Create Product instance from dict
-                    product = Product(**product_dict)
-                    products.append(product)
+                    if isinstance(product_dict, dict):
+                        product = Product(**product_dict)
+                        products.append(product)
 
             self.logger.info(f"Fetched {len(products)} products for report analysis")
             return products
