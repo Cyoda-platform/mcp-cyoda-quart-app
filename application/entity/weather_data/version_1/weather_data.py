@@ -16,7 +16,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class WeatherData(CyodaEntity):
     """
     WeatherData represents weather observations from MSC GeoMet API.
-    
+
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     The state field manages workflow states: initial_state -> collected -> validated -> processed -> archived
     """
@@ -27,91 +27,77 @@ class WeatherData(CyodaEntity):
 
     # Reference to weather station
     station_id: str = Field(..., description="Weather station identifier")
-    
+
     # Observation metadata
-    observation_date: str = Field(..., description="Date of observation (YYYY-MM-DD format)")
-    observation_type: str = Field(default="daily", description="Type of observation (daily, monthly, hourly)")
-    
+    observation_date: str = Field(
+        ..., description="Date of observation (YYYY-MM-DD format)"
+    )
+    observation_type: str = Field(
+        default="daily", description="Type of observation (daily, monthly, hourly)"
+    )
+
     # Temperature measurements (Celsius)
     temperature_max: Optional[float] = Field(
-        default=None, 
+        default=None,
         alias="temperatureMax",
-        description="Maximum temperature in Celsius"
+        description="Maximum temperature in Celsius",
     )
     temperature_min: Optional[float] = Field(
         default=None,
-        alias="temperatureMin", 
-        description="Minimum temperature in Celsius"
+        alias="temperatureMin",
+        description="Minimum temperature in Celsius",
     )
     temperature_mean: Optional[float] = Field(
-        default=None,
-        alias="temperatureMean",
-        description="Mean temperature in Celsius"
+        default=None, alias="temperatureMean", description="Mean temperature in Celsius"
     )
-    
+
     # Precipitation measurements (mm)
     precipitation_total: Optional[float] = Field(
         default=None,
         alias="precipitationTotal",
-        description="Total precipitation in millimeters"
+        description="Total precipitation in millimeters",
     )
     rain_total: Optional[float] = Field(
-        default=None,
-        alias="rainTotal",
-        description="Total rainfall in millimeters"
+        default=None, alias="rainTotal", description="Total rainfall in millimeters"
     )
     snow_total: Optional[float] = Field(
-        default=None,
-        alias="snowTotal",
-        description="Total snowfall in millimeters"
+        default=None, alias="snowTotal", description="Total snowfall in millimeters"
     )
-    
+
     # Wind measurements
     wind_speed: Optional[float] = Field(
-        default=None,
-        alias="windSpeed",
-        description="Wind speed in km/h"
+        default=None, alias="windSpeed", description="Wind speed in km/h"
     )
     wind_direction: Optional[float] = Field(
-        default=None,
-        alias="windDirection",
-        description="Wind direction in degrees"
+        default=None, alias="windDirection", description="Wind direction in degrees"
     )
-    
+
     # Pressure measurements (kPa)
     pressure_sea_level: Optional[float] = Field(
-        default=None,
-        alias="pressureSeaLevel",
-        description="Sea level pressure in kPa"
+        default=None, alias="pressureSeaLevel", description="Sea level pressure in kPa"
     )
     pressure_station: Optional[float] = Field(
-        default=None,
-        alias="pressureStation",
-        description="Station pressure in kPa"
+        default=None, alias="pressureStation", description="Station pressure in kPa"
     )
-    
+
     # Other measurements
     humidity: Optional[float] = Field(
-        default=None,
-        description="Relative humidity percentage"
+        default=None, description="Relative humidity percentage"
     )
     visibility: Optional[float] = Field(
-        default=None,
-        description="Visibility in kilometers"
+        default=None, description="Visibility in kilometers"
     )
-    
+
     # Data quality indicators
     data_quality: Optional[str] = Field(
-        default=None,
-        alias="dataQuality",
-        description="Data quality assessment"
+        default=None, alias="dataQuality", description="Data quality assessment"
     )
     missing_data_flags: Optional[Dict[str, bool]] = Field(
         default_factory=dict,
         alias="missingDataFlags",
-        description="Flags indicating missing data for specific measurements"
+        description="Flags indicating missing data for specific measurements",
     )
-    
+
     # Timestamps
     created_at: Optional[str] = Field(
         default_factory=lambda: datetime.now(timezone.utc)
@@ -125,7 +111,7 @@ class WeatherData(CyodaEntity):
         alias="updatedAt",
         description="Timestamp when the data was last updated (ISO 8601 format)",
     )
-    
+
     # Processing metadata
     processed_data: Optional[Dict[str, Any]] = Field(
         default=None,
@@ -160,7 +146,9 @@ class WeatherData(CyodaEntity):
         """Validate temperature values are reasonable"""
         if v is not None:
             if v < -60 or v > 60:
-                raise ValueError("Temperature must be between -60 and 60 degrees Celsius")
+                raise ValueError(
+                    "Temperature must be between -60 and 60 degrees Celsius"
+                )
         return v
 
     @field_validator("precipitation_total", "rain_total", "snow_total")
@@ -199,32 +187,47 @@ class WeatherData(CyodaEntity):
 
     def has_temperature_data(self) -> bool:
         """Check if temperature data is available"""
-        return any([
-            self.temperature_max is not None,
-            self.temperature_min is not None,
-            self.temperature_mean is not None
-        ])
+        return any(
+            [
+                self.temperature_max is not None,
+                self.temperature_min is not None,
+                self.temperature_mean is not None,
+            ]
+        )
 
     def has_precipitation_data(self) -> bool:
         """Check if precipitation data is available"""
-        return any([
-            self.precipitation_total is not None,
-            self.rain_total is not None,
-            self.snow_total is not None
-        ])
+        return any(
+            [
+                self.precipitation_total is not None,
+                self.rain_total is not None,
+                self.snow_total is not None,
+            ]
+        )
 
     def get_data_completeness_score(self) -> float:
         """Calculate data completeness score (0.0 to 1.0)"""
         total_fields = 12  # Number of measurement fields
-        available_fields = sum([
-            1 for field in [
-                self.temperature_max, self.temperature_min, self.temperature_mean,
-                self.precipitation_total, self.rain_total, self.snow_total,
-                self.wind_speed, self.wind_direction,
-                self.pressure_sea_level, self.pressure_station,
-                self.humidity, self.visibility
-            ] if field is not None
-        ])
+        available_fields = sum(
+            [
+                1
+                for field in [
+                    self.temperature_max,
+                    self.temperature_min,
+                    self.temperature_mean,
+                    self.precipitation_total,
+                    self.rain_total,
+                    self.snow_total,
+                    self.wind_speed,
+                    self.wind_direction,
+                    self.pressure_sea_level,
+                    self.pressure_station,
+                    self.humidity,
+                    self.visibility,
+                ]
+                if field is not None
+            ]
+        )
         return available_fields / total_fields
 
     def to_api_response(self) -> Dict[str, Any]:

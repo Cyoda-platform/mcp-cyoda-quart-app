@@ -16,7 +16,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class WeatherStation(CyodaEntity):
     """
     WeatherStation represents a weather monitoring station from MSC GeoMet API.
-    
+
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     The state field manages workflow states: initial_state -> registered -> validated -> active -> inactive
     """
@@ -26,26 +26,40 @@ class WeatherStation(CyodaEntity):
     ENTITY_VERSION: ClassVar[int] = 1
 
     # Station identification fields
-    station_id: str = Field(..., description="Unique station identifier from MSC GeoMet")
+    station_id: str = Field(
+        ..., description="Unique station identifier from MSC GeoMet"
+    )
     station_name: str = Field(..., description="Human-readable station name")
-    
+
     # Location fields
     latitude: float = Field(..., description="Station latitude in decimal degrees")
     longitude: float = Field(..., description="Station longitude in decimal degrees")
-    elevation: Optional[float] = Field(default=None, description="Station elevation in meters")
-    
+    elevation: Optional[float] = Field(
+        default=None, description="Station elevation in meters"
+    )
+
     # Administrative fields
     province: Optional[str] = Field(default=None, description="Province or territory")
-    country: str = Field(default="Canada", description="Country where station is located")
-    
+    country: str = Field(
+        default="Canada", description="Country where station is located"
+    )
+
     # Station metadata
-    station_type: Optional[str] = Field(default=None, description="Type of weather station")
-    is_active: bool = Field(default=True, description="Whether station is currently operational")
-    
+    station_type: Optional[str] = Field(
+        default=None, description="Type of weather station"
+    )
+    is_active: bool = Field(
+        default=True, description="Whether station is currently operational"
+    )
+
     # Data availability
-    first_year: Optional[int] = Field(default=None, description="First year of available data")
-    last_year: Optional[int] = Field(default=None, description="Last year of available data")
-    
+    first_year: Optional[int] = Field(
+        default=None, description="First year of available data"
+    )
+    last_year: Optional[int] = Field(
+        default=None, description="Last year of available data"
+    )
+
     # Timestamps
     created_at: Optional[str] = Field(
         default_factory=lambda: datetime.now(timezone.utc)
@@ -56,10 +70,10 @@ class WeatherStation(CyodaEntity):
     )
     updated_at: Optional[str] = Field(
         default=None,
-        alias="updatedAt", 
+        alias="updatedAt",
         description="Timestamp when the station was last updated (ISO 8601 format)",
     )
-    
+
     # Processing metadata
     last_data_fetch: Optional[str] = Field(
         default=None,
@@ -112,10 +126,14 @@ class WeatherStation(CyodaEntity):
         """Update the updated_at timestamp to current time"""
         self.updated_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
-    def set_data_fetch_status(self, status: str, timestamp: Optional[str] = None) -> None:
+    def set_data_fetch_status(
+        self, status: str, timestamp: Optional[str] = None
+    ) -> None:
         """Set data fetch status and update timestamp"""
         self.data_fetch_status = status
-        self.last_data_fetch = timestamp or datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.last_data_fetch = timestamp or datetime.now(
+            timezone.utc
+        ).isoformat().replace("+00:00", "Z")
         self.update_timestamp()
 
     def is_operational(self) -> bool:
@@ -128,7 +146,9 @@ class WeatherStation(CyodaEntity):
         if self.province:
             location_parts.append(self.province)
         location_parts.append(self.country)
-        return f"{self.latitude:.4f}, {self.longitude:.4f} ({', '.join(location_parts)})"
+        return (
+            f"{self.latitude:.4f}, {self.longitude:.4f} ({', '.join(location_parts)})"
+        )
 
     def to_api_response(self) -> Dict[str, Any]:
         """Convert to API response format"""

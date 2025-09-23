@@ -40,17 +40,21 @@ from ..models import (
     WeatherStationUpdateQueryParams,
 )
 
+
 # Module-level service proxy
 class _ServiceProxy:
     def __getattr__(self, name: str) -> Any:
         return getattr(get_entity_service(), name)
 
+
 service = _ServiceProxy()
 logger = logging.getLogger(__name__)
+
 
 # Helper to normalize entity data from service
 def _to_entity_dict(data: Any) -> Dict[str, Any]:
     return data.model_dump(by_alias=True) if hasattr(data, "model_dump") else data
+
 
 weather_stations_bp = Blueprint(
     "weather_stations", __name__, url_prefix="/api/weather-stations"
@@ -141,7 +145,9 @@ async def get_weather_station(entity_id: str) -> ResponseReturnValue:
         500: (ErrorResponse, None),
     }
 )
-async def list_weather_stations(query_args: WeatherStationQueryParams) -> ResponseReturnValue:
+async def list_weather_stations(
+    query_args: WeatherStationQueryParams,
+) -> ResponseReturnValue:
     """List WeatherStations with optional filtering"""
     try:
         # Build search conditions
@@ -230,7 +236,9 @@ async def update_weather_station(
         return _to_entity_dict(response.data), 200
 
     except ValueError as e:
-        logger.warning("Validation error updating WeatherStation %s: %s", entity_id, str(e))
+        logger.warning(
+            "Validation error updating WeatherStation %s: %s", entity_id, str(e)
+        )
         return {"error": str(e), "code": "VALIDATION_ERROR"}, 400
     except Exception as e:
         logger.exception("Error updating WeatherStation %s: %s", entity_id, str(e))
@@ -279,6 +287,7 @@ async def delete_weather_station(entity_id: str) -> ResponseReturnValue:
 
 # Additional endpoints
 
+
 @weather_stations_bp.route("/by-station-id/<station_id>", methods=["GET"])
 @tag(["weather-stations"])
 @operation_id("get_weather_station_by_station_id")
@@ -305,7 +314,9 @@ async def get_by_station_id(station_id: str) -> ResponseReturnValue:
         return _to_entity_dict(result.data), 200
 
     except Exception as e:
-        logger.exception("Error getting WeatherStation by station ID %s: %s", station_id, str(e))
+        logger.exception(
+            "Error getting WeatherStation by station ID %s: %s", station_id, str(e)
+        )
         return {"error": str(e)}, 500
 
 
@@ -326,7 +337,9 @@ async def check_exists(entity_id: str) -> ResponseReturnValue:
         return response.model_dump(), 200
 
     except Exception as e:
-        logger.exception("Error checking WeatherStation existence %s: %s", entity_id, str(e))
+        logger.exception(
+            "Error checking WeatherStation existence %s: %s", entity_id, str(e)
+        )
         return {"error": str(e)}, 500
 
 
@@ -377,7 +390,9 @@ async def get_available_transitions(entity_id: str) -> ResponseReturnValue:
         return response.model_dump(), 200
 
     except Exception as e:
-        logger.exception("Error getting transitions for WeatherStation %s: %s", entity_id, str(e))
+        logger.exception(
+            "Error getting transitions for WeatherStation %s: %s", entity_id, str(e)
+        )
         return {"error": str(e)}, 500
 
 
@@ -435,7 +450,9 @@ async def search_entities(data: WeatherSearchRequest) -> ResponseReturnValue:
         500: (ErrorResponse, None),
     },
 )
-async def trigger_transition(entity_id: str, data: TransitionRequest) -> ResponseReturnValue:
+async def trigger_transition(
+    entity_id: str, data: TransitionRequest
+) -> ResponseReturnValue:
     """Trigger a specific workflow transition"""
     try:
         # Get current entity state
@@ -458,7 +475,11 @@ async def trigger_transition(entity_id: str, data: TransitionRequest) -> Respons
             entity_version=str(WeatherStation.ENTITY_VERSION),
         )
 
-        logger.info("Executed transition '%s' on WeatherStation %s", data.transition_name, entity_id)
+        logger.info(
+            "Executed transition '%s' on WeatherStation %s",
+            data.transition_name,
+            entity_id,
+        )
 
         return {
             "id": response.metadata.id,
@@ -468,5 +489,7 @@ async def trigger_transition(entity_id: str, data: TransitionRequest) -> Respons
         }, 200
 
     except Exception as e:
-        logger.exception("Error executing transition on WeatherStation %s: %s", entity_id, str(e))
+        logger.exception(
+            "Error executing transition on WeatherStation %s: %s", entity_id, str(e)
+        )
         return {"error": str(e)}, 500

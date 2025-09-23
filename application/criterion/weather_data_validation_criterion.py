@@ -8,9 +8,9 @@ standards before it can proceed to processing stage.
 from datetime import datetime
 from typing import Any
 
+from application.entity.weather_data.version_1.weather_data import WeatherData
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.weather_data.version_1.weather_data import WeatherData
 
 
 class WeatherDataValidationCriterion(CyodaCriteriaChecker):
@@ -61,21 +61,21 @@ class WeatherDataValidationCriterion(CyodaCriteriaChecker):
             try:
                 obs_date = datetime.strptime(weather_data.observation_date, "%Y-%m-%d")
                 current_date = datetime.now()
-                
+
                 # Check if date is not in the future
                 if obs_date.date() > current_date.date():
                     self.logger.warning(
                         f"WeatherData {weather_data.technical_id} has future observation_date: {weather_data.observation_date}"
                     )
                     return False
-                
+
                 # Check if date is not too old (before 1800)
                 if obs_date.year < 1800:
                     self.logger.warning(
                         f"WeatherData {weather_data.technical_id} has unrealistic observation_date: {weather_data.observation_date}"
                     )
                     return False
-                    
+
             except ValueError:
                 self.logger.warning(
                     f"WeatherData {weather_data.technical_id} has invalid observation_date format: {weather_data.observation_date}"
@@ -119,9 +119,9 @@ class WeatherDataValidationCriterion(CyodaCriteriaChecker):
         temp_fields = [
             ("temperature_max", weather_data.temperature_max),
             ("temperature_min", weather_data.temperature_min),
-            ("temperature_mean", weather_data.temperature_mean)
+            ("temperature_mean", weather_data.temperature_mean),
         ]
-        
+
         for field_name, temp_value in temp_fields:
             if temp_value is not None:
                 if temp_value < -60 or temp_value > 60:
@@ -131,8 +131,10 @@ class WeatherDataValidationCriterion(CyodaCriteriaChecker):
                     return False
 
         # Check temperature consistency if multiple values present
-        if (weather_data.temperature_max is not None and 
-            weather_data.temperature_min is not None):
+        if (
+            weather_data.temperature_max is not None
+            and weather_data.temperature_min is not None
+        ):
             if weather_data.temperature_max < weather_data.temperature_min:
                 self.logger.warning(
                     f"WeatherData {weather_data.technical_id} has max temp ({weather_data.temperature_max}) less than min temp ({weather_data.temperature_min})"
@@ -140,10 +142,16 @@ class WeatherDataValidationCriterion(CyodaCriteriaChecker):
                 return False
 
         # Check mean temperature is between min and max if all are present
-        if (weather_data.temperature_max is not None and 
-            weather_data.temperature_min is not None and
-            weather_data.temperature_mean is not None):
-            if not (weather_data.temperature_min <= weather_data.temperature_mean <= weather_data.temperature_max):
+        if (
+            weather_data.temperature_max is not None
+            and weather_data.temperature_min is not None
+            and weather_data.temperature_mean is not None
+        ):
+            if not (
+                weather_data.temperature_min
+                <= weather_data.temperature_mean
+                <= weather_data.temperature_max
+            ):
                 self.logger.warning(
                     f"WeatherData {weather_data.technical_id} has mean temp ({weather_data.temperature_mean}) outside min-max range"
                 )
@@ -156,9 +164,9 @@ class WeatherDataValidationCriterion(CyodaCriteriaChecker):
         precip_fields = [
             ("precipitation_total", weather_data.precipitation_total),
             ("rain_total", weather_data.rain_total),
-            ("snow_total", weather_data.snow_total)
+            ("snow_total", weather_data.snow_total),
         ]
-        
+
         for field_name, precip_value in precip_fields:
             if precip_value is not None:
                 if precip_value < 0:
@@ -166,7 +174,7 @@ class WeatherDataValidationCriterion(CyodaCriteriaChecker):
                         f"WeatherData {weather_data.technical_id} has negative {field_name}: {precip_value}mm"
                     )
                     return False
-                
+
                 # Check for unrealistic daily precipitation (>500mm is extremely rare)
                 if precip_value > 500:
                     self.logger.warning(
@@ -175,9 +183,11 @@ class WeatherDataValidationCriterion(CyodaCriteriaChecker):
                     return False
 
         # Check precipitation consistency
-        if (weather_data.precipitation_total is not None and
-            weather_data.rain_total is not None and
-            weather_data.snow_total is not None):
+        if (
+            weather_data.precipitation_total is not None
+            and weather_data.rain_total is not None
+            and weather_data.snow_total is not None
+        ):
             total_components = weather_data.rain_total + weather_data.snow_total
             # Allow some tolerance for measurement differences
             if abs(weather_data.precipitation_total - total_components) > 5:
@@ -196,7 +206,7 @@ class WeatherDataValidationCriterion(CyodaCriteriaChecker):
                     f"WeatherData {weather_data.technical_id} has negative wind_speed: {weather_data.wind_speed}"
                 )
                 return False
-            
+
             # Check for unrealistic wind speeds (>200 km/h is extremely rare)
             if weather_data.wind_speed > 200:
                 self.logger.warning(
@@ -217,9 +227,9 @@ class WeatherDataValidationCriterion(CyodaCriteriaChecker):
         """Validate pressure measurements."""
         pressure_fields = [
             ("pressure_sea_level", weather_data.pressure_sea_level),
-            ("pressure_station", weather_data.pressure_station)
+            ("pressure_station", weather_data.pressure_station),
         ]
-        
+
         for field_name, pressure_value in pressure_fields:
             if pressure_value is not None:
                 # Reasonable pressure range in kPa (roughly 85-105 kPa)
@@ -236,7 +246,7 @@ class WeatherDataValidationCriterion(CyodaCriteriaChecker):
         # Require at least one temperature measurement OR one precipitation measurement
         has_temperature = weather_data.has_temperature_data()
         has_precipitation = weather_data.has_precipitation_data()
-        
+
         if not has_temperature and not has_precipitation:
             self.logger.warning(
                 f"WeatherData {weather_data.technical_id} lacks minimum data (no temperature or precipitation data)"

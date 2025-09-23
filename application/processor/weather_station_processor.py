@@ -11,9 +11,10 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 import aiohttp
+
+from application.entity.weather_station.version_1.weather_station import WeatherStation
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.weather_station.version_1.weather_station import WeatherStation
 
 
 class WeatherStationProcessor(CyodaProcessor):
@@ -53,15 +54,15 @@ class WeatherStationProcessor(CyodaProcessor):
 
             # Fetch additional station data from MSC GeoMet API
             station_data = await self._fetch_station_data(weather_station.station_id)
-            
+
             if station_data:
                 # Enrich station with additional metadata
                 self._enrich_station_data(weather_station, station_data)
-                
+
                 # Update fetch status
                 weather_station.set_data_fetch_status(
                     "SUCCESS",
-                    datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+                    datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
                 )
             else:
                 # Mark as failed but don't fail the processing
@@ -82,7 +83,7 @@ class WeatherStationProcessor(CyodaProcessor):
                 f"Error processing WeatherStation {getattr(entity, 'technical_id', '<unknown>')}: {str(e)}"
             )
             # Set failed status but don't re-raise to avoid workflow failure
-            if hasattr(entity, 'set_data_fetch_status'):
+            if hasattr(entity, "set_data_fetch_status"):
                 entity.set_data_fetch_status("ERROR")
             return entity
 
@@ -99,28 +100,24 @@ class WeatherStationProcessor(CyodaProcessor):
         try:
             # Try to fetch from climate-stations collection
             url = f"{self.msc_geomet_base_url}/collections/climate-stations/items"
-            params = {
-                "f": "json",
-                "limit": 10,
-                "station_id": station_id
-            }
+            params = {"f": "json", "limit": 10, "station_id": station_id}
 
             async with aiohttp.ClientSession() as session:
                 async with session.get(url, params=params, timeout=30) as response:
                     if response.status == 200:
                         data = await response.json()
                         features = data.get("features", [])
-                        
+
                         if features:
                             # Return the first matching station
                             station_feature = features[0]
                             properties = station_feature.get("properties", {})
                             geometry = station_feature.get("geometry", {})
-                            
+
                             return {
                                 "properties": properties,
                                 "geometry": geometry,
-                                "source": "climate-stations"
+                                "source": "climate-stations",
                             }
                     else:
                         self.logger.warning(
@@ -134,7 +131,9 @@ class WeatherStationProcessor(CyodaProcessor):
 
         return None
 
-    def _enrich_station_data(self, station: WeatherStation, api_data: Dict[str, Any]) -> None:
+    def _enrich_station_data(
+        self, station: WeatherStation, api_data: Dict[str, Any]
+    ) -> None:
         """
         Enrich station with data from MSC GeoMet API.
 
@@ -144,21 +143,25 @@ class WeatherStationProcessor(CyodaProcessor):
         """
         properties = api_data.get("properties", {})
         geometry = api_data.get("geometry", {})
-        
+
         # Update location if available and more precise
         if geometry.get("coordinates"):
             coords = geometry["coordinates"]
             if len(coords) >= 2:
                 # GeoJSON uses [longitude, latitude] format
                 api_longitude, api_latitude = coords[0], coords[1]
-                
+
                 # Update if we don't have coordinates or if API data is more precise
-                if (abs(station.latitude - api_latitude) > 0.001 or 
-                    abs(station.longitude - api_longitude) > 0.001):
+                if (
+                    abs(station.latitude - api_latitude) > 0.001
+                    or abs(station.longitude - api_longitude) > 0.001
+                ):
                     station.latitude = api_latitude
                     station.longitude = api_longitude
-                    self.logger.info(f"Updated coordinates for station {station.station_id}")
-                
+                    self.logger.info(
+                        f"Updated coordinates for station {station.station_id}"
+                    )
+
                 # Update elevation if available
                 if len(coords) >= 3:
                     station.elevation = coords[2]
@@ -166,16 +169,16 @@ class WeatherStationProcessor(CyodaProcessor):
         # Update station metadata from properties
         if properties.get("station_name") and not station.station_name:
             station.station_name = properties["station_name"]
-            
+
         if properties.get("province") and not station.province:
             station.province = properties["province"]
-            
+
         if properties.get("first_year"):
             try:
                 station.first_year = int(properties["first_year"])
             except (ValueError, TypeError):
                 pass
-                
+
         if properties.get("last_year"):
             try:
                 station.last_year = int(properties["last_year"])
@@ -191,6 +194,8 @@ class WeatherStationProcessor(CyodaProcessor):
         if station.last_year and station.last_year < (current_year - 2):
             # Station hasn't reported data in over 2 years, mark as inactive
             station.is_active = False
-            self.logger.info(f"Marked station {station.station_id} as inactive (last data: {station.last_year})")
+            self.logger.info(
+                f"Marked station {station.station_id} as inactive (last data: {station.last_year})"
+            )
 
         station.update_timestamp()
