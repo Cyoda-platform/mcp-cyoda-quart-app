@@ -28,12 +28,12 @@ from ..models import (
     CountResponse,
     DeleteResponse,
     ErrorResponse,
+    ExistsResponse,
     ProductListResponse,
+    ProductQueryParams,
     ProductResponse,
     ProductSearchResponse,
-    ProductQueryParams,
     ProductUpdateQueryParams,
-    ExistsResponse,
     SearchRequest,
     TransitionRequest,
     TransitionResponse,
@@ -41,17 +41,21 @@ from ..models import (
     ValidationErrorResponse,
 )
 
+
 # Module-level service proxy
 class _ServiceProxy:
     def __getattr__(self, name: str) -> Any:
         return getattr(get_entity_service(), name)
 
+
 service = _ServiceProxy()
 logger = logging.getLogger(__name__)
+
 
 # Helper to normalize entity data from service
 def _to_entity_dict(data: Any) -> Dict[str, Any]:
     return data.model_dump(by_alias=True) if hasattr(data, "model_dump") else data
+
 
 products_bp = Blueprint("products", __name__, url_prefix="/api/products")
 
@@ -175,16 +179,25 @@ async def list_products(query_args: ProductQueryParams) -> ResponseReturnValue:
 
         # Convert to list and apply pagination
         entity_list = [_to_entity_dict(r.data) for r in entities]
-        
+
         # Apply performance score filtering if specified
-        if query_args.performance_score_min is not None or query_args.performance_score_max is not None:
+        if (
+            query_args.performance_score_min is not None
+            or query_args.performance_score_max is not None
+        ):
             filtered_list = []
             for entity in entity_list:
                 score = entity.get("performanceScore")
                 if score is not None:
-                    if query_args.performance_score_min is not None and score < query_args.performance_score_min:
+                    if (
+                        query_args.performance_score_min is not None
+                        and score < query_args.performance_score_min
+                    ):
                         continue
-                    if query_args.performance_score_max is not None and score > query_args.performance_score_max:
+                    if (
+                        query_args.performance_score_max is not None
+                        and score > query_args.performance_score_max
+                    ):
                         continue
                 filtered_list.append(entity)
             entity_list = filtered_list

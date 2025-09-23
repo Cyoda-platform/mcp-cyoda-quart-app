@@ -7,9 +7,9 @@ proceed to the execution stage as specified in functional requirements.
 
 from typing import Any
 
+from application.entity.data_extraction.version_1.data_extraction import DataExtraction
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.data_extraction.version_1.data_extraction import DataExtraction
 
 
 class DataExtractionValidationCriterion(CyodaCriteriaChecker):

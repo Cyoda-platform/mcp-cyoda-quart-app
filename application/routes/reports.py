@@ -28,12 +28,12 @@ from ..models import (
     CountResponse,
     DeleteResponse,
     ErrorResponse,
+    ExistsResponse,
     ReportListResponse,
+    ReportQueryParams,
     ReportResponse,
     ReportSearchResponse,
-    ReportQueryParams,
     ReportUpdateQueryParams,
-    ExistsResponse,
     SearchRequest,
     TransitionRequest,
     TransitionResponse,
@@ -41,17 +41,21 @@ from ..models import (
     ValidationErrorResponse,
 )
 
+
 # Module-level service proxy
 class _ServiceProxy:
     def __getattr__(self, name: str) -> Any:
         return getattr(get_entity_service(), name)
 
+
 service = _ServiceProxy()
 logger = logging.getLogger(__name__)
+
 
 # Helper to normalize entity data from service
 def _to_entity_dict(data: Any) -> Dict[str, Any]:
     return data.model_dump(by_alias=True) if hasattr(data, "model_dump") else data
+
 
 reports_bp = Blueprint("reports", __name__, url_prefix="/api/reports")
 
@@ -178,12 +182,20 @@ async def list_reports(query_args: ReportQueryParams) -> ResponseReturnValue:
             for entity in entity_list:
                 period_start = entity.get("reportPeriodStart")
                 period_end = entity.get("reportPeriodEnd")
-                
-                if query_args.period_start and period_start and period_start < query_args.period_start:
+
+                if (
+                    query_args.period_start
+                    and period_start
+                    and period_start < query_args.period_start
+                ):
                     continue
-                if query_args.period_end and period_end and period_end > query_args.period_end:
+                if (
+                    query_args.period_end
+                    and period_end
+                    and period_end > query_args.period_end
+                ):
                     continue
-                    
+
                 filtered_list.append(entity)
             entity_list = filtered_list
 
@@ -362,7 +374,7 @@ async def get_report_content(entity_id: str) -> ResponseReturnValue:
 
         report_data = _to_entity_dict(response.data)
         content = report_data.get("reportContent")
-        
+
         if not content:
             return {"error": "Report content not available", "code": "NO_CONTENT"}, 404
 
@@ -370,7 +382,7 @@ async def get_report_content(entity_id: str) -> ResponseReturnValue:
             "content": content,
             "format": report_data.get("reportFormat", "HTML"),
             "title": report_data.get("reportTitle"),
-            "generated_at": report_data.get("generatedAt")
+            "generated_at": report_data.get("generatedAt"),
         }, 200
 
     except Exception as e:

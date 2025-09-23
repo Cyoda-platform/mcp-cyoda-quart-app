@@ -2,7 +2,7 @@
 ProductAnalysisProcessor for Pet Store Performance Analysis System
 
 Handles performance analysis for Product entities, calculating metrics,
-trends, and generating insights for sales reporting as specified in 
+trends, and generating insights for sales reporting as specified in
 functional requirements.
 """
 
@@ -10,9 +10,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any, Dict
 
+from application.entity.product.version_1.product import Product
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.product.version_1.product import Product
 
 
 class ProductAnalysisProcessor(CyodaProcessor):
@@ -79,7 +79,7 @@ class ProductAnalysisProcessor(CyodaProcessor):
         """
         # Calculate performance score using the entity's method
         performance_score = product.calculate_performance_score()
-        
+
         self.logger.info(
             f"Product {product.name} performance score calculated: {performance_score}"
         )
@@ -109,9 +109,7 @@ class ProductAnalysisProcessor(CyodaProcessor):
                 )
             elif product.inventory_count == 0:
                 product.restock_needed = True
-                self.logger.warning(
-                    f"Product {product.name} is out of stock"
-                )
+                self.logger.warning(f"Product {product.name} is out of stock")
             else:
                 product.restock_needed = False
 
@@ -124,20 +122,24 @@ class ProductAnalysisProcessor(CyodaProcessor):
         """
         # Determine trend using the entity's method
         trend = product.determine_trend()
-        
-        self.logger.info(
-            f"Product {product.name} trend determined: {trend}"
-        )
+
+        self.logger.info(f"Product {product.name} trend determined: {trend}")
 
         # Additional trend analysis based on business rules
-        if product.status == "sold" and product.sales_volume and product.sales_volume > 10:
+        if (
+            product.status == "sold"
+            and product.sales_volume
+            and product.sales_volume > 10
+        ):
             # High-selling product
             if product.trend_indicator != "RISING":
                 product.trend_indicator = "RISING"
                 self.logger.info(
                     f"Product {product.name} upgraded to RISING trend due to high sales"
                 )
-        elif product.status == "available" and (not product.sales_volume or product.sales_volume == 0):
+        elif product.status == "available" and (
+            not product.sales_volume or product.sales_volume == 0
+        ):
             # No sales activity
             if product.trend_indicator != "DECLINING":
                 product.trend_indicator = "DECLINING"
@@ -159,24 +161,32 @@ class ProductAnalysisProcessor(CyodaProcessor):
             "is_high_performer": product.is_high_performer(),
             "is_underperformer": product.is_underperformer(),
             "needs_attention": product.needs_attention(),
-            "analysis_timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            "analysis_timestamp": datetime.now(timezone.utc)
+            .isoformat()
+            .replace("+00:00", "Z"),
         }
 
         # Add specific recommendations
         recommendations = []
-        
+
         if product.restock_needed:
             recommendations.append("Restock inventory immediately")
-        
+
         if product.is_high_performer():
-            recommendations.append("Consider increasing inventory for this high-performing product")
-        
+            recommendations.append(
+                "Consider increasing inventory for this high-performing product"
+            )
+
         if product.is_underperformer():
             recommendations.append("Review pricing and marketing strategy")
-        
-        if product.status == "pending" and product.inventory_count and product.inventory_count > 0:
+
+        if (
+            product.status == "pending"
+            and product.inventory_count
+            and product.inventory_count > 0
+        ):
             recommendations.append("Follow up on pending sales")
 
         insights["recommendations"] = recommendations
-        
+
         return insights

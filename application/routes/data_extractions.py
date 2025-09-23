@@ -26,13 +26,13 @@ from services.services import get_entity_service
 from ..entity.data_extraction.version_1.data_extraction import DataExtraction
 from ..models import (
     CountResponse,
-    DeleteResponse,
-    ErrorResponse,
     DataExtractionListResponse,
+    DataExtractionQueryParams,
     DataExtractionResponse,
     DataExtractionSearchResponse,
-    DataExtractionQueryParams,
     DataExtractionUpdateQueryParams,
+    DeleteResponse,
+    ErrorResponse,
     ExistsResponse,
     SearchRequest,
     TransitionRequest,
@@ -41,19 +41,25 @@ from ..models import (
     ValidationErrorResponse,
 )
 
+
 # Module-level service proxy
 class _ServiceProxy:
     def __getattr__(self, name: str) -> Any:
         return getattr(get_entity_service(), name)
 
+
 service = _ServiceProxy()
 logger = logging.getLogger(__name__)
+
 
 # Helper to normalize entity data from service
 def _to_entity_dict(data: Any) -> Dict[str, Any]:
     return data.model_dump(by_alias=True) if hasattr(data, "model_dump") else data
 
-data_extractions_bp = Blueprint("data_extractions", __name__, url_prefix="/api/data-extractions")
+
+data_extractions_bp = Blueprint(
+    "data_extractions", __name__, url_prefix="/api/data-extractions"
+)
 
 
 @data_extractions_bp.route("", methods=["POST"])
@@ -138,7 +144,9 @@ async def get_data_extraction(entity_id: str) -> ResponseReturnValue:
         500: (ErrorResponse, None),
     }
 )
-async def list_data_extractions(query_args: DataExtractionQueryParams) -> ResponseReturnValue:
+async def list_data_extractions(
+    query_args: DataExtractionQueryParams,
+) -> ResponseReturnValue:
     """List DataExtractions with optional filtering and validation"""
     try:
         # Build search conditions based on query parameters
@@ -177,12 +185,20 @@ async def list_data_extractions(query_args: DataExtractionQueryParams) -> Respon
             filtered_list = []
             for entity in entity_list:
                 scheduled_time = entity.get("scheduledTime")
-                
-                if query_args.scheduled_after and scheduled_time and scheduled_time < query_args.scheduled_after:
+
+                if (
+                    query_args.scheduled_after
+                    and scheduled_time
+                    and scheduled_time < query_args.scheduled_after
+                ):
                     continue
-                if query_args.scheduled_before and scheduled_time and scheduled_time > query_args.scheduled_before:
+                if (
+                    query_args.scheduled_before
+                    and scheduled_time
+                    and scheduled_time > query_args.scheduled_before
+                ):
                     continue
-                    
+
                 filtered_list.append(entity)
             entity_list = filtered_list
 
@@ -233,7 +249,9 @@ async def update_data_extraction(
         return _to_entity_dict(response.data), 200
 
     except ValueError as e:
-        logger.warning("Validation error updating DataExtraction %s: %s", entity_id, str(e))
+        logger.warning(
+            "Validation error updating DataExtraction %s: %s", entity_id, str(e)
+        )
         return {"error": str(e), "code": "VALIDATION_ERROR"}, 400
     except Exception as e:
         logger.exception("Error updating DataExtraction %s: %s", entity_id, str(e))

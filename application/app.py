@@ -10,10 +10,11 @@ from common.exception.exception_handler import (
 )
 from services.services import get_grpc_client, initialize_services
 
+from .routes.data_extractions import data_extractions_bp
+
 # Import blueprints for different route groups
 from .routes.products import products_bp
 from .routes.reports import reports_bp
-from .routes.data_extractions import data_extractions_bp
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -31,11 +32,11 @@ QuartSchema(
         },
         {
             "name": "reports",
-            "description": "Performance report generation and management endpoints"
+            "description": "Performance report generation and management endpoints",
         },
         {
             "name": "data-extractions",
-            "description": "Data extraction job management endpoints"
+            "description": "Data extraction job management endpoints",
         },
         {"name": "System", "description": "System and health endpoints"},
     ],
@@ -67,6 +68,11 @@ _register_error_handlers_typed: Callable[[Quart], None] = (  # type: ignore[assi
     _register_error_handlers
 )
 _register_error_handlers_typed(app)
+
+# Register blueprints
+app.register_blueprint(products_bp)
+app.register_blueprint(reports_bp)
+app.register_blueprint(data_extractions_bp)
 
 
 @app.route("/favicon.ico")

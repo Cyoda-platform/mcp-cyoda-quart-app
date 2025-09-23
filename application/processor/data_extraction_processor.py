@@ -10,10 +10,11 @@ import logging
 from typing import Any, Dict, List, Optional
 
 import httpx
-from common.entity.entity_casting import cast_entity
-from common.processor.base import CyodaEntity, CyodaProcessor
+
 from application.entity.data_extraction.version_1.data_extraction import DataExtraction
 from application.entity.product.version_1.product import Product
+from common.entity.entity_casting import cast_entity
+from common.processor.base import CyodaEntity, CyodaProcessor
 from services.services import get_entity_service
 
 
@@ -61,7 +62,7 @@ class DataExtractionProcessor(CyodaProcessor):
                 # Create Product entities if configured to do so
                 if extraction_job.should_create_products():
                     await self._create_product_entities(extraction_job)
-                
+
                 extraction_job.complete_execution()
                 self.logger.info(
                     f"Data extraction {extraction_job.technical_id} completed successfully - "
@@ -79,7 +80,7 @@ class DataExtractionProcessor(CyodaProcessor):
             self.logger.error(
                 f"Error processing DataExtraction {getattr(entity, 'technical_id', '<unknown>')}: {str(e)}"
             )
-            if hasattr(entity, 'fail_execution'):
+            if hasattr(entity, "fail_execution"):
                 entity.fail_execution(str(e))
             raise
 
@@ -107,10 +108,10 @@ class DataExtractionProcessor(CyodaProcessor):
 
                         # Make API request
                         response = await client.get(url, headers=headers)
-                        
+
                         if response.status_code == 200:
                             data = response.json()
-                            
+
                             # Process the response data
                             if isinstance(data, list):
                                 # Array of pets
@@ -121,11 +122,15 @@ class DataExtractionProcessor(CyodaProcessor):
                                 if "id" in data:  # Looks like a pet object
                                     self._process_pet_data(extraction_job, data)
                                 else:
-                                    self.logger.warning(f"Unexpected response format from {url}: {data}")
-                            
+                                    self.logger.warning(
+                                        f"Unexpected response format from {url}: {data}"
+                                    )
+
                             extraction_job.record_successful_extraction()
-                            self.logger.info(f"Successfully extracted data from {endpoint}")
-                            
+                            self.logger.info(
+                                f"Successfully extracted data from {endpoint}"
+                            )
+
                         else:
                             error_msg = f"API request failed with status {response.status_code}: {response.text}"
                             self.logger.error(error_msg)
@@ -135,7 +140,7 @@ class DataExtractionProcessor(CyodaProcessor):
                         error_msg = f"Request error for {endpoint}: {str(e)}"
                         self.logger.error(error_msg)
                         extraction_job.record_failed_extraction(error_msg)
-                    
+
                     except Exception as e:
                         error_msg = f"Unexpected error for {endpoint}: {str(e)}"
                         self.logger.error(error_msg)
@@ -154,7 +159,9 @@ class DataExtractionProcessor(CyodaProcessor):
             extraction_job.record_failed_extraction(error_msg)
             return False
 
-    def _process_pet_data(self, extraction_job: DataExtraction, pet_data: Dict[str, Any]) -> None:
+    def _process_pet_data(
+        self, extraction_job: DataExtraction, pet_data: Dict[str, Any]
+    ) -> None:
         """
         Process a single pet record from the API.
 
@@ -169,7 +176,7 @@ class DataExtractionProcessor(CyodaProcessor):
                 "name": pet_data.get("name", "Unknown"),
                 "status": pet_data.get("status", "available"),
                 "photo_urls": pet_data.get("photoUrls", []),
-                "tags": []
+                "tags": [],
             }
 
             # Process category information
@@ -181,15 +188,19 @@ class DataExtractionProcessor(CyodaProcessor):
             # Process tags
             tags = pet_data.get("tags", [])
             if tags:
-                processed_data["tags"] = [tag.get("name", "") for tag in tags if tag.get("name")]
+                processed_data["tags"] = [
+                    tag.get("name", "") for tag in tags if tag.get("name")
+                ]
 
             # Add extraction metadata
             processed_data["extracted_at"] = extraction_job.started_at
 
             # Add to extracted data
             extraction_job.add_extracted_record(processed_data)
-            
-            self.logger.debug(f"Processed pet: {processed_data['name']} (ID: {processed_data['pet_id']})")
+
+            self.logger.debug(
+                f"Processed pet: {processed_data['name']} (ID: {processed_data['pet_id']})"
+            )
 
         except Exception as e:
             self.logger.error(f"Error processing pet data: {str(e)}")
@@ -215,11 +226,15 @@ class DataExtractionProcessor(CyodaProcessor):
                 # Check if product already exists by pet_id
                 existing_product = None
                 if record.get("pet_id") and extraction_job.update_existing:
-                    existing_product = await self._find_existing_product(record["pet_id"])
+                    existing_product = await self._find_existing_product(
+                        record["pet_id"]
+                    )
 
                 if existing_product:
                     # Update existing product
-                    updated_product = await self._update_existing_product(existing_product, record)
+                    updated_product = await self._update_existing_product(
+                        existing_product, record
+                    )
                     if updated_product:
                         updated_count += 1
                         self.logger.debug(f"Updated existing product: {record['name']}")
@@ -231,10 +246,14 @@ class DataExtractionProcessor(CyodaProcessor):
                         self.logger.debug(f"Created new product: {record['name']}")
 
             except Exception as e:
-                self.logger.error(f"Error creating/updating product for {record.get('name', 'unknown')}: {str(e)}")
+                self.logger.error(
+                    f"Error creating/updating product for {record.get('name', 'unknown')}: {str(e)}"
+                )
                 continue
 
-        self.logger.info(f"Product entity creation complete - Created: {created_count}, Updated: {updated_count}")
+        self.logger.info(
+            f"Product entity creation complete - Created: {created_count}, Updated: {updated_count}"
+        )
 
     async def _find_existing_product(self, pet_id: int) -> Optional[Product]:
         """
@@ -248,10 +267,10 @@ class DataExtractionProcessor(CyodaProcessor):
         """
         try:
             entity_service = get_entity_service()
-            
+
             # Search for products with matching pet_id
             from common.service.entity_service import SearchConditionRequest
-            
+
             builder = SearchConditionRequest.builder()
             builder.equals("petId", str(pet_id))
             condition = builder.build()
@@ -265,14 +284,16 @@ class DataExtractionProcessor(CyodaProcessor):
             if results and len(results) > 0:
                 # Return the first matching product
                 product_data = results[0].data
-                if hasattr(product_data, 'model_dump'):
+                if hasattr(product_data, "model_dump"):
                     product_dict = product_data.model_dump(by_alias=True)
                 else:
                     product_dict = product_data
                 return Product(**product_dict)
 
         except Exception as e:
-            self.logger.error(f"Error searching for existing product with pet_id {pet_id}: {str(e)}")
+            self.logger.error(
+                f"Error searching for existing product with pet_id {pet_id}: {str(e)}"
+            )
 
         return None
 
@@ -303,13 +324,13 @@ class DataExtractionProcessor(CyodaProcessor):
                 inventory_count=10,  # Default inventory
                 performance_score=None,
                 trend_indicator=None,
-                restock_needed=False
+                restock_needed=False,
             )
 
             # Save the product
             entity_service = get_entity_service()
             product_data = product.model_dump(by_alias=True)
-            
+
             response = await entity_service.save(
                 entity=product_data,
                 entity_class=Product.ENTITY_NAME,
@@ -322,7 +343,9 @@ class DataExtractionProcessor(CyodaProcessor):
             self.logger.error(f"Error creating new product: {str(e)}")
             return None
 
-    async def _update_existing_product(self, existing_product: Product, record: Dict[str, Any]) -> Optional[Product]:
+    async def _update_existing_product(
+        self, existing_product: Product, record: Dict[str, Any]
+    ) -> Optional[Product]:
         """
         Update an existing Product entity with new data.
 
@@ -350,7 +373,7 @@ class DataExtractionProcessor(CyodaProcessor):
             # Save the updated product
             entity_service = get_entity_service()
             product_data = existing_product.model_dump(by_alias=True)
-            
+
             response = await entity_service.update(
                 entity_id=existing_product.technical_id or existing_product.entity_id,
                 entity=product_data,

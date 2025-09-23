@@ -8,9 +8,9 @@ proceed to the generation stage as specified in functional requirements.
 from datetime import datetime
 from typing import Any
 
+from application.entity.report.version_1.report import Report
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.report.version_1.report import Report
 
 
 class ReportValidationCriterion(CyodaCriteriaChecker):
@@ -99,9 +99,7 @@ class ReportValidationCriterion(CyodaCriteriaChecker):
 
         # Validate report period dates
         if not report.report_period_start or not report.report_period_end:
-            self.logger.warning(
-                f"Report {report.technical_id} missing period dates"
-            )
+            self.logger.warning(f"Report {report.technical_id} missing period dates")
             return False
 
         return True
@@ -118,9 +116,13 @@ class ReportValidationCriterion(CyodaCriteriaChecker):
         """
         # Validate report period dates
         try:
-            start_date = datetime.fromisoformat(report.report_period_start.replace("Z", "+00:00"))
-            end_date = datetime.fromisoformat(report.report_period_end.replace("Z", "+00:00"))
-            
+            start_date = datetime.fromisoformat(
+                report.report_period_start.replace("Z", "+00:00")
+            )
+            end_date = datetime.fromisoformat(
+                report.report_period_end.replace("Z", "+00:00")
+            )
+
             if end_date <= start_date:
                 self.logger.warning(
                     f"Report {report.technical_id} has invalid period: end date must be after start date"
@@ -134,7 +136,7 @@ class ReportValidationCriterion(CyodaCriteriaChecker):
                     f"Report {report.technical_id} period too short: {period_days} days"
                 )
                 return False
-            
+
             if period_days > 365:  # More than a year
                 self.logger.warning(
                     f"Report {report.technical_id} period too long: {period_days} days"
@@ -182,9 +184,7 @@ class ReportValidationCriterion(CyodaCriteriaChecker):
         """
         # Validate email recipients
         if not report.email_recipients or len(report.email_recipients) == 0:
-            self.logger.warning(
-                f"Report {report.technical_id} has no email recipients"
-            )
+            self.logger.warning(f"Report {report.technical_id} has no email recipients")
             return False
 
         # Basic email validation

@@ -4,7 +4,7 @@
 Report Entity for Pet Store Performance Analysis System
 
 Represents a weekly performance analysis report that contains insights,
-trends, and recommendations for the sales team as specified in 
+trends, and recommendations for the sales team as specified in
 functional requirements.
 """
 
@@ -31,123 +31,124 @@ class Report(CyodaEntity):
 
     # Report identification and metadata
     report_title: str = Field(
-        ...,
-        alias="reportTitle",
-        description="Title of the performance report"
+        ..., alias="reportTitle", description="Title of the performance report"
     )
     report_type: str = Field(
         default="WEEKLY_PERFORMANCE",
         alias="reportType",
-        description="Type of report (WEEKLY_PERFORMANCE, MONTHLY_SUMMARY, etc.)"
+        description="Type of report (WEEKLY_PERFORMANCE, MONTHLY_SUMMARY, etc.)",
     )
     report_period_start: str = Field(
         ...,
         alias="reportPeriodStart",
-        description="Start date of the reporting period (ISO 8601 format)"
+        description="Start date of the reporting period (ISO 8601 format)",
     )
     report_period_end: str = Field(
         ...,
         alias="reportPeriodEnd",
-        description="End date of the reporting period (ISO 8601 format)"
+        description="End date of the reporting period (ISO 8601 format)",
     )
 
     # Report content and analysis
     total_products_analyzed: int = Field(
         default=0,
         alias="totalProductsAnalyzed",
-        description="Total number of products included in the analysis"
+        description="Total number of products included in the analysis",
     )
     high_performers: List[Dict[str, Any]] = Field(
         default_factory=list,
         alias="highPerformers",
-        description="List of high-performing products with metrics"
+        description="List of high-performing products with metrics",
     )
     underperformers: List[Dict[str, Any]] = Field(
         default_factory=list,
-        description="List of underperforming products needing attention"
+        description="List of underperforming products needing attention",
     )
     restock_recommendations: List[Dict[str, Any]] = Field(
         default_factory=list,
         alias="restockRecommendations",
-        description="List of products requiring restocking"
+        description="List of products requiring restocking",
     )
 
     # Summary metrics
     total_revenue: Optional[float] = Field(
         default=0.0,
         alias="totalRevenue",
-        description="Total revenue for the reporting period"
+        description="Total revenue for the reporting period",
     )
     total_sales_volume: Optional[int] = Field(
         default=0,
         alias="totalSalesVolume",
-        description="Total units sold during the reporting period"
+        description="Total units sold during the reporting period",
     )
     average_performance_score: Optional[float] = Field(
         default=0.0,
         alias="averagePerformanceScore",
-        description="Average performance score across all products"
+        description="Average performance score across all products",
     )
 
     # Trend analysis
     trending_categories: List[str] = Field(
         default_factory=list,
         alias="trendingCategories",
-        description="List of trending product categories"
+        description="List of trending product categories",
     )
     declining_categories: List[str] = Field(
         default_factory=list,
         alias="decliningCategories",
-        description="List of declining product categories"
+        description="List of declining product categories",
     )
 
     # Report generation and delivery
     generated_at: Optional[str] = Field(
         default=None,
         alias="generatedAt",
-        description="Timestamp when the report was generated"
+        description="Timestamp when the report was generated",
     )
     generated_by: str = Field(
         default="ProductAnalysisSystem",
         alias="generatedBy",
-        description="System or user that generated the report"
+        description="System or user that generated the report",
     )
     email_recipients: List[str] = Field(
         default_factory=lambda: ["victoria.sagdieva@cyoda.com"],
         alias="emailRecipients",
-        description="List of email addresses to receive the report"
+        description="List of email addresses to receive the report",
     )
     email_sent_at: Optional[str] = Field(
         default=None,
         alias="emailSentAt",
-        description="Timestamp when the report was emailed"
+        description="Timestamp when the report was emailed",
     )
     email_status: str = Field(
         default="PENDING",
         alias="emailStatus",
-        description="Status of email delivery (PENDING, SENT, FAILED)"
+        description="Status of email delivery (PENDING, SENT, FAILED)",
     )
 
     # Report format and content
     report_format: str = Field(
         default="PDF",
         alias="reportFormat",
-        description="Format of the report (PDF, HTML, JSON)"
+        description="Format of the report (PDF, HTML, JSON)",
     )
     report_content: Optional[str] = Field(
         default=None,
         alias="reportContent",
-        description="Generated report content (HTML, JSON, etc.)"
+        description="Generated report content (HTML, JSON, etc.)",
     )
     executive_summary: Optional[str] = Field(
         default=None,
         alias="executiveSummary",
-        description="Executive summary of key findings"
+        description="Executive summary of key findings",
     )
 
     # Validation constants
     ALLOWED_REPORT_TYPES: ClassVar[List[str]] = [
-        "WEEKLY_PERFORMANCE", "MONTHLY_SUMMARY", "QUARTERLY_REVIEW", "ANNUAL_REPORT"
+        "WEEKLY_PERFORMANCE",
+        "MONTHLY_SUMMARY",
+        "QUARTERLY_REVIEW",
+        "ANNUAL_REPORT",
     ]
     ALLOWED_EMAIL_STATUSES: ClassVar[List[str]] = ["PENDING", "SENT", "FAILED", "RETRY"]
     ALLOWED_FORMATS: ClassVar[List[str]] = ["PDF", "HTML", "JSON", "CSV"]
@@ -175,7 +176,9 @@ class Report(CyodaEntity):
     def validate_email_status(cls, v: str) -> str:
         """Validate email status"""
         if v not in cls.ALLOWED_EMAIL_STATUSES:
-            raise ValueError(f"Email status must be one of: {cls.ALLOWED_EMAIL_STATUSES}")
+            raise ValueError(
+                f"Email status must be one of: {cls.ALLOWED_EMAIL_STATUSES}"
+            )
         return v
 
     @field_validator("report_format")
@@ -192,12 +195,12 @@ class Report(CyodaEntity):
         """Validate email recipients list"""
         if not v or len(v) == 0:
             raise ValueError("At least one email recipient is required")
-        
+
         # Basic email validation
         for email in v:
             if "@" not in email or "." not in email:
                 raise ValueError(f"Invalid email address: {email}")
-        
+
         return v
 
     @model_validator(mode="after")
@@ -205,9 +208,13 @@ class Report(CyodaEntity):
         """Validate business logic rules"""
         # Report period end should be after start
         try:
-            start_date = datetime.fromisoformat(self.report_period_start.replace("Z", "+00:00"))
-            end_date = datetime.fromisoformat(self.report_period_end.replace("Z", "+00:00"))
-            
+            start_date = datetime.fromisoformat(
+                self.report_period_start.replace("Z", "+00:00")
+            )
+            end_date = datetime.fromisoformat(
+                self.report_period_end.replace("Z", "+00:00")
+            )
+
             if end_date <= start_date:
                 raise ValueError("Report period end must be after start date")
         except ValueError as e:
@@ -223,12 +230,16 @@ class Report(CyodaEntity):
 
     def update_generation_timestamp(self) -> None:
         """Update the generated_at timestamp to current time"""
-        self.generated_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.generated_at = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
 
     def mark_email_sent(self) -> None:
         """Mark the report as successfully emailed"""
         self.email_status = "SENT"
-        self.email_sent_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.email_sent_at = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
 
     def mark_email_failed(self) -> None:
         """Mark the email delivery as failed"""
@@ -255,24 +266,32 @@ class Report(CyodaEntity):
     def generate_executive_summary(self) -> str:
         """Generate an executive summary of the report"""
         summary_parts = []
-        
-        summary_parts.append(f"Performance Analysis Report for {self.report_period_start} to {self.report_period_end}")
+
+        summary_parts.append(
+            f"Performance Analysis Report for {self.report_period_start} to {self.report_period_end}"
+        )
         summary_parts.append(f"Total Products Analyzed: {self.total_products_analyzed}")
-        
+
         if self.total_revenue:
             summary_parts.append(f"Total Revenue: ${self.total_revenue:,.2f}")
-        
+
         if self.total_sales_volume:
             summary_parts.append(f"Total Units Sold: {self.total_sales_volume:,}")
-        
+
         if self.high_performers:
-            summary_parts.append(f"High Performers: {len(self.high_performers)} products")
-        
+            summary_parts.append(
+                f"High Performers: {len(self.high_performers)} products"
+            )
+
         if self.underperformers:
-            summary_parts.append(f"Underperformers: {len(self.underperformers)} products")
-        
+            summary_parts.append(
+                f"Underperformers: {len(self.underperformers)} products"
+            )
+
         if self.restock_recommendations:
-            summary_parts.append(f"Restock Needed: {len(self.restock_recommendations)} products")
+            summary_parts.append(
+                f"Restock Needed: {len(self.restock_recommendations)} products"
+            )
 
         self.executive_summary = "\n".join(summary_parts)
         return self.executive_summary

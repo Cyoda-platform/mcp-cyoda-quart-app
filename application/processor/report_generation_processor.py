@@ -2,7 +2,7 @@
 ReportGenerationProcessor for Pet Store Performance Analysis System
 
 Handles generation of weekly performance reports by analyzing Product entities
-and compiling insights, trends, and recommendations as specified in 
+and compiling insights, trends, and recommendations as specified in
 functional requirements.
 """
 
@@ -10,10 +10,10 @@ import logging
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 
+from application.entity.product.version_1.product import Product
+from application.entity.report.version_1.report import Report
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.report.version_1.report import Report
-from application.entity.product.version_1.product import Product
 from services.services import get_entity_service
 
 
@@ -53,11 +53,11 @@ class ReportGenerationProcessor(CyodaProcessor):
 
             # Fetch and analyze product data
             products = await self._fetch_product_data()
-            
+
             # Generate report content
             await self._analyze_products_for_report(report, products)
             self._generate_report_content(report)
-            
+
             # Update generation timestamp
             report.update_generation_timestamp()
 
@@ -82,36 +82,38 @@ class ReportGenerationProcessor(CyodaProcessor):
             List of Product entities
         """
         entity_service = get_entity_service()
-        
+
         try:
             # Fetch all products that have been analyzed (in completed state)
             product_responses = await entity_service.find_all(
                 entity_class=Product.ENTITY_NAME,
                 entity_version=str(Product.ENTITY_VERSION),
             )
-            
+
             products = []
             for response in product_responses:
-                if hasattr(response, 'data'):
+                if hasattr(response, "data"):
                     # Convert response data to Product entity
                     product_data = response.data
-                    if hasattr(product_data, 'model_dump'):
+                    if hasattr(product_data, "model_dump"):
                         product_dict = product_data.model_dump(by_alias=True)
                     else:
                         product_dict = product_data
-                    
+
                     # Create Product instance from dict
                     product = Product(**product_dict)
                     products.append(product)
-            
+
             self.logger.info(f"Fetched {len(products)} products for report analysis")
             return products
-            
+
         except Exception as e:
             self.logger.error(f"Error fetching product data: {str(e)}")
             return []
 
-    async def _analyze_products_for_report(self, report: Report, products: List[Product]) -> None:
+    async def _analyze_products_for_report(
+        self, report: Report, products: List[Product]
+    ) -> None:
         """
         Analyze products and populate report with insights.
 
@@ -122,11 +124,11 @@ class ReportGenerationProcessor(CyodaProcessor):
         high_performers = []
         underperformers = []
         restock_needed = []
-        
+
         total_revenue = 0.0
         total_sales_volume = 0
         performance_scores = []
-        
+
         trending_categories = set()
         declining_categories = set()
 
@@ -147,7 +149,7 @@ class ReportGenerationProcessor(CyodaProcessor):
                 "performance_score": product.performance_score,
                 "sales_volume": product.sales_volume,
                 "revenue": product.revenue,
-                "trend": product.trend_indicator
+                "trend": product.trend_indicator,
             }
 
             # High performers
@@ -169,7 +171,7 @@ class ReportGenerationProcessor(CyodaProcessor):
                     "category": product.category_name or "Unknown",
                     "current_inventory": product.inventory_count,
                     "status": product.status,
-                    "priority": "HIGH" if product.inventory_count == 0 else "MEDIUM"
+                    "priority": "HIGH" if product.inventory_count == 0 else "MEDIUM",
                 }
                 restock_needed.append(restock_item)
 
@@ -177,14 +179,16 @@ class ReportGenerationProcessor(CyodaProcessor):
         report.high_performers = high_performers
         report.underperformers = underperformers
         report.restock_recommendations = restock_needed
-        
+
         report.total_revenue = total_revenue
         report.total_sales_volume = total_sales_volume
         report.total_products_analyzed = len(products)
-        
+
         if performance_scores:
-            report.average_performance_score = sum(performance_scores) / len(performance_scores)
-        
+            report.average_performance_score = sum(performance_scores) / len(
+                performance_scores
+            )
+
         report.trending_categories = list(trending_categories)
         report.declining_categories = list(declining_categories)
 
@@ -202,7 +206,7 @@ class ReportGenerationProcessor(CyodaProcessor):
         """
         # Generate executive summary
         report.generate_executive_summary()
-        
+
         # Generate detailed report content based on format
         if report.report_format == "HTML":
             report.report_content = self._generate_html_content(report)
@@ -229,7 +233,7 @@ class ReportGenerationProcessor(CyodaProcessor):
             "<hr>",
             f"<h2>Executive Summary</h2>",
             f"<pre>{report.executive_summary}</pre>",
-            "<hr>"
+            "<hr>",
         ]
 
         # High performers section
@@ -282,25 +286,25 @@ class ReportGenerationProcessor(CyodaProcessor):
             JSON content string
         """
         import json
-        
+
         content = {
             "title": report.report_title,
             "period": {
                 "start": report.report_period_start,
-                "end": report.report_period_end
+                "end": report.report_period_end,
             },
             "summary": {
                 "total_products": report.total_products_analyzed,
                 "total_revenue": report.total_revenue,
                 "total_sales_volume": report.total_sales_volume,
-                "average_performance_score": report.average_performance_score
+                "average_performance_score": report.average_performance_score,
             },
             "high_performers": report.high_performers,
             "underperformers": report.underperformers,
             "restock_recommendations": report.restock_recommendations,
             "trending_categories": report.trending_categories,
             "declining_categories": report.declining_categories,
-            "executive_summary": report.executive_summary
+            "executive_summary": report.executive_summary,
         }
-        
+
         return json.dumps(content, indent=2)

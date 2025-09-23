@@ -30,121 +30,126 @@ class DataExtraction(CyodaEntity):
 
     # Job identification and scheduling
     job_name: str = Field(
-        ...,
-        alias="jobName",
-        description="Name of the data extraction job"
+        ..., alias="jobName", description="Name of the data extraction job"
     )
     job_type: str = Field(
         default="WEEKLY_EXTRACTION",
         alias="jobType",
-        description="Type of extraction job (WEEKLY_EXTRACTION, MANUAL_EXTRACTION, etc.)"
+        description="Type of extraction job (WEEKLY_EXTRACTION, MANUAL_EXTRACTION, etc.)",
     )
     scheduled_time: str = Field(
         ...,
         alias="scheduledTime",
-        description="Scheduled execution time (ISO 8601 format)"
+        description="Scheduled execution time (ISO 8601 format)",
     )
     cron_expression: Optional[str] = Field(
         default="0 9 * * MON",  # Every Monday at 9 AM
         alias="cronExpression",
-        description="Cron expression for recurring jobs"
+        description="Cron expression for recurring jobs",
     )
 
     # Execution details
     started_at: Optional[str] = Field(
         default=None,
         alias="startedAt",
-        description="Timestamp when the job started execution"
+        description="Timestamp when the job started execution",
     )
     completed_at: Optional[str] = Field(
         default=None,
         alias="completedAt",
-        description="Timestamp when the job completed"
+        description="Timestamp when the job completed",
     )
     duration_seconds: Optional[int] = Field(
         default=None,
         alias="durationSeconds",
-        description="Job execution duration in seconds"
+        description="Job execution duration in seconds",
     )
 
     # API configuration
     api_base_url: str = Field(
         default="https://petstore3.swagger.io/api/v3",
         alias="apiBaseUrl",
-        description="Base URL of the Pet Store API"
+        description="Base URL of the Pet Store API",
     )
     api_endpoints: List[str] = Field(
-        default_factory=lambda: ["/pet/findByStatus?status=available", "/pet/findByStatus?status=pending", "/pet/findByStatus?status=sold"],
+        default_factory=lambda: [
+            "/pet/findByStatus?status=available",
+            "/pet/findByStatus?status=pending",
+            "/pet/findByStatus?status=sold",
+        ],
         alias="apiEndpoints",
-        description="List of API endpoints to extract data from"
+        description="List of API endpoints to extract data from",
     )
     api_key: Optional[str] = Field(
         default=None,
         alias="apiKey",
-        description="API key for authentication (if required)"
+        description="API key for authentication (if required)",
     )
 
     # Extraction results
     total_records_extracted: int = Field(
         default=0,
         alias="totalRecordsExtracted",
-        description="Total number of records extracted"
+        description="Total number of records extracted",
     )
     successful_extractions: int = Field(
         default=0,
         alias="successfulExtractions",
-        description="Number of successful API calls"
+        description="Number of successful API calls",
     )
     failed_extractions: int = Field(
-        default=0,
-        alias="failedExtractions",
-        description="Number of failed API calls"
+        default=0, alias="failedExtractions", description="Number of failed API calls"
     )
     extracted_data: Optional[List[Dict[str, Any]]] = Field(
         default_factory=list,
         alias="extractedData",
-        description="Raw extracted data from the API"
+        description="Raw extracted data from the API",
     )
 
     # Status and error handling
     execution_status: str = Field(
         default="PENDING",
         alias="executionStatus",
-        description="Current execution status (PENDING, RUNNING, COMPLETED, FAILED)"
+        description="Current execution status (PENDING, RUNNING, COMPLETED, FAILED)",
     )
     error_message: Optional[str] = Field(
         default=None,
         alias="errorMessage",
-        description="Error message if the job failed"
+        description="Error message if the job failed",
     )
     retry_count: int = Field(
-        default=0,
-        alias="retryCount",
-        description="Number of retry attempts"
+        default=0, alias="retryCount", description="Number of retry attempts"
     )
     max_retries: int = Field(
-        default=3,
-        alias="maxRetries",
-        description="Maximum number of retry attempts"
+        default=3, alias="maxRetries", description="Maximum number of retry attempts"
     )
 
     # Data processing flags
     create_products: bool = Field(
         default=True,
         alias="createProducts",
-        description="Whether to create Product entities from extracted data"
+        description="Whether to create Product entities from extracted data",
     )
     update_existing: bool = Field(
         default=True,
         alias="updateExisting",
-        description="Whether to update existing Product entities"
+        description="Whether to update existing Product entities",
     )
 
     # Validation constants
     ALLOWED_JOB_TYPES: ClassVar[List[str]] = [
-        "WEEKLY_EXTRACTION", "MANUAL_EXTRACTION", "DAILY_EXTRACTION", "MONTHLY_EXTRACTION"
+        "WEEKLY_EXTRACTION",
+        "MANUAL_EXTRACTION",
+        "DAILY_EXTRACTION",
+        "MONTHLY_EXTRACTION",
     ]
-    ALLOWED_STATUSES: ClassVar[List[str]] = ["PENDING", "RUNNING", "COMPLETED", "FAILED", "CANCELLED"]
+    ALLOWED_STATUSES: ClassVar[List[str]] = [
+        "PENDING",
+        "RUNNING",
+        "COMPLETED",
+        "FAILED",
+        "CANCELLED",
+    ]
 
     @field_validator("job_name")
     @classmethod
@@ -225,13 +230,19 @@ class DataExtraction(CyodaEntity):
     def complete_execution(self) -> None:
         """Mark the job as completed"""
         self.execution_status = "COMPLETED"
-        self.completed_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-        
+        self.completed_at = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
+
         # Calculate duration if we have start time
         if self.started_at:
             try:
-                start_time = datetime.fromisoformat(self.started_at.replace("Z", "+00:00"))
-                end_time = datetime.fromisoformat(self.completed_at.replace("Z", "+00:00"))
+                start_time = datetime.fromisoformat(
+                    self.started_at.replace("Z", "+00:00")
+                )
+                end_time = datetime.fromisoformat(
+                    self.completed_at.replace("Z", "+00:00")
+                )
                 self.duration_seconds = int((end_time - start_time).total_seconds())
             except ValueError:
                 pass  # If timestamp parsing fails, leave duration as None
@@ -240,12 +251,14 @@ class DataExtraction(CyodaEntity):
         """Mark the job as failed"""
         self.execution_status = "FAILED"
         self.error_message = error_message
-        self.completed_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.completed_at = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
 
     def increment_retry(self) -> bool:
         """
         Increment retry count and check if more retries are allowed.
-        
+
         Returns:
             True if more retries are allowed, False otherwise
         """
@@ -278,10 +291,7 @@ class DataExtraction(CyodaEntity):
 
     def is_ready_for_retry(self) -> bool:
         """Check if the job is ready for retry"""
-        return (
-            self.execution_status == "FAILED" and
-            self.retry_count < self.max_retries
-        )
+        return self.execution_status == "FAILED" and self.retry_count < self.max_retries
 
     def should_create_products(self) -> bool:
         """Check if Product entities should be created from extracted data"""

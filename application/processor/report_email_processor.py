@@ -8,9 +8,9 @@ as specified in functional requirements.
 import logging
 from typing import Any
 
+from application.entity.report.version_1.report import Report
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.report.version_1.report import Report
 
 
 class ReportEmailProcessor(CyodaProcessor):
@@ -49,7 +49,7 @@ class ReportEmailProcessor(CyodaProcessor):
 
             # Simulate email sending (in a real implementation, this would use an email service)
             success = await self._send_email(report)
-            
+
             if success:
                 report.mark_email_sent()
                 self.logger.info(
@@ -57,9 +57,7 @@ class ReportEmailProcessor(CyodaProcessor):
                 )
             else:
                 report.mark_email_failed()
-                self.logger.error(
-                    f"Failed to send Report {report.technical_id}"
-                )
+                self.logger.error(f"Failed to send Report {report.technical_id}")
 
             return report
 
@@ -68,7 +66,7 @@ class ReportEmailProcessor(CyodaProcessor):
                 f"Error sending Report {getattr(entity, 'technical_id', '<unknown>')}: {str(e)}"
             )
             # Mark as failed and re-raise
-            if hasattr(entity, 'mark_email_failed'):
+            if hasattr(entity, "mark_email_failed"):
                 entity.mark_email_failed()
             raise
 
@@ -88,33 +86,36 @@ class ReportEmailProcessor(CyodaProcessor):
         try:
             # Prepare email content
             subject = f"{report.report_title} - {report.report_period_start} to {report.report_period_end}"
-            
+
             # Create email body with executive summary
             email_body = self._create_email_body(report)
-            
+
             # Log the email details (in real implementation, this would send actual email)
             self.logger.info(f"EMAIL SIMULATION - Sending report:")
             self.logger.info(f"To: {', '.join(report.email_recipients)}")
             self.logger.info(f"Subject: {subject}")
             self.logger.info(f"Body length: {len(email_body)} characters")
             self.logger.info(f"Report format: {report.report_format}")
-            
+
             if report.report_content:
-                self.logger.info(f"Attachment: Report content ({len(report.report_content)} characters)")
-            
+                self.logger.info(
+                    f"Attachment: Report content ({len(report.report_content)} characters)"
+                )
+
             # Simulate email sending delay and success
             import asyncio
+
             await asyncio.sleep(0.1)  # Simulate network delay
-            
+
             # In a real implementation, you would:
             # 1. Connect to email service (SMTP, SendGrid, etc.)
             # 2. Create email with HTML body and/or PDF attachment
             # 3. Send to all recipients
             # 4. Handle delivery confirmations and failures
-            
+
             # For now, simulate success
             return True
-            
+
         except Exception as e:
             self.logger.error(f"Error in email sending simulation: {str(e)}")
             return False
@@ -139,54 +140,72 @@ class ReportEmailProcessor(CyodaProcessor):
 
         # Add executive summary if available
         if report.executive_summary:
-            body_parts.extend([
-                f"<h3>Executive Summary</h3>",
-                f"<pre>{report.executive_summary}</pre>",
-            ])
+            body_parts.extend(
+                [
+                    f"<h3>Executive Summary</h3>",
+                    f"<pre>{report.executive_summary}</pre>",
+                ]
+            )
 
         # Add key highlights
         body_parts.append("<h3>Key Highlights</h3>")
         body_parts.append("<ul>")
-        
+
         if report.high_performers:
-            body_parts.append(f"<li><strong>High Performers:</strong> {len(report.high_performers)} products showing excellent performance</li>")
-        
+            body_parts.append(
+                f"<li><strong>High Performers:</strong> {len(report.high_performers)} products showing excellent performance</li>"
+            )
+
         if report.underperformers:
-            body_parts.append(f"<li><strong>Attention Needed:</strong> {len(report.underperformers)} products requiring review</li>")
-        
+            body_parts.append(
+                f"<li><strong>Attention Needed:</strong> {len(report.underperformers)} products requiring review</li>"
+            )
+
         if report.restock_recommendations:
-            body_parts.append(f"<li><strong>Restocking Required:</strong> {len(report.restock_recommendations)} products need inventory replenishment</li>")
-        
+            body_parts.append(
+                f"<li><strong>Restocking Required:</strong> {len(report.restock_recommendations)} products need inventory replenishment</li>"
+            )
+
         if report.total_revenue:
-            body_parts.append(f"<li><strong>Total Revenue:</strong> ${report.total_revenue:,.2f}</li>")
-        
+            body_parts.append(
+                f"<li><strong>Total Revenue:</strong> ${report.total_revenue:,.2f}</li>"
+            )
+
         if report.total_sales_volume:
-            body_parts.append(f"<li><strong>Total Units Sold:</strong> {report.total_sales_volume:,}</li>")
+            body_parts.append(
+                f"<li><strong>Total Units Sold:</strong> {report.total_sales_volume:,}</li>"
+            )
 
         body_parts.append("</ul>")
 
         # Add trending categories if available
         if report.trending_categories:
-            body_parts.extend([
-                f"<h3>Trending Categories</h3>",
-                f"<p>{', '.join(report.trending_categories)}</p>",
-            ])
+            body_parts.extend(
+                [
+                    f"<h3>Trending Categories</h3>",
+                    f"<p>{', '.join(report.trending_categories)}</p>",
+                ]
+            )
 
         # Add declining categories if available
         if report.declining_categories:
-            body_parts.extend([
-                f"<h3>Categories Needing Attention</h3>",
-                f"<p>{', '.join(report.declining_categories)}</p>",
-            ])
+            body_parts.extend(
+                [
+                    f"<h3>Categories Needing Attention</h3>",
+                    f"<p>{', '.join(report.declining_categories)}</p>",
+                ]
+            )
 
         # Footer
-        body_parts.extend([
-            f"<hr>",
-            f"<p>This report was automatically generated by the Pet Store Performance Analysis System.</p>",
-            f"<p>Generated on: {report.generated_at}</p>",
-            f"<p>For questions or support, please contact the system administrator.</p>",
-            f"</body></html>"
-        ])
+        body_parts.extend(
+            [
+                f"<hr>",
+                f"<p>This report was automatically generated by the Pet Store Performance Analysis System.</p>",
+                f"<p>Generated on: {report.generated_at}</p>",
+                f"<p>For questions or support, please contact the system administrator.</p>",
+                f"</body></html>",
+            ]
+        )
 
         return "\n".join(body_parts)
 
@@ -216,5 +235,5 @@ class ReportEmailProcessor(CyodaProcessor):
         
         Generated: {report.generated_at}
         """
-        
-        return pdf_content.encode('utf-8')
+
+        return pdf_content.encode("utf-8")

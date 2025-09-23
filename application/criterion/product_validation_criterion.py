@@ -7,9 +7,9 @@ proceed to the analysis stage as specified in functional requirements.
 
 from typing import Any
 
+from application.entity.product.version_1.product import Product
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.product.version_1.product import Product
 
 
 class ProductValidationCriterion(CyodaCriteriaChecker):
@@ -125,7 +125,10 @@ class ProductValidationCriterion(CyodaCriteriaChecker):
                 return False
 
         # Trend indicator should be valid if set
-        if product.trend_indicator and product.trend_indicator not in Product.ALLOWED_TRENDS:
+        if (
+            product.trend_indicator
+            and product.trend_indicator not in Product.ALLOWED_TRENDS
+        ):
             self.logger.warning(
                 f"Product {product.technical_id} has invalid trend indicator: {product.trend_indicator}"
             )
@@ -150,7 +153,7 @@ class ProductValidationCriterion(CyodaCriteriaChecker):
                     f"Product {product.technical_id} is marked as sold but has no sales volume"
                 )
                 # This is a warning, not a failure - data might be incomplete
-                
+
         # If inventory count is negative, that's invalid
         if product.inventory_count is not None and product.inventory_count < 0:
             self.logger.warning(
