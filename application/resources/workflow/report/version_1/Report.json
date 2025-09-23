@@ -18,6 +18,24 @@
             "created": {
                 "transitions": [
                     {
+                        "name": "validate",
+                        "next": "validated",
+                        "manual": false,
+                        "criterion": {
+                            "type": "function",
+                            "function": {
+                                "name": "ReportValidationCriterion",
+                                "config": {
+                                    "calculationNodesTags": "cyoda_application"
+                                }
+                            }
+                        }
+                    }
+                ]
+            },
+            "validated": {
+                "transitions": [
+                    {
                         "name": "generate",
                         "next": "generated",
                         "manual": false,
