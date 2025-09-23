@@ -1,0 +1,1 @@
+Build an app that pulls weather data - key parameters from a public API MSC GeoMet and send to an email
