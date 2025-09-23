@@ -129,7 +129,7 @@ class ProductDataExtractionProcessor(CyodaProcessor):
                         entity_version=str(Product.ENTITY_VERSION),
                     )
 
-                    results["products_created"] += 1
+                    results["products_created"] = results.get("products_created", 0) + 1
 
                     self.logger.debug(
                         f"Created Product entity {response.metadata.id} for {product_data.get('name', 'Unknown')}"
@@ -137,7 +137,7 @@ class ProductDataExtractionProcessor(CyodaProcessor):
 
                 except Exception as e:
                     self.logger.warning(f"Failed to create Product entity: {str(e)}")
-                    results["records_failed"] += 1
+                    results["records_failed"] = results.get("records_failed", 0) + 1
                     continue
 
             results["success"] = True

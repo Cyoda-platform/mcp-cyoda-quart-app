@@ -289,8 +289,8 @@ async def create_weekly_report() -> ResponseReturnValue:
         # Create a new weekly report
         report = Report(
             title="Weekly Product Performance Report",
-            report_type="weekly_performance",
-            email_recipients=["victoria.sagdieva@cyoda.com"]
+            reportType="weekly_performance",
+            emailRecipients=["victoria.sagdieva@cyoda.com"]
         )
         entity_data = report.model_dump(by_alias=True)
 
