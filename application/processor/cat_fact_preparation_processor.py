@@ -56,13 +56,13 @@ class CatFactPreparationProcessor(CyodaProcessor):
                 )
 
             # Ensure fact is marked as appropriate and ready
-            if cat_fact.is_appropriate and cat_fact.quality_score >= 0.5:
+            if cat_fact.is_appropriate and cat_fact.quality_score is not None and cat_fact.quality_score >= 0.5:
                 self.logger.info(
                     f"CatFact {cat_fact.technical_id} prepared successfully with quality score {cat_fact.quality_score}"
                 )
             else:
                 # Mark as inappropriate if quality is too low
-                if cat_fact.quality_score < 0.5:
+                if cat_fact.quality_score is not None and cat_fact.quality_score < 0.5:
                     cat_fact.mark_inappropriate("Quality score below threshold")
                     self.logger.warning(
                         f"CatFact {cat_fact.technical_id} marked inappropriate due to low quality score"
