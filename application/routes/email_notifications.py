@@ -26,9 +26,9 @@ logger = logging.getLogger(__name__)
 
 @email_notifications_bp.route("/", methods=["POST"])
 @tag(["EmailNotifications"])
-@validate_json(EmailNotification)
+@validate(request=EmailNotification)
 async def create_email_notification(
-    json: EmailNotification,
+    data: EmailNotification,
 ) -> tuple[Dict[str, Any], int]:
     """
     Create a new EmailNotification entity.
@@ -40,7 +40,7 @@ async def create_email_notification(
         entity_service = get_entity_service()
 
         # Convert Pydantic model to dict for EntityService
-        notification_dict = json.model_dump(by_alias=True)
+        notification_dict = data.model_dump(by_alias=True)
 
         # Save the entity using entity constants
         response = await entity_service.save(
@@ -104,9 +104,9 @@ async def get_email_notification(entity_id: str) -> tuple[Dict[str, Any], int]:
 
 @email_notifications_bp.route("/<entity_id>", methods=["PUT"])
 @tag(["EmailNotifications"])
-@validate_json(EmailNotification)
+@validate(request=EmailNotification)
 async def update_email_notification(
-    entity_id: str, json: EmailNotification
+    entity_id: str, data: EmailNotification
 ) -> tuple[Dict[str, Any], int]:
     """
     Update an EmailNotification entity.
@@ -121,7 +121,7 @@ async def update_email_notification(
         transition = request.args.get("transition")
 
         # Convert Pydantic model to dict for EntityService
-        notification_dict = json.model_dump(by_alias=True)
+        notification_dict = data.model_dump(by_alias=True)
 
         # Update the entity
         if transition:

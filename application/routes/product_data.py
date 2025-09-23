@@ -70,20 +70,20 @@ async def get_product_data(entity_id: str) -> tuple[Dict[str, Any], int]:
         entity_service = get_entity_service()
 
         # Get the entity by technical ID
-        response = await entity_service.get(
+        response = await entity_service.get_by_id(
             entity_id=entity_id,
             entity_class=ProductData.ENTITY_NAME,
             entity_version=str(ProductData.ENTITY_VERSION),
         )
 
-        if not response or not response.entity:
+        if not response:
             return {"error": "Product data not found"}, 404
 
         # Return the entity with metadata
         result = {
-            "id": response.metadata.id,
-            "state": response.metadata.state,
-            "entity": response.entity,
+            "id": response.get_id(),
+            "state": response.get_state(),
+            "entity": response.data.model_dump(by_alias=True) if hasattr(response.data, 'model_dump') else response.data,
         }
 
         return result, 200
