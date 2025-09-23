@@ -1,0 +1,75 @@
+{
+  "version": "1.0",
+  "name": "EmailCampaign Workflow",
+  "desc": "Workflow for managing email campaign lifecycle from creation to completion",
+  "initialState": "initial_state",
+  "active": true,
+  "states": {
+    "initial_state": {
+      "transitions": [
+        {
+          "name": "create",
+          "next": "created",
+          "manual": false
+        }
+      ]
+    },
+    "created": {
+      "transitions": [
+        {
+          "name": "validate",
+          "next": "validated",
+          "manual": false,
+          "criterion": {
+            "type": "function",
+            "function": {
+              "name": "EmailCampaignValidationCriterion",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "validated": {
+      "transitions": [
+        {
+          "name": "send",
+          "next": "sending",
+          "manual": true,
+          "processors": [
+            {
+              "name": "EmailSendingProcessor",
+              "executionMode": "SYNC",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "sending": {
+      "transitions": [
+        {
+          "name": "complete",
+          "next": "completed",
+          "manual": false,
+          "processors": [
+            {
+              "name": "EmailCampaignReportingProcessor",
+              "executionMode": "SYNC",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "completed": {
+      "transitions": []
+    }
+  }
+}
