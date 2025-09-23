@@ -300,7 +300,7 @@ async def delete_egg_alarm(entity_id: str) -> ResponseReturnValue:
         response = DeleteResponse(
             success=True,
             message="EggAlarm deleted successfully",
-            entity_id=entity_id,
+            entityId=entity_id,
         )
         return response.model_dump(), 200
 
@@ -365,7 +365,7 @@ async def check_exists(entity_id: str) -> ResponseReturnValue:
             entity_version=str(EggAlarm.ENTITY_VERSION),
         )
 
-        response = ExistsResponse(exists=exists, entity_id=entity_id)
+        response = ExistsResponse(exists=exists, entityId=entity_id)
         return response.model_dump(), 200
 
     except Exception as e:
@@ -415,9 +415,9 @@ async def get_available_transitions(entity_id: str) -> ResponseReturnValue:
         )
 
         response = TransitionsResponse(
-            entity_id=entity_id,
-            available_transitions=transitions,
-            current_state=None,  # Could be enhanced to get current state
+            entityId=entity_id,
+            availableTransitions=transitions,
+            currentState=None,  # Could be enhanced to get current state
         )
         return jsonify(response.model_dump()), 200
 
