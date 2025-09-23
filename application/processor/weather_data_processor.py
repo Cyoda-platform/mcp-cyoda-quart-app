@@ -7,10 +7,11 @@ from MSC GeoMet API and enriching weather data with additional calculations.
 
 import asyncio
 import logging
-from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional
+from datetime import datetime, timezone
+from typing import Any, Dict, Optional
 
 import aiohttp
+from aiohttp import ClientTimeout
 
 from application.entity.weather_data.version_1.weather_data import WeatherData
 from common.entity.entity_casting import cast_entity
@@ -116,13 +117,14 @@ class WeatherDataProcessor(CyodaProcessor):
             url = f"{self.msc_geomet_base_url}/collections/climate-daily/items"
             params = {
                 "f": "json",
-                "limit": 10,
+                "limit": "10",
                 "station_id": station_id,
                 "datetime": f"{observation_date}T00:00:00Z/{observation_date}T23:59:59Z",
             }
 
+            timeout = ClientTimeout(total=30)
             async with aiohttp.ClientSession() as session:
-                async with session.get(url, params=params, timeout=30) as response:
+                async with session.get(url, params=params, timeout=timeout) as response:
                     if response.status == 200:
                         data = await response.json()
                         features = data.get("features", [])
