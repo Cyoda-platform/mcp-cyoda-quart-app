@@ -1,0 +1,76 @@
+{
+  "version": "1.0",
+  "name": "DataExtraction Workflow",
+  "desc": "Workflow for DataExtraction entity in Product Performance Analysis System",
+  "initialState": "initial_state",
+  "active": true,
+  "states": {
+    "initial_state": {
+      "transitions": [
+        {
+          "name": "schedule",
+          "next": "scheduled",
+          "manual": false
+        }
+      ]
+    },
+    "scheduled": {
+      "transitions": [
+        {
+          "name": "start_extraction",
+          "next": "extracting",
+          "manual": false,
+          "criterion": {
+            "type": "function",
+            "function": {
+              "name": "DataExtractionScheduleCriterion",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "extracting": {
+      "transitions": [
+        {
+          "name": "complete_extraction",
+          "next": "completed",
+          "manual": false,
+          "processors": [
+            {
+              "name": "ProductDataExtractionProcessor",
+              "executionMode": "SYNC",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          ]
+        },
+        {
+          "name": "fail_extraction",
+          "next": "failed",
+          "manual": true
+        }
+      ]
+    },
+    "failed": {
+      "transitions": [
+        {
+          "name": "retry",
+          "next": "extracting",
+          "manual": true
+        },
+        {
+          "name": "abandon",
+          "next": "completed",
+          "manual": true
+        }
+      ]
+    },
+    "completed": {
+      "transitions": []
+    }
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "version": "1.0",
+  "name": "Product Workflow",
+  "desc": "Workflow for Product entity in Product Performance Analysis System",
+  "initialState": "initial_state",
+  "active": true,
+  "states": {
+    "initial_state": {
+      "transitions": [
+        {
+          "name": "extract",
+          "next": "extracted",
+          "manual": false
+        }
+      ]
+    },
+    "extracted": {
+      "transitions": [
+        {
+          "name": "analyze",
+          "next": "analyzed",
+          "manual": false,
+          "processors": [
+            {
+              "name": "ProductAnalysisProcessor",
+              "executionMode": "SYNC",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "analyzed": {
+      "transitions": [
+        {
+          "name": "complete",
+          "next": "completed",
+          "manual": false
+        }
+      ]
+    },
+    "completed": {
+      "transitions": []
+    }
+  }
+}
