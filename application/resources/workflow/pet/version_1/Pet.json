@@ -1,0 +1,66 @@
+{
+  "version": "1.0",
+  "name": "Pet Workflow",
+  "desc": "Workflow for Pet Search Application with data ingestion, transformation, and display",
+  "initialState": "initial_state",
+  "active": true,
+  "states": {
+    "initial_state": {
+      "transitions": [
+        {
+          "name": "ingest",
+          "next": "ingested",
+          "manual": false
+        }
+      ]
+    },
+    "ingested": {
+      "transitions": [
+        {
+          "name": "validate",
+          "next": "validated",
+          "manual": false,
+          "criterion": {
+            "type": "function",
+            "function": {
+              "name": "PetValidationCriterion",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "validated": {
+      "transitions": [
+        {
+          "name": "transform",
+          "next": "transformed",
+          "manual": false,
+          "processors": [
+            {
+              "name": "PetDataTransformationProcessor",
+              "executionMode": "SYNC",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "transformed": {
+      "transitions": [
+        {
+          "name": "display",
+          "next": "displayed",
+          "manual": false
+        }
+      ]
+    },
+    "displayed": {
+      "transitions": []
+    }
+  }
+}
