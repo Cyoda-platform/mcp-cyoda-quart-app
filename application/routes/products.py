@@ -283,7 +283,7 @@ async def delete_product(entity_id: str) -> ResponseReturnValue:
         response = DeleteResponse(
             success=True,
             message="Product deleted successfully",
-            entity_id=entity_id,
+            entityId=entity_id,
         )
         return response.model_dump(), 200
 

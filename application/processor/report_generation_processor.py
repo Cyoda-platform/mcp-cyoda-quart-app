@@ -98,7 +98,7 @@ class ReportGenerationProcessor(CyodaProcessor):
                     if hasattr(product_data, "model_dump"):
                         product_dict = product_data.model_dump(by_alias=True)
                     else:
-                        product_dict = product_data
+                        product_dict = dict(product_data) if hasattr(product_data, '__dict__') else product_data
 
                     # Create Product instance from dict
                     product = Product(**product_dict)

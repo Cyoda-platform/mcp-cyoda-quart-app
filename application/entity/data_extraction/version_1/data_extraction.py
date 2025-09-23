@@ -276,7 +276,7 @@ class DataExtraction(CyodaEntity):
         """Record a successful API call"""
         self.successful_extractions += 1
 
-    def record_failed_extraction(self, error: str = None) -> None:
+    def record_failed_extraction(self, error: Optional[str] = None) -> None:
         """Record a failed API call"""
         self.failed_extractions += 1
         if error and not self.error_message:

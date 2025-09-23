@@ -285,7 +285,7 @@ async def delete_data_extraction(entity_id: str) -> ResponseReturnValue:
         response = DeleteResponse(
             success=True,
             message="DataExtraction deleted successfully",
-            entity_id=entity_id,
+            entityId=entity_id,
         )
         return response.model_dump(), 200
 

@@ -280,7 +280,7 @@ async def delete_report(entity_id: str) -> ResponseReturnValue:
         response = DeleteResponse(
             success=True,
             message="Report deleted successfully",
-            entity_id=entity_id,
+            entityId=entity_id,
         )
         return response.model_dump(), 200
 
