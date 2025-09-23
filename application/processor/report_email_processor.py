@@ -91,7 +91,7 @@ class ReportEmailProcessor(CyodaProcessor):
             email_body = self._create_email_body(report)
 
             # Log the email details (in real implementation, this would send actual email)
-            self.logger.info(f"EMAIL SIMULATION - Sending report:")
+            self.logger.info("EMAIL SIMULATION - Sending report:")
             self.logger.info(f"To: {', '.join(report.email_recipients)}")
             self.logger.info(f"Subject: {subject}")
             self.logger.info(f"Body length: {len(email_body)} characters")
@@ -131,9 +131,9 @@ class ReportEmailProcessor(CyodaProcessor):
             Email body content as HTML string
         """
         body_parts = [
-            f"<html><body>",
-            f"<h2>Pet Store Performance Analysis Report</h2>",
-            f"<p>Dear Sales Team,</p>",
+            "<html><body>",
+            "<h2>Pet Store Performance Analysis Report</h2>",
+            "<p>Dear Sales Team,</p>",
             f"<p>Please find attached the weekly performance analysis report for the period "
             f"{report.report_period_start} to {report.report_period_end}.</p>",
         ]
@@ -142,7 +142,7 @@ class ReportEmailProcessor(CyodaProcessor):
         if report.executive_summary:
             body_parts.extend(
                 [
-                    f"<h3>Executive Summary</h3>",
+                    "<h3>Executive Summary</h3>",
                     f"<pre>{report.executive_summary}</pre>",
                 ]
             )
