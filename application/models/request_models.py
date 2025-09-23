@@ -4,7 +4,7 @@
 Request models for Pet Store Performance Analysis System API
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from pydantic import BaseModel, Field
 

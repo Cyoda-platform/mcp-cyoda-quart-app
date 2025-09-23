@@ -7,7 +7,7 @@ and creating Product entities for analysis as specified in functional requiremen
 
 import asyncio
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 import httpx
 
@@ -217,7 +217,7 @@ class DataExtractionProcessor(CyodaProcessor):
             self.logger.warning("No extracted data to create Product entities from")
             return
 
-        entity_service = get_entity_service()
+        # entity_service = get_entity_service()  # Will be used in future
         created_count = 0
         updated_count = 0
 
@@ -336,7 +336,7 @@ class DataExtractionProcessor(CyodaProcessor):
             entity_service = get_entity_service()
             product_data = product.model_dump(by_alias=True)
 
-            response = await entity_service.save(
+            await entity_service.save(
                 entity=product_data,
                 entity_class=Product.ENTITY_NAME,
                 entity_version=str(Product.ENTITY_VERSION),
@@ -381,7 +381,7 @@ class DataExtractionProcessor(CyodaProcessor):
 
             entity_id = existing_product.technical_id or existing_product.entity_id
             if entity_id:
-                response = await entity_service.update(
+                await entity_service.update(
                     entity_id=entity_id,
                     entity=product_data,
                     entity_class=Product.ENTITY_NAME,
