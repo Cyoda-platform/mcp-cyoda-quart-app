@@ -147,7 +147,7 @@ class ReportEmailProcessor(CyodaProcessor):
                 <p><strong>Generated:</strong> {report.generated_at}</p>
                 <div class="score">Overall Performance Score: {overall_score:.1f}/100</div>
             </div>
-            
+
             <div class="metrics">
                 <div class="metric">
                     <h3>{total_pets}</h3>
@@ -166,10 +166,10 @@ class ReportEmailProcessor(CyodaProcessor):
                     <p>Avg Store Score</p>
                 </div>
             </div>
-            
+
             <h2>Executive Summary</h2>
             <p>{report.summary or 'No summary available.'}</p>
-            
+
             <div class="recommendations">
                 <h2>Recommendations</h2>
                 <ul>
@@ -233,7 +233,7 @@ RECOMMENDATIONS:
         for i, recommendation in enumerate(report.recommendations, 1):
             text_content += f"{i}. {recommendation}\n"
 
-        text_content += f"""
+        text_content += """
 
 DETAILED ANALYSIS:
 This report analyzed data from the Pet Store API and provides insights into:
@@ -300,7 +300,7 @@ For questions or support, please contact the development team.
             # Simulate a small chance of failure for testing
             import random
 
-            if random.random() < 0.05:  # 5% chance of failure
+            if random.random() < 0.05:  # 5% chance of failure  # nosec B311
                 self.logger.warning("Simulated email delivery failure")
                 return False
 
