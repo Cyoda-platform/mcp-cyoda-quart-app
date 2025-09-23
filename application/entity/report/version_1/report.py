@@ -16,10 +16,10 @@ from common.entity.cyoda_entity import CyodaEntity
 class Report(CyodaEntity):
     """
     Report entity representing performance analysis reports.
-    
+
     This entity stores report data that gets generated from Pet Store API analysis
     and is used for emailing weekly reports to stakeholders.
-    
+
     Inherits from CyodaEntity to get workflow management capabilities.
     """
 
@@ -29,95 +29,87 @@ class Report(CyodaEntity):
 
     # Report identification
     report_title: str = Field(
-        ...,
-        alias="reportTitle",
-        description="Title of the report"
+        ..., alias="reportTitle", description="Title of the report"
     )
     report_type: str = Field(
-        ...,
-        alias="reportType",
-        description="Type of report (weekly, monthly, custom)"
+        ..., alias="reportType", description="Type of report (weekly, monthly, custom)"
     )
     report_period: str = Field(
         ...,
         alias="reportPeriod",
-        description="Period covered by the report (e.g., '2024-01-01 to 2024-01-07')"
+        description="Period covered by the report (e.g., '2024-01-01 to 2024-01-07')",
     )
 
     # Report content
     report_data: Dict[str, Any] = Field(
         default_factory=dict,
         alias="reportData",
-        description="Report data including metrics, charts, and analysis"
+        description="Report data including metrics, charts, and analysis",
     )
-    summary: Optional[str] = Field(
-        None,
-        description="Executive summary of the report"
-    )
+    summary: Optional[str] = Field(None, description="Executive summary of the report")
     recommendations: List[str] = Field(
-        default_factory=list,
-        description="List of recommendations based on analysis"
+        default_factory=list, description="List of recommendations based on analysis"
     )
 
     # Generation metadata
     generated_at: Optional[str] = Field(
-        None,
-        alias="generatedAt",
-        description="Timestamp when report was generated"
+        None, alias="generatedAt", description="Timestamp when report was generated"
     )
     generated_by: Optional[str] = Field(
         None,
         alias="generatedBy",
-        description="System or user that generated the report"
+        description="System or user that generated the report",
     )
     data_source: Optional[str] = Field(
-        None,
-        alias="dataSource",
-        description="Source of data used for the report"
+        None, alias="dataSource", description="Source of data used for the report"
     )
 
     # Email delivery
     email_recipient: str = Field(
-        ...,
-        alias="emailRecipient",
-        description="Email address to send the report to"
+        ..., alias="emailRecipient", description="Email address to send the report to"
     )
     email_subject: Optional[str] = Field(
-        None,
-        alias="emailSubject",
-        description="Email subject line"
+        None, alias="emailSubject", description="Email subject line"
     )
     email_sent_at: Optional[str] = Field(
-        None,
-        alias="emailSentAt",
-        description="Timestamp when email was sent"
+        None, alias="emailSentAt", description="Timestamp when email was sent"
     )
     email_status: Optional[str] = Field(
         None,
         alias="emailStatus",
-        description="Status of email delivery (pending, sent, failed)"
+        description="Status of email delivery (pending, sent, failed)",
     )
 
     # Report metrics
     total_pets_analyzed: Optional[int] = Field(
         None,
         alias="totalPetsAnalyzed",
-        description="Total number of pets included in analysis"
+        description="Total number of pets included in analysis",
     )
     stores_analyzed: Optional[int] = Field(
         None,
         alias="storesAnalyzed",
-        description="Number of stores included in analysis"
+        description="Number of stores included in analysis",
     )
     performance_score: Optional[float] = Field(
         None,
         alias="performanceScore",
-        description="Overall performance score for the period"
+        description="Overall performance score for the period",
     )
 
     # Validation constants
-    VALID_REPORT_TYPES: ClassVar[List[str]] = ["weekly", "monthly", "quarterly", "custom"]
-    VALID_EMAIL_STATUSES: ClassVar[List[str]] = ["pending", "sent", "failed", "scheduled"]
+    VALID_REPORT_TYPES: ClassVar[List[str]] = [
+        "weekly",
+        "monthly",
+        "quarterly",
+        "custom",
+    ]
+    VALID_EMAIL_STATUSES: ClassVar[List[str]] = [
+        "pending",
+        "sent",
+        "failed",
+        "scheduled",
+    ]
 
     @field_validator("report_title")
     @classmethod
@@ -163,17 +155,23 @@ class Report(CyodaEntity):
             raise ValueError("Performance score must be between 0.0 and 100.0")
         return v
 
-    def generate_report(self, data: Dict[str, Any], generated_by: str = "System") -> None:
+    def generate_report(
+        self, data: Dict[str, Any], generated_by: str = "System"
+    ) -> None:
         """Generate report with provided data"""
         self.report_data = data
-        self.generated_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.generated_at = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
         self.generated_by = generated_by
         self.email_status = "pending"
         self.update_timestamp()
 
     def mark_email_sent(self) -> None:
         """Mark report as successfully emailed"""
-        self.email_sent_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.email_sent_at = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
         self.email_status = "sent"
         self.update_timestamp()
 
@@ -188,7 +186,9 @@ class Report(CyodaEntity):
             self.recommendations.append(recommendation.strip())
             self.update_timestamp()
 
-    def set_performance_metrics(self, total_pets: int, stores: int, score: float) -> None:
+    def set_performance_metrics(
+        self, total_pets: int, stores: int, score: float
+    ) -> None:
         """Set performance metrics for the report"""
         self.total_pets_analyzed = total_pets
         self.stores_analyzed = stores

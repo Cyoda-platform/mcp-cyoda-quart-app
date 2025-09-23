@@ -15,12 +15,14 @@ from common.entity.cyoda_entity import CyodaEntity
 
 class Category(BaseModel):
     """Pet category model matching Pet Store API structure"""
+
     id: Optional[int] = Field(None, description="Category ID")
     name: str = Field(..., description="Category name")
 
 
 class Tag(BaseModel):
     """Pet tag model matching Pet Store API structure"""
+
     id: Optional[int] = Field(None, description="Tag ID")
     name: str = Field(..., description="Tag name")
 
@@ -28,10 +30,10 @@ class Tag(BaseModel):
 class Pet(CyodaEntity):
     """
     Pet entity representing pets from the Pet Store API.
-    
+
     This entity stores pet data retrieved from https://petstore.swagger.io/v2/
     and is used for performance analysis and reporting.
-    
+
     Inherits from CyodaEntity to get workflow management capabilities.
     """
 
@@ -41,44 +43,37 @@ class Pet(CyodaEntity):
 
     # Core pet fields from Pet Store API
     pet_id: Optional[int] = Field(
-        None, 
-        alias="petId",
-        description="Pet ID from Pet Store API"
+        None, alias="petId", description="Pet ID from Pet Store API"
     )
     name: str = Field(..., description="Pet name")
     category: Optional[Dict[str, Any]] = Field(
-        None, 
-        description="Pet category (id and name)"
+        None, description="Pet category (id and name)"
     )
     photo_urls: List[str] = Field(
         default_factory=list,
-        alias="photoUrls", 
-        description="List of photo URLs for the pet"
+        alias="photoUrls",
+        description="List of photo URLs for the pet",
     )
     tags: List[Dict[str, Any]] = Field(
-        default_factory=list,
-        description="List of tags (id and name pairs)"
+        default_factory=list, description="List of tags (id and name pairs)"
     )
     status: Optional[str] = Field(
-        None,
-        description="Pet status in the store (available, pending, sold)"
+        None, description="Pet status in the store (available, pending, sold)"
     )
 
     # Performance analysis fields
     performance_score: Optional[float] = Field(
         None,
         alias="performanceScore",
-        description="Calculated performance score for this pet"
+        description="Calculated performance score for this pet",
     )
     analysis_data: Optional[Dict[str, Any]] = Field(
-        None,
-        alias="analysisData",
-        description="Performance analysis results"
+        None, alias="analysisData", description="Performance analysis results"
     )
     last_analyzed_at: Optional[str] = Field(
         None,
         alias="lastAnalyzedAt",
-        description="Timestamp when performance analysis was last run"
+        description="Timestamp when performance analysis was last run",
     )
 
     # Validation constants
@@ -113,7 +108,9 @@ class Pet(CyodaEntity):
     def update_analysis_data(self, analysis_data: Dict[str, Any]) -> None:
         """Update analysis data and timestamp"""
         self.analysis_data = analysis_data
-        self.last_analyzed_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.last_analyzed_at = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
         self.update_timestamp()
 
     def set_performance_score(self, score: float) -> None:

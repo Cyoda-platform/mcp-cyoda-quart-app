@@ -10,19 +10,20 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict, Optional
 
+from pydantic import BaseModel, Field
 from quart import Blueprint, jsonify, request
 from quart.typing import ResponseReturnValue
 from quart_schema import operation_id, tag, validate, validate_querystring
-from pydantic import BaseModel, Field
 
+from application.entity.pet.version_1.pet import Pet
 from common.service.entity_service import SearchConditionRequest
 from services.services import get_entity_service
-from application.entity.pet.version_1.pet import Pet
 
 
 # Request/Response models
 class PetQueryParams(BaseModel):
     """Query parameters for listing pets"""
+
     status: Optional[str] = Field(None, description="Filter by pet status")
     category: Optional[str] = Field(None, description="Filter by category name")
     limit: int = Field(50, ge=1, le=1000, description="Maximum number of results")
@@ -31,23 +32,29 @@ class PetQueryParams(BaseModel):
 
 class PetUpdateQueryParams(BaseModel):
     """Query parameters for updating pets"""
-    transition: Optional[str] = Field(None, description="Workflow transition to trigger")
+
+    transition: Optional[str] = Field(
+        None, description="Workflow transition to trigger"
+    )
 
 
 class ErrorResponse(BaseModel):
     """Error response model"""
+
     error: str = Field(..., description="Error message")
     code: Optional[str] = Field(None, description="Error code")
 
 
 class DeleteResponse(BaseModel):
     """Delete response model"""
+
     success: bool = Field(..., description="Whether deletion was successful")
     message: str = Field(..., description="Success message")
     entity_id: str = Field(..., description="ID of deleted entity")
 
 
 logger = logging.getLogger(__name__)
+
 
 # Helper to normalize entity data from service
 def _to_entity_dict(data: Any) -> Dict[str, Any]:
@@ -148,7 +155,7 @@ async def list_pets(query_args: PetQueryParams) -> ResponseReturnValue:
     """List Pets with optional filtering"""
     try:
         service = get_entity_service()
-        
+
         # Build search conditions based on query parameters
         search_conditions: Dict[str, str] = {}
 
@@ -333,15 +340,21 @@ async def sync_pets_from_api() -> ResponseReturnValue:
         # Fetch pets from Pet Store API
         async with httpx.AsyncClient(timeout=30.0) as client:
             # Get available pets
-            response = await client.get("https://petstore.swagger.io/v2/pet/findByStatus?status=available")
+            response = await client.get(
+                "https://petstore.swagger.io/v2/pet/findByStatus?status=available"
+            )
             available_pets = response.json() if response.status_code == 200 else []
 
             # Get pending pets
-            response = await client.get("https://petstore.swagger.io/v2/pet/findByStatus?status=pending")
+            response = await client.get(
+                "https://petstore.swagger.io/v2/pet/findByStatus?status=pending"
+            )
             pending_pets = response.json() if response.status_code == 200 else []
 
             # Get sold pets
-            response = await client.get("https://petstore.swagger.io/v2/pet/findByStatus?status=sold")
+            response = await client.get(
+                "https://petstore.swagger.io/v2/pet/findByStatus?status=sold"
+            )
             sold_pets = response.json() if response.status_code == 200 else []
 
         all_pets = available_pets + pending_pets + sold_pets
@@ -368,7 +381,9 @@ async def sync_pets_from_api() -> ResponseReturnValue:
                 created_count += 1
 
             except Exception as e:
-                logger.warning(f"Failed to create pet {pet_data.get('id', 'unknown')}: {str(e)}")
+                logger.warning(
+                    f"Failed to create pet {pet_data.get('id', 'unknown')}: {str(e)}"
+                )
                 continue
 
         return {

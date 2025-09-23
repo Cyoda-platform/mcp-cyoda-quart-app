@@ -7,9 +7,9 @@ proceed to the report generation stage.
 
 from typing import Any
 
+from application.entity.report.version_1.report import Report
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.report.version_1.report import Report
 
 
 class ReportValidationCriterion(CyodaCriteriaChecker):
@@ -68,14 +68,16 @@ class ReportValidationCriterion(CyodaCriteriaChecker):
 
     def _validate_required_fields(self, report: Report) -> bool:
         """Validate that all required fields are present and valid"""
-        
+
         # Report title is required
         if not report.report_title or len(report.report_title.strip()) == 0:
             self.logger.warning(f"Report {report.technical_id} has empty report title")
             return False
 
         if len(report.report_title) > 255:
-            self.logger.warning(f"Report {report.technical_id} title too long: {len(report.report_title)} characters")
+            self.logger.warning(
+                f"Report {report.technical_id} title too long: {len(report.report_title)} characters"
+            )
             return False
 
         # Report type is required
@@ -90,14 +92,16 @@ class ReportValidationCriterion(CyodaCriteriaChecker):
 
         # Email recipient is required
         if not report.email_recipient or len(report.email_recipient.strip()) == 0:
-            self.logger.warning(f"Report {report.technical_id} has empty email recipient")
+            self.logger.warning(
+                f"Report {report.technical_id} has empty email recipient"
+            )
             return False
 
         return True
 
     def _validate_field_constraints(self, report: Report) -> bool:
         """Validate field formats and constraints"""
-        
+
         # Validate report type
         if report.report_type not in Report.VALID_REPORT_TYPES:
             self.logger.warning(
@@ -108,11 +112,16 @@ class ReportValidationCriterion(CyodaCriteriaChecker):
 
         # Validate email recipient format
         if "@" not in report.email_recipient or "." not in report.email_recipient:
-            self.logger.warning(f"Report {report.technical_id} has invalid email format: {report.email_recipient}")
+            self.logger.warning(
+                f"Report {report.technical_id} has invalid email format: {report.email_recipient}"
+            )
             return False
 
         # Validate email status if present
-        if report.email_status and report.email_status not in Report.VALID_EMAIL_STATUSES:
+        if (
+            report.email_status
+            and report.email_status not in Report.VALID_EMAIL_STATUSES
+        ):
             self.logger.warning(
                 f"Report {report.technical_id} has invalid email status: {report.email_status}. "
                 f"Valid statuses: {Report.VALID_EMAIL_STATUSES}"
@@ -133,7 +142,9 @@ class ReportValidationCriterion(CyodaCriteriaChecker):
             ("total_pets_analyzed", report.total_pets_analyzed),
             ("stores_analyzed", report.stores_analyzed),
         ]:
-            if field_value is not None and (not isinstance(field_value, int) or field_value < 0):
+            if field_value is not None and (
+                not isinstance(field_value, int) or field_value < 0
+            ):
                 self.logger.warning(
                     f"Report {report.technical_id} has invalid {field_name}: {field_value}"
                 )
@@ -143,9 +154,12 @@ class ReportValidationCriterion(CyodaCriteriaChecker):
 
     def _validate_business_rules(self, report: Report) -> bool:
         """Validate business logic rules"""
-        
+
         # Business rule: Weekly reports should be sent to victoria.sagdieva@cyoda.com as per requirements
-        if report.report_type == "weekly" and report.email_recipient != "victoria.sagdieva@cyoda.com":
+        if (
+            report.report_type == "weekly"
+            and report.email_recipient != "victoria.sagdieva@cyoda.com"
+        ):
             self.logger.warning(
                 f"Report {report.technical_id} is a weekly report but recipient is not victoria.sagdieva@cyoda.com: "
                 f"{report.email_recipient}"
@@ -182,17 +196,36 @@ class ReportValidationCriterion(CyodaCriteriaChecker):
         # - "Week of 2024-01-01"
         # - "January 2024"
         # - "Q1 2024"
-        
+
         if len(period) < 5:  # Too short to be meaningful
             return False
-        
+
         # Check for common date patterns or keywords
         common_patterns = [
-            "to", "week", "month", "quarter", "q1", "q2", "q3", "q4",
-            "january", "february", "march", "april", "may", "june",
-            "july", "august", "september", "october", "november", "december",
-            "2024", "2023", "2025"  # Common years
+            "to",
+            "week",
+            "month",
+            "quarter",
+            "q1",
+            "q2",
+            "q3",
+            "q4",
+            "january",
+            "february",
+            "march",
+            "april",
+            "may",
+            "june",
+            "july",
+            "august",
+            "september",
+            "october",
+            "november",
+            "december",
+            "2024",
+            "2023",
+            "2025",  # Common years
         ]
-        
+
         period_lower = period.lower()
         return any(pattern in period_lower for pattern in common_patterns)

@@ -10,19 +10,20 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict, Optional
 
+from pydantic import BaseModel, Field
 from quart import Blueprint, jsonify, request
 from quart.typing import ResponseReturnValue
 from quart_schema import operation_id, tag, validate, validate_querystring
-from pydantic import BaseModel, Field
 
+from application.entity.store.version_1.store import Store
 from common.service.entity_service import SearchConditionRequest
 from services.services import get_entity_service
-from application.entity.store.version_1.store import Store
 
 
 # Request/Response models
 class StoreQueryParams(BaseModel):
     """Query parameters for listing stores"""
+
     store_name: Optional[str] = Field(None, description="Filter by store name")
     limit: int = Field(50, ge=1, le=1000, description="Maximum number of results")
     offset: int = Field(0, ge=0, description="Number of results to skip")
@@ -30,23 +31,29 @@ class StoreQueryParams(BaseModel):
 
 class StoreUpdateQueryParams(BaseModel):
     """Query parameters for updating stores"""
-    transition: Optional[str] = Field(None, description="Workflow transition to trigger")
+
+    transition: Optional[str] = Field(
+        None, description="Workflow transition to trigger"
+    )
 
 
 class ErrorResponse(BaseModel):
     """Error response model"""
+
     error: str = Field(..., description="Error message")
     code: Optional[str] = Field(None, description="Error code")
 
 
 class DeleteResponse(BaseModel):
     """Delete response model"""
+
     success: bool = Field(..., description="Whether deletion was successful")
     message: str = Field(..., description="Success message")
     entity_id: str = Field(..., description="ID of deleted entity")
 
 
 logger = logging.getLogger(__name__)
+
 
 # Helper to normalize entity data from service
 def _to_entity_dict(data: Any) -> Dict[str, Any]:
@@ -147,7 +154,7 @@ async def list_stores(query_args: StoreQueryParams) -> ResponseReturnValue:
     """List Stores with optional filtering"""
     try:
         service = get_entity_service()
-        
+
         # Build search conditions based on query parameters
         search_conditions: Dict[str, str] = {}
 
@@ -294,7 +301,7 @@ async def sync_store_inventory(entity_id: str) -> ResponseReturnValue:
     """Trigger inventory synchronization for a specific store"""
     try:
         service = get_entity_service()
-        
+
         # Trigger the sync_inventory transition
         response = await service.execute_transition(
             entity_id=entity_id,

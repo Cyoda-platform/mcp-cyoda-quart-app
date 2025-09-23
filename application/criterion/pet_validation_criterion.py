@@ -7,9 +7,9 @@ proceed to the analysis stage.
 
 from typing import Any
 
+from application.entity.pet.version_1.pet import Pet
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.pet.version_1.pet import Pet
 
 
 class PetValidationCriterion(CyodaCriteriaChecker):
@@ -68,21 +68,23 @@ class PetValidationCriterion(CyodaCriteriaChecker):
 
     def _validate_required_fields(self, pet: Pet) -> bool:
         """Validate that all required fields are present and valid"""
-        
+
         # Name is required
         if not pet.name or len(pet.name.strip()) == 0:
             self.logger.warning(f"Pet {pet.technical_id} has empty name")
             return False
 
         if len(pet.name) > 255:
-            self.logger.warning(f"Pet {pet.technical_id} name too long: {len(pet.name)} characters")
+            self.logger.warning(
+                f"Pet {pet.technical_id} name too long: {len(pet.name)} characters"
+            )
             return False
 
         return True
 
     def _validate_field_constraints(self, pet: Pet) -> bool:
         """Validate field formats and constraints"""
-        
+
         # Validate status if present
         if pet.status and pet.status not in Pet.VALID_STATUSES:
             self.logger.warning(
@@ -113,7 +115,7 @@ class PetValidationCriterion(CyodaCriteriaChecker):
 
     def _validate_business_rules(self, pet: Pet) -> bool:
         """Validate business logic rules"""
-        
+
         # Business rule: Pets with "sold" status should not have performance analysis
         # (they're no longer available for performance tracking)
         if pet.status == "sold" and pet.performance_score is not None:
@@ -122,7 +124,7 @@ class PetValidationCriterion(CyodaCriteriaChecker):
                 "Sold pets should not have performance analysis."
             )
             # This is a warning, not a failure - we'll allow it but log it
-            
+
         # Business rule: Available pets should have complete data for better analysis
         if pet.status == "available":
             completeness_score = self._calculate_data_completeness(pet)
@@ -138,7 +140,7 @@ class PetValidationCriterion(CyodaCriteriaChecker):
         """Calculate data completeness percentage"""
         total_fields = 5  # name, category, status, photo_urls, tags
         complete_fields = 0
-        
+
         if pet.name:
             complete_fields += 1
         if pet.category:
@@ -149,5 +151,5 @@ class PetValidationCriterion(CyodaCriteriaChecker):
             complete_fields += 1
         if pet.tags and len(pet.tags) > 0:
             complete_fields += 1
-            
+
         return (complete_fields / total_fields) * 100.0

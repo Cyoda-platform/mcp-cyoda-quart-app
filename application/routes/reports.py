@@ -10,19 +10,20 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict, Optional
 
+from pydantic import BaseModel, Field
 from quart import Blueprint, jsonify, request
 from quart.typing import ResponseReturnValue
 from quart_schema import operation_id, tag, validate, validate_querystring
-from pydantic import BaseModel, Field
 
+from application.entity.report.version_1.report import Report
 from common.service.entity_service import SearchConditionRequest
 from services.services import get_entity_service
-from application.entity.report.version_1.report import Report
 
 
 # Request/Response models
 class ReportQueryParams(BaseModel):
     """Query parameters for listing reports"""
+
     report_type: Optional[str] = Field(None, description="Filter by report type")
     email_status: Optional[str] = Field(None, description="Filter by email status")
     limit: int = Field(50, ge=1, le=1000, description="Maximum number of results")
@@ -31,32 +32,41 @@ class ReportQueryParams(BaseModel):
 
 class ReportUpdateQueryParams(BaseModel):
     """Query parameters for updating reports"""
-    transition: Optional[str] = Field(None, description="Workflow transition to trigger")
+
+    transition: Optional[str] = Field(
+        None, description="Workflow transition to trigger"
+    )
 
 
 class WeeklyReportRequest(BaseModel):
     """Request model for creating weekly reports"""
-    report_period: str = Field(..., description="Report period (e.g., '2024-01-01 to 2024-01-07')")
+
+    report_period: str = Field(
+        ..., description="Report period (e.g., '2024-01-01 to 2024-01-07')"
+    )
     email_recipient: str = Field(
-        default="victoria.sagdieva@cyoda.com", 
-        description="Email recipient for the report"
+        default="victoria.sagdieva@cyoda.com",
+        description="Email recipient for the report",
     )
 
 
 class ErrorResponse(BaseModel):
     """Error response model"""
+
     error: str = Field(..., description="Error message")
     code: Optional[str] = Field(None, description="Error code")
 
 
 class DeleteResponse(BaseModel):
     """Delete response model"""
+
     success: bool = Field(..., description="Whether deletion was successful")
     message: str = Field(..., description="Success message")
     entity_id: str = Field(..., description="ID of deleted entity")
 
 
 logger = logging.getLogger(__name__)
+
 
 # Helper to normalize entity data from service
 def _to_entity_dict(data: Any) -> Dict[str, Any]:
@@ -119,7 +129,7 @@ async def create_weekly_report(data: WeeklyReportRequest) -> ResponseReturnValue
     """Create a new weekly performance report"""
     try:
         from datetime import datetime, timezone
-        
+
         # Create Report entity for weekly report
         report_data = {
             "reportTitle": f"Weekly Pet Store Performance Report - {data.report_period}",
@@ -204,7 +214,7 @@ async def list_reports(query_args: ReportQueryParams) -> ResponseReturnValue:
     """List Reports with optional filtering"""
     try:
         service = get_entity_service()
-        
+
         # Build search conditions based on query parameters
         search_conditions: Dict[str, str] = {}
 
