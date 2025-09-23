@@ -12,7 +12,6 @@ from typing import Any, Dict
 from application.entity.weatherdata.version_1.weather_data import WeatherData
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from services.services import get_entity_service
 
 
 class StartFetchProcessor(CyodaProcessor):
