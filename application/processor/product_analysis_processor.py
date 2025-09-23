@@ -7,7 +7,6 @@ and inventory turnover rates as specified in functional requirements.
 
 import logging
 import random
-from datetime import datetime, timezone
 from typing import Any
 
 from application.entity.product.version_1.product import Product
