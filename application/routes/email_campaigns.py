@@ -263,7 +263,7 @@ async def delete_email_campaign(entity_id: str) -> ResponseReturnValue:
         response = DeleteResponse(
             success=True,
             message="EmailCampaign deleted successfully",
-            entity_id=entity_id,
+            entityId=entity_id,
         )
         return response.model_dump(), 200
 
@@ -344,7 +344,7 @@ async def check_exists(entity_id: str) -> ResponseReturnValue:
             entity_version=str(EmailCampaign.ENTITY_VERSION),
         )
 
-        response = ExistsResponse(exists=exists, entity_id=entity_id)
+        response = ExistsResponse(exists=exists, entityId=entity_id)
         return response.model_dump(), 200
 
     except Exception as e:

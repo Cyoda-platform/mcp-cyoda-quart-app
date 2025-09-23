@@ -80,9 +80,10 @@ class EmailSendingProcessor(CyodaProcessor):
                     if success:
                         sent_count += 1
                         # Update subscriber statistics
-                        await self._update_subscriber_stats(
-                            subscriber.technical_id, sent=True
-                        )
+                        if subscriber.technical_id:
+                            await self._update_subscriber_stats(
+                                subscriber.technical_id, sent=True
+                            )
                     else:
                         failed_count += 1
 

@@ -49,7 +49,7 @@ class EmailCampaignReportingProcessor(CyodaProcessor):
             campaign = cast_entity(entity, EmailCampaign)
 
             # Mark cat fact as used if campaign was successful
-            if campaign.emails_sent > 0:
+            if campaign.emails_sent > 0 and campaign.technical_id:
                 await self._mark_cat_fact_as_used(
                     campaign.cat_fact_id, campaign.technical_id
                 )
