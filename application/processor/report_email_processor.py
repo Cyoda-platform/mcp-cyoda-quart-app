@@ -230,9 +230,9 @@ class ReportEmailProcessor(CyodaProcessor):
         pdf_content = f"""
         PDF Report: {report.report_title}
         Period: {report.report_period_start} to {report.report_period_end}
-        
+
         {report.executive_summary or 'No summary available'}
-        
+
         Generated: {report.generated_at}
         """
 
