@@ -9,7 +9,7 @@ import logging
 from typing import Any, Dict, List, Optional
 
 from quart import Blueprint, jsonify, request
-from quart_schema import tag, validate_json, validate_querystring
+from quart_schema import tag, validate, validate_querystring
 
 from application.entity.email_notification.version_1.email_notification import (
     EmailNotification,

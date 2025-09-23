@@ -112,7 +112,7 @@ async def update_product_data(
         transition = request.args.get("transition")
 
         # Convert Pydantic model to dict for EntityService
-        product_data_dict = json.model_dump(by_alias=True)
+        product_data_dict = data.model_dump(by_alias=True)
 
         # Update the entity
         if transition:

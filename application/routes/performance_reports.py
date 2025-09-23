@@ -9,7 +9,7 @@ import logging
 from typing import Any, Dict, List, Optional
 
 from quart import Blueprint, jsonify, request
-from quart_schema import tag, validate_json, validate_querystring
+from quart_schema import tag, validate, validate_querystring
 
 from application.entity.performance_report.version_1.performance_report import (
     PerformanceReport,
@@ -26,9 +26,9 @@ logger = logging.getLogger(__name__)
 
 @performance_reports_bp.route("/", methods=["POST"])
 @tag(["PerformanceReports"])
-@validate_json(PerformanceReport)
+@validate(request=PerformanceReport)
 async def create_performance_report(
-    json: PerformanceReport,
+    data: PerformanceReport,
 ) -> tuple[Dict[str, Any], int]:
     """
     Create a new PerformanceReport entity.
@@ -40,7 +40,7 @@ async def create_performance_report(
         entity_service = get_entity_service()
 
         # Convert Pydantic model to dict for EntityService
-        report_dict = json.model_dump(by_alias=True)
+        report_dict = data.model_dump(by_alias=True)
 
         # Save the entity using entity constants
         response = await entity_service.save(
@@ -104,9 +104,9 @@ async def get_performance_report(entity_id: str) -> tuple[Dict[str, Any], int]:
 
 @performance_reports_bp.route("/<entity_id>", methods=["PUT"])
 @tag(["PerformanceReports"])
-@validate_json(PerformanceReport)
+@validate(request=PerformanceReport)
 async def update_performance_report(
-    entity_id: str, json: PerformanceReport
+    entity_id: str, data: PerformanceReport
 ) -> tuple[Dict[str, Any], int]:
     """
     Update a PerformanceReport entity.
@@ -121,7 +121,7 @@ async def update_performance_report(
         transition = request.args.get("transition")
 
         # Convert Pydantic model to dict for EntityService
-        report_dict = json.model_dump(by_alias=True)
+        report_dict = data.model_dump(by_alias=True)
 
         # Update the entity
         if transition:
