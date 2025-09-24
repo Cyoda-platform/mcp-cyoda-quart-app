@@ -1,0 +1,100 @@
+{
+  "version": "1.0",
+  "name": "Order",
+  "desc": "Order workflow for managing order processing states",
+  "initialState": "initial_state",
+  "active": true,
+  "states": {
+    "initial_state": {
+      "transitions": [
+        {
+          "name": "auto_transition_to_placed",
+          "next": "placed",
+          "manual": false,
+          "processors": [
+            {
+              "name": "CreateOrderProcessor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "placed": {
+      "transitions": [
+        {
+          "name": "approve_order",
+          "next": "approved",
+          "manual": true,
+          "processors": [
+            {
+              "name": "ApproveOrderProcessor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 5000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ],
+          "criterion": {
+            "type": "function",
+            "function": {
+              "name": "ValidOrderCriterion",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 5000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          }
+        },
+        {
+          "name": "cancel_order",
+          "next": "cancelled",
+          "manual": true
+        }
+      ]
+    },
+    "approved": {
+      "transitions": [
+        {
+          "name": "complete_delivery",
+          "next": "delivered",
+          "manual": true,
+          "processors": [
+            {
+              "name": "CompleteDeliveryProcessor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        },
+        {
+          "name": "cancel_approved_order",
+          "next": "cancelled",
+          "manual": true
+        }
+      ]
+    },
+    "cancelled": {
+      "transitions": []
+    },
+    "delivered": {
+      "transitions": []
+    }
+  }
+}
