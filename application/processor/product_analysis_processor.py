@@ -6,7 +6,7 @@ inventory turnover rates, and performance scoring for business insights.
 """
 
 import logging
-from typing import Any
+from typing import Any, Dict, List
 
 from application.entity.product.version_1.product import Product
 from common.entity.entity_casting import cast_entity
@@ -177,28 +177,29 @@ class ProductAnalysisProcessor(CyodaProcessor):
         Returns:
             Dictionary containing product insights
         """
+        recommendations: List[str] = []
         insights = {
             "is_high_performer": product.is_high_performer(),
             "is_low_stock": product.is_low_stock(),
             "needs_attention": False,
-            "recommendations": [],
+            "recommendations": recommendations,
         }
 
         # Determine if product needs attention
         if product.performance_score and product.performance_score < 30:
             insights["needs_attention"] = True
-            insights["recommendations"].append("Review pricing and marketing strategy")
+            recommendations.append("Review pricing and marketing strategy")
 
         if product.is_low_stock():
             insights["needs_attention"] = True
-            insights["recommendations"].append("Restock inventory immediately")
+            recommendations.append("Restock inventory immediately")
 
         if product.inventory_turnover_rate and product.inventory_turnover_rate < 1.0:
-            insights["recommendations"].append(
+            recommendations.append(
                 "Consider promotional activities to increase sales"
             )
 
         if product.status == "pending":
-            insights["recommendations"].append("Update product status to available")
+            recommendations.append("Update product status to available")
 
         return insights

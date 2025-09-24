@@ -203,7 +203,7 @@ class EmailNotificationProcessor(CyodaProcessor):
 
         return email_body.strip()
 
-    def _generate_top_performers_section(self, top_performers: list) -> str:
+    def _generate_top_performers_section(self, top_performers: List[Dict[str, Any]]) -> str:
         """Generate HTML section for top performing products"""
         if not top_performers:
             return "<p>No top performers identified in this period.</p>"
@@ -221,7 +221,7 @@ class EmailNotificationProcessor(CyodaProcessor):
         html += "</table>"
         return html
 
-    def _generate_underperformers_section(self, underperformers: list) -> str:
+    def _generate_underperformers_section(self, underperformers: List[Dict[str, Any]]) -> str:
         """Generate HTML section for underperforming products"""
         if not underperformers:
             return "<p>No underperforming products identified.</p>"
@@ -240,7 +240,7 @@ class EmailNotificationProcessor(CyodaProcessor):
         html += "</table>"
         return html
 
-    def _generate_low_stock_section(self, low_stock: list) -> str:
+    def _generate_low_stock_section(self, low_stock: List[Dict[str, Any]]) -> str:
         """Generate HTML section for low stock products"""
         if not low_stock:
             return "<p>All products have adequate stock levels.</p>"
@@ -259,7 +259,7 @@ class EmailNotificationProcessor(CyodaProcessor):
         html += "</table>"
         return html
 
-    def _generate_category_performance_section(self, category_performance: dict) -> str:
+    def _generate_category_performance_section(self, category_performance: Dict[str, Any]) -> str:
         """Generate HTML section for category performance"""
         if not category_performance:
             return "<p>No category performance data available.</p>"
