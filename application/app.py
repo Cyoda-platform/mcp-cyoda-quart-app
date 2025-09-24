@@ -11,6 +11,9 @@ from common.exception.exception_handler import (
 from services.services import get_grpc_client, initialize_services
 
 # Import blueprints for different route groups
+from application.routes.products import products_bp
+from application.routes.reports import reports_bp
+from application.routes.data_extractions import data_extractions_bp
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -20,13 +23,20 @@ app = Quart(__name__)
 
 QuartSchema(
     app,
-    info={"title": "Cyoda Client Application", "version": "1.0.0"},
+    info={"title": "Product Performance Analysis and Reporting System", "version": "1.0.0"},
     tags=[
         {
-            "name": "ExampleEntities",
-            "description": "ExampleEntity management endpoints",
+            "name": "products",
+            "description": "Product management and performance analysis endpoints",
         },
-        {"name": "OtherEntities", "description": "OtherEntity management endpoints"},
+        {
+            "name": "reports",
+            "description": "Report generation and management endpoints"
+        },
+        {
+            "name": "data-extractions",
+            "description": "Data extraction from Pet Store API endpoints"
+        },
         {"name": "System", "description": "System and health endpoints"},
     ],
     security=[{"bearerAuth": []}],
@@ -57,6 +67,11 @@ _register_error_handlers_typed: Callable[[Quart], None] = (  # type: ignore[assi
     _register_error_handlers
 )
 _register_error_handlers_typed(app)
+
+# Register blueprints
+app.register_blueprint(products_bp)
+app.register_blueprint(reports_bp)
+app.register_blueprint(data_extractions_bp)
 
 
 @app.route("/favicon.ico")
