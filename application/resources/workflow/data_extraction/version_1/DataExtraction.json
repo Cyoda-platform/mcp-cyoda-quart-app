@@ -1,0 +1,111 @@
+{
+  "version": "1.0",
+  "name": "DataExtraction Workflow",
+  "desc": "Workflow for DataExtraction entity in Product Performance Analysis and Reporting System",
+  "initialState": "initial_state",
+  "active": true,
+  "states": {
+    "initial_state": {
+      "transitions": [
+        {
+          "name": "create",
+          "next": "created",
+          "manual": false
+        }
+      ]
+    },
+    "created": {
+      "transitions": [
+        {
+          "name": "validate",
+          "next": "validated",
+          "manual": false,
+          "criterion": {
+            "type": "function",
+            "function": {
+              "name": "DataExtractionValidationCriterion",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "validated": {
+      "transitions": [
+        {
+          "name": "extract",
+          "next": "extracting",
+          "manual": false,
+          "processors": [
+            {
+              "name": "DataExtractionProcessor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "extracting": {
+      "transitions": [
+        {
+          "name": "complete",
+          "next": "completed",
+          "manual": false
+        },
+        {
+          "name": "fail",
+          "next": "failed",
+          "manual": false
+        }
+      ]
+    },
+    "completed": {
+      "transitions": [
+        {
+          "name": "schedule_next",
+          "next": "scheduled",
+          "manual": true
+        },
+        {
+          "name": "archive",
+          "next": "archived",
+          "manual": true
+        }
+      ]
+    },
+    "failed": {
+      "transitions": [
+        {
+          "name": "retry",
+          "next": "validated",
+          "manual": true
+        },
+        {
+          "name": "cancel",
+          "next": "cancelled",
+          "manual": true
+        }
+      ]
+    },
+    "scheduled": {
+      "transitions": [
+        {
+          "name": "trigger",
+          "next": "validated",
+          "manual": true
+        }
+      ]
+    },
+    "cancelled": {
+      "transitions": []
+    },
+    "archived": {
+      "transitions": []
+    }
+  }
+}
