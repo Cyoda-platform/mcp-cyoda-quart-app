@@ -6,7 +6,7 @@ Sends weekly reports to victoria.sagdieva@cyoda.com with comprehensive analysis.
 """
 
 import logging
-from typing import Any
+from typing import Any, Dict, List, Optional
 
 from application.entity.report.version_1.report import Report
 from common.entity.entity_casting import cast_entity
@@ -279,10 +279,10 @@ class EmailNotificationProcessor(CyodaProcessor):
 
     async def _send_email(
         self,
-        recipients: list[str],
+        recipients: List[str],
         subject: str,
         body: str,
-        attachment_path: str | None = None,
+        attachment_path: Optional[str] = None,
     ) -> bool:
         """
         Send email with report content (mock implementation).

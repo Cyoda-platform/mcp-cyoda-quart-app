@@ -238,21 +238,22 @@ class ReportGenerationProcessor(CyodaProcessor):
                 }
 
             stats = category_stats[category]
-            stats["total_products"] += 1
+            stats["total_products"] = stats["total_products"] + 1
 
             if product.revenue:
-                stats["total_revenue"] += product.revenue
+                stats["total_revenue"] = stats["total_revenue"] + product.revenue
             if product.sales_volume:
-                stats["total_sales"] += product.sales_volume
+                stats["total_sales"] = stats["total_sales"] + product.sales_volume
             if product.performance_score:
-                stats["performance_scores"].append(product.performance_score)
+                performance_scores = stats["performance_scores"]
+                if isinstance(performance_scores, list):
+                    performance_scores.append(product.performance_score)
 
         # Calculate averages
         for category, stats in category_stats.items():
-            if stats["performance_scores"]:
-                stats["avg_performance_score"] = sum(stats["performance_scores"]) / len(
-                    stats["performance_scores"]
-                )
+            performance_scores = stats["performance_scores"]
+            if isinstance(performance_scores, list) and performance_scores:
+                stats["avg_performance_score"] = sum(performance_scores) / len(performance_scores)
             del stats["performance_scores"]  # Remove raw scores from final output
 
         return category_stats
