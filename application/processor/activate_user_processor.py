@@ -7,7 +7,7 @@ verifying email tokens and sending welcome emails as specified in the User workf
 
 import logging
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, Dict
 
 from application.entity.user.version_1.user import User
 from common.entity.entity_casting import cast_entity

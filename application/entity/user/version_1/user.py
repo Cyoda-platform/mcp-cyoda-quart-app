@@ -198,14 +198,14 @@ class User(CyodaEntity):
         if not isinstance(v, dict):
             raise ValueError("Preferences must be a dictionary")
 
-        # Validate known preference keys
-        allowed_keys = {
-            "petTypes",
-            "notifications",
-            "newsletter",
-            "language",
-            "timezone",
-        }
+        # Validate known preference keys (could be extended for stricter validation)
+        # allowed_keys = {
+        #     "petTypes",
+        #     "notifications",
+        #     "newsletter",
+        #     "language",
+        #     "timezone",
+        # }
 
         for key in v.keys():
             if not isinstance(key, str):

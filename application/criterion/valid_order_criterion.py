@@ -5,7 +5,7 @@ Validates that an Order entity meets all required business rules before it can
 proceed to approval as specified in the Order workflow requirements.
 """
 
-from typing import Any
+from typing import Any, Dict
 
 from application.entity.order.version_1.order import Order
 from common.entity.entity_casting import cast_entity

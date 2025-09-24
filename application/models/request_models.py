@@ -4,7 +4,7 @@ Request models for Purrfect Pets API.
 Provides Pydantic models for request validation and documentation.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from pydantic import BaseModel, Field
 

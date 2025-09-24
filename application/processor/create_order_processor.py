@@ -6,7 +6,7 @@ calculating totals, and setting up order details as specified in the Order workf
 """
 
 import logging
-import uuid
+
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
