@@ -195,9 +195,7 @@ class ProductAnalysisProcessor(CyodaProcessor):
             recommendations.append("Restock inventory immediately")
 
         if product.inventory_turnover_rate and product.inventory_turnover_rate < 1.0:
-            recommendations.append(
-                "Consider promotional activities to increase sales"
-            )
+            recommendations.append("Consider promotional activities to increase sales")
 
         if product.status == "pending":
             recommendations.append("Update product status to available")

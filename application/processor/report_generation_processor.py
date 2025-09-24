@@ -6,7 +6,6 @@ calculating insights, and creating formatted reports for the sales team.
 """
 
 import logging
-from datetime import datetime, timezone
 from typing import Any, Dict, List
 
 from application.entity.product.version_1.product import Product
@@ -258,7 +257,9 @@ class ReportGenerationProcessor(CyodaProcessor):
         for category, stats in category_stats.items():
             performance_scores = stats["performance_scores"]
             if isinstance(performance_scores, list) and performance_scores:
-                stats["avg_performance_score"] = sum(performance_scores) / len(performance_scores)
+                stats["avg_performance_score"] = sum(performance_scores) / len(
+                    performance_scores
+                )
             del stats["performance_scores"]  # Remove raw scores from final output
 
         return category_stats
