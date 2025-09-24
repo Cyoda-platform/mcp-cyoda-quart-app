@@ -106,11 +106,10 @@ class ReportGenerationProcessor(CyodaProcessor):
             products = []
             for result in results:
                 try:
-                    product_data = (
-                        result.data.model_dump()
-                        if hasattr(result.data, "model_dump")
-                        else result.data
-                    )
+                    if hasattr(result.data, "model_dump"):
+                        product_data = result.data.model_dump()
+                    else:
+                        product_data = dict(result.data)
                     product = Product(**product_data)
                     products.append(product)
                 except Exception as e:
@@ -238,12 +237,18 @@ class ReportGenerationProcessor(CyodaProcessor):
                 }
 
             stats = category_stats[category]
-            stats["total_products"] = stats["total_products"] + 1
+            total_products = stats["total_products"]
+            if isinstance(total_products, int):
+                stats["total_products"] = total_products + 1
 
             if product.revenue:
-                stats["total_revenue"] = stats["total_revenue"] + product.revenue
+                total_revenue = stats["total_revenue"]
+                if isinstance(total_revenue, (int, float)):
+                    stats["total_revenue"] = total_revenue + product.revenue
             if product.sales_volume:
-                stats["total_sales"] = stats["total_sales"] + product.sales_volume
+                total_sales = stats["total_sales"]
+                if isinstance(total_sales, int):
+                    stats["total_sales"] = total_sales + product.sales_volume
             if product.performance_score:
                 performance_scores = stats["performance_scores"]
                 if isinstance(performance_scores, list):

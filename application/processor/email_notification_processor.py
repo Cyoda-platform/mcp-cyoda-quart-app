@@ -180,7 +180,7 @@ class EmailNotificationProcessor(CyodaProcessor):
                 {self._generate_low_stock_section(report.low_stock_products or [])}
                 
                 <h2>Category Performance</h2>
-                {self._generate_category_performance_section(report.category_performance or {{}})}
+                {self._generate_category_performance_section(report.category_performance if report.category_performance else {})}
                 
                 <h2>Recommendations</h2>
                 <ul>
