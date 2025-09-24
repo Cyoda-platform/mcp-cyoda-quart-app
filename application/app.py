@@ -11,6 +11,9 @@ from common.exception.exception_handler import (
 from services.services import get_grpc_client, initialize_services
 
 # Import blueprints for different route groups
+from application.routes.pets import pets_bp
+from application.routes.orders import orders_bp
+from application.routes.users import users_bp
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -23,10 +26,17 @@ QuartSchema(
     info={"title": "Cyoda Client Application", "version": "1.0.0"},
     tags=[
         {
-            "name": "ExampleEntities",
-            "description": "ExampleEntity management endpoints",
+            "name": "pets",
+            "description": "Pet management endpoints for Purrfect Pets API",
         },
-        {"name": "OtherEntities", "description": "OtherEntity management endpoints"},
+        {
+            "name": "orders",
+            "description": "Order management endpoints for Purrfect Pets API"
+        },
+        {
+            "name": "users",
+            "description": "User management endpoints for Purrfect Pets API"
+        },
         {"name": "System", "description": "System and health endpoints"},
     ],
     security=[{"bearerAuth": []}],
