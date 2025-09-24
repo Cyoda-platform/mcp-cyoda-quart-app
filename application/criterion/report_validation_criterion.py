@@ -7,15 +7,15 @@ before proceeding to report generation.
 
 from typing import Any
 
+from application.entity.report.version_1.report import Report
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.report.version_1.report import Report
 
 
 class ReportValidationCriterion(CyodaCriteriaChecker):
     """
     Validation criterion for Report entity that checks report configuration and data integrity.
-    
+
     Validates:
     - Required report metadata
     - Date range validity
@@ -78,10 +78,10 @@ class ReportValidationCriterion(CyodaCriteriaChecker):
     def _validate_required_fields(self, report: Report) -> bool:
         """
         Validate that all required fields are present and valid.
-        
+
         Args:
             report: The Report entity to validate
-            
+
         Returns:
             True if all required fields are valid, False otherwise
         """
@@ -99,7 +99,10 @@ class ReportValidationCriterion(CyodaCriteriaChecker):
             return False
 
         # Validate report type
-        if not report.report_type or report.report_type not in report.ALLOWED_REPORT_TYPES:
+        if (
+            not report.report_type
+            or report.report_type not in report.ALLOWED_REPORT_TYPES
+        ):
             self.logger.warning(
                 f"Report {report.technical_id} has invalid report type: '{report.report_type}'"
             )
@@ -107,16 +110,12 @@ class ReportValidationCriterion(CyodaCriteriaChecker):
 
         # Validate period dates
         if not report.period_start or not report.period_end:
-            self.logger.warning(
-                f"Report {report.technical_id} missing period dates"
-            )
+            self.logger.warning(f"Report {report.technical_id} missing period dates")
             return False
 
         # Validate summary
         if not report.summary or len(report.summary.strip()) == 0:
-            self.logger.warning(
-                f"Report {report.technical_id} has empty summary"
-            )
+            self.logger.warning(f"Report {report.technical_id} has empty summary")
             return False
 
         return True
@@ -124,20 +123,22 @@ class ReportValidationCriterion(CyodaCriteriaChecker):
     def _validate_date_ranges(self, report: Report) -> bool:
         """
         Validate date ranges and timestamp formats.
-        
+
         Args:
             report: The Report entity to validate
-            
+
         Returns:
             True if all date ranges are valid, False otherwise
         """
         try:
             from datetime import datetime
-            
+
             # Parse period dates
-            start_date = datetime.fromisoformat(report.period_start.replace("Z", "+00:00"))
+            start_date = datetime.fromisoformat(
+                report.period_start.replace("Z", "+00:00")
+            )
             end_date = datetime.fromisoformat(report.period_end.replace("Z", "+00:00"))
-            
+
             # Validate date range logic
             if start_date >= end_date:
                 self.logger.warning(
@@ -145,31 +146,31 @@ class ReportValidationCriterion(CyodaCriteriaChecker):
                     f"start {report.period_start} >= end {report.period_end}"
                 )
                 return False
-            
+
             # Validate reasonable date range (not too far in past/future)
             now = datetime.now(start_date.tzinfo)
             days_diff = (end_date - start_date).days
-            
+
             if days_diff > 365:  # More than a year
                 self.logger.warning(
                     f"Report {report.technical_id} has unrealistic date range: {days_diff} days"
                 )
                 return False
-            
+
             if start_date > now:
                 self.logger.warning(
                     f"Report {report.technical_id} has future start date: {report.period_start}"
                 )
                 return False
-            
+
             # Validate other timestamps if present
             timestamp_fields = [
                 report.generated_at,
                 report.email_sent_at,
                 report.created_at,
-                report.updated_at
+                report.updated_at,
             ]
-            
+
             for timestamp in timestamp_fields:
                 if timestamp is not None:
                     if not self._validate_timestamp_format(timestamp):
@@ -177,9 +178,9 @@ class ReportValidationCriterion(CyodaCriteriaChecker):
                             f"Report {report.technical_id} has invalid timestamp format: {timestamp}"
                         )
                         return False
-            
+
             return True
-            
+
         except (ValueError, AttributeError) as e:
             self.logger.warning(
                 f"Report {report.technical_id} has invalid date format: {str(e)}"
@@ -189,24 +190,23 @@ class ReportValidationCriterion(CyodaCriteriaChecker):
     def _validate_email_configuration(self, report: Report) -> bool:
         """
         Validate email configuration and recipients.
-        
+
         Args:
             report: The Report entity to validate
-            
+
         Returns:
             True if email configuration is valid, False otherwise
         """
         # Validate email recipients
         if not report.email_recipients or len(report.email_recipients) == 0:
-            self.logger.warning(
-                f"Report {report.technical_id} has no email recipients"
-            )
+            self.logger.warning(f"Report {report.technical_id} has no email recipients")
             return False
 
         # Validate email addresses format
         import re
-        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-        
+
+        email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+
         for email in report.email_recipients:
             if not re.match(email_pattern, email):
                 self.logger.warning(
@@ -233,10 +233,10 @@ class ReportValidationCriterion(CyodaCriteriaChecker):
     def _validate_report_settings(self, report: Report) -> bool:
         """
         Validate report settings and configuration.
-        
+
         Args:
             report: The Report entity to validate
-            
+
         Returns:
             True if report settings are valid, False otherwise
         """
@@ -255,16 +255,20 @@ class ReportValidationCriterion(CyodaCriteriaChecker):
             return False
 
         # Validate performance score
-        if (report.average_performance_score is not None and 
-            (report.average_performance_score < 0 or report.average_performance_score > 100)):
+        if report.average_performance_score is not None and (
+            report.average_performance_score < 0
+            or report.average_performance_score > 100
+        ):
             self.logger.warning(
                 f"Report {report.technical_id} has invalid average performance score: {report.average_performance_score}"
             )
             return False
 
         # Validate growth percentage (reasonable range)
-        if (report.revenue_growth_percentage is not None and 
-            (report.revenue_growth_percentage < -100 or report.revenue_growth_percentage > 1000)):
+        if report.revenue_growth_percentage is not None and (
+            report.revenue_growth_percentage < -100
+            or report.revenue_growth_percentage > 1000
+        ):
             self.logger.warning(
                 f"Report {report.technical_id} has unrealistic growth percentage: {report.revenue_growth_percentage}"
             )
@@ -273,9 +277,7 @@ class ReportValidationCriterion(CyodaCriteriaChecker):
         # Validate file information if present
         if report.file_path is not None:
             if len(report.file_path.strip()) == 0:
-                self.logger.warning(
-                    f"Report {report.technical_id} has empty file path"
-                )
+                self.logger.warning(f"Report {report.technical_id} has empty file path")
                 return False
 
         if report.file_size is not None and report.file_size < 0:
@@ -297,15 +299,16 @@ class ReportValidationCriterion(CyodaCriteriaChecker):
     def _validate_timestamp_format(self, timestamp: str) -> bool:
         """
         Validate ISO 8601 timestamp format.
-        
+
         Args:
             timestamp: Timestamp string to validate
-            
+
         Returns:
             True if format is valid, False otherwise
         """
         try:
             from datetime import datetime
+
             # Try to parse ISO format
             datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
             return True

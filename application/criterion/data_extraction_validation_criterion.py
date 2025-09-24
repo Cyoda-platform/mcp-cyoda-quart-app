@@ -8,15 +8,15 @@ before proceeding to data extraction from Pet Store API.
 from typing import Any
 from urllib.parse import urlparse
 
+from application.entity.data_extraction.version_1.data_extraction import DataExtraction
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.data_extraction.version_1.data_extraction import DataExtraction
 
 
 class DataExtractionValidationCriterion(CyodaCriteriaChecker):
     """
     Validation criterion for DataExtraction entity that checks API configuration and settings.
-    
+
     Validates:
     - API configuration and endpoints
     - Extraction settings and parameters
@@ -79,10 +79,10 @@ class DataExtractionValidationCriterion(CyodaCriteriaChecker):
     def _validate_required_fields(self, extraction: DataExtraction) -> bool:
         """
         Validate that all required fields are present and valid.
-        
+
         Args:
             extraction: The DataExtraction entity to validate
-            
+
         Returns:
             True if all required fields are valid, False otherwise
         """
@@ -100,21 +100,30 @@ class DataExtractionValidationCriterion(CyodaCriteriaChecker):
             return False
 
         # Validate extraction type
-        if not extraction.extraction_type or extraction.extraction_type not in extraction.ALLOWED_EXTRACTION_TYPES:
+        if (
+            not extraction.extraction_type
+            or extraction.extraction_type not in extraction.ALLOWED_EXTRACTION_TYPES
+        ):
             self.logger.warning(
                 f"DataExtraction {extraction.technical_id} has invalid extraction type: '{extraction.extraction_type}'"
             )
             return False
 
         # Validate status
-        if not extraction.status or extraction.status not in extraction.ALLOWED_STATUSES:
+        if (
+            not extraction.status
+            or extraction.status not in extraction.ALLOWED_STATUSES
+        ):
             self.logger.warning(
                 f"DataExtraction {extraction.technical_id} has invalid status: '{extraction.status}'"
             )
             return False
 
         # Validate data format
-        if not extraction.data_format or extraction.data_format not in extraction.ALLOWED_DATA_FORMATS:
+        if (
+            not extraction.data_format
+            or extraction.data_format not in extraction.ALLOWED_DATA_FORMATS
+        ):
             self.logger.warning(
                 f"DataExtraction {extraction.technical_id} has invalid data format: '{extraction.data_format}'"
             )
@@ -125,10 +134,10 @@ class DataExtractionValidationCriterion(CyodaCriteriaChecker):
     def _validate_api_configuration(self, extraction: DataExtraction) -> bool:
         """
         Validate API configuration and endpoints.
-        
+
         Args:
             extraction: The DataExtraction entity to validate
-            
+
         Returns:
             True if API configuration is valid, False otherwise
         """
@@ -147,14 +156,14 @@ class DataExtractionValidationCriterion(CyodaCriteriaChecker):
                     f"DataExtraction {extraction.technical_id} has invalid API URL format: {extraction.api_url}"
                 )
                 return False
-            
+
             # Ensure HTTPS for security (allow HTTP for development)
-            if parsed_url.scheme not in ['http', 'https']:
+            if parsed_url.scheme not in ["http", "https"]:
                 self.logger.warning(
                     f"DataExtraction {extraction.technical_id} has unsupported URL scheme: {parsed_url.scheme}"
                 )
                 return False
-                
+
         except Exception as e:
             self.logger.warning(
                 f"DataExtraction {extraction.technical_id} has malformed API URL: {str(e)}"
@@ -175,9 +184,9 @@ class DataExtractionValidationCriterion(CyodaCriteriaChecker):
                     f"DataExtraction {extraction.technical_id} has empty endpoint"
                 )
                 return False
-            
+
             # Endpoint should start with /
-            if not endpoint.startswith('/'):
+            if not endpoint.startswith("/"):
                 self.logger.warning(
                     f"DataExtraction {extraction.technical_id} has invalid endpoint format: {endpoint}"
                 )
@@ -188,28 +197,35 @@ class DataExtractionValidationCriterion(CyodaCriteriaChecker):
     def _validate_extraction_settings(self, extraction: DataExtraction) -> bool:
         """
         Validate extraction settings and parameters.
-        
+
         Args:
             extraction: The DataExtraction entity to validate
-            
+
         Returns:
             True if extraction settings are valid, False otherwise
         """
         # Validate timeout
-        if extraction.timeout_seconds <= 0 or extraction.timeout_seconds > 3600:  # Max 1 hour
+        if (
+            extraction.timeout_seconds <= 0 or extraction.timeout_seconds > 3600
+        ):  # Max 1 hour
             self.logger.warning(
                 f"DataExtraction {extraction.technical_id} has invalid timeout: {extraction.timeout_seconds} seconds"
             )
             return False
 
         # Validate retry settings
-        if extraction.max_retries < 0 or extraction.max_retries > 10:  # Reasonable limit
+        if (
+            extraction.max_retries < 0 or extraction.max_retries > 10
+        ):  # Reasonable limit
             self.logger.warning(
                 f"DataExtraction {extraction.technical_id} has invalid max retries: {extraction.max_retries}"
             )
             return False
 
-        if extraction.retry_count < 0 or extraction.retry_count > extraction.max_retries:
+        if (
+            extraction.retry_count < 0
+            or extraction.retry_count > extraction.max_retries
+        ):
             self.logger.warning(
                 f"DataExtraction {extraction.technical_id} has invalid retry count: {extraction.retry_count}"
             )
@@ -223,13 +239,19 @@ class DataExtractionValidationCriterion(CyodaCriteriaChecker):
             return False
 
         # Validate record counts if present
-        if extraction.records_extracted is not None and extraction.records_extracted < 0:
+        if (
+            extraction.records_extracted is not None
+            and extraction.records_extracted < 0
+        ):
             self.logger.warning(
                 f"DataExtraction {extraction.technical_id} has negative records extracted: {extraction.records_extracted}"
             )
             return False
 
-        if extraction.records_processed is not None and extraction.records_processed < 0:
+        if (
+            extraction.records_processed is not None
+            and extraction.records_processed < 0
+        ):
             self.logger.warning(
                 f"DataExtraction {extraction.technical_id} has negative records processed: {extraction.records_processed}"
             )
@@ -242,15 +264,19 @@ class DataExtractionValidationCriterion(CyodaCriteriaChecker):
             return False
 
         # Validate data quality score if present
-        if (extraction.data_quality_score is not None and 
-            (extraction.data_quality_score < 0 or extraction.data_quality_score > 100)):
+        if extraction.data_quality_score is not None and (
+            extraction.data_quality_score < 0 or extraction.data_quality_score > 100
+        ):
             self.logger.warning(
                 f"DataExtraction {extraction.technical_id} has invalid data quality score: {extraction.data_quality_score}"
             )
             return False
 
         # Validate API response metrics if present
-        if extraction.api_response_time is not None and extraction.api_response_time < 0:
+        if (
+            extraction.api_response_time is not None
+            and extraction.api_response_time < 0
+        ):
             self.logger.warning(
                 f"DataExtraction {extraction.technical_id} has negative API response time: {extraction.api_response_time}"
             )
@@ -268,18 +294,16 @@ class DataExtractionValidationCriterion(CyodaCriteriaChecker):
     def _validate_schedule_configuration(self, extraction: DataExtraction) -> bool:
         """
         Validate schedule and timing configuration.
-        
+
         Args:
             extraction: The DataExtraction entity to validate
-            
+
         Returns:
             True if schedule configuration is valid, False otherwise
         """
         # Validate schedule format
-        valid_schedules = [
-            "weekly_monday", "daily", "monthly", "on_demand", "manual"
-        ]
-        
+        valid_schedules = ["weekly_monday", "daily", "monthly", "on_demand", "manual"]
+
         if extraction.schedule not in valid_schedules:
             self.logger.warning(
                 f"DataExtraction {extraction.technical_id} has invalid schedule: {extraction.schedule}"
@@ -293,9 +317,9 @@ class DataExtractionValidationCriterion(CyodaCriteriaChecker):
             extraction.next_scheduled_run,
             extraction.last_successful_run,
             extraction.created_at,
-            extraction.updated_at
+            extraction.updated_at,
         ]
-        
+
         for timestamp in timestamp_fields:
             if timestamp is not None:
                 if not self._validate_timestamp_format(timestamp):
@@ -312,20 +336,24 @@ class DataExtractionValidationCriterion(CyodaCriteriaChecker):
             return False
 
         # Validate logical consistency of timestamps
-        if (extraction.started_at is not None and 
-            extraction.completed_at is not None):
+        if extraction.started_at is not None and extraction.completed_at is not None:
             try:
                 from datetime import datetime
-                start_time = datetime.fromisoformat(extraction.started_at.replace("Z", "+00:00"))
-                end_time = datetime.fromisoformat(extraction.completed_at.replace("Z", "+00:00"))
-                
+
+                start_time = datetime.fromisoformat(
+                    extraction.started_at.replace("Z", "+00:00")
+                )
+                end_time = datetime.fromisoformat(
+                    extraction.completed_at.replace("Z", "+00:00")
+                )
+
                 if start_time >= end_time:
                     self.logger.warning(
                         f"DataExtraction {extraction.technical_id} has invalid time range: "
                         f"start {extraction.started_at} >= end {extraction.completed_at}"
                     )
                     return False
-                    
+
             except (ValueError, AttributeError) as e:
                 self.logger.warning(
                     f"DataExtraction {extraction.technical_id} has invalid timestamp format: {str(e)}"
@@ -337,15 +365,16 @@ class DataExtractionValidationCriterion(CyodaCriteriaChecker):
     def _validate_timestamp_format(self, timestamp: str) -> bool:
         """
         Validate ISO 8601 timestamp format.
-        
+
         Args:
             timestamp: Timestamp string to validate
-            
+
         Returns:
             True if format is valid, False otherwise
         """
         try:
             from datetime import datetime
+
             # Try to parse ISO format
             datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
             return True

@@ -7,15 +7,15 @@ before proceeding to performance analysis.
 
 from typing import Any
 
+from application.entity.product.version_1.product import Product
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.product.version_1.product import Product
 
 
 class ProductValidationCriterion(CyodaCriteriaChecker):
     """
     Validation criterion for Product entity that checks data quality and business rules.
-    
+
     Validates:
     - Required fields are present and valid
     - Data types and value ranges
@@ -78,10 +78,10 @@ class ProductValidationCriterion(CyodaCriteriaChecker):
     def _validate_required_fields(self, product: Product) -> bool:
         """
         Validate that all required fields are present and valid.
-        
+
         Args:
             product: The Product entity to validate
-            
+
         Returns:
             True if all required fields are valid, False otherwise
         """
@@ -117,10 +117,10 @@ class ProductValidationCriterion(CyodaCriteriaChecker):
     def _validate_data_ranges(self, product: Product) -> bool:
         """
         Validate data types and value ranges.
-        
+
         Args:
             product: The Product entity to validate
-            
+
         Returns:
             True if all data ranges are valid, False otherwise
         """
@@ -186,10 +186,10 @@ class ProductValidationCriterion(CyodaCriteriaChecker):
     def _validate_business_rules(self, product: Product) -> bool:
         """
         Validate business logic rules.
-        
+
         Args:
             product: The Product entity to validate
-            
+
         Returns:
             True if all business rules are satisfied, False otherwise
         """
@@ -202,11 +202,15 @@ class ProductValidationCriterion(CyodaCriteriaChecker):
                 return False
 
         # Rule: Revenue should match price * sales_volume if both are present
-        if (product.price is not None and 
-            product.sales_volume is not None and 
-            product.revenue is not None):
+        if (
+            product.price is not None
+            and product.sales_volume is not None
+            and product.revenue is not None
+        ):
             expected_revenue = product.price * product.sales_volume
-            if abs(product.revenue - expected_revenue) > 0.01:  # Allow small floating point differences
+            if (
+                abs(product.revenue - expected_revenue) > 0.01
+            ):  # Allow small floating point differences
                 self.logger.warning(
                     f"Product {product.technical_id} revenue mismatch: "
                     f"expected {expected_revenue}, got {product.revenue}"
@@ -214,8 +218,7 @@ class ProductValidationCriterion(CyodaCriteriaChecker):
                 return False
 
         # Rule: Reorder point should be reasonable compared to stock level
-        if (product.stock_level is not None and 
-            product.reorder_point is not None):
+        if product.stock_level is not None and product.reorder_point is not None:
             if product.reorder_point > product.stock_level * 2:
                 self.logger.warning(
                     f"Product {product.technical_id} has unrealistic reorder point: "
@@ -236,15 +239,19 @@ class ProductValidationCriterion(CyodaCriteriaChecker):
     def _validate_api_data(self, product: Product) -> bool:
         """
         Validate API data integrity and consistency.
-        
+
         Args:
             product: The Product entity to validate
-            
+
         Returns:
             True if API data is valid, False otherwise
         """
         # Validate API source
-        if product.api_source and product.api_source not in ["petstore", "petstore_inventory", "petstore_pets"]:
+        if product.api_source and product.api_source not in [
+            "petstore",
+            "petstore_inventory",
+            "petstore_pets",
+        ]:
             self.logger.warning(
                 f"Product {product.technical_id} has unknown API source: {product.api_source}"
             )
@@ -253,13 +260,15 @@ class ProductValidationCriterion(CyodaCriteriaChecker):
         # Validate API ID format if present
         if product.api_id is not None:
             if len(str(product.api_id)) == 0:
-                self.logger.warning(
-                    f"Product {product.technical_id} has empty API ID"
-                )
+                self.logger.warning(f"Product {product.technical_id} has empty API ID")
                 return False
 
         # Validate timestamp formats
-        timestamp_fields = [product.created_at, product.updated_at, product.last_analyzed_at]
+        timestamp_fields = [
+            product.created_at,
+            product.updated_at,
+            product.last_analyzed_at,
+        ]
         for timestamp in timestamp_fields:
             if timestamp is not None:
                 if not self._validate_timestamp_format(timestamp):
@@ -273,15 +282,16 @@ class ProductValidationCriterion(CyodaCriteriaChecker):
     def _validate_timestamp_format(self, timestamp: str) -> bool:
         """
         Validate ISO 8601 timestamp format.
-        
+
         Args:
             timestamp: Timestamp string to validate
-            
+
         Returns:
             True if format is valid, False otherwise
         """
         try:
             from datetime import datetime
+
             # Try to parse ISO format
             datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
             return True

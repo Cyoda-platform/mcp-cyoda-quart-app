@@ -8,15 +8,15 @@ Sends weekly reports to victoria.sagdieva@cyoda.com with comprehensive analysis.
 import logging
 from typing import Any
 
+from application.entity.report.version_1.report import Report
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.report.version_1.report import Report
 
 
 class EmailNotificationProcessor(CyodaProcessor):
     """
     Processor for Report entity that handles email notification delivery.
-    
+
     Sends generated performance reports via email to the sales team including:
     - Executive summary in email body
     - Detailed report as PDF attachment
@@ -55,15 +55,15 @@ class EmailNotificationProcessor(CyodaProcessor):
             # Prepare email content
             email_subject = self._generate_email_subject(report)
             email_body = self._generate_email_body(report)
-            
+
             # Send email (mock implementation)
             success = await self._send_email(
                 recipients=report.email_recipients,
                 subject=email_subject,
                 body=email_body,
-                attachment_path=report.file_path
+                attachment_path=report.file_path,
             )
-            
+
             if success:
                 report.mark_email_sent()
                 self.logger.info(
@@ -72,7 +72,9 @@ class EmailNotificationProcessor(CyodaProcessor):
                 )
             else:
                 report.mark_email_failed()
-                self.logger.error(f"Failed to send email for report {report.technical_id}")
+                self.logger.error(
+                    f"Failed to send email for report {report.technical_id}"
+                )
 
             return report
 
@@ -80,20 +82,20 @@ class EmailNotificationProcessor(CyodaProcessor):
             self.logger.error(
                 f"Error sending email for report {getattr(entity, 'technical_id', '<unknown>')}: {str(e)}"
             )
-            
+
             # Cast again for error handling
             report = cast_entity(entity, Report)
             report.mark_email_failed()
-            
+
             raise
 
     def _generate_email_subject(self, report: Report) -> str:
         """
         Generate email subject line for the report.
-        
+
         Args:
             report: The Report entity
-            
+
         Returns:
             Email subject string
         """
@@ -102,10 +104,10 @@ class EmailNotificationProcessor(CyodaProcessor):
     def _generate_email_body(self, report: Report) -> str:
         """
         Generate email body content with executive summary and key insights.
-        
+
         Args:
             report: The Report entity
-            
+
         Returns:
             Email body content as HTML string
         """
@@ -114,12 +116,12 @@ class EmailNotificationProcessor(CyodaProcessor):
         total_revenue = report.total_revenue or 0
         avg_performance = report.average_performance_score or 0
         growth_rate = report.revenue_growth_percentage or 0
-        
+
         # Count insights
         top_performers_count = len(report.top_performing_products or [])
         underperformers_count = len(report.underperforming_products or [])
         low_stock_count = len(report.low_stock_products or [])
-        
+
         email_body = f"""
         <html>
         <head>
@@ -198,14 +200,14 @@ class EmailNotificationProcessor(CyodaProcessor):
         </body>
         </html>
         """
-        
+
         return email_body.strip()
 
     def _generate_top_performers_section(self, top_performers: list) -> str:
         """Generate HTML section for top performing products"""
         if not top_performers:
             return "<p>No top performers identified in this period.</p>"
-        
+
         html = "<table><tr><th>Product</th><th>Category</th><th>Performance Score</th><th>Revenue</th></tr>"
         for product in top_performers[:3]:  # Show top 3 in email
             html += f"""
@@ -223,10 +225,10 @@ class EmailNotificationProcessor(CyodaProcessor):
         """Generate HTML section for underperforming products"""
         if not underperformers:
             return "<p>No underperforming products identified.</p>"
-        
+
         html = "<table><tr><th>Product</th><th>Category</th><th>Performance Score</th><th>Issues</th></tr>"
         for product in underperformers[:3]:  # Show top 3 issues in email
-            issues = ", ".join(product.get('issues', []))
+            issues = ", ".join(product.get("issues", []))
             html += f"""
             <tr>
                 <td>{product['name']}</td>
@@ -242,10 +244,10 @@ class EmailNotificationProcessor(CyodaProcessor):
         """Generate HTML section for low stock products"""
         if not low_stock:
             return "<p>All products have adequate stock levels.</p>"
-        
+
         html = "<table><tr><th>Product</th><th>Category</th><th>Current Stock</th><th>Urgency</th></tr>"
         for product in low_stock[:5]:  # Show top 5 urgent items
-            urgency_color = "red" if product['urgency'] == 'high' else "orange"
+            urgency_color = "red" if product["urgency"] == "high" else "orange"
             html += f"""
             <tr>
                 <td>{product['name']}</td>
@@ -261,7 +263,7 @@ class EmailNotificationProcessor(CyodaProcessor):
         """Generate HTML section for category performance"""
         if not category_performance:
             return "<p>No category performance data available.</p>"
-        
+
         html = "<table><tr><th>Category</th><th>Products</th><th>Total Revenue</th><th>Avg Performance</th></tr>"
         for category, stats in category_performance.items():
             html += f"""
@@ -276,27 +278,27 @@ class EmailNotificationProcessor(CyodaProcessor):
         return html
 
     async def _send_email(
-        self, 
-        recipients: list[str], 
-        subject: str, 
-        body: str, 
-        attachment_path: str | None = None
+        self,
+        recipients: list[str],
+        subject: str,
+        body: str,
+        attachment_path: str | None = None,
     ) -> bool:
         """
         Send email with report content (mock implementation).
-        
+
         In a real system, this would integrate with an email service like:
         - SMTP server
         - SendGrid
         - AWS SES
         - Azure Communication Services
-        
+
         Args:
             recipients: List of email addresses
             subject: Email subject line
             body: Email body content (HTML)
             attachment_path: Path to report file attachment
-            
+
         Returns:
             True if email sent successfully, False otherwise
         """
@@ -305,14 +307,15 @@ class EmailNotificationProcessor(CyodaProcessor):
             self.logger.info(f"Mock email sent to {recipients}")
             self.logger.info(f"Subject: {subject}")
             self.logger.info(f"Attachment: {attachment_path}")
-            
+
             # Simulate email sending delay
             import asyncio
+
             await asyncio.sleep(0.1)
-            
+
             # Mock success (in real system, would handle actual email service response)
             return True
-            
+
         except Exception as e:
             self.logger.error(f"Failed to send email: {str(e)}")
             return False
