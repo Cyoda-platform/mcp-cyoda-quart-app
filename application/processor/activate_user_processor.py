@@ -9,9 +9,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.user.version_1.user import User
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.user.version_1.user import User
 
 
 class ActivateUserProcessor(CyodaProcessor):
@@ -73,7 +73,7 @@ class ActivateUserProcessor(CyodaProcessor):
             )
             raise
 
-    def _verify_email_token(self, user: User, kwargs: dict) -> None:
+    def _verify_email_token(self, user: User, kwargs: Dict[str, Any]) -> None:
         """
         Verify the email verification token.
 
@@ -86,19 +86,21 @@ class ActivateUserProcessor(CyodaProcessor):
         """
         # Get verification token from kwargs if provided
         provided_token = kwargs.get("verification_token")
-        
+
         if provided_token:
             # Verify the token matches
             if not user.emailVerificationToken:
                 raise ValueError("No verification token found for user")
-            
+
             if provided_token != user.emailVerificationToken:
                 raise ValueError("Invalid verification token")
-            
+
             self.logger.debug("Email verification token validated successfully")
         else:
             # If no token provided, assume verification is being done administratively
-            self.logger.info("Email verification performed without token (administrative activation)")
+            self.logger.info(
+                "Email verification performed without token (administrative activation)"
+            )
 
         # In production:
         # - Check token expiration
@@ -113,7 +115,9 @@ class ActivateUserProcessor(CyodaProcessor):
         Args:
             user: The User entity to set activation details for
         """
-        current_timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        current_timestamp = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
 
         # Mark email as verified
         user.emailVerified = True
@@ -159,7 +163,7 @@ class ActivateUserProcessor(CyodaProcessor):
             f"Your account has been successfully activated. "
             f"You can now browse and purchase pets from our store."
         )
-        
+
         self.logger.info(
             f"WELCOME EMAIL: Sending welcome email to {user.email}. "
             f"Message: {welcome_message}"

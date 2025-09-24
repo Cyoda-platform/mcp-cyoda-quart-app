@@ -9,9 +9,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.pet.version_1.pet import Pet
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.pet.version_1.pet import Pet
 
 
 class CompleteSaleProcessor(CyodaProcessor):
@@ -77,7 +77,9 @@ class CompleteSaleProcessor(CyodaProcessor):
         Args:
             pet: The Pet entity to set sale details for
         """
-        current_timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        current_timestamp = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
 
         # Set sale timestamp
         pet.soldAt = current_timestamp

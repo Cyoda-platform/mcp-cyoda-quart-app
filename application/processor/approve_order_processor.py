@@ -10,9 +10,9 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.order.version_1.order import Order
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.order.version_1.order import Order
 
 
 class ApproveOrderProcessor(CyodaProcessor):
@@ -86,7 +86,7 @@ class ApproveOrderProcessor(CyodaProcessor):
         """
         # In a real implementation, this would integrate with payment processors
         # For now, we simulate payment processing
-        
+
         if not order.totalAmount or order.totalAmount <= 0:
             raise ValueError("Invalid order total amount for payment processing")
 
@@ -116,7 +116,9 @@ class ApproveOrderProcessor(CyodaProcessor):
         Args:
             order: The Order entity to set approval details for
         """
-        current_timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        current_timestamp = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
 
         # Set approval timestamp
         order.approvedAt = current_timestamp
@@ -124,7 +126,9 @@ class ApproveOrderProcessor(CyodaProcessor):
         # Update timestamp
         order.update_timestamp()
 
-        self.logger.debug(f"Approval details set for order: approvedAt={order.approvedAt}")
+        self.logger.debug(
+            f"Approval details set for order: approvedAt={order.approvedAt}"
+        )
 
     def _generate_tracking_number(self, order: Order) -> None:
         """

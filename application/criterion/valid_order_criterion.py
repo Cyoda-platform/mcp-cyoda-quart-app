@@ -7,9 +7,9 @@ proceed to approval as specified in the Order workflow requirements.
 
 from typing import Any
 
+from application.entity.order.version_1.order import Order
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.order.version_1.order import Order
 
 
 class ValidOrderCriterion(CyodaCriteriaChecker):
@@ -125,7 +125,9 @@ class ValidOrderCriterion(CyodaCriteriaChecker):
             return False
 
         # Validate total amount is reasonable
-        if order.totalAmount and order.totalAmount > 100000:  # Business rule: max $100k per order
+        if (
+            order.totalAmount and order.totalAmount > 100000
+        ):  # Business rule: max $100k per order
             self.logger.warning(
                 f"Order {order.technical_id} exceeds maximum amount limit: ${order.totalAmount}"
             )
@@ -142,7 +144,7 @@ class ValidOrderCriterion(CyodaCriteriaChecker):
         self.logger.debug(f"Business rules validated for order {order.technical_id}")
         return True
 
-    def _validate_shipping_address(self, address: dict) -> bool:
+    def _validate_shipping_address(self, address: Dict[str, Any]) -> bool:
         """
         Validate shipping address structure and content.
 
@@ -153,9 +155,13 @@ class ValidOrderCriterion(CyodaCriteriaChecker):
             True if address is valid, False otherwise
         """
         required_fields = ["street", "city", "state", "zipCode"]
-        
+
         for field in required_fields:
-            if field not in address or not address[field] or len(str(address[field]).strip()) == 0:
+            if (
+                field not in address
+                or not address[field]
+                or len(str(address[field]).strip()) == 0
+            ):
                 return False
 
         # Validate zip code format (basic validation)

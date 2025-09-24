@@ -9,10 +9,10 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
-from common.entity.entity_casting import cast_entity
-from common.processor.base import CyodaEntity, CyodaProcessor
 from application.entity.order.version_1.order import Order
 from application.entity.pet.version_1.pet import Pet
+from common.entity.entity_casting import cast_entity
+from common.processor.base import CyodaEntity, CyodaProcessor
 from services.services import get_entity_service
 
 
@@ -79,7 +79,9 @@ class CompleteDeliveryProcessor(CyodaProcessor):
         Args:
             order: The Order entity to set delivery details for
         """
-        current_timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        current_timestamp = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
 
         # Set delivery timestamp
         order.deliveredAt = current_timestamp
@@ -112,7 +114,9 @@ class CompleteDeliveryProcessor(CyodaProcessor):
             )
 
             if not pet_response:
-                self.logger.warning(f"Pet with ID {order.petId} not found for status update")
+                self.logger.warning(
+                    f"Pet with ID {order.petId} not found for status update"
+                )
                 return
 
             pet = cast_entity(pet_response.data, Pet)

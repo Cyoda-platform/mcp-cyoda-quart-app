@@ -19,33 +19,36 @@ from quart_schema import (
     validate_querystring,
 )
 
-from common.service.entity_service import SearchConditionRequest
-from services.services import get_entity_service
 from application.entity.user.version_1.user import User
 from application.models import (
     CountResponse,
     DeleteResponse,
     ErrorResponse,
-    UserListResponse,
-    UserQueryParams,
-    UserResponse,
-    UserSearchResponse,
-    UserUpdateQueryParams,
     ExistsResponse,
     SearchRequest,
     TransitionRequest,
     TransitionResponse,
     TransitionsResponse,
+    UserListResponse,
+    UserQueryParams,
+    UserResponse,
+    UserSearchResponse,
+    UserUpdateQueryParams,
     ValidationErrorResponse,
 )
+from common.service.entity_service import SearchConditionRequest
+from services.services import get_entity_service
+
 
 # Module-level service instance to avoid repeated lookups
 class _ServiceProxy:
     def __getattr__(self, name: str) -> Any:
         return getattr(get_entity_service(), name)
 
+
 service = _ServiceProxy()
 logger = logging.getLogger(__name__)
+
 
 # Helper to normalize entity data from service
 def _to_entity_dict(data: Any) -> Dict[str, Any]:
@@ -55,6 +58,7 @@ def _to_entity_dict(data: Any) -> Dict[str, Any]:
         result.pop("password", None)
         result.pop("emailVerificationToken", None)
     return result
+
 
 users_bp = Blueprint("users", __name__, url_prefix="/api/users")
 
@@ -188,7 +192,7 @@ async def list_users(query_args: UserQueryParams) -> ResponseReturnValue:
             "users": paginated_entities,
             "total": len(entity_list),
             "limit": query_args.limit,
-            "offset": query_args.offset
+            "offset": query_args.offset,
         }, 200
 
     except Exception as e:
@@ -236,7 +240,7 @@ async def update_user(
             entity_class=User.ENTITY_NAME,
             transition=transition,
             entity_version=str(User.ENTITY_VERSION),
-            **kwargs
+            **kwargs,
         )
 
         logger.info("Updated User %s", entity_id)
@@ -420,7 +424,9 @@ async def search_entities(data: SearchRequest) -> ResponseReturnValue:
         500: (ErrorResponse, None),
     },
 )
-async def trigger_transition(entity_id: str, data: TransitionRequest) -> ResponseReturnValue:
+async def trigger_transition(
+    entity_id: str, data: TransitionRequest
+) -> ResponseReturnValue:
     """Trigger a specific workflow transition with validation"""
     try:
         # Get current entity state
@@ -441,10 +447,12 @@ async def trigger_transition(entity_id: str, data: TransitionRequest) -> Respons
             transition=data.transition_name,
             entity_class=User.ENTITY_NAME,
             entity_version=str(User.ENTITY_VERSION),
-            **data.parameters
+            **data.parameters,
         )
 
-        logger.info("Executed transition '%s' on User %s", data.transition_name, entity_id)
+        logger.info(
+            "Executed transition '%s' on User %s", data.transition_name, entity_id
+        )
 
         return {
             "id": response.metadata.id,

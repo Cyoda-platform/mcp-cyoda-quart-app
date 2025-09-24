@@ -7,9 +7,9 @@ proceed to state transitions as specified in the Pet workflow requirements.
 
 from typing import Any
 
+from application.entity.pet.version_1.pet import Pet
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.pet.version_1.pet import Pet
 
 
 class ValidPetCriterion(CyodaCriteriaChecker):
@@ -85,16 +85,12 @@ class ValidPetCriterion(CyodaCriteriaChecker):
 
         # Validate photo URLs
         if not pet.photoUrls or len(pet.photoUrls) == 0:
-            self.logger.warning(
-                f"Pet {pet.technical_id} has no photo URLs"
-            )
+            self.logger.warning(f"Pet {pet.technical_id} has no photo URLs")
             return False
 
         for url in pet.photoUrls:
             if not url or len(url.strip()) == 0:
-                self.logger.warning(
-                    f"Pet {pet.technical_id} has empty photo URL"
-                )
+                self.logger.warning(f"Pet {pet.technical_id} has empty photo URL")
                 return False
 
         self.logger.debug(f"Required fields validated for pet {pet.technical_id}")
@@ -131,7 +127,7 @@ class ValidPetCriterion(CyodaCriteriaChecker):
                     f"Pet {pet.technical_id} has invalid category structure"
                 )
                 return False
-            
+
             if "id" not in pet.category or "name" not in pet.category:
                 self.logger.warning(
                     f"Pet {pet.technical_id} category missing required fields"
@@ -146,7 +142,7 @@ class ValidPetCriterion(CyodaCriteriaChecker):
                         f"Pet {pet.technical_id} has invalid tag structure"
                     )
                     return False
-                
+
                 if "id" not in tag or "name" not in tag:
                     self.logger.warning(
                         f"Pet {pet.technical_id} tag missing required fields"

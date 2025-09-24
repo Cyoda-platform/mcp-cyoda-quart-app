@@ -12,9 +12,9 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.user.version_1.user import User
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.user.version_1.user import User
 
 
 class RegisterUserProcessor(CyodaProcessor):
@@ -92,12 +92,14 @@ class RegisterUserProcessor(CyodaProcessor):
         """
         # In a real implementation, this would check the database
         # For now, we simulate the validation
-        
+
         # Simulate some reserved usernames
         reserved_usernames = {"admin", "root", "system", "test", "demo"}
-        
+
         if user.username.lower() in reserved_usernames:
-            raise ValueError(f"Username '{user.username}' is reserved and cannot be used")
+            raise ValueError(
+                f"Username '{user.username}' is reserved and cannot be used"
+            )
 
         self.logger.debug(f"Username '{user.username}' is available")
 
@@ -118,13 +120,15 @@ class RegisterUserProcessor(CyodaProcessor):
         """
         # In a real implementation, this would check the database
         # For now, we simulate the validation
-        
+
         # Simulate some reserved email domains
         reserved_domains = {"example.com", "test.com", "localhost"}
         email_domain = user.email.split("@")[1].lower() if "@" in user.email else ""
-        
+
         if email_domain in reserved_domains:
-            raise ValueError(f"Email domain '{email_domain}' is not allowed for registration")
+            raise ValueError(
+                f"Email domain '{email_domain}' is not allowed for registration"
+            )
 
         self.logger.debug(f"Email '{user.email}' is available")
 
@@ -148,7 +152,7 @@ class RegisterUserProcessor(CyodaProcessor):
         # Simple password hashing (in production, use bcrypt, scrypt, or Argon2)
         salt = str(uuid.uuid4())[:8]
         password_hash = hashlib.sha256(f"{user.password}{salt}".encode()).hexdigest()
-        
+
         # Store the hashed password (in real implementation, store salt separately)
         user.password = f"{salt}:{password_hash}"
 
@@ -167,7 +171,9 @@ class RegisterUserProcessor(CyodaProcessor):
         Args:
             user: The User entity to set registration details for
         """
-        current_timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        current_timestamp = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
 
         # Set registration timestamp
         user.registeredAt = current_timestamp
@@ -206,8 +212,10 @@ class RegisterUserProcessor(CyodaProcessor):
             user: The User entity to send verification email to
         """
         # In a real implementation, this would send actual emails
-        verification_url = f"https://purrfectpets.com/verify?token={user.emailVerificationToken}"
-        
+        verification_url = (
+            f"https://purrfectpets.com/verify?token={user.emailVerificationToken}"
+        )
+
         self.logger.info(
             f"VERIFICATION EMAIL: Sending verification email to {user.email}. "
             f"Verification URL: {verification_url}"

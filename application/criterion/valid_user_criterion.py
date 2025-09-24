@@ -8,9 +8,9 @@ proceed to email verification as specified in the User workflow requirements.
 import re
 from typing import Any
 
+from application.entity.user.version_1.user import User
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.user.version_1.user import User
 
 
 class ValidUserCriterion(CyodaCriteriaChecker):

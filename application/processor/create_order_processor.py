@@ -7,13 +7,13 @@ calculating totals, and setting up order details as specified in the Order workf
 
 import logging
 import uuid
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
-from common.entity.entity_casting import cast_entity
-from common.processor.base import CyodaEntity, CyodaProcessor
 from application.entity.order.version_1.order import Order
 from application.entity.pet.version_1.pet import Pet
+from common.entity.entity_casting import cast_entity
+from common.processor.base import CyodaEntity, CyodaProcessor
 from services.services import get_entity_service
 
 
@@ -103,7 +103,9 @@ class CreateOrderProcessor(CyodaProcessor):
 
             # Check if pet is available
             if not pet.is_available():
-                raise ValueError(f"Pet {order.petId} is not available for ordering (current state: {pet.state})")
+                raise ValueError(
+                    f"Pet {order.petId} is not available for ordering (current state: {pet.state})"
+                )
 
             self.logger.debug(f"Pet {order.petId} is available for ordering")
 
@@ -131,10 +133,10 @@ class CreateOrderProcessor(CyodaProcessor):
             if pet_response:
                 pet = cast_entity(pet_response.data, Pet)
                 pet_price = pet.price if pet.price is not None else 0.0
-                
+
                 # Calculate total (price * quantity)
                 order.totalAmount = pet_price * order.quantity
-                
+
                 self.logger.debug(
                     f"Calculated total amount for order: ${order.totalAmount} "
                     f"(${pet_price} x {order.quantity})"
@@ -142,7 +144,9 @@ class CreateOrderProcessor(CyodaProcessor):
             else:
                 # Fallback if pet not found
                 order.totalAmount = 0.0
-                self.logger.warning(f"Could not find pet {order.petId} for price calculation")
+                self.logger.warning(
+                    f"Could not find pet {order.petId} for price calculation"
+                )
 
         except Exception as e:
             self.logger.error(f"Failed to calculate total amount: {str(e)}")

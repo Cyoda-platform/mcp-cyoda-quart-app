@@ -19,37 +19,41 @@ from quart_schema import (
     validate_querystring,
 )
 
-from common.service.entity_service import SearchConditionRequest
-from services.services import get_entity_service
 from application.entity.pet.version_1.pet import Pet
 from application.models import (
     CountResponse,
     DeleteResponse,
     ErrorResponse,
+    ExistsResponse,
     PetListResponse,
     PetQueryParams,
     PetResponse,
     PetSearchResponse,
     PetUpdateQueryParams,
-    ExistsResponse,
     SearchRequest,
     TransitionRequest,
     TransitionResponse,
     TransitionsResponse,
     ValidationErrorResponse,
 )
+from common.service.entity_service import SearchConditionRequest
+from services.services import get_entity_service
+
 
 # Module-level service instance to avoid repeated lookups
 class _ServiceProxy:
     def __getattr__(self, name: str) -> Any:
         return getattr(get_entity_service(), name)
 
+
 service = _ServiceProxy()
 logger = logging.getLogger(__name__)
+
 
 # Helper to normalize entity data from service
 def _to_entity_dict(data: Any) -> Dict[str, Any]:
     return data.model_dump(by_alias=True) if hasattr(data, "model_dump") else data
+
 
 pets_bp = Blueprint("pets", __name__, url_prefix="/api/pets")
 
@@ -183,9 +187,15 @@ async def list_pets(query_args: PetQueryParams) -> ResponseReturnValue:
             for entity in entity_list:
                 price = entity.get("price")
                 if price is not None:
-                    if query_args.min_price is not None and price < query_args.min_price:
+                    if (
+                        query_args.min_price is not None
+                        and price < query_args.min_price
+                    ):
                         continue
-                    if query_args.max_price is not None and price > query_args.max_price:
+                    if (
+                        query_args.max_price is not None
+                        and price > query_args.max_price
+                    ):
                         continue
                 filtered_list.append(entity)
             entity_list = filtered_list
@@ -199,7 +209,7 @@ async def list_pets(query_args: PetQueryParams) -> ResponseReturnValue:
             "pets": paginated_entities,
             "total": len(entity_list),
             "limit": query_args.limit,
-            "offset": query_args.offset
+            "offset": query_args.offset,
         }, 200
 
     except Exception as e:
@@ -428,7 +438,9 @@ async def search_entities(data: SearchRequest) -> ResponseReturnValue:
         500: (ErrorResponse, None),
     },
 )
-async def trigger_transition(entity_id: str, data: TransitionRequest) -> ResponseReturnValue:
+async def trigger_transition(
+    entity_id: str, data: TransitionRequest
+) -> ResponseReturnValue:
     """Trigger a specific workflow transition with validation"""
     try:
         # Get current entity state
@@ -451,7 +463,9 @@ async def trigger_transition(entity_id: str, data: TransitionRequest) -> Respons
             entity_version=str(Pet.ENTITY_VERSION),
         )
 
-        logger.info("Executed transition '%s' on Pet %s", data.transition_name, entity_id)
+        logger.info(
+            "Executed transition '%s' on Pet %s", data.transition_name, entity_id
+        )
 
         return {
             "id": response.metadata.id,

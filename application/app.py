@@ -5,15 +5,15 @@ from typing import Callable, Dict, Optional
 from quart import Quart, Response
 from quart_schema import QuartSchema, ResponseSchemaValidationError, hide
 
+from application.routes.orders import orders_bp
+
+# Import blueprints for different route groups
+from application.routes.pets import pets_bp
+from application.routes.users import users_bp
 from common.exception.exception_handler import (
     register_error_handlers as _register_error_handlers,
 )
 from services.services import get_grpc_client, initialize_services
-
-# Import blueprints for different route groups
-from application.routes.pets import pets_bp
-from application.routes.orders import orders_bp
-from application.routes.users import users_bp
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -31,11 +31,11 @@ QuartSchema(
         },
         {
             "name": "orders",
-            "description": "Order management endpoints for Purrfect Pets API"
+            "description": "Order management endpoints for Purrfect Pets API",
         },
         {
             "name": "users",
-            "description": "User management endpoints for Purrfect Pets API"
+            "description": "User management endpoints for Purrfect Pets API",
         },
         {"name": "System", "description": "System and health endpoints"},
     ],
@@ -47,6 +47,11 @@ QuartSchema(
         }
     },
 )
+
+# Register Purrfect Pets API blueprints
+app.register_blueprint(pets_bp)
+app.register_blueprint(orders_bp)
+app.register_blueprint(users_bp)
 
 # Global holder for the background task to satisfy mypy
 # (avoid setting arbitrary attrs on app)
