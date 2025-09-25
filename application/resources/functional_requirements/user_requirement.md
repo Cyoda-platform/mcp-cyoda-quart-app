@@ -1,0 +1,1 @@
+i want a system designed to automatically retrieve store data from the Pet Store API (https://petstore.swagger.io/#/), analyze product performance metrics, and generate a summary report. The report will be emailed weekly to the sales team, specifically to victoria.sagdieva@cyoda.com, with automated data extraction scheduled for every Monday.
