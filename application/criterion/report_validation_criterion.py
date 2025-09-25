@@ -196,7 +196,7 @@ class ReportValidationCriterion(CyodaCriteriaChecker):
         if report_type == "WEEKLY_SUMMARY":
             if report.data_period_start and report.data_period_end:
                 try:
-                    from datetime import datetime, timedelta
+                    from datetime import datetime
 
                     start_date = datetime.fromisoformat(
                         report.data_period_start.replace("Z", "+00:00")

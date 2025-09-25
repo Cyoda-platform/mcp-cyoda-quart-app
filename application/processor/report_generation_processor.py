@@ -201,7 +201,7 @@ class ReportGenerationProcessor(CyodaProcessor):
             f"Total units sold: {total_sales:,}",
             f"Average performance score: {avg_performance:.1f}/100",
             "",
-            f"**Key Highlights:**",
+            "**Key Highlights:**",
             f"- {len(high_performers)} products are high performers (score ≥ 70)",
             f"- {len(low_performers)} products need attention (score ≤ 30)",
             f"- {len(out_of_stock)} products are currently out of stock",

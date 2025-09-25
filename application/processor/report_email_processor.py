@@ -58,7 +58,7 @@ class ReportEmailProcessor(CyodaProcessor):
             report.set_emailed(recipients)
 
             self.logger.info(
-                f"Email notification created for Report {report.technical_id}"
+                f"Email notification {email_notification.technical_id} created for Report {report.technical_id}"
             )
 
             return report
