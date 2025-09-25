@@ -235,7 +235,7 @@ class DataExtraction(CyodaEntity):
         self.products_extracted = len(data)
 
         # Generate extraction summary
-        categories = {}
+        categories: Dict[str, int] = {}
         for item in data:
             category = item.get("category", "unknown")
             categories[category] = categories.get(category, 0) + 1

@@ -161,7 +161,7 @@ class ReportEmailProcessor(CyodaProcessor):
             "attachments": self._prepare_attachments(report),
         }
 
-    def _prepare_attachments(self, report: Report) -> list:
+    def _prepare_attachments(self, report: Report) -> List[Dict[str, Any]]:
         """
         Prepare email attachments including detailed report data.
 
@@ -193,7 +193,7 @@ class ReportEmailProcessor(CyodaProcessor):
                 {
                     "filename": f"top_performers_{report.report_period_start[:10]}.csv",
                     "content_type": "text/csv",
-                    "data": report.top_performing_products,
+                    "data": str(report.top_performing_products),
                     "description": "Top performing products data",
                 }
             )
@@ -204,7 +204,7 @@ class ReportEmailProcessor(CyodaProcessor):
                 {
                     "filename": f"low_stock_items_{report.report_period_start[:10]}.csv",
                     "content_type": "text/csv",
-                    "data": report.low_stock_items,
+                    "data": str(report.low_stock_items),
                     "description": "Products requiring restocking",
                 }
             )

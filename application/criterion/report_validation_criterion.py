@@ -208,7 +208,7 @@ class ReportValidationCriterion(CyodaCriteriaChecker):
         return True
 
     def _validate_product_data(
-        self, product_data: dict, context: str, report_id: str
+        self, product_data: Dict[str, Any], context: str, report_id: str
     ) -> bool:
         """
         Validate individual product data within the report.
