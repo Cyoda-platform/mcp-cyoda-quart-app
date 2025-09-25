@@ -4,8 +4,8 @@ Pet API Models for Purrfect Pets API
 Request and response models for Pet-related API endpoints.
 """
 
-from typing import Any, Dict, List, Optional
 from decimal import Decimal
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 

@@ -8,8 +8,8 @@ including species, breed, health status, and adoption workflow management.
 """
 
 from datetime import datetime, timezone
-from typing import Any, ClassVar, Dict, List, Optional
 from decimal import Decimal
+from typing import Any, ClassVar, Dict, List, Optional
 
 from pydantic import ConfigDict, Field, field_validator, model_validator
 

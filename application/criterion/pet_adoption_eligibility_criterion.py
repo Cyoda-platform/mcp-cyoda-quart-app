@@ -7,9 +7,9 @@ before it can be reserved by potential adopters.
 
 from typing import Any
 
+from application.entity.pet.version_1.pet import Pet
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.pet.version_1.pet import Pet
 
 
 class PetAdoptionEligibilityCriterion(CyodaCriteriaChecker):

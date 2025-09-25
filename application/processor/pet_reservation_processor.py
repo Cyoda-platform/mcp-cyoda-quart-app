@@ -8,11 +8,12 @@ updating pet status, and managing reservation data.
 import logging
 import uuid
 from datetime import datetime, timezone
+from decimal import Decimal
 from typing import Any, Dict
 
+from application.entity.pet.version_1.pet import Pet
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.pet.version_1.pet import Pet
 
 
 class PetReservationProcessor(CyodaProcessor):
@@ -96,7 +97,7 @@ class PetReservationProcessor(CyodaProcessor):
             "status": "ACTIVE",
             "pet_id": pet.technical_id or pet.entity_id,
             "pet_name": pet.name,
-            "reservation_fee": float(pet.price * 0.1),  # 10% reservation fee
+            "reservation_fee": float(pet.price * Decimal("0.1")),  # 10% reservation fee
             "notes": f"Reservation for {pet.name} ({pet.species}, {pet.breed})",
         }
 

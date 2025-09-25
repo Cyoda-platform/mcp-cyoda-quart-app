@@ -8,8 +8,8 @@ workflow transitions, and adoption-specific functionality.
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, Optional
 from decimal import Decimal
+from typing import Any, Dict, Optional
 
 from quart import Blueprint, jsonify, request
 from quart.typing import ResponseReturnValue
@@ -297,7 +297,7 @@ async def delete_pet(entity_id: str) -> ResponseReturnValue:
         response = DeleteResponse(
             success=True,
             message="Pet deleted successfully",
-            entity_id=entity_id,
+            entityId=entity_id,
         )
         return response.model_dump(), 200
 
