@@ -101,7 +101,7 @@ class ReportEmailProcessor(CyodaProcessor):
 
         # Email body with executive summary
         body_parts = [
-            f"Dear Sales Team,",
+            "Dear Sales Team,",
             "",
             f"Please find attached the weekly performance report for the period {report.report_period_start[:10]} to {report.report_period_end[:10]}.",
             "",

@@ -8,11 +8,11 @@ and workflow transitions for product performance analysis.
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
-from quart import Blueprint, jsonify, request
+from quart import Blueprint, request
 from quart.typing import ResponseReturnValue
-from quart_schema import operation_id, tag, validate, validate_querystring
+from quart_schema import operation_id, tag
 
 from application.entity.product.version_1.product import Product
 from common.service.entity_service import SearchConditionRequest
