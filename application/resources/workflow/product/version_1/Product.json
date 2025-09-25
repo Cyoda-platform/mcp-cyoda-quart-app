@@ -1,0 +1,75 @@
+{
+  "version": "1.0",
+  "name": "Product Workflow",
+  "desc": "Workflow for Product entity handling data extraction, analysis, and reporting",
+  "initialState": "initial_state",
+  "active": true,
+  "states": {
+    "initial_state": {
+      "transitions": [
+        {
+          "name": "extract",
+          "next": "extracted",
+          "manual": false
+        }
+      ]
+    },
+    "extracted": {
+      "transitions": [
+        {
+          "name": "validate_data",
+          "next": "validated",
+          "manual": false,
+          "criterion": {
+            "type": "function",
+            "function": {
+              "name": "ProductValidationCriterion",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "validated": {
+      "transitions": [
+        {
+          "name": "analyze",
+          "next": "analyzed",
+          "manual": false,
+          "processors": [
+            {
+              "name": "ProductAnalysisProcessor",
+              "executionMode": "SYNC",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "analyzed": {
+      "transitions": [
+        {
+          "name": "report",
+          "next": "reported",
+          "manual": true,
+          "processors": [
+            {
+              "name": "ProductReportingProcessor",
+              "executionMode": "SYNC",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "reported": {
+      "transitions": []
+    }
+  }
+}
