@@ -9,9 +9,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 
+from application.entity.report.version_1.report import Report
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.report.version_1.report import Report
 
 
 class ReportGenerationProcessor(CyodaProcessor):
@@ -99,35 +99,47 @@ class ReportGenerationProcessor(CyodaProcessor):
             f"• High-Performing Products: {top_performers}",
             f"• Underperforming Products: {underperformers}",
             f"• Products Requiring Restocking: {low_stock}",
-            ""
+            "",
         ]
 
         # Add key insights
         if top_performers > 0:
-            summary_parts.append(f"✓ {top_performers} products are exceeding performance targets")
-        
+            summary_parts.append(
+                f"✓ {top_performers} products are exceeding performance targets"
+            )
+
         if underperformers > 0:
-            summary_parts.append(f"⚠ {underperformers} products require attention to improve sales")
-        
+            summary_parts.append(
+                f"⚠ {underperformers} products require attention to improve sales"
+            )
+
         if low_stock > 0:
-            summary_parts.append(f"📦 {low_stock} products are running low on inventory")
+            summary_parts.append(
+                f"📦 {low_stock} products are running low on inventory"
+            )
 
         # Add revenue insights
         if total_revenue > 10000:
             summary_parts.append("💰 Strong revenue performance this week")
         elif total_revenue > 5000:
-            summary_parts.append("📈 Moderate revenue performance with room for improvement")
+            summary_parts.append(
+                "📈 Moderate revenue performance with room for improvement"
+            )
         else:
-            summary_parts.append("📉 Revenue below expectations - review product strategies")
+            summary_parts.append(
+                "📉 Revenue below expectations - review product strategies"
+            )
 
-        summary_parts.extend([
-            "",
-            "Recommendations:",
-            "• Focus marketing efforts on high-performing products",
-            "• Review pricing and promotion strategies for underperforming items",
-            "• Prioritize restocking for low-inventory products",
-            "• Monitor trends for early identification of market changes"
-        ])
+        summary_parts.extend(
+            [
+                "",
+                "Recommendations:",
+                "• Focus marketing efforts on high-performing products",
+                "• Review pricing and promotion strategies for underperforming items",
+                "• Prioritize restocking for low-inventory products",
+                "• Monitor trends for early identification of market changes",
+            ]
+        )
 
         return "\n".join(summary_parts)
 
@@ -144,7 +156,7 @@ class ReportGenerationProcessor(CyodaProcessor):
         # Analyze product categories
         category_performance = {}
         category_revenue = {}
-        
+
         all_products = []
         if report.top_performing_products:
             all_products.extend(report.top_performing_products)
@@ -155,11 +167,11 @@ class ReportGenerationProcessor(CyodaProcessor):
             category = product.get("category", "unknown")
             sales = product.get("sales_volume", 0)
             revenue = product.get("revenue", 0.0)
-            
+
             if category not in category_performance:
                 category_performance[category] = {"products": 0, "total_sales": 0}
                 category_revenue[category] = 0.0
-            
+
             category_performance[category]["products"] += 1
             category_performance[category]["total_sales"] += sales
             category_revenue[category] += revenue
@@ -167,9 +179,11 @@ class ReportGenerationProcessor(CyodaProcessor):
         # Identify trending categories
         trending_up = []
         trending_down = []
-        
+
         for category, data in category_performance.items():
-            avg_sales = data["total_sales"] / data["products"] if data["products"] > 0 else 0
+            avg_sales = (
+                data["total_sales"] / data["products"] if data["products"] > 0 else 0
+            )
             if avg_sales >= 50:
                 trending_up.append(category)
             elif avg_sales < 20:
@@ -180,7 +194,9 @@ class ReportGenerationProcessor(CyodaProcessor):
             "category_revenue": category_revenue,
             "trending_up": trending_up,
             "trending_down": trending_down,
-            "analysis_date": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            "analysis_date": datetime.now(timezone.utc)
+            .isoformat()
+            .replace("+00:00", "Z"),
         }
 
     def _generate_inventory_insights(self, report: Report) -> Dict[str, Any]:
@@ -195,7 +211,7 @@ class ReportGenerationProcessor(CyodaProcessor):
         """
         low_stock_count = len(report.low_stock_items or [])
         total_products = report.total_products_analyzed or 0
-        
+
         # Calculate inventory health metrics
         inventory_health_score = 100.0
         if total_products > 0:
@@ -205,8 +221,8 @@ class ReportGenerationProcessor(CyodaProcessor):
         # Categorize low stock items by urgency
         critical_items = []
         warning_items = []
-        
-        for item in (report.low_stock_items or []):
+
+        for item in report.low_stock_items or []:
             inventory_level = item.get("inventory_level", 0)
             if inventory_level <= 5:
                 critical_items.append(item)
@@ -216,22 +232,26 @@ class ReportGenerationProcessor(CyodaProcessor):
         # Generate restocking recommendations
         restocking_priority = []
         for item in critical_items:
-            restocking_priority.append({
-                "product_id": item.get("product_id"),
-                "name": item.get("name"),
-                "current_stock": item.get("inventory_level", 0),
-                "priority": "CRITICAL",
-                "recommended_order": max(50, item.get("sales_volume", 0) * 2)
-            })
+            restocking_priority.append(
+                {
+                    "product_id": item.get("product_id"),
+                    "name": item.get("name"),
+                    "current_stock": item.get("inventory_level", 0),
+                    "priority": "CRITICAL",
+                    "recommended_order": max(50, item.get("sales_volume", 0) * 2),
+                }
+            )
 
         for item in warning_items:
-            restocking_priority.append({
-                "product_id": item.get("product_id"),
-                "name": item.get("name"),
-                "current_stock": item.get("inventory_level", 0),
-                "priority": "HIGH",
-                "recommended_order": max(30, item.get("sales_volume", 0) * 1.5)
-            })
+            restocking_priority.append(
+                {
+                    "product_id": item.get("product_id"),
+                    "name": item.get("name"),
+                    "current_stock": item.get("inventory_level", 0),
+                    "priority": "HIGH",
+                    "recommended_order": max(30, item.get("sales_volume", 0) * 1.5),
+                }
+            )
 
         return {
             "inventory_health_score": inventory_health_score,
@@ -243,9 +263,11 @@ class ReportGenerationProcessor(CyodaProcessor):
                 "Implement automated reorder points for critical items",
                 "Review supplier lead times for better inventory planning",
                 "Consider safety stock levels for high-demand products",
-                "Monitor seasonal trends for proactive inventory management"
+                "Monitor seasonal trends for proactive inventory management",
             ],
-            "analysis_date": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            "analysis_date": datetime.now(timezone.utc)
+            .isoformat()
+            .replace("+00:00", "Z"),
         }
 
     def _compile_report_data(self, report: Report) -> Dict[str, Any]:
@@ -264,14 +286,14 @@ class ReportGenerationProcessor(CyodaProcessor):
                 "period_start": report.report_period_start,
                 "period_end": report.report_period_end,
                 "generated_at": report.generated_at,
-                "generated_by": report.generated_by
+                "generated_by": report.generated_by,
             },
             "summary_metrics": {
                 "total_products": report.total_products_analyzed,
                 "total_revenue": report.total_revenue,
                 "top_performers_count": len(report.top_performing_products or []),
                 "underperformers_count": len(report.underperforming_products or []),
-                "low_stock_count": len(report.low_stock_items or [])
+                "low_stock_count": len(report.low_stock_items or []),
             },
             "executive_summary": report.executive_summary,
             "detailed_analysis": {
@@ -279,10 +301,10 @@ class ReportGenerationProcessor(CyodaProcessor):
                 "underperforming_products": report.underperforming_products,
                 "low_stock_items": report.low_stock_items,
                 "sales_trends": report.sales_trends,
-                "inventory_insights": report.inventory_insights
+                "inventory_insights": report.inventory_insights,
             },
             "email_info": {
                 "recipient": report.recipient_email,
-                "status": report.email_status
-            }
+                "status": report.email_status,
+            },
         }

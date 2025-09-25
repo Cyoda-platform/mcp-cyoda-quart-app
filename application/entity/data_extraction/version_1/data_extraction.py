@@ -30,117 +30,129 @@ class DataExtraction(CyodaEntity):
     ENTITY_VERSION: ClassVar[int] = 1
 
     # Extraction identification and scheduling
-    extraction_name: str = Field(..., description="Name/identifier for this extraction process")
+    extraction_name: str = Field(
+        ..., description="Name/identifier for this extraction process"
+    )
     extraction_type: str = Field(
         default="WEEKLY",
         alias="extractionType",
-        description="Type of extraction: WEEKLY, DAILY, MONTHLY"
+        description="Type of extraction: WEEKLY, DAILY, MONTHLY",
     )
     scheduled_day: str = Field(
         default="MONDAY",
         alias="scheduledDay",
-        description="Day of week for scheduled extraction"
+        description="Day of week for scheduled extraction",
     )
     scheduled_time: str = Field(
         default="09:00",
         alias="scheduledTime",
-        description="Time of day for extraction (HH:MM format)"
+        description="Time of day for extraction (HH:MM format)",
     )
-    
+
     # API configuration
     api_endpoint: str = Field(
         default="https://petstore.swagger.io/v2",
         alias="apiEndpoint",
-        description="Base URL for Pet Store API"
+        description="Base URL for Pet Store API",
     )
     api_format: str = Field(
         default="JSON",
         alias="apiFormat",
-        description="Data format for API requests: JSON, XML"
+        description="Data format for API requests: JSON, XML",
     )
-    
+
     # Extraction execution details
     last_execution_at: Optional[str] = Field(
         default=None,
         alias="lastExecutionAt",
-        description="Timestamp of last extraction execution"
+        description="Timestamp of last extraction execution",
     )
     next_execution_at: Optional[str] = Field(
         default=None,
         alias="nextExecutionAt",
-        description="Timestamp of next scheduled extraction"
+        description="Timestamp of next scheduled extraction",
     )
     execution_status: str = Field(
         default="PENDING",
         alias="executionStatus",
-        description="Current execution status"
+        description="Current execution status",
     )
-    
+
     # Data extraction results
     products_extracted: Optional[int] = Field(
         default=0,
         alias="productsExtracted",
-        description="Number of products successfully extracted"
+        description="Number of products successfully extracted",
     )
     extraction_duration_ms: Optional[int] = Field(
         default=None,
         alias="extractionDurationMs",
-        description="Duration of extraction process in milliseconds"
+        description="Duration of extraction process in milliseconds",
     )
     data_quality_score: Optional[float] = Field(
         default=None,
         alias="dataQualityScore",
-        description="Data quality score (0-100) based on completeness and validity"
+        description="Data quality score (0-100) based on completeness and validity",
     )
-    
+
     # Error handling and monitoring
     error_count: Optional[int] = Field(
         default=0,
         alias="errorCount",
-        description="Number of errors encountered during extraction"
+        description="Number of errors encountered during extraction",
     )
     last_error_message: Optional[str] = Field(
         default=None,
         alias="lastErrorMessage",
-        description="Last error message if extraction failed"
+        description="Last error message if extraction failed",
     )
     retry_count: Optional[int] = Field(
-        default=0,
-        alias="retryCount",
-        description="Number of retry attempts made"
+        default=0, alias="retryCount", description="Number of retry attempts made"
     )
-    
+
     # Extracted data summary
     extraction_summary: Optional[Dict[str, Any]] = Field(
         default=None,
         alias="extractionSummary",
-        description="Summary of extracted data including categories and counts"
+        description="Summary of extracted data including categories and counts",
     )
     extracted_data: Optional[List[Dict[str, Any]]] = Field(
         default=None,
         alias="extractedData",
-        description="Raw extracted data from Pet Store API"
+        description="Raw extracted data from Pet Store API",
     )
-    
+
     # Processing metadata
     processed_by: Optional[str] = Field(
         default="DataExtractionProcessor",
         alias="processedBy",
-        description="System component that processed the extraction"
+        description="System component that processed the extraction",
     )
-    
+
     # Validation constants
     ALLOWED_EXTRACTION_TYPES: ClassVar[List[str]] = [
-        "DAILY", "WEEKLY", "MONTHLY", "ON_DEMAND"
+        "DAILY",
+        "WEEKLY",
+        "MONTHLY",
+        "ON_DEMAND",
     ]
     ALLOWED_DAYS: ClassVar[List[str]] = [
-        "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"
+        "MONDAY",
+        "TUESDAY",
+        "WEDNESDAY",
+        "THURSDAY",
+        "FRIDAY",
+        "SATURDAY",
+        "SUNDAY",
     ]
-    ALLOWED_FORMATS: ClassVar[List[str]] = [
-        "JSON", "XML"
-    ]
+    ALLOWED_FORMATS: ClassVar[List[str]] = ["JSON", "XML"]
     ALLOWED_STATUSES: ClassVar[List[str]] = [
-        "PENDING", "SCHEDULED", "RUNNING", "COMPLETED", "FAILED", "RETRY"
+        "PENDING",
+        "SCHEDULED",
+        "RUNNING",
+        "COMPLETED",
+        "FAILED",
+        "RETRY",
     ]
 
     @field_validator("extraction_name")
@@ -158,7 +170,9 @@ class DataExtraction(CyodaEntity):
     def validate_extraction_type(cls, v: str) -> str:
         """Validate extraction type"""
         if v not in cls.ALLOWED_EXTRACTION_TYPES:
-            raise ValueError(f"Extraction type must be one of: {cls.ALLOWED_EXTRACTION_TYPES}")
+            raise ValueError(
+                f"Extraction type must be one of: {cls.ALLOWED_EXTRACTION_TYPES}"
+            )
         return v
 
     @field_validator("scheduled_day")
@@ -187,7 +201,9 @@ class DataExtraction(CyodaEntity):
 
     def update_execution_timestamp(self) -> None:
         """Update the last execution timestamp to current time"""
-        self.last_execution_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.last_execution_at = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
 
     def mark_extraction_started(self) -> None:
         """Mark extraction as started"""
@@ -217,17 +233,19 @@ class DataExtraction(CyodaEntity):
         """Set extracted data and update summary"""
         self.extracted_data = data
         self.products_extracted = len(data)
-        
+
         # Generate extraction summary
         categories = {}
         for item in data:
             category = item.get("category", "unknown")
             categories[category] = categories.get(category, 0) + 1
-        
+
         self.extraction_summary = {
             "total_products": len(data),
             "categories": categories,
-            "extraction_timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            "extraction_timestamp": datetime.now(timezone.utc)
+            .isoformat()
+            .replace("+00:00", "Z"),
         }
 
     def calculate_data_quality_score(self) -> float:
@@ -235,30 +253,30 @@ class DataExtraction(CyodaEntity):
         if not self.extracted_data:
             self.data_quality_score = 0.0
             return 0.0
-        
+
         total_fields = 0
         complete_fields = 0
         required_fields = ["id", "name", "category", "status"]
-        
+
         for item in self.extracted_data:
             for field in required_fields:
                 total_fields += 1
                 if field in item and item[field] is not None:
                     complete_fields += 1
-        
+
         if total_fields > 0:
             self.data_quality_score = (complete_fields / total_fields) * 100
         else:
             self.data_quality_score = 0.0
-        
+
         return self.data_quality_score
 
     def is_ready_for_processing(self) -> bool:
         """Check if extraction is ready for data processing"""
         return (
-            self.execution_status == "COMPLETED" and
-            self.extracted_data is not None and
-            len(self.extracted_data) > 0
+            self.execution_status == "COMPLETED"
+            and self.extracted_data is not None
+            and len(self.extracted_data) > 0
         )
 
     def to_api_response(self) -> Dict[str, Any]:

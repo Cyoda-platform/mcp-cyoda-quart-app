@@ -10,9 +10,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any, Dict
 
+from application.entity.report.version_1.report import Report
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.report.version_1.report import Report
 
 
 class ReportEmailProcessor(CyodaProcessor):
@@ -51,16 +51,18 @@ class ReportEmailProcessor(CyodaProcessor):
 
             # Validate report is ready for email
             if not report.is_ready_for_email():
-                self.logger.warning(f"Report {report.technical_id} is not ready for email dispatch")
+                self.logger.warning(
+                    f"Report {report.technical_id} is not ready for email dispatch"
+                )
                 report.mark_email_failed("Report data incomplete or email already sent")
                 return report
 
             # Format email content
             email_content = self._format_email_content(report)
-            
+
             # Simulate email dispatch (in real implementation, integrate with email service)
             success = await self._dispatch_email(report, email_content)
-            
+
             if success:
                 report.mark_email_sent()
                 self.logger.info(
@@ -77,7 +79,7 @@ class ReportEmailProcessor(CyodaProcessor):
                 f"Error processing report for email {getattr(entity, 'technical_id', '<unknown>')}: {str(e)}"
             )
             # Mark email as failed
-            if hasattr(entity, 'mark_email_failed'):
+            if hasattr(entity, "mark_email_failed"):
                 entity.mark_email_failed(str(e))
             raise
 
@@ -92,7 +94,9 @@ class ReportEmailProcessor(CyodaProcessor):
             Formatted email content
         """
         # Email subject
-        period_start = report.report_period_start[:10] if report.report_period_start else "Unknown"
+        period_start = (
+            report.report_period_start[:10] if report.report_period_start else "Unknown"
+        )
         subject = f"Weekly Pet Store Performance Report - {period_start}"
 
         # Email body with executive summary
@@ -111,15 +115,12 @@ class ReportEmailProcessor(CyodaProcessor):
             f"• High Performers: {len(report.top_performing_products or [])}",
             f"• Underperformers: {len(report.underperforming_products or [])}",
             f"• Low Stock Items: {len(report.low_stock_items or [])}",
-            ""
+            "",
         ]
 
         # Add top performing products
         if report.top_performing_products:
-            body_parts.extend([
-                "TOP PERFORMING PRODUCTS:",
-                "-" * 30
-            ])
+            body_parts.extend(["TOP PERFORMING PRODUCTS:", "-" * 30])
             for i, product in enumerate(report.top_performing_products[:5], 1):
                 body_parts.append(
                     f"{i}. {product.get('name', 'Unknown')} - "
@@ -130,10 +131,7 @@ class ReportEmailProcessor(CyodaProcessor):
 
         # Add low stock alerts
         if report.low_stock_items:
-            body_parts.extend([
-                "RESTOCKING REQUIRED:",
-                "-" * 25
-            ])
+            body_parts.extend(["RESTOCKING REQUIRED:", "-" * 25])
             for product in report.low_stock_items[:5]:
                 body_parts.append(
                     f"• {product.get('name', 'Unknown')} - "
@@ -142,15 +140,17 @@ class ReportEmailProcessor(CyodaProcessor):
             body_parts.append("")
 
         # Add footer
-        body_parts.extend([
-            "For detailed analysis and complete data, please refer to the attached report.",
-            "",
-            "This report was generated automatically by the Pet Store Performance Analysis System.",
-            f"Generated on: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}",
-            "",
-            "Best regards,",
-            "Pet Store Performance Analysis System"
-        ])
+        body_parts.extend(
+            [
+                "For detailed analysis and complete data, please refer to the attached report.",
+                "",
+                "This report was generated automatically by the Pet Store Performance Analysis System.",
+                f"Generated on: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}",
+                "",
+                "Best regards,",
+                "Pet Store Performance Analysis System",
+            ]
+        )
 
         email_body = "\n".join(body_parts)
 
@@ -158,7 +158,7 @@ class ReportEmailProcessor(CyodaProcessor):
             "subject": subject,
             "body": email_body,
             "recipient": report.recipient_email,
-            "attachments": self._prepare_attachments(report)
+            "attachments": self._prepare_attachments(report),
         }
 
     def _prepare_attachments(self, report: Report) -> list:
@@ -173,39 +173,47 @@ class ReportEmailProcessor(CyodaProcessor):
         """
         # In a real implementation, this would generate PDF or Excel attachments
         # For now, we'll prepare the data structure for attachments
-        
+
         attachments = []
-        
+
         # Main report attachment (would be PDF in real implementation)
         if report.report_data:
-            attachments.append({
-                "filename": f"performance_report_{report.report_period_start[:10]}.json",
-                "content_type": "application/json",
-                "data": report.report_data,
-                "description": "Detailed performance report data"
-            })
+            attachments.append(
+                {
+                    "filename": f"performance_report_{report.report_period_start[:10]}.json",
+                    "content_type": "application/json",
+                    "data": report.report_data,
+                    "description": "Detailed performance report data",
+                }
+            )
 
         # Top performers CSV (would be actual CSV in real implementation)
         if report.top_performing_products:
-            attachments.append({
-                "filename": f"top_performers_{report.report_period_start[:10]}.csv",
-                "content_type": "text/csv",
-                "data": report.top_performing_products,
-                "description": "Top performing products data"
-            })
+            attachments.append(
+                {
+                    "filename": f"top_performers_{report.report_period_start[:10]}.csv",
+                    "content_type": "text/csv",
+                    "data": report.top_performing_products,
+                    "description": "Top performing products data",
+                }
+            )
 
         # Low stock items CSV
         if report.low_stock_items:
-            attachments.append({
-                "filename": f"low_stock_items_{report.report_period_start[:10]}.csv",
-                "content_type": "text/csv",
-                "data": report.low_stock_items,
-                "description": "Products requiring restocking"
-            })
+            attachments.append(
+                {
+                    "filename": f"low_stock_items_{report.report_period_start[:10]}.csv",
+                    "content_type": "text/csv",
+                    "data": report.low_stock_items,
+                    "description": "Products requiring restocking",
+                }
+            )
 
         return attachments
 
-    async def _dispatch_email(self, report: Report, email_content: Dict[str, Any]) -> bool:
+    async def _dispatch_email(
+        self, report: Report, email_content: Dict[str, Any]
+    ) -> bool:
         """
         Dispatch email to recipient (simulated implementation).
 
@@ -222,20 +230,21 @@ class ReportEmailProcessor(CyodaProcessor):
             # - SMTP server
             # - Email service provider (SendGrid, AWS SES, etc.)
             # - Corporate email system
-            
+
             self.logger.info(
                 f"Simulating email dispatch to {email_content['recipient']}"
             )
             self.logger.info(f"Subject: {email_content['subject']}")
             self.logger.info(f"Attachments: {len(email_content['attachments'])}")
-            
+
             # Simulate processing time
             import asyncio
+
             await asyncio.sleep(0.1)
-            
+
             # Simulate success (in real implementation, check actual email service response)
             return True
-            
+
         except Exception as e:
             self.logger.error(f"Email dispatch failed: {str(e)}")
             return False

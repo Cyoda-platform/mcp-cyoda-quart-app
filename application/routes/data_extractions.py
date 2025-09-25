@@ -14,17 +14,22 @@ from quart import Blueprint, jsonify, request
 from quart.typing import ResponseReturnValue
 from quart_schema import operation_id, tag
 
+from application.entity.data_extraction.version_1.data_extraction import DataExtraction
 from common.service.entity_service import SearchConditionRequest
 from services.services import get_entity_service
-from application.entity.data_extraction.version_1.data_extraction import DataExtraction
 
 logger = logging.getLogger(__name__)
+
 
 # Helper to normalize entity data from service
 def _to_entity_dict(data: Any) -> Dict[str, Any]:
     return data.model_dump(by_alias=True) if hasattr(data, "model_dump") else data
 
-data_extractions_bp = Blueprint("data_extractions", __name__, url_prefix="/api/data-extractions")
+
+data_extractions_bp = Blueprint(
+    "data_extractions", __name__, url_prefix="/api/data-extractions"
+)
+
 
 @data_extractions_bp.route("", methods=["POST"])
 @tag(["data-extractions"])
@@ -58,6 +63,7 @@ async def create_data_extraction() -> ResponseReturnValue:
         logger.exception("Error creating DataExtraction: %s", str(e))
         return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
 
+
 @data_extractions_bp.route("/<entity_id>", methods=["GET"])
 @tag(["data-extractions"])
 @operation_id("get_data_extraction")
@@ -86,6 +92,7 @@ async def get_data_extraction(entity_id: str) -> ResponseReturnValue:
         logger.exception("Error getting DataExtraction %s: %s", entity_id, str(e))
         return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
 
+
 @data_extractions_bp.route("", methods=["GET"])
 @tag(["data-extractions"])
 @operation_id("list_data_extractions")
@@ -100,7 +107,7 @@ async def list_data_extractions() -> ResponseReturnValue:
         limit = int(request.args.get("limit", 50))
 
         service = get_entity_service()
-        
+
         # Build search conditions
         search_conditions: Dict[str, str] = {}
         if extraction_type:
@@ -130,13 +137,14 @@ async def list_data_extractions() -> ResponseReturnValue:
 
         # Apply pagination
         entity_list = [_to_entity_dict(r.data) for r in entities]
-        paginated_entities = entity_list[offset:offset + limit]
+        paginated_entities = entity_list[offset : offset + limit]
 
         return {"entities": paginated_entities, "total": len(entity_list)}, 200
 
     except Exception as e:
         logger.exception("Error listing DataExtractions: %s", str(e))
         return {"error": str(e)}, 500
+
 
 @data_extractions_bp.route("/<entity_id>", methods=["PUT"])
 @tag(["data-extractions"])
@@ -167,11 +175,14 @@ async def update_data_extraction(entity_id: str) -> ResponseReturnValue:
         return _to_entity_dict(response.data), 200
 
     except ValueError as e:
-        logger.warning("Validation error updating DataExtraction %s: %s", entity_id, str(e))
+        logger.warning(
+            "Validation error updating DataExtraction %s: %s", entity_id, str(e)
+        )
         return {"error": str(e), "code": "VALIDATION_ERROR"}, 400
     except Exception as e:
         logger.exception("Error updating DataExtraction %s: %s", entity_id, str(e))
         return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
+
 
 @data_extractions_bp.route("/<entity_id>", methods=["DELETE"])
 @tag(["data-extractions"])
@@ -190,7 +201,11 @@ async def delete_data_extraction(entity_id: str) -> ResponseReturnValue:
         )
 
         logger.info("Deleted DataExtraction %s", entity_id)
-        return {"success": True, "message": "DataExtraction deleted successfully", "entity_id": entity_id}, 200
+        return {
+            "success": True,
+            "message": "DataExtraction deleted successfully",
+            "entity_id": entity_id,
+        }, 200
 
     except ValueError as e:
         logger.warning("Invalid entity ID %s: %s", entity_id, str(e))
@@ -198,6 +213,7 @@ async def delete_data_extraction(entity_id: str) -> ResponseReturnValue:
     except Exception as e:
         logger.exception("Error deleting DataExtraction %s: %s", entity_id, str(e))
         return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
+
 
 @data_extractions_bp.route("/search", methods=["POST"])
 @tag(["data-extractions"])
@@ -228,6 +244,7 @@ async def search_data_extractions() -> ResponseReturnValue:
         logger.exception("Error searching DataExtractions: %s", str(e))
         return {"error": str(e)}, 500
 
+
 @data_extractions_bp.route("/<entity_id>/transitions", methods=["POST"])
 @tag(["data-extractions"])
 @operation_id("trigger_data_extraction_transition")
@@ -236,10 +253,13 @@ async def trigger_transition(entity_id: str) -> ResponseReturnValue:
     try:
         data = await request.get_json()
         if not data or "transition_name" not in data:
-            return {"error": "Transition name is required", "code": "MISSING_TRANSITION"}, 400
+            return {
+                "error": "Transition name is required",
+                "code": "MISSING_TRANSITION",
+            }, 400
 
         service = get_entity_service()
-        
+
         # Get current entity state
         current_entity = await service.get_by_id(
             entity_id=entity_id,
@@ -260,7 +280,11 @@ async def trigger_transition(entity_id: str) -> ResponseReturnValue:
             entity_version=str(DataExtraction.ENTITY_VERSION),
         )
 
-        logger.info("Executed transition '%s' on DataExtraction %s", data["transition_name"], entity_id)
+        logger.info(
+            "Executed transition '%s' on DataExtraction %s",
+            data["transition_name"],
+            entity_id,
+        )
 
         return {
             "id": response.metadata.id,
@@ -270,5 +294,7 @@ async def trigger_transition(entity_id: str) -> ResponseReturnValue:
         }, 200
 
     except Exception as e:
-        logger.exception("Error executing transition on DataExtraction %s: %s", entity_id, str(e))
+        logger.exception(
+            "Error executing transition on DataExtraction %s: %s", entity_id, str(e)
+        )
         return {"error": str(e)}, 500

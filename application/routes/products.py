@@ -14,17 +14,20 @@ from quart import Blueprint, jsonify, request
 from quart.typing import ResponseReturnValue
 from quart_schema import operation_id, tag, validate, validate_querystring
 
+from application.entity.product.version_1.product import Product
 from common.service.entity_service import SearchConditionRequest
 from services.services import get_entity_service
-from application.entity.product.version_1.product import Product
 
 logger = logging.getLogger(__name__)
+
 
 # Helper to normalize entity data from service
 def _to_entity_dict(data: Any) -> Dict[str, Any]:
     return data.model_dump(by_alias=True) if hasattr(data, "model_dump") else data
 
+
 products_bp = Blueprint("products", __name__, url_prefix="/api/products")
+
 
 @products_bp.route("", methods=["POST"])
 @tag(["products"])
@@ -58,6 +61,7 @@ async def create_product() -> ResponseReturnValue:
         logger.exception("Error creating Product: %s", str(e))
         return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
 
+
 @products_bp.route("/<entity_id>", methods=["GET"])
 @tag(["products"])
 @operation_id("get_product")
@@ -86,6 +90,7 @@ async def get_product(entity_id: str) -> ResponseReturnValue:
         logger.exception("Error getting Product %s: %s", entity_id, str(e))
         return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
 
+
 @products_bp.route("", methods=["GET"])
 @tag(["products"])
 @operation_id("list_products")
@@ -100,7 +105,7 @@ async def list_products() -> ResponseReturnValue:
         limit = int(request.args.get("limit", 50))
 
         service = get_entity_service()
-        
+
         # Build search conditions
         search_conditions: Dict[str, str] = {}
         if category:
@@ -130,13 +135,14 @@ async def list_products() -> ResponseReturnValue:
 
         # Apply pagination
         entity_list = [_to_entity_dict(r.data) for r in entities]
-        paginated_entities = entity_list[offset:offset + limit]
+        paginated_entities = entity_list[offset : offset + limit]
 
         return {"entities": paginated_entities, "total": len(entity_list)}, 200
 
     except Exception as e:
         logger.exception("Error listing Products: %s", str(e))
         return {"error": str(e)}, 500
+
 
 @products_bp.route("/<entity_id>", methods=["PUT"])
 @tag(["products"])
@@ -173,6 +179,7 @@ async def update_product(entity_id: str) -> ResponseReturnValue:
         logger.exception("Error updating Product %s: %s", entity_id, str(e))
         return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
 
+
 @products_bp.route("/<entity_id>", methods=["DELETE"])
 @tag(["products"])
 @operation_id("delete_product")
@@ -190,7 +197,11 @@ async def delete_product(entity_id: str) -> ResponseReturnValue:
         )
 
         logger.info("Deleted Product %s", entity_id)
-        return {"success": True, "message": "Product deleted successfully", "entity_id": entity_id}, 200
+        return {
+            "success": True,
+            "message": "Product deleted successfully",
+            "entity_id": entity_id,
+        }, 200
 
     except ValueError as e:
         logger.warning("Invalid entity ID %s: %s", entity_id, str(e))
@@ -198,6 +209,7 @@ async def delete_product(entity_id: str) -> ResponseReturnValue:
     except Exception as e:
         logger.exception("Error deleting Product %s: %s", entity_id, str(e))
         return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
+
 
 @products_bp.route("/search", methods=["POST"])
 @tag(["products"])
@@ -228,6 +240,7 @@ async def search_products() -> ResponseReturnValue:
         logger.exception("Error searching Products: %s", str(e))
         return {"error": str(e)}, 500
 
+
 @products_bp.route("/<entity_id>/transitions", methods=["POST"])
 @tag(["products"])
 @operation_id("trigger_product_transition")
@@ -236,10 +249,13 @@ async def trigger_transition(entity_id: str) -> ResponseReturnValue:
     try:
         data = await request.get_json()
         if not data or "transition_name" not in data:
-            return {"error": "Transition name is required", "code": "MISSING_TRANSITION"}, 400
+            return {
+                "error": "Transition name is required",
+                "code": "MISSING_TRANSITION",
+            }, 400
 
         service = get_entity_service()
-        
+
         # Get current entity state
         current_entity = await service.get_by_id(
             entity_id=entity_id,
@@ -260,7 +276,9 @@ async def trigger_transition(entity_id: str) -> ResponseReturnValue:
             entity_version=str(Product.ENTITY_VERSION),
         )
 
-        logger.info("Executed transition '%s' on Product %s", data["transition_name"], entity_id)
+        logger.info(
+            "Executed transition '%s' on Product %s", data["transition_name"], entity_id
+        )
 
         return {
             "id": response.metadata.id,
@@ -270,5 +288,7 @@ async def trigger_transition(entity_id: str) -> ResponseReturnValue:
         }, 200
 
     except Exception as e:
-        logger.exception("Error executing transition on Product %s: %s", entity_id, str(e))
+        logger.exception(
+            "Error executing transition on Product %s: %s", entity_id, str(e)
+        )
         return {"error": str(e)}, 500

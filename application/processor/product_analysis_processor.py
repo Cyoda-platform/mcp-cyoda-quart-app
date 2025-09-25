@@ -9,9 +9,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any, Dict
 
+from application.entity.product.version_1.product import Product
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.product.version_1.product import Product
 
 
 class ProductAnalysisProcessor(CyodaProcessor):
@@ -63,7 +63,9 @@ class ProductAnalysisProcessor(CyodaProcessor):
             product.trend_indicator = self._determine_trend_indicator(product)
 
             # Calculate inventory turnover rate
-            product.inventory_turnover_rate = self._calculate_inventory_turnover(product)
+            product.inventory_turnover_rate = self._calculate_inventory_turnover(
+                product
+            )
 
             self.logger.info(
                 f"Product {product.technical_id} analyzed successfully - "
@@ -101,8 +103,10 @@ class ProductAnalysisProcessor(CyodaProcessor):
 
         # Calculate additional metrics
         revenue_per_unit = revenue / sales_volume if sales_volume > 0 else 0.0
-        stock_to_sales_ratio = inventory_level / sales_volume if sales_volume > 0 else float('inf')
-        
+        stock_to_sales_ratio = (
+            inventory_level / sales_volume if sales_volume > 0 else float("inf")
+        )
+
         # Category-based performance benchmarks
         category_benchmarks = {
             "dog": {"min_sales": 50, "target_revenue": 1000.0},
@@ -110,11 +114,13 @@ class ProductAnalysisProcessor(CyodaProcessor):
             "bird": {"min_sales": 20, "target_revenue": 400.0},
             "fish": {"min_sales": 30, "target_revenue": 600.0},
             "reptile": {"min_sales": 15, "target_revenue": 300.0},
-            "small-pet": {"min_sales": 25, "target_revenue": 500.0}
+            "small-pet": {"min_sales": 25, "target_revenue": 500.0},
         }
 
-        benchmark = category_benchmarks.get(product.category, {"min_sales": 30, "target_revenue": 600.0})
-        
+        benchmark = category_benchmarks.get(
+            product.category, {"min_sales": 30, "target_revenue": 600.0}
+        )
+
         performance_metrics = {
             "analyzed_at": current_timestamp,
             "sales_volume": sales_volume,
@@ -127,7 +133,7 @@ class ProductAnalysisProcessor(CyodaProcessor):
             "meets_revenue_target": revenue >= benchmark["target_revenue"],
             "is_low_stock": inventory_level <= 10,
             "is_overstocked": stock_to_sales_ratio > 5.0 if sales_volume > 0 else False,
-            "analysis_version": "1.0"
+            "analysis_version": "1.0",
         }
 
         return performance_metrics
@@ -202,11 +208,11 @@ class ProductAnalysisProcessor(CyodaProcessor):
         # High performance and good sales indicate rising trend
         if performance_score >= 70.0 and sales_volume >= 50:
             return "RISING"
-        
+
         # Low performance or very low sales indicate falling trend
         elif performance_score < 40.0 or sales_volume < 10:
             return "FALLING"
-        
+
         # Everything else is stable
         else:
             return "STABLE"

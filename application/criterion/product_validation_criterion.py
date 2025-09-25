@@ -7,9 +7,9 @@ standards before proceeding to analysis stage as specified in functional require
 
 from typing import Any
 
+from application.entity.product.version_1.product import Product
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.product.version_1.product import Product
 
 
 class ProductValidationCriterion(CyodaCriteriaChecker):
@@ -82,22 +82,30 @@ class ProductValidationCriterion(CyodaCriteriaChecker):
         """
         # Validate product_id
         if not product.product_id or len(product.product_id.strip()) == 0:
-            self.logger.warning(f"Product {product.technical_id} has invalid product_id")
+            self.logger.warning(
+                f"Product {product.technical_id} has invalid product_id"
+            )
             return False
 
         # Validate name
         if not product.name or len(product.name.strip()) < 3:
-            self.logger.warning(f"Product {product.technical_id} has invalid name: '{product.name}'")
+            self.logger.warning(
+                f"Product {product.technical_id} has invalid name: '{product.name}'"
+            )
             return False
 
         # Validate category
         if product.category not in product.ALLOWED_CATEGORIES:
-            self.logger.warning(f"Product {product.technical_id} has invalid category: {product.category}")
+            self.logger.warning(
+                f"Product {product.technical_id} has invalid category: {product.category}"
+            )
             return False
 
         # Validate status
         if product.status not in product.ALLOWED_STATUSES:
-            self.logger.warning(f"Product {product.technical_id} has invalid status: {product.status}")
+            self.logger.warning(
+                f"Product {product.technical_id} has invalid status: {product.status}"
+            )
             return False
 
         return True
@@ -115,40 +123,54 @@ class ProductValidationCriterion(CyodaCriteriaChecker):
         # Validate price
         if product.price is not None:
             if product.price < 0:
-                self.logger.warning(f"Product {product.technical_id} has negative price: {product.price}")
+                self.logger.warning(
+                    f"Product {product.technical_id} has negative price: {product.price}"
+                )
                 return False
             if product.price > 10000:  # Reasonable upper limit
-                self.logger.warning(f"Product {product.technical_id} has unrealistic price: {product.price}")
+                self.logger.warning(
+                    f"Product {product.technical_id} has unrealistic price: {product.price}"
+                )
                 return False
 
         # Validate sales volume
         if product.sales_volume is not None:
             if product.sales_volume < 0:
-                self.logger.warning(f"Product {product.technical_id} has negative sales volume: {product.sales_volume}")
+                self.logger.warning(
+                    f"Product {product.technical_id} has negative sales volume: {product.sales_volume}"
+                )
                 return False
 
         # Validate inventory level
         if product.inventory_level is not None:
             if product.inventory_level < 0:
-                self.logger.warning(f"Product {product.technical_id} has negative inventory: {product.inventory_level}")
+                self.logger.warning(
+                    f"Product {product.technical_id} has negative inventory: {product.inventory_level}"
+                )
                 return False
 
         # Validate revenue
         if product.revenue is not None:
             if product.revenue < 0:
-                self.logger.warning(f"Product {product.technical_id} has negative revenue: {product.revenue}")
+                self.logger.warning(
+                    f"Product {product.technical_id} has negative revenue: {product.revenue}"
+                )
                 return False
 
         # Validate performance score if present
         if product.performance_score is not None:
             if not (0 <= product.performance_score <= 100):
-                self.logger.warning(f"Product {product.technical_id} has invalid performance score: {product.performance_score}")
+                self.logger.warning(
+                    f"Product {product.technical_id} has invalid performance score: {product.performance_score}"
+                )
                 return False
 
         # Validate trend indicator if present
         if product.trend_indicator is not None:
             if product.trend_indicator not in product.ALLOWED_TRENDS:
-                self.logger.warning(f"Product {product.technical_id} has invalid trend indicator: {product.trend_indicator}")
+                self.logger.warning(
+                    f"Product {product.technical_id} has invalid trend indicator: {product.trend_indicator}"
+                )
                 return False
 
         return True
@@ -165,12 +187,16 @@ class ProductValidationCriterion(CyodaCriteriaChecker):
         """
         # Rule: Products with status 'sold' should have sales volume > 0
         if product.status == "sold" and (product.sales_volume or 0) == 0:
-            self.logger.warning(f"Product {product.technical_id} marked as sold but has no sales volume")
+            self.logger.warning(
+                f"Product {product.technical_id} marked as sold but has no sales volume"
+            )
             return False
 
         # Rule: Available products should have inventory > 0
         if product.status == "available" and (product.inventory_level or 0) == 0:
-            self.logger.warning(f"Product {product.technical_id} marked as available but has no inventory")
+            self.logger.warning(
+                f"Product {product.technical_id} marked as available but has no inventory"
+            )
             return False
 
         # Rule: Products with high sales should not have very high inventory (potential data error)
@@ -196,13 +222,15 @@ class ProductValidationCriterion(CyodaCriteriaChecker):
             True if data is consistent, False otherwise
         """
         # Check revenue calculation consistency
-        if (product.price is not None and 
-            product.sales_volume is not None and 
-            product.revenue is not None):
-            
+        if (
+            product.price is not None
+            and product.sales_volume is not None
+            and product.revenue is not None
+        ):
+
             expected_revenue = product.price * product.sales_volume
             actual_revenue = product.revenue
-            
+
             # Allow for small floating point differences
             if abs(expected_revenue - actual_revenue) > 0.01:
                 self.logger.warning(
@@ -212,14 +240,16 @@ class ProductValidationCriterion(CyodaCriteriaChecker):
                 return False
 
         # Check inventory turnover consistency if present
-        if (product.inventory_turnover_rate is not None and
-            product.sales_volume is not None and
-            product.inventory_level is not None and
-            product.inventory_level > 0):
-            
+        if (
+            product.inventory_turnover_rate is not None
+            and product.sales_volume is not None
+            and product.inventory_level is not None
+            and product.inventory_level > 0
+        ):
+
             expected_turnover = product.sales_volume / product.inventory_level
             actual_turnover = product.inventory_turnover_rate
-            
+
             # Allow for reasonable difference
             if abs(expected_turnover - actual_turnover) > 0.1:
                 self.logger.warning(

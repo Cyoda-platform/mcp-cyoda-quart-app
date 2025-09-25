@@ -33,113 +33,112 @@ class Report(CyodaEntity):
     report_period_start: str = Field(
         ...,
         alias="reportPeriodStart",
-        description="Start date of the reporting period (ISO 8601 format)"
+        description="Start date of the reporting period (ISO 8601 format)",
     )
     report_period_end: str = Field(
         ...,
-        alias="reportPeriodEnd", 
-        description="End date of the reporting period (ISO 8601 format)"
+        alias="reportPeriodEnd",
+        description="End date of the reporting period (ISO 8601 format)",
     )
     report_type: str = Field(
         default="WEEKLY",
         alias="reportType",
-        description="Type of report: WEEKLY, MONTHLY, QUARTERLY"
+        description="Type of report: WEEKLY, MONTHLY, QUARTERLY",
     )
-    
+
     # Report content and analysis
     executive_summary: Optional[str] = Field(
         default=None,
         alias="executiveSummary",
-        description="Brief overview of key findings and insights"
+        description="Brief overview of key findings and insights",
     )
     total_products_analyzed: Optional[int] = Field(
         default=0,
         alias="totalProductsAnalyzed",
-        description="Number of products included in the analysis"
+        description="Number of products included in the analysis",
     )
     total_revenue: Optional[float] = Field(
         default=0.0,
         alias="totalRevenue",
-        description="Total revenue for the reporting period"
+        description="Total revenue for the reporting period",
     )
-    
+
     # Performance insights
     top_performing_products: Optional[List[Dict[str, Any]]] = Field(
         default=None,
         alias="topPerformingProducts",
-        description="List of highest-selling products with metrics"
+        description="List of highest-selling products with metrics",
     )
     underperforming_products: Optional[List[Dict[str, Any]]] = Field(
         default=None,
         alias="underperformingProducts",
-        description="List of slow-moving products requiring attention"
+        description="List of slow-moving products requiring attention",
     )
     low_stock_items: Optional[List[Dict[str, Any]]] = Field(
-        default=None,
-        alias="lowStockItems",
-        description="Products requiring restocking"
+        default=None, alias="lowStockItems", description="Products requiring restocking"
     )
-    
+
     # Trend analysis
     sales_trends: Optional[Dict[str, Any]] = Field(
         default=None,
         alias="salesTrends",
-        description="Sales trend analysis by category and time period"
+        description="Sales trend analysis by category and time period",
     )
     inventory_insights: Optional[Dict[str, Any]] = Field(
         default=None,
         alias="inventoryInsights",
-        description="Inventory turnover and stock level insights"
+        description="Inventory turnover and stock level insights",
     )
-    
+
     # Email dispatch information
     recipient_email: str = Field(
         default="victoria.sagdieva@cyoda.com",
         alias="recipientEmail",
-        description="Email address for report delivery"
+        description="Email address for report delivery",
     )
     email_status: Optional[str] = Field(
         default="PENDING",
         alias="emailStatus",
-        description="Email dispatch status: PENDING, SENT, FAILED"
+        description="Email dispatch status: PENDING, SENT, FAILED",
     )
     email_sent_at: Optional[str] = Field(
         default=None,
         alias="emailSentAt",
-        description="Timestamp when email was sent (ISO 8601 format)"
+        description="Timestamp when email was sent (ISO 8601 format)",
     )
     email_error_message: Optional[str] = Field(
         default=None,
         alias="emailErrorMessage",
-        description="Error message if email dispatch failed"
+        description="Error message if email dispatch failed",
     )
-    
+
     # Report generation metadata
     generated_at: Optional[str] = Field(
         default=None,
         alias="generatedAt",
-        description="Timestamp when report was generated"
+        description="Timestamp when report was generated",
     )
     generated_by: Optional[str] = Field(
         default="ProductPerformanceAnalysisSystem",
         alias="generatedBy",
-        description="System or user that generated the report"
+        description="System or user that generated the report",
     )
-    
+
     # Report data and attachments
     report_data: Optional[Dict[str, Any]] = Field(
         default=None,
         alias="reportData",
-        description="Complete report data and analysis results"
+        description="Complete report data and analysis results",
     )
-    
+
     # Validation constants
     ALLOWED_REPORT_TYPES: ClassVar[List[str]] = [
-        "WEEKLY", "MONTHLY", "QUARTERLY", "ANNUAL"
+        "WEEKLY",
+        "MONTHLY",
+        "QUARTERLY",
+        "ANNUAL",
     ]
-    ALLOWED_EMAIL_STATUSES: ClassVar[List[str]] = [
-        "PENDING", "SENT", "FAILED", "RETRY"
-    ]
+    ALLOWED_EMAIL_STATUSES: ClassVar[List[str]] = ["PENDING", "SENT", "FAILED", "RETRY"]
 
     @field_validator("report_title")
     @classmethod
@@ -164,7 +163,9 @@ class Report(CyodaEntity):
     def validate_email_status(cls, v: Optional[str]) -> Optional[str]:
         """Validate email status"""
         if v is not None and v not in cls.ALLOWED_EMAIL_STATUSES:
-            raise ValueError(f"Email status must be one of: {cls.ALLOWED_EMAIL_STATUSES}")
+            raise ValueError(
+                f"Email status must be one of: {cls.ALLOWED_EMAIL_STATUSES}"
+            )
         return v
 
     @field_validator("recipient_email")
@@ -179,12 +180,16 @@ class Report(CyodaEntity):
 
     def update_generation_timestamp(self) -> None:
         """Update the generated timestamp to current time"""
-        self.generated_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.generated_at = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
 
     def mark_email_sent(self) -> None:
         """Mark email as successfully sent"""
         self.email_status = "SENT"
-        self.email_sent_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.email_sent_at = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
         self.email_error_message = None
 
     def mark_email_failed(self, error_message: str) -> None:
@@ -219,9 +224,9 @@ class Report(CyodaEntity):
     def is_ready_for_email(self) -> bool:
         """Check if report is ready for email dispatch"""
         return (
-            self.report_data is not None and
-            self.executive_summary is not None and
-            self.email_status == "PENDING"
+            self.report_data is not None
+            and self.executive_summary is not None
+            and self.email_status == "PENDING"
         )
 
     def to_api_response(self) -> Dict[str, Any]:

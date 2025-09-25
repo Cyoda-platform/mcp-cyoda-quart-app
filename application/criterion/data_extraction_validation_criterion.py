@@ -7,9 +7,9 @@ with acceptable quality and completeness as specified in functional requirements
 
 from typing import Any
 
+from application.entity.data_extraction.version_1.data_extraction import DataExtraction
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.data_extraction.version_1.data_extraction import DataExtraction
 
 
 class DataExtractionValidationCriterion(CyodaCriteriaChecker):
@@ -93,13 +93,17 @@ class DataExtractionValidationCriterion(CyodaCriteriaChecker):
 
         # Check that execution timestamp exists
         if not extraction.last_execution_at:
-            self.logger.warning(f"DataExtraction {extraction.technical_id} has no execution timestamp")
+            self.logger.warning(
+                f"DataExtraction {extraction.technical_id} has no execution timestamp"
+            )
             return False
 
         # Check error count is acceptable
         error_count = extraction.error_count or 0
         if error_count > 5:  # Allow some errors but not too many
-            self.logger.warning(f"DataExtraction {extraction.technical_id} has too many errors: {error_count}")
+            self.logger.warning(
+                f"DataExtraction {extraction.technical_id} has too many errors: {error_count}"
+            )
             return False
 
         return True
@@ -116,18 +120,24 @@ class DataExtractionValidationCriterion(CyodaCriteriaChecker):
         """
         # Check that data was extracted
         if not extraction.extracted_data:
-            self.logger.warning(f"DataExtraction {extraction.technical_id} has no extracted data")
+            self.logger.warning(
+                f"DataExtraction {extraction.technical_id} has no extracted data"
+            )
             return False
 
         # Check minimum number of products
         products_count = len(extraction.extracted_data)
         if products_count == 0:
-            self.logger.warning(f"DataExtraction {extraction.technical_id} extracted no products")
+            self.logger.warning(
+                f"DataExtraction {extraction.technical_id} extracted no products"
+            )
             return False
 
         # Check maximum reasonable number (prevent data corruption)
         if products_count > 10000:
-            self.logger.warning(f"DataExtraction {extraction.technical_id} extracted too many products: {products_count}")
+            self.logger.warning(
+                f"DataExtraction {extraction.technical_id} extracted too many products: {products_count}"
+            )
             return False
 
         # Validate individual product records
@@ -147,7 +157,9 @@ class DataExtractionValidationCriterion(CyodaCriteriaChecker):
 
         return True
 
-    def _validate_product_record(self, product: dict, index: int, extraction_id: str) -> bool:
+    def _validate_product_record(
+        self, product: dict, index: int, extraction_id: str
+    ) -> bool:
         """
         Validate individual product record from extracted data.
 
@@ -163,7 +175,9 @@ class DataExtractionValidationCriterion(CyodaCriteriaChecker):
         required_fields = ["id", "name", "category", "status"]
         for field in required_fields:
             if field not in product or not product[field]:
-                self.logger.debug(f"DataExtraction {extraction_id} product[{index}] missing {field}")
+                self.logger.debug(
+                    f"DataExtraction {extraction_id} product[{index}] missing {field}"
+                )
                 return False
 
         # Validate field formats
@@ -173,7 +187,10 @@ class DataExtractionValidationCriterion(CyodaCriteriaChecker):
                 return False
 
             # Name should be non-empty string
-            if not isinstance(product["name"], str) or len(product["name"].strip()) == 0:
+            if (
+                not isinstance(product["name"], str)
+                or len(product["name"].strip()) == 0
+            ):
                 return False
 
             # Category should be valid
@@ -215,7 +232,9 @@ class DataExtractionValidationCriterion(CyodaCriteriaChecker):
         # Check data quality score
         quality_score = extraction.data_quality_score
         if quality_score is None:
-            self.logger.warning(f"DataExtraction {extraction.technical_id} has no data quality score")
+            self.logger.warning(
+                f"DataExtraction {extraction.technical_id} has no data quality score"
+            )
             return False
 
         # Require minimum quality score of 70%
@@ -227,7 +246,9 @@ class DataExtractionValidationCriterion(CyodaCriteriaChecker):
 
         # Check extraction summary exists
         if not extraction.extraction_summary:
-            self.logger.warning(f"DataExtraction {extraction.technical_id} has no extraction summary")
+            self.logger.warning(
+                f"DataExtraction {extraction.technical_id} has no extraction summary"
+            )
             return False
 
         return True
@@ -245,26 +266,36 @@ class DataExtractionValidationCriterion(CyodaCriteriaChecker):
         # Check products extracted count
         products_extracted = extraction.products_extracted or 0
         if products_extracted == 0:
-            self.logger.warning(f"DataExtraction {extraction.technical_id} extracted no products")
+            self.logger.warning(
+                f"DataExtraction {extraction.technical_id} extracted no products"
+            )
             return False
 
         # Check extraction duration is reasonable
         duration_ms = extraction.extraction_duration_ms
         if duration_ms is None:
-            self.logger.warning(f"DataExtraction {extraction.technical_id} has no duration recorded")
+            self.logger.warning(
+                f"DataExtraction {extraction.technical_id} has no duration recorded"
+            )
             return False
 
         # Duration should be reasonable (not too fast or too slow)
         if duration_ms < 100:  # Less than 100ms seems too fast
-            self.logger.warning(f"DataExtraction {extraction.technical_id} completed too quickly: {duration_ms}ms")
+            self.logger.warning(
+                f"DataExtraction {extraction.technical_id} completed too quickly: {duration_ms}ms"
+            )
             return False
 
         if duration_ms > 300000:  # More than 5 minutes seems too slow
-            self.logger.warning(f"DataExtraction {extraction.technical_id} took too long: {duration_ms}ms")
+            self.logger.warning(
+                f"DataExtraction {extraction.technical_id} took too long: {duration_ms}ms"
+            )
             return False
 
         # Check consistency between products_extracted and actual data
-        actual_count = len(extraction.extracted_data) if extraction.extracted_data else 0
+        actual_count = (
+            len(extraction.extracted_data) if extraction.extracted_data else 0
+        )
         if products_extracted != actual_count:
             self.logger.warning(
                 f"DataExtraction {extraction.technical_id} has inconsistent product count: "
@@ -288,20 +319,26 @@ class DataExtractionValidationCriterion(CyodaCriteriaChecker):
         if extraction.extraction_type == "WEEKLY":
             products_count = extraction.products_extracted or 0
             if products_count < 5:  # Too few for a pet store
-                self.logger.warning(f"DataExtraction {extraction.technical_id} has too few products for weekly extraction: {products_count}")
+                self.logger.warning(
+                    f"DataExtraction {extraction.technical_id} has too few products for weekly extraction: {products_count}"
+                )
                 return False
 
         # Rule: Check retry count is not excessive
         retry_count = extraction.retry_count or 0
         if retry_count > 3:
-            self.logger.warning(f"DataExtraction {extraction.technical_id} has excessive retry count: {retry_count}")
+            self.logger.warning(
+                f"DataExtraction {extraction.technical_id} has excessive retry count: {retry_count}"
+            )
             return False
 
         # Rule: Validate extraction summary has expected structure
         if extraction.extraction_summary:
             summary = extraction.extraction_summary
             if "total_products" not in summary or "categories" not in summary:
-                self.logger.warning(f"DataExtraction {extraction.technical_id} has invalid extraction summary structure")
+                self.logger.warning(
+                    f"DataExtraction {extraction.technical_id} has invalid extraction summary structure"
+                )
                 return False
 
             # Check that summary total matches actual count

@@ -7,9 +7,9 @@ as specified in functional requirements for automated reporting.
 
 from typing import Any
 
+from application.entity.report.version_1.report import Report
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.report.version_1.report import Report
 
 
 class ReportValidationCriterion(CyodaCriteriaChecker):
@@ -91,17 +91,23 @@ class ReportValidationCriterion(CyodaCriteriaChecker):
 
         # Validate report period
         if not report.report_period_start or not report.report_period_end:
-            self.logger.warning(f"Report {report.technical_id} has invalid reporting period")
+            self.logger.warning(
+                f"Report {report.technical_id} has invalid reporting period"
+            )
             return False
 
         # Validate report type
         if report.report_type not in report.ALLOWED_REPORT_TYPES:
-            self.logger.warning(f"Report {report.technical_id} has invalid report type: {report.report_type}")
+            self.logger.warning(
+                f"Report {report.technical_id} has invalid report type: {report.report_type}"
+            )
             return False
 
         # Validate recipient email
         if not report.recipient_email or "@" not in report.recipient_email:
-            self.logger.warning(f"Report {report.technical_id} has invalid recipient email")
+            self.logger.warning(
+                f"Report {report.technical_id} has invalid recipient email"
+            )
             return False
 
         return True
@@ -118,12 +124,16 @@ class ReportValidationCriterion(CyodaCriteriaChecker):
         """
         # Validate executive summary
         if not report.executive_summary or len(report.executive_summary.strip()) < 50:
-            self.logger.warning(f"Report {report.technical_id} has insufficient executive summary")
+            self.logger.warning(
+                f"Report {report.technical_id} has insufficient executive summary"
+            )
             return False
 
         # Validate that report has analyzed some products
         if (report.total_products_analyzed or 0) == 0:
-            self.logger.warning(f"Report {report.technical_id} has no products analyzed")
+            self.logger.warning(
+                f"Report {report.technical_id} has no products analyzed"
+            )
             return False
 
         # Validate that report data exists
@@ -133,9 +143,12 @@ class ReportValidationCriterion(CyodaCriteriaChecker):
 
         # Check for at least some product data
         has_product_data = (
-            (report.top_performing_products and len(report.top_performing_products) > 0) or
-            (report.underperforming_products and len(report.underperforming_products) > 0) or
-            (report.low_stock_items and len(report.low_stock_items) > 0)
+            (report.top_performing_products and len(report.top_performing_products) > 0)
+            or (
+                report.underperforming_products
+                and len(report.underperforming_products) > 0
+            )
+            or (report.low_stock_items and len(report.low_stock_items) > 0)
         )
 
         if not has_product_data:
@@ -156,32 +169,47 @@ class ReportValidationCriterion(CyodaCriteriaChecker):
         """
         # Validate numeric fields
         if report.total_revenue is not None and report.total_revenue < 0:
-            self.logger.warning(f"Report {report.technical_id} has negative total revenue")
+            self.logger.warning(
+                f"Report {report.technical_id} has negative total revenue"
+            )
             return False
 
-        if report.total_products_analyzed is not None and report.total_products_analyzed < 0:
-            self.logger.warning(f"Report {report.technical_id} has negative products analyzed count")
+        if (
+            report.total_products_analyzed is not None
+            and report.total_products_analyzed < 0
+        ):
+            self.logger.warning(
+                f"Report {report.technical_id} has negative products analyzed count"
+            )
             return False
 
         # Validate product data consistency
         if report.top_performing_products:
             for i, product in enumerate(report.top_performing_products):
-                if not self._validate_product_data(product, f"top_performing[{i}]", report.technical_id):
+                if not self._validate_product_data(
+                    product, f"top_performing[{i}]", report.technical_id
+                ):
                     return False
 
         if report.underperforming_products:
             for i, product in enumerate(report.underperforming_products):
-                if not self._validate_product_data(product, f"underperforming[{i}]", report.technical_id):
+                if not self._validate_product_data(
+                    product, f"underperforming[{i}]", report.technical_id
+                ):
                     return False
 
         if report.low_stock_items:
             for i, product in enumerate(report.low_stock_items):
-                if not self._validate_product_data(product, f"low_stock[{i}]", report.technical_id):
+                if not self._validate_product_data(
+                    product, f"low_stock[{i}]", report.technical_id
+                ):
                     return False
 
         return True
 
-    def _validate_product_data(self, product_data: dict, context: str, report_id: str) -> bool:
+    def _validate_product_data(
+        self, product_data: dict, context: str, report_id: str
+    ) -> bool:
         """
         Validate individual product data within the report.
 
@@ -197,20 +225,33 @@ class ReportValidationCriterion(CyodaCriteriaChecker):
         required_fields = ["product_id", "name", "category"]
         for field in required_fields:
             if field not in product_data or not product_data[field]:
-                self.logger.warning(f"Report {report_id} {context} missing required field: {field}")
+                self.logger.warning(
+                    f"Report {report_id} {context} missing required field: {field}"
+                )
                 return False
 
         # Validate numeric fields
-        numeric_fields = ["sales_volume", "revenue", "performance_score", "inventory_level"]
+        numeric_fields = [
+            "sales_volume",
+            "revenue",
+            "performance_score",
+            "inventory_level",
+        ]
         for field in numeric_fields:
             if field in product_data and product_data[field] is not None:
                 try:
                     value = float(product_data[field])
-                    if value < 0 and field != "performance_score":  # Performance score can be 0
-                        self.logger.warning(f"Report {report_id} {context} has negative {field}: {value}")
+                    if (
+                        value < 0 and field != "performance_score"
+                    ):  # Performance score can be 0
+                        self.logger.warning(
+                            f"Report {report_id} {context} has negative {field}: {value}"
+                        )
                         return False
                 except (ValueError, TypeError):
-                    self.logger.warning(f"Report {report_id} {context} has invalid {field}: {product_data[field]}")
+                    self.logger.warning(
+                        f"Report {report_id} {context} has invalid {field}: {product_data[field]}"
+                    )
                     return False
 
         return True
@@ -227,18 +268,24 @@ class ReportValidationCriterion(CyodaCriteriaChecker):
         """
         # Validate email status
         if report.email_status not in report.ALLOWED_EMAIL_STATUSES:
-            self.logger.warning(f"Report {report.technical_id} has invalid email status: {report.email_status}")
+            self.logger.warning(
+                f"Report {report.technical_id} has invalid email status: {report.email_status}"
+            )
             return False
 
         # Validate recipient email format (basic check)
         email = report.recipient_email
         if not email or "@" not in email or "." not in email.split("@")[1]:
-            self.logger.warning(f"Report {report.technical_id} has invalid email format: {email}")
+            self.logger.warning(
+                f"Report {report.technical_id} has invalid email format: {email}"
+            )
             return False
 
         # Check that email is pending (ready for dispatch)
         if report.email_status != "PENDING":
-            self.logger.warning(f"Report {report.technical_id} email status is not PENDING: {report.email_status}")
+            self.logger.warning(
+                f"Report {report.technical_id} email status is not PENDING: {report.email_status}"
+            )
             return False
 
         return True
@@ -257,21 +304,30 @@ class ReportValidationCriterion(CyodaCriteriaChecker):
         if report.report_type == "WEEKLY":
             total_products = report.total_products_analyzed or 0
             if total_products > 1000:  # Unreasonably high for weekly
-                self.logger.warning(f"Report {report.technical_id} has suspiciously high product count: {total_products}")
+                self.logger.warning(
+                    f"Report {report.technical_id} has suspiciously high product count: {total_products}"
+                )
                 return False
 
         # Rule: Total revenue should be consistent with product data
         if report.total_revenue is not None and report.total_revenue > 0:
             # Calculate revenue from product lists
             calculated_revenue = 0.0
-            
-            for product_list in [report.top_performing_products, report.underperforming_products]:
+
+            for product_list in [
+                report.top_performing_products,
+                report.underperforming_products,
+            ]:
                 if product_list:
                     for product in product_list:
                         calculated_revenue += product.get("revenue", 0.0)
-            
+
             # Allow for some difference due to rounding and partial data
-            if calculated_revenue > 0 and abs(report.total_revenue - calculated_revenue) > report.total_revenue * 0.5:
+            if (
+                calculated_revenue > 0
+                and abs(report.total_revenue - calculated_revenue)
+                > report.total_revenue * 0.5
+            ):
                 self.logger.warning(
                     f"Report {report.technical_id} has inconsistent revenue calculation: "
                     f"Reported: {report.total_revenue}, Calculated: {calculated_revenue}"
@@ -280,7 +336,9 @@ class ReportValidationCriterion(CyodaCriteriaChecker):
 
         # Rule: Report should have generation timestamp
         if not report.generated_at:
-            self.logger.warning(f"Report {report.technical_id} has no generation timestamp")
+            self.logger.warning(
+                f"Report {report.technical_id} has no generation timestamp"
+            )
             return False
 
         return True

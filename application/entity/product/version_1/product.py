@@ -33,70 +33,64 @@ class Product(CyodaEntity):
     name: str = Field(..., description="Product name")
     category: str = Field(..., description="Product category (e.g., dog, cat, bird)")
     status: str = Field(..., description="Product status (available, pending, sold)")
-    
+
     # Sales and inventory data
     price: Optional[float] = Field(default=None, description="Product price")
     sales_volume: Optional[int] = Field(
-        default=0, 
-        alias="salesVolume",
-        description="Number of units sold"
+        default=0, alias="salesVolume", description="Number of units sold"
     )
-    revenue: Optional[float] = Field(
-        default=0.0,
-        description="Total revenue generated"
-    )
+    revenue: Optional[float] = Field(default=0.0, description="Total revenue generated")
     inventory_level: Optional[int] = Field(
-        default=0,
-        alias="inventoryLevel", 
-        description="Current stock level"
+        default=0, alias="inventoryLevel", description="Current stock level"
     )
-    
+
     # Performance metrics (calculated during analysis)
     inventory_turnover_rate: Optional[float] = Field(
         default=None,
         alias="inventoryTurnoverRate",
-        description="Inventory turnover rate calculated during analysis"
+        description="Inventory turnover rate calculated during analysis",
     )
     performance_score: Optional[float] = Field(
         default=None,
         alias="performanceScore",
-        description="Overall performance score (0-100)"
+        description="Overall performance score (0-100)",
     )
     trend_indicator: Optional[str] = Field(
         default=None,
         alias="trendIndicator",
-        description="Trend indicator: RISING, FALLING, STABLE"
+        description="Trend indicator: RISING, FALLING, STABLE",
     )
-    
+
     # Timestamps
     last_extracted_at: Optional[str] = Field(
         default=None,
         alias="lastExtractedAt",
-        description="Timestamp when data was last extracted from API"
+        description="Timestamp when data was last extracted from API",
     )
     last_analyzed_at: Optional[str] = Field(
         default=None,
-        alias="lastAnalyzedAt", 
-        description="Timestamp when performance analysis was last performed"
+        alias="lastAnalyzedAt",
+        description="Timestamp when performance analysis was last performed",
     )
-    
+
     # Analysis results
     analysis_data: Optional[Dict[str, Any]] = Field(
         default=None,
         alias="analysisData",
-        description="Detailed analysis results and metrics"
+        description="Detailed analysis results and metrics",
     )
-    
+
     # Validation constants
     ALLOWED_CATEGORIES: ClassVar[List[str]] = [
-        "dog", "cat", "bird", "fish", "reptile", "small-pet"
+        "dog",
+        "cat",
+        "bird",
+        "fish",
+        "reptile",
+        "small-pet",
     ]
-    ALLOWED_STATUSES: ClassVar[List[str]] = [
-        "available", "pending", "sold"
-    ]
-    ALLOWED_TRENDS: ClassVar[List[str]] = [
-        "RISING", "FALLING", "STABLE"
-    ]
+    ALLOWED_STATUSES: ClassVar[List[str]] = ["available", "pending", "sold"]
+    ALLOWED_TRENDS: ClassVar[List[str]] = ["RISING", "FALLING", "STABLE"]
 
     @field_validator("product_id")
     @classmethod
@@ -144,11 +138,15 @@ class Product(CyodaEntity):
 
     def update_extraction_timestamp(self) -> None:
         """Update the last extracted timestamp to current time"""
-        self.last_extracted_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.last_extracted_at = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
 
     def update_analysis_timestamp(self) -> None:
         """Update the last analyzed timestamp to current time"""
-        self.last_analyzed_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.last_analyzed_at = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
 
     def set_analysis_data(self, analysis_data: Dict[str, Any]) -> None:
         """Set analysis data and update timestamp"""

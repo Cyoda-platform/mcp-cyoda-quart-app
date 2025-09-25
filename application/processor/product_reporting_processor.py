@@ -6,13 +6,13 @@ and triggering report generation workflows as specified in functional requiremen
 """
 
 import logging
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict
 
-from common.entity.entity_casting import cast_entity
-from common.processor.base import CyodaEntity, CyodaProcessor
 from application.entity.product.version_1.product import Product
 from application.entity.report.version_1.report import Report
+from common.entity.entity_casting import cast_entity
+from common.processor.base import CyodaEntity, CyodaProcessor
 from services.services import get_entity_service
 
 
@@ -76,12 +76,12 @@ class ProductReportingProcessor(CyodaProcessor):
             product: The Product entity being processed
         """
         entity_service = get_entity_service()
-        
+
         # Calculate current week's date range
         now = datetime.now(timezone.utc)
         week_start = now - timedelta(days=now.weekday())  # Monday
         week_end = week_start + timedelta(days=6)  # Sunday
-        
+
         week_start_str = week_start.isoformat().replace("+00:00", "Z")
         week_end_str = week_end.isoformat().replace("+00:00", "Z")
 
@@ -89,7 +89,7 @@ class ProductReportingProcessor(CyodaProcessor):
             # Check if a report already exists for this week
             # This is a simplified check - in a real system you'd search by date range
             report_title = f"Weekly Performance Report - {week_start.strftime('%Y-%m-%d')} to {week_end.strftime('%Y-%m-%d')}"
-            
+
             # Create a new weekly report
             report = Report(
                 report_title=report_title,
@@ -100,7 +100,7 @@ class ProductReportingProcessor(CyodaProcessor):
                 total_products_analyzed=0,
                 total_revenue=0.0,
                 recipient_email="victoria.sagdieva@cyoda.com",
-                email_status="PENDING"
+                email_status="PENDING",
             )
 
             # Convert to dict for EntityService
@@ -140,7 +140,7 @@ class ProductReportingProcessor(CyodaProcessor):
                 try:
                     # Cast to Report entity
                     report = cast_entity(report_response.data, Report)
-                    
+
                     # Only update reports that are still pending
                     if report.email_status != "PENDING":
                         continue
@@ -155,26 +155,26 @@ class ProductReportingProcessor(CyodaProcessor):
                         "performance_score": product.performance_score or 0.0,
                         "trend_indicator": product.trend_indicator,
                         "inventory_level": product.inventory_level or 0,
-                        "status": product.status
+                        "status": product.status,
                     }
 
                     # Categorize product based on performance
                     updated = False
-                    
+
                     # High performers (score >= 70)
                     if (product.performance_score or 0.0) >= 70.0:
                         if report.top_performing_products is None:
                             report.top_performing_products = []
                         report.top_performing_products.append(product_data)
                         updated = True
-                    
+
                     # Low performers (score < 40)
                     elif (product.performance_score or 0.0) < 40.0:
                         if report.underperforming_products is None:
                             report.underperforming_products = []
                         report.underperforming_products.append(product_data)
                         updated = True
-                    
+
                     # Low stock items
                     if product.is_low_stock():
                         if report.low_stock_items is None:
@@ -184,8 +184,12 @@ class ProductReportingProcessor(CyodaProcessor):
 
                     # Update report totals
                     if updated:
-                        report.total_products_analyzed = (report.total_products_analyzed or 0) + 1
-                        report.total_revenue = (report.total_revenue or 0.0) + (product.revenue or 0.0)
+                        report.total_products_analyzed = (
+                            report.total_products_analyzed or 0
+                        ) + 1
+                        report.total_revenue = (report.total_revenue or 0.0) + (
+                            product.revenue or 0.0
+                        )
 
                         # Update the report
                         report_data = report.model_dump(by_alias=True)
