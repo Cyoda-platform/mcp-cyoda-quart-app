@@ -24,7 +24,7 @@ class PetAdoptionProcessor(CyodaProcessor):
     def __init__(self) -> None:
         super().__init__(
             name="PetAdoptionProcessor",
-            description="Processes final pet adoptions and updates adoption status"
+            description="Processes final pet adoptions and updates adoption status",
         )
         self.logger: logging.Logger = getattr(
             self, "logger", logging.getLogger(__name__)
@@ -101,13 +101,15 @@ class PetAdoptionProcessor(CyodaProcessor):
             "vaccination_status": pet.vaccination_status,
             "health_status": pet.health_status,
             "special_instructions": self._generate_care_instructions(pet),
-            "notes": f"Adoption completed for {pet.name} ({pet.species}, {pet.breed})"
+            "notes": f"Adoption completed for {pet.name} ({pet.species}, {pet.breed})",
         }
 
         # Include reservation data if available
         if pet.reservation_data:
             adoption_data["reservation_id"] = pet.reservation_data.get("reservation_id")
-            adoption_data["reservation_fee_paid"] = pet.reservation_data.get("reservation_fee", 0)
+            adoption_data["reservation_fee_paid"] = pet.reservation_data.get(
+                "reservation_fee", 0
+            )
 
         return adoption_data
 
@@ -127,7 +129,9 @@ class PetAdoptionProcessor(CyodaProcessor):
         if pet.age_months < 6:
             instructions.append("Young pet - requires frequent feeding and monitoring")
         elif pet.age_months > 84:  # 7+ years
-            instructions.append("Senior pet - may need special diet and regular vet checkups")
+            instructions.append(
+                "Senior pet - may need special diet and regular vet checkups"
+            )
 
         # Species-specific instructions
         if pet.species == "Dog":

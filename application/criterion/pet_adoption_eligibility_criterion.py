@@ -21,7 +21,7 @@ class PetAdoptionEligibilityCriterion(CyodaCriteriaChecker):
     def __init__(self) -> None:
         super().__init__(
             name="PetAdoptionEligibilityCriterion",
-            description="Validates pet adoption eligibility and readiness for reservation"
+            description="Validates pet adoption eligibility and readiness for reservation",
         )
 
     async def check(self, entity: CyodaEntity, **kwargs: Any) -> bool:
@@ -88,7 +88,7 @@ class PetAdoptionEligibilityCriterion(CyodaCriteriaChecker):
             True if health status is acceptable for adoption
         """
         eligible_health_statuses = ["Healthy", "Recovering"]
-        
+
         if pet.health_status not in eligible_health_statuses:
             self.logger.warning(
                 f"Pet {pet.technical_id} health status '{pet.health_status}' not eligible for adoption"
@@ -173,9 +173,9 @@ class PetAdoptionEligibilityCriterion(CyodaCriteriaChecker):
                 "quarantine",
                 "aggressive behavior",
                 "severe medical condition",
-                "not suitable for adoption"
+                "not suitable for adoption",
             ]
-            
+
             special_needs_lower = pet.special_needs.lower()
             for condition in blocking_conditions:
                 if condition in special_needs_lower:
@@ -210,10 +210,8 @@ class PetAdoptionEligibilityCriterion(CyodaCriteriaChecker):
             True if documentation is complete
         """
         # Check required fields
-        required_fields = [
-            pet.name, pet.species, pet.breed, pet.description
-        ]
-        
+        required_fields = [pet.name, pet.species, pet.breed, pet.description]
+
         for field in required_fields:
             if not field or (isinstance(field, str) and len(field.strip()) == 0):
                 self.logger.warning(

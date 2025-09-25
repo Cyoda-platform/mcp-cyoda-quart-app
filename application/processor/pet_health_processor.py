@@ -24,7 +24,7 @@ class PetHealthProcessor(CyodaProcessor):
     def __init__(self) -> None:
         super().__init__(
             name="PetHealthProcessor",
-            description="Processes pet health status updates and medical care tracking"
+            description="Processes pet health status updates and medical care tracking",
         )
         self.logger: logging.Logger = getattr(
             self, "logger", logging.getLogger(__name__)
@@ -51,23 +51,26 @@ class PetHealthProcessor(CyodaProcessor):
 
             # Create health record
             health_record = self._create_health_record(pet)
-            
+
             # Update pet metadata with health record
             if not pet.metadata:
                 pet.metadata = {}
-            
+
             if "health_records" not in pet.metadata:
                 pet.metadata["health_records"] = []
-            
+
             pet.metadata["health_records"].append(health_record)
 
             # Update health status based on current condition
             pet.health_status = self._determine_health_status(pet)
-            
+
             # Update adoption status if health affects availability
             if pet.health_status == "Under Treatment":
                 pet.adoption_status = "Not Available"
-            elif pet.health_status in ["Healthy", "Recovering"] and pet.adoption_status == "Not Available":
+            elif (
+                pet.health_status in ["Healthy", "Recovering"]
+                and pet.adoption_status == "Not Available"
+            ):
                 pet.adoption_status = "Available"
 
             pet.update_timestamp()
@@ -110,7 +113,7 @@ class PetHealthProcessor(CyodaProcessor):
             "findings": self._generate_health_findings(pet),
             "treatment_plan": self._generate_treatment_plan(pet),
             "next_checkup": self._calculate_next_checkup_date(pet),
-            "veterinarian_notes": f"Health assessment for {pet.name}"
+            "veterinarian_notes": f"Health assessment for {pet.name}",
         }
 
         return health_record
@@ -128,11 +131,14 @@ class PetHealthProcessor(CyodaProcessor):
         # Check existing health records for patterns
         if pet.metadata and "health_records" in pet.metadata:
             recent_records = pet.metadata["health_records"][-3:]  # Last 3 records
-            
+
             # If multiple recent treatments, might be recovering
             if len(recent_records) >= 2:
-                treatment_count = sum(1 for record in recent_records 
-                                    if "treatment" in record.get("treatment_plan", "").lower())
+                treatment_count = sum(
+                    1
+                    for record in recent_records
+                    if "treatment" in record.get("treatment_plan", "").lower()
+                )
                 if treatment_count >= 2:
                     return "Recovering"
 
@@ -199,7 +205,9 @@ class PetHealthProcessor(CyodaProcessor):
         if pet.vaccination_status != "Up to Date":
             findings.append("Vaccination schedule needs updating")
 
-        return "; ".join(findings) if findings else "Standard health assessment completed"
+        return (
+            "; ".join(findings) if findings else "Standard health assessment completed"
+        )
 
     def _generate_treatment_plan(self, pet: Pet) -> str:
         """
@@ -246,7 +254,7 @@ class PetHealthProcessor(CyodaProcessor):
             Next checkup date as ISO string
         """
         current_date = datetime.now(timezone.utc)
-        
+
         # Determine checkup interval based on health status and age
         if pet.health_status == "Under Treatment":
             days_ahead = 7  # Weekly checkups during treatment

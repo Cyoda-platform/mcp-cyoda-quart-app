@@ -24,7 +24,7 @@ class PetReservationProcessor(CyodaProcessor):
     def __init__(self) -> None:
         super().__init__(
             name="PetReservationProcessor",
-            description="Processes pet reservations and updates adoption status"
+            description="Processes pet reservations and updates adoption status",
         )
         self.logger: logging.Logger = getattr(
             self, "logger", logging.getLogger(__name__)
@@ -97,7 +97,7 @@ class PetReservationProcessor(CyodaProcessor):
             "pet_id": pet.technical_id or pet.entity_id,
             "pet_name": pet.name,
             "reservation_fee": float(pet.price * 0.1),  # 10% reservation fee
-            "notes": f"Reservation for {pet.name} ({pet.species}, {pet.breed})"
+            "notes": f"Reservation for {pet.name} ({pet.species}, {pet.breed})",
         }
 
         return reservation_data

@@ -42,22 +42,27 @@ from ..models.pet_models import (
     ValidationErrorResponse,
 )
 
+
 # Module-level service proxy
 class _ServiceProxy:
     def __getattr__(self, name: str) -> Any:
         return getattr(get_entity_service(), name)
 
+
 service = _ServiceProxy()
 
 logger = logging.getLogger(__name__)
+
 
 # Helper to normalize entity data from service
 def _to_entity_dict(data: Any) -> Dict[str, Any]:
     return data.model_dump(by_alias=True) if hasattr(data, "model_dump") else data
 
+
 pets_bp = Blueprint("pets", __name__, url_prefix="/api/pets")
 
 # ---- CRUD Routes ----
+
 
 @pets_bp.route("", methods=["POST"])
 @tag(["pets"])
@@ -184,25 +189,25 @@ async def list_pets(query_args: PetQueryParams) -> ResponseReturnValue:
 
         # Convert to list and apply additional filters
         entity_list = [_to_entity_dict(r.data) for r in entities]
-        
+
         # Apply age and price filters (client-side filtering)
         filtered_entities = []
         for entity in entity_list:
             age_months = entity.get("ageMonths", 0)
             price = Decimal(str(entity.get("price", 0)))
-            
+
             # Age filters
             if query_args.min_age is not None and age_months < query_args.min_age:
                 continue
             if query_args.max_age is not None and age_months > query_args.max_age:
                 continue
-                
+
             # Price filters
             if query_args.min_price is not None and price < query_args.min_price:
                 continue
             if query_args.max_price is not None and price > query_args.max_price:
                 continue
-                
+
             filtered_entities.append(entity)
 
         # Apply pagination
@@ -305,6 +310,7 @@ async def delete_pet(entity_id: str) -> ResponseReturnValue:
 
 
 # ---- Additional Service Endpoints ----
+
 
 @pets_bp.route("/by-business-id/<business_id>", methods=["GET"])
 @tag(["pets"])
@@ -411,6 +417,7 @@ async def get_available_transitions(entity_id: str) -> ResponseReturnValue:
 
 
 # ---- Search Endpoints ----
+
 
 @pets_bp.route("/search", methods=["POST"])
 @tag(["pets"])
@@ -521,13 +528,12 @@ async def trigger_transition(
         }, 200
 
     except Exception as e:
-        logger.exception(
-            "Error executing transition on Pet %s: %s", entity_id, str(e)
-        )
+        logger.exception("Error executing transition on Pet %s: %s", entity_id, str(e))
         return {"error": str(e)}, 500
 
 
 # ---- Pet-specific Endpoints ----
+
 
 @pets_bp.route("/available", methods=["GET"])
 @tag(["pets"])
@@ -596,8 +602,12 @@ async def get_pet_statistics() -> ResponseReturnValue:
 
         # Calculate statistics
         total_pets = len(entities)
-        available_pets = sum(1 for e in entities if e.get("adoptionStatus") == "Available")
-        reserved_pets = sum(1 for e in entities if e.get("adoptionStatus") == "Reserved")
+        available_pets = sum(
+            1 for e in entities if e.get("adoptionStatus") == "Available"
+        )
+        reserved_pets = sum(
+            1 for e in entities if e.get("adoptionStatus") == "Reserved"
+        )
         adopted_pets = sum(1 for e in entities if e.get("adoptionStatus") == "Adopted")
 
         # Count by species

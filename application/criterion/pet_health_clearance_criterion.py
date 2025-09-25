@@ -21,7 +21,7 @@ class PetHealthClearanceCriterion(CyodaCriteriaChecker):
     def __init__(self) -> None:
         super().__init__(
             name="PetHealthClearanceCriterion",
-            description="Validates pet health clearance and readiness to return to adoption availability"
+            description="Validates pet health clearance and readiness to return to adoption availability",
         )
 
     async def check(self, entity: CyodaEntity, **kwargs: Any) -> bool:
@@ -85,7 +85,7 @@ class PetHealthClearanceCriterion(CyodaCriteriaChecker):
             True if health status allows clearance
         """
         cleared_statuses = ["Healthy", "Recovering"]
-        
+
         if pet.health_status not in cleared_statuses:
             self.logger.warning(
                 f"Pet {pet.technical_id} health status '{pet.health_status}' not cleared for adoption availability"
@@ -113,7 +113,7 @@ class PetHealthClearanceCriterion(CyodaCriteriaChecker):
         """
         # For health clearance, vaccinations should be up to date or at least partial
         acceptable_statuses = ["Up to Date", "Partial"]
-        
+
         if pet.vaccination_status not in acceptable_statuses:
             self.logger.warning(
                 f"Pet {pet.technical_id} vaccination status '{pet.vaccination_status}' requires update before clearance"
@@ -141,11 +141,11 @@ class PetHealthClearanceCriterion(CyodaCriteriaChecker):
         # Check health records in metadata for treatment completion
         if pet.metadata and "health_records" in pet.metadata:
             health_records = pet.metadata["health_records"]
-            
+
             if health_records:
                 # Get the most recent health record
                 latest_record = health_records[-1]
-                
+
                 # Check if treatment plan indicates completion
                 treatment_plan = latest_record.get("treatment_plan", "")
                 if "continue treatment" in treatment_plan.lower():
@@ -153,15 +153,15 @@ class PetHealthClearanceCriterion(CyodaCriteriaChecker):
                         f"Pet {pet.technical_id} still requires ongoing treatment"
                     )
                     return False
-                
+
                 # Check findings for ongoing issues
                 findings = latest_record.get("findings", "")
                 concerning_findings = [
                     "requires further treatment",
                     "ongoing medical attention",
-                    "not ready for adoption"
+                    "not ready for adoption",
                 ]
-                
+
                 findings_lower = findings.lower()
                 for finding in concerning_findings:
                     if finding in findings_lower:
@@ -185,12 +185,12 @@ class PetHealthClearanceCriterion(CyodaCriteriaChecker):
         # Check if there are recent health records indicating treatment
         if pet.metadata and "health_records" in pet.metadata:
             health_records = pet.metadata["health_records"]
-            
+
             if health_records:
                 # For this simplified implementation, assume adequate recovery
                 # In a real system, you would check timestamps and treatment types
                 latest_record = health_records[-1]
-                
+
                 # Check if the latest record indicates readiness
                 examination_type = latest_record.get("examination_type", "")
                 if "follow-up" in examination_type.lower():
@@ -213,19 +213,19 @@ class PetHealthClearanceCriterion(CyodaCriteriaChecker):
         # Check health records for veterinary approval
         if pet.metadata and "health_records" in pet.metadata:
             health_records = pet.metadata["health_records"]
-            
+
             if health_records:
                 latest_record = health_records[-1]
-                
+
                 # Check veterinarian notes for approval indicators
                 vet_notes = latest_record.get("veterinarian_notes", "")
                 approval_indicators = [
                     "cleared for adoption",
                     "ready for placement",
                     "health assessment complete",
-                    "no concerns"
+                    "no concerns",
                 ]
-                
+
                 vet_notes_lower = vet_notes.lower()
                 for indicator in approval_indicators:
                     if indicator in vet_notes_lower:
