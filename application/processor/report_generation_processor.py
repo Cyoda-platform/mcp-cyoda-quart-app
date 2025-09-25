@@ -390,7 +390,7 @@ class ReportGenerationProcessor(CyodaProcessor):
             category = product.category
             if category not in category_performance:
                 category_performance[category] = []
-            category_performance[category].append(product.performance_score or 0)
+            category_performance[category].append(float(product.performance_score or 0))
 
         for category, scores in category_performance.items():
             avg_score = sum(scores) / len(scores)
@@ -514,7 +514,7 @@ class ReportGenerationProcessor(CyodaProcessor):
                 category_scores[category] = 0
                 category_counts[category] = 0
 
-            category_scores[category] += product.performance_score or 0
+            category_scores[category] += float(product.performance_score or 0)
             category_counts[category] += 1
 
         # Calculate average scores
@@ -524,7 +524,7 @@ class ReportGenerationProcessor(CyodaProcessor):
         }
 
         return (
-            max(category_averages, key=category_averages.get)
+            max(category_averages.keys(), key=lambda k: category_averages[k])
             if category_averages
             else "N/A"
         )

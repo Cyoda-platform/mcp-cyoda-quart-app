@@ -89,17 +89,17 @@ class ReportEmailProcessor(CyodaProcessor):
 
         # Create EmailNotification entity
         email_notification = EmailNotification(
-            recipient_email="victoria.sagdieva@cyoda.com",
+            recipientEmail="victoria.sagdieva@cyoda.com",
             subject=subject,
             content=content,
-            email_type=(
+            emailType=(
                 "WEEKLY_REPORT"
                 if report.report_type == "WEEKLY_SUMMARY"
                 else "REPORT_NOTIFICATION"
             ),
             priority="NORMAL",
-            report_id=report.technical_id or report.entity_id,
-            report_title=report.title,
+            reportId=report.technical_id or report.entity_id,
+            reportTitle=report.title,
             status="PENDING",
         )
 
