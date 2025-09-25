@@ -9,7 +9,7 @@ import logging
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from typing import Any
+from typing import Any, Dict
 
 from application.entity.email_notification import EmailNotification
 from common.entity.entity_casting import cast_entity

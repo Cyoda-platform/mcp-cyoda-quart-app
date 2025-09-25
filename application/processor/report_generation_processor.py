@@ -323,15 +323,15 @@ class ReportGenerationProcessor(CyodaProcessor):
             if category not in category_stats:
                 category_stats[category] = {
                     "count": 0,
-                    "total_revenue": 0,
-                    "total_sales": 0,
-                    "avg_performance": 0,
+                    "total_revenue": 0.0,
+                    "total_sales": 0.0,
+                    "avg_performance": 0.0,
                 }
 
             stats = category_stats[category]
             stats["count"] += 1
             stats["total_revenue"] += float(product.revenue or 0)
-            stats["total_sales"] += int(product.sales_volume or 0)
+            stats["total_sales"] += float(product.sales_volume or 0)
             stats["avg_performance"] += float(product.performance_score or 0)
 
         # Calculate averages
@@ -511,7 +511,7 @@ class ReportGenerationProcessor(CyodaProcessor):
         for product in products:
             category = product.category
             if category not in category_scores:
-                category_scores[category] = 0
+                category_scores[category] = 0.0
                 category_counts[category] = 0
 
             category_scores[category] += float(product.performance_score or 0)
