@@ -6,7 +6,6 @@ data transformation, and Product entity creation as specified in functional requ
 """
 
 import asyncio
-import json
 import logging
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional

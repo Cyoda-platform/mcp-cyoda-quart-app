@@ -99,7 +99,6 @@ class ProductAnalysisProcessor(CyodaProcessor):
         sales_volume = product.sales_volume or 0
         revenue = product.revenue or 0.0
         inventory_level = product.inventory_level or 0
-        price = product.price or 0.0
 
         # Calculate additional metrics
         revenue_per_unit = revenue / sales_volume if sales_volume > 0 else 0.0
@@ -203,7 +202,6 @@ class ProductAnalysisProcessor(CyodaProcessor):
         # Simplified trend analysis based on current metrics
         performance_score = product.performance_score or 0.0
         sales_volume = product.sales_volume or 0
-        inventory_level = product.inventory_level or 0
 
         # High performance and good sales indicate rising trend
         if performance_score >= 70.0 and sales_volume >= 50:

@@ -7,7 +7,7 @@ and triggering report generation workflows as specified in functional requiremen
 
 import logging
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict
+from typing import Any
 
 from application.entity.product.version_1.product import Product
 from application.entity.report.version_1.report import Report

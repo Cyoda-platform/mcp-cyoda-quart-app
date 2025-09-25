@@ -232,7 +232,7 @@ class ReportEmailProcessor(CyodaProcessor):
             # - Corporate email system
 
             self.logger.info(
-                f"Simulating email dispatch to {email_content['recipient']}"
+                "Simulating email dispatch to %s", email_content['recipient']
             )
             self.logger.info(f"Subject: {email_content['subject']}")
             self.logger.info(f"Attachments: {len(email_content['attachments'])}")
