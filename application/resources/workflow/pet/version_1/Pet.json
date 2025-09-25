@@ -1,0 +1,63 @@
+{
+  "version": "1.0",
+  "name": "Pet",
+  "desc": "Pet data ingestion and transformation workflow",
+  "initialState": "initial_state",
+  "active": true,
+  "states": {
+    "initial_state": {
+      "transitions": [
+        {
+          "name": "ingest_pet_data",
+          "next": "ingested",
+          "manual": false,
+          "processors": [
+            {
+              "name": "IngestPetDataProcessor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 5000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "ingested": {
+      "transitions": [
+        {
+          "name": "transform_pet_data",
+          "next": "transformed",
+          "manual": false,
+          "processors": [
+            {
+              "name": "TransformPetDataProcessor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "transformed": {
+      "transitions": [
+        {
+          "name": "finalize_pet_data",
+          "next": "ready",
+          "manual": false
+        }
+      ]
+    },
+    "ready": {
+      "transitions": []
+    }
+  }
+}

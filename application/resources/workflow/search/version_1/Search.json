@@ -1,0 +1,96 @@
+{
+  "version": "1.0",
+  "name": "Search",
+  "desc": "Search parameter processing and pet data coordination workflow",
+  "initialState": "initial_state",
+  "active": true,
+  "states": {
+    "initial_state": {
+      "transitions": [
+        {
+          "name": "start_search",
+          "next": "processing",
+          "manual": false,
+          "processors": [
+            {
+              "name": "ValidateSearchProcessor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "processing": {
+      "transitions": [
+        {
+          "name": "execute_search",
+          "next": "fetching",
+          "manual": false,
+          "processors": [
+            {
+              "name": "ExecuteSearchProcessor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 10000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ],
+          "criterion": {
+            "type": "function",
+            "function": {
+              "name": "ValidSearchCriterion",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 2000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "fetching": {
+      "transitions": [
+        {
+          "name": "complete_search",
+          "next": "completed",
+          "manual": false,
+          "processors": [
+            {
+              "name": "ProcessResultsProcessor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "completed": {
+      "transitions": [
+        {
+          "name": "notify_results",
+          "next": "notified",
+          "manual": true
+        }
+      ]
+    },
+    "notified": {
+      "transitions": []
+    }
+  }
+}
