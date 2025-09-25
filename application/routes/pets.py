@@ -302,3 +302,341 @@ async def delete_pet(entity_id: str) -> ResponseReturnValue:
     except Exception as e:
         logger.exception("Error deleting Pet %s: %s", entity_id, str(e))
         return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
+
+
+# ---- Additional Service Endpoints ----
+
+@pets_bp.route("/by-business-id/<business_id>", methods=["GET"])
+@tag(["pets"])
+@operation_id("get_pet_by_business_id")
+@validate(
+    responses={
+        200: (PetResponse, None),
+        404: (ErrorResponse, None),
+        500: (ErrorResponse, None),
+    }
+)
+async def get_by_business_id(business_id: str) -> ResponseReturnValue:
+    """Get pet by business ID (name field by default)"""
+    try:
+        business_id_field = request.args.get("field", "name")
+
+        result = await service.find_by_business_id(
+            entity_class=Pet.ENTITY_NAME,
+            business_id=business_id,
+            business_id_field=business_id_field,
+            entity_version=str(Pet.ENTITY_VERSION),
+        )
+
+        if not result:
+            return {"error": "Pet not found"}, 404
+
+        return _to_entity_dict(result.data), 200
+
+    except Exception as e:
+        logger.exception("Error getting Pet by business ID %s: %s", business_id, str(e))
+        return {"error": str(e)}, 500
+
+
+@pets_bp.route("/<entity_id>/exists", methods=["GET"])
+@tag(["pets"])
+@operation_id("check_pet_exists")
+@validate(responses={200: (ExistsResponse, None), 500: (ErrorResponse, None)})
+async def check_exists(entity_id: str) -> ResponseReturnValue:
+    """Check if pet exists by ID"""
+    try:
+        exists = await service.exists_by_id(
+            entity_id=entity_id,
+            entity_class=Pet.ENTITY_NAME,
+            entity_version=str(Pet.ENTITY_VERSION),
+        )
+
+        response = ExistsResponse(exists=exists, entity_id=entity_id)
+        return response.model_dump(), 200
+
+    except Exception as e:
+        logger.exception("Error checking Pet existence %s: %s", entity_id, str(e))
+        return {"error": str(e)}, 500
+
+
+@pets_bp.route("/count", methods=["GET"])
+@tag(["pets"])
+@operation_id("count_pets")
+@validate(responses={200: (CountResponse, None), 500: (ErrorResponse, None)})
+async def count_entities() -> ResponseReturnValue:
+    """Count total number of pets"""
+    try:
+        count = await service.count(
+            entity_class=Pet.ENTITY_NAME,
+            entity_version=str(Pet.ENTITY_VERSION),
+        )
+
+        response = CountResponse(count=count)
+        return response.model_dump(), 200
+
+    except Exception as e:
+        logger.exception("Error counting Pets: %s", str(e))
+        return {"error": str(e)}, 500
+
+
+@pets_bp.route("/<entity_id>/transitions", methods=["GET"])
+@tag(["pets"])
+@operation_id("get_pet_transitions")
+@validate(
+    responses={
+        200: (TransitionsResponse, None),
+        404: (ErrorResponse, None),
+        500: (ErrorResponse, None),
+    }
+)
+async def get_available_transitions(entity_id: str) -> ResponseReturnValue:
+    """Get available workflow transitions for pet"""
+    try:
+        transitions = await service.get_transitions(
+            entity_id=entity_id,
+            entity_class=Pet.ENTITY_NAME,
+            entity_version=str(Pet.ENTITY_VERSION),
+        )
+
+        response = TransitionsResponse(
+            entity_id=entity_id,
+            available_transitions=transitions,
+            current_state=None,
+        )
+        return response.model_dump(), 200
+
+    except Exception as e:
+        logger.exception("Error getting transitions for Pet %s: %s", entity_id, str(e))
+        return {"error": str(e)}, 500
+
+
+# ---- Search Endpoints ----
+
+@pets_bp.route("/search", methods=["POST"])
+@tag(["pets"])
+@operation_id("search_pets")
+@validate(
+    request=PetSearchRequest,
+    responses={
+        200: (PetSearchResponse, None),
+        400: (ValidationErrorResponse, None),
+        500: (ErrorResponse, None),
+    },
+)
+async def search_entities(data: PetSearchRequest) -> ResponseReturnValue:
+    """Search pets using field-value search"""
+    try:
+        search_data = data.model_dump(by_alias=True, exclude_none=True)
+
+        if not search_data:
+            return {"error": "Search conditions required", "code": "EMPTY_SEARCH"}, 400
+
+        builder = SearchConditionRequest.builder()
+        for field, value in search_data.items():
+            builder.equals(field, value)
+
+        search_request = builder.build()
+        results = await service.search(
+            entity_class=Pet.ENTITY_NAME,
+            condition=search_request,
+            entity_version=str(Pet.ENTITY_VERSION),
+        )
+
+        entities = [_to_entity_dict(r.data) for r in results]
+        return {"pets": entities, "total": len(entities)}, 200
+
+    except Exception as e:
+        logger.exception("Error searching Pets: %s", str(e))
+        return {"error": str(e)}, 500
+
+
+@pets_bp.route("/find-all", methods=["GET"])
+@tag(["pets"])
+@operation_id("find_all_pets")
+@validate(responses={200: (PetListResponse, None), 500: (ErrorResponse, None)})
+async def find_all_entities() -> ResponseReturnValue:
+    """Find all pets without filtering"""
+    try:
+        results = await service.find_all(
+            entity_class=Pet.ENTITY_NAME,
+            entity_version=str(Pet.ENTITY_VERSION),
+        )
+
+        entities = [_to_entity_dict(r.data) for r in results]
+        return {"pets": entities, "total": len(entities)}, 200
+
+    except Exception as e:
+        logger.exception("Error finding all Pets: %s", str(e))
+        return {"error": str(e)}, 500
+
+
+@pets_bp.route("/<entity_id>/transitions", methods=["POST"])
+@tag(["pets"])
+@operation_id("trigger_pet_transition")
+@validate(
+    request=TransitionRequest,
+    responses={
+        200: (TransitionResponse, None),
+        404: (ErrorResponse, None),
+        400: (ValidationErrorResponse, None),
+        500: (ErrorResponse, None),
+    },
+)
+async def trigger_transition(
+    entity_id: str, data: TransitionRequest
+) -> ResponseReturnValue:
+    """Trigger a specific workflow transition"""
+    try:
+        # Get current entity state
+        current_entity = await service.get_by_id(
+            entity_id=entity_id,
+            entity_class=Pet.ENTITY_NAME,
+            entity_version=str(Pet.ENTITY_VERSION),
+        )
+
+        if not current_entity:
+            return {"error": "Pet not found"}, 404
+
+        previous_state = current_entity.metadata.state
+
+        # Execute the transition
+        response = await service.execute_transition(
+            entity_id=entity_id,
+            transition=data.transition_name,
+            entity_class=Pet.ENTITY_NAME,
+            entity_version=str(Pet.ENTITY_VERSION),
+        )
+
+        logger.info(
+            "Executed transition '%s' on Pet %s",
+            data.transition_name,
+            entity_id,
+        )
+
+        return {
+            "id": response.metadata.id,
+            "message": "Transition executed successfully",
+            "previousState": previous_state,
+            "newState": response.metadata.state,
+        }, 200
+
+    except Exception as e:
+        logger.exception(
+            "Error executing transition on Pet %s: %s", entity_id, str(e)
+        )
+        return {"error": str(e)}, 500
+
+
+# ---- Pet-specific Endpoints ----
+
+@pets_bp.route("/available", methods=["GET"])
+@tag(["pets"])
+@operation_id("get_available_pets")
+@validate(responses={200: (PetListResponse, None), 500: (ErrorResponse, None)})
+async def get_available_pets() -> ResponseReturnValue:
+    """Get all pets available for adoption"""
+    try:
+        builder = SearchConditionRequest.builder()
+        builder.equals("adoptionStatus", "Available")
+        condition = builder.build()
+
+        results = await service.search(
+            entity_class=Pet.ENTITY_NAME,
+            condition=condition,
+            entity_version=str(Pet.ENTITY_VERSION),
+        )
+
+        entities = [_to_entity_dict(r.data) for r in results]
+        return {"pets": entities, "total": len(entities)}, 200
+
+    except Exception as e:
+        logger.exception("Error getting available pets: %s", str(e))
+        return {"error": str(e)}, 500
+
+
+@pets_bp.route("/species/<species>", methods=["GET"])
+@tag(["pets"])
+@operation_id("get_pets_by_species")
+@validate(responses={200: (PetListResponse, None), 500: (ErrorResponse, None)})
+async def get_pets_by_species(species: str) -> ResponseReturnValue:
+    """Get all pets of a specific species"""
+    try:
+        builder = SearchConditionRequest.builder()
+        builder.equals("species", species)
+        condition = builder.build()
+
+        results = await service.search(
+            entity_class=Pet.ENTITY_NAME,
+            condition=condition,
+            entity_version=str(Pet.ENTITY_VERSION),
+        )
+
+        entities = [_to_entity_dict(r.data) for r in results]
+        return {"pets": entities, "total": len(entities)}, 200
+
+    except Exception as e:
+        logger.exception("Error getting pets by species %s: %s", species, str(e))
+        return {"error": str(e)}, 500
+
+
+@pets_bp.route("/statistics", methods=["GET"])
+@tag(["pets"])
+@operation_id("get_pet_statistics")
+@validate(responses={200: (Dict, None), 500: (ErrorResponse, None)})
+async def get_pet_statistics() -> ResponseReturnValue:
+    """Get pet statistics and analytics"""
+    try:
+        # Get all pets
+        results = await service.find_all(
+            entity_class=Pet.ENTITY_NAME,
+            entity_version=str(Pet.ENTITY_VERSION),
+        )
+
+        entities = [_to_entity_dict(r.data) for r in results]
+
+        # Calculate statistics
+        total_pets = len(entities)
+        available_pets = sum(1 for e in entities if e.get("adoptionStatus") == "Available")
+        reserved_pets = sum(1 for e in entities if e.get("adoptionStatus") == "Reserved")
+        adopted_pets = sum(1 for e in entities if e.get("adoptionStatus") == "Adopted")
+
+        # Count by species
+        by_species = {}
+        by_size = {}
+        by_health_status = {}
+        total_age = 0
+        total_price = 0
+
+        for entity in entities:
+            species = entity.get("species", "Unknown")
+            by_species[species] = by_species.get(species, 0) + 1
+
+            size = entity.get("size", "Unknown")
+            by_size[size] = by_size.get(size, 0) + 1
+
+            health = entity.get("healthStatus", "Unknown")
+            by_health_status[health] = by_health_status.get(health, 0) + 1
+
+            total_age += entity.get("ageMonths", 0)
+            total_price += float(entity.get("price", 0))
+
+        avg_age = total_age / total_pets if total_pets > 0 else 0
+        avg_price = total_price / total_pets if total_pets > 0 else 0
+
+        statistics = {
+            "totalPets": total_pets,
+            "availablePets": available_pets,
+            "reservedPets": reserved_pets,
+            "adoptedPets": adopted_pets,
+            "bySpecies": by_species,
+            "bySize": by_size,
+            "byHealthStatus": by_health_status,
+            "averageAgeMonths": round(avg_age, 1),
+            "averagePrice": round(avg_price, 2),
+        }
+
+        return statistics, 200
+
+    except Exception as e:
+        logger.exception("Error getting pet statistics: %s", str(e))
+        return {"error": str(e)}, 500
