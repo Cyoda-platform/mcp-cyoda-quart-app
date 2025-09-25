@@ -296,7 +296,7 @@ class ReportGenerationProcessor(CyodaProcessor):
 
     def _generate_inventory_section(self, products: List[Product]) -> str:
         """Generate inventory status section."""
-        inventory_status = {}
+        inventory_status: Dict[str, int] = {}
         for product in products:
             status = product.stock_status or "UNKNOWN"
             inventory_status[status] = inventory_status.get(status, 0) + 1
@@ -330,14 +330,14 @@ class ReportGenerationProcessor(CyodaProcessor):
 
             stats = category_stats[category]
             stats["count"] += 1
-            stats["total_revenue"] += product.revenue or 0
-            stats["total_sales"] += product.sales_volume or 0
-            stats["avg_performance"] += product.performance_score or 0
+            stats["total_revenue"] += float(product.revenue or 0)
+            stats["total_sales"] += int(product.sales_volume or 0)
+            stats["avg_performance"] += float(product.performance_score or 0)
 
         # Calculate averages
         for stats in category_stats.values():
             if stats["count"] > 0:
-                stats["avg_performance"] /= stats["count"]
+                stats["avg_performance"] = float(stats["avg_performance"]) / stats["count"]
 
         section = [
             "| Category | Products | Total Revenue | Total Sales | Avg Performance |",
@@ -385,7 +385,7 @@ class ReportGenerationProcessor(CyodaProcessor):
             )
 
         # Category recommendations
-        category_performance = {}
+        category_performance: Dict[str, List[float]] = {}
         for product in products:
             category = product.category
             if category not in category_performance:

@@ -8,7 +8,7 @@ trend analysis, performance scoring, and insights generation.
 import logging
 import random
 from datetime import datetime, timezone
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from application.entity.product import Product
 from common.entity.entity_casting import cast_entity

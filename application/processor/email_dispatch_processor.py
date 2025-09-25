@@ -147,7 +147,7 @@ class EmailDispatchProcessor(CyodaProcessor):
             self.logger.error(f"Error in email sending process: {str(e)}")
             return False
 
-    def _prepare_email_data(self, email_notification: EmailNotification) -> dict:
+    def _prepare_email_data(self, email_notification: EmailNotification) -> Dict[str, Any]:
         """
         Prepare email data for sending.
 
@@ -168,7 +168,7 @@ class EmailDispatchProcessor(CyodaProcessor):
             "report_id": email_notification.report_id,
         }
 
-    def _log_email_simulation(self, email_data: dict) -> None:
+    def _log_email_simulation(self, email_data: Dict[str, Any]) -> None:
         """
         Log email simulation details for demonstration.
 
@@ -190,7 +190,7 @@ class EmailDispatchProcessor(CyodaProcessor):
         self.logger.info(f"  {content_preview}...")
         self.logger.info("=" * 60)
 
-    def _send_via_smtp(self, email_data: dict) -> bool:
+    def _send_via_smtp(self, email_data: Dict[str, Any]) -> bool:
         """
         Send email via SMTP (example implementation - not used in simulation).
 
@@ -232,7 +232,7 @@ class EmailDispatchProcessor(CyodaProcessor):
             self.logger.error(f"SMTP sending failed: {str(e)}")
             return False
 
-    def _send_via_api(self, email_data: dict) -> bool:
+    def _send_via_api(self, email_data: Dict[str, Any]) -> bool:
         """
         Send email via API service (example implementation - not used in simulation).
 
