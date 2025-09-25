@@ -35,8 +35,14 @@ def get_service_config() -> Dict[str, Any]:
         },
         "processor": {
             "modules": [
-                "application.processor",
-                "application.criterion",
+                "application.processor.product_data_extraction_processor",
+                "application.processor.product_analysis_processor",
+                "application.processor.report_generation_processor",
+                "application.processor.report_email_processor",
+                "application.processor.email_dispatch_processor",
+                "application.criterion.product_validation_criterion",
+                "application.criterion.report_validation_criterion",
+                "application.criterion.email_validation_criterion",
                 "example_application.processor",
                 "example_application.criterion",
             ],

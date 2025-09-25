@@ -11,6 +11,9 @@ from common.exception.exception_handler import (
 from services.services import get_grpc_client, initialize_services
 
 # Import blueprints for different route groups
+from application.routes.products import products_bp
+from application.routes.reports import reports_bp
+from application.routes.email_notifications import email_notifications_bp
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -22,6 +25,18 @@ QuartSchema(
     app,
     info={"title": "Cyoda Client Application", "version": "1.0.0"},
     tags=[
+        {
+            "name": "products",
+            "description": "Product management endpoints for Pet Store Performance Analysis",
+        },
+        {
+            "name": "reports",
+            "description": "Report management endpoints for Pet Store Performance Analysis",
+        },
+        {
+            "name": "email_notifications",
+            "description": "Email notification management endpoints for Pet Store Performance Analysis",
+        },
         {
             "name": "ExampleEntities",
             "description": "ExampleEntity management endpoints",
@@ -57,6 +72,11 @@ _register_error_handlers_typed: Callable[[Quart], None] = (  # type: ignore[assi
     _register_error_handlers
 )
 _register_error_handlers_typed(app)
+
+# Register blueprints for Pet Store Performance Analysis System
+app.register_blueprint(products_bp)
+app.register_blueprint(reports_bp)
+app.register_blueprint(email_notifications_bp)
 
 
 @app.route("/favicon.ico")
