@@ -8,7 +8,7 @@ as specified in functional requirements.
 
 import logging
 from datetime import datetime, timezone
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from application.entity.report.version_1.report import Report
 from common.entity.entity_casting import cast_entity

@@ -93,14 +93,14 @@ class ProductReportingProcessor(CyodaProcessor):
             # Create a new weekly report
             report = Report(
                 report_title=report_title,
-                report_period_start=week_start_str,
-                report_period_end=week_end_str,
-                report_type="WEEKLY",
-                executive_summary="Weekly performance analysis report generated automatically",
-                total_products_analyzed=0,
-                total_revenue=0.0,
-                recipient_email="victoria.sagdieva@cyoda.com",
-                email_status="PENDING",
+                reportPeriodStart=week_start_str,
+                reportPeriodEnd=week_end_str,
+                reportType="WEEKLY",
+                executiveSummary="Weekly performance analysis report generated automatically",
+                totalProductsAnalyzed=0,
+                totalRevenue=0.0,
+                recipientEmail="victoria.sagdieva@cyoda.com",
+                emailStatus="PENDING",
             )
 
             # Convert to dict for EntityService
@@ -194,7 +194,7 @@ class ProductReportingProcessor(CyodaProcessor):
                         # Update the report
                         report_data = report.model_dump(by_alias=True)
                         await entity_service.update(
-                            entity_id=report.technical_id or report.entity_id,
+                            entity_id=report.technical_id or report.entity_id or "unknown",
                             entity=report_data,
                             entity_class=Report.ENTITY_NAME,
                             entity_version=str(Report.ENTITY_VERSION),

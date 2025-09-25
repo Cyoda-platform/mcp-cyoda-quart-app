@@ -5,7 +5,7 @@ Validates that DataExtraction entities have successfully completed data collecti
 with acceptable quality and completeness as specified in functional requirements.
 """
 
-from typing import Any
+from typing import Any, Dict
 
 from application.entity.data_extraction.version_1.data_extraction import DataExtraction
 from common.entity.entity_casting import cast_entity

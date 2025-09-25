@@ -253,9 +253,9 @@ class DataExtractionProcessor(CyodaProcessor):
             category=category,
             status=status,
             price=price,
-            sales_volume=sales_volume,
+            salesVolume=sales_volume,
             revenue=revenue,
-            inventory_level=inventory_level,
+            inventoryLevel=inventory_level,
         )
 
         # Set extraction timestamp
