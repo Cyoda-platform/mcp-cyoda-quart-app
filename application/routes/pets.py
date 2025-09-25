@@ -11,7 +11,7 @@ import logging
 from decimal import Decimal
 from typing import Any, Dict, Optional
 
-from quart import Blueprint, jsonify, request
+from quart import Blueprint, request
 from quart.typing import ResponseReturnValue
 from quart_schema import (
     operation_id,
@@ -357,7 +357,7 @@ async def check_exists(entity_id: str) -> ResponseReturnValue:
             entity_version=str(Pet.ENTITY_VERSION),
         )
 
-        response = ExistsResponse(exists=exists, entity_id=entity_id)
+        response = ExistsResponse(exists=exists, entityId=entity_id)
         return response.model_dump(), 200
 
     except Exception as e:
@@ -405,9 +405,9 @@ async def get_available_transitions(entity_id: str) -> ResponseReturnValue:
         )
 
         response = TransitionsResponse(
-            entity_id=entity_id,
-            available_transitions=transitions,
-            current_state=None,
+            entityId=entity_id,
+            availableTransitions=transitions,
+            currentState=None,
         )
         return response.model_dump(), 200
 
@@ -611,11 +611,11 @@ async def get_pet_statistics() -> ResponseReturnValue:
         adopted_pets = sum(1 for e in entities if e.get("adoptionStatus") == "Adopted")
 
         # Count by species
-        by_species = {}
-        by_size = {}
-        by_health_status = {}
+        by_species: Dict[str, int] = {}
+        by_size: Dict[str, int] = {}
+        by_health_status: Dict[str, int] = {}
         total_age = 0
-        total_price = 0
+        total_price = 0.0
 
         for entity in entities:
             species = entity.get("species", "Unknown")
