@@ -143,7 +143,7 @@ class DataExtractionValidationCriterion(CyodaCriteriaChecker):
         # Validate individual product records
         valid_products = 0
         for i, product in enumerate(extraction.extracted_data):
-            if self._validate_product_record(product, i, extraction.technical_id):
+            if self._validate_product_record(product, i, extraction.technical_id or "unknown"):
                 valid_products += 1
 
         # Require at least 80% of products to be valid
@@ -158,7 +158,7 @@ class DataExtractionValidationCriterion(CyodaCriteriaChecker):
         return True
 
     def _validate_product_record(
-        self, product: dict, index: int, extraction_id: str
+        self, product: Dict[str, Any], index: int, extraction_id: str
     ) -> bool:
         """
         Validate individual product record from extracted data.

@@ -187,21 +187,21 @@ class ReportValidationCriterion(CyodaCriteriaChecker):
         if report.top_performing_products:
             for i, product in enumerate(report.top_performing_products):
                 if not self._validate_product_data(
-                    product, f"top_performing[{i}]", report.technical_id
+                    product, f"top_performing[{i}]", report.technical_id or "unknown"
                 ):
                     return False
 
         if report.underperforming_products:
             for i, product in enumerate(report.underperforming_products):
                 if not self._validate_product_data(
-                    product, f"underperforming[{i}]", report.technical_id
+                    product, f"underperforming[{i}]", report.technical_id or "unknown"
                 ):
                     return False
 
         if report.low_stock_items:
             for i, product in enumerate(report.low_stock_items):
                 if not self._validate_product_data(
-                    product, f"low_stock[{i}]", report.technical_id
+                    product, f"low_stock[{i}]", report.technical_id or "unknown"
                 ):
                     return False
 
