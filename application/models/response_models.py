@@ -61,9 +61,7 @@ class ProductResponse(BaseModel):
 class ProductListResponse(BaseModel):
     """Response model for Product list operations."""
 
-    entities: List[Dict[str, Any]] = Field(
-        ..., description="List of Product objects"
-    )
+    entities: List[Dict[str, Any]] = Field(..., description="List of Product objects")
     total: int = Field(..., description="Total number of products")
     limit: Optional[int] = Field(default=None, description="Applied limit")
     offset: Optional[int] = Field(default=None, description="Applied offset")
@@ -88,12 +86,8 @@ class ReportResponse(BaseModel):
         default=None, description="Technical ID from Cyoda"
     )
     title: str = Field(..., description="Report title")
-    report_type: str = Field(
-        ..., alias="reportType", description="Type of report"
-    )
-    content: Optional[str] = Field(
-        default=None, description="Generated report content"
-    )
+    report_type: str = Field(..., alias="reportType", description="Type of report")
+    content: Optional[str] = Field(default=None, description="Generated report content")
     data_period_start: Optional[str] = Field(
         default=None, alias="dataPeriodStart", description="Data period start date"
     )
@@ -136,9 +130,7 @@ class ReportResponse(BaseModel):
 class ReportListResponse(BaseModel):
     """Response model for Report list operations."""
 
-    entities: List[Dict[str, Any]] = Field(
-        ..., description="List of Report objects"
-    )
+    entities: List[Dict[str, Any]] = Field(..., description="List of Report objects")
     total: int = Field(..., description="Total number of reports")
     limit: Optional[int] = Field(default=None, description="Applied limit")
     offset: Optional[int] = Field(default=None, description="Applied offset")
@@ -166,9 +158,7 @@ class EmailNotificationResponse(BaseModel):
         ..., alias="recipientEmail", description="Recipient email address"
     )
     subject: str = Field(..., description="Email subject")
-    content: Optional[str] = Field(
-        default=None, description="Email content"
-    )
+    content: Optional[str] = Field(default=None, description="Email content")
     sender_email: Optional[str] = Field(
         default=None, alias="senderEmail", description="Sender email address"
     )
@@ -307,9 +297,7 @@ class ReportSummaryResponse(BaseModel):
     """Response model for report summary operations."""
 
     total_reports: int = Field(..., description="Total number of reports")
-    reports_by_type: Dict[str, int] = Field(
-        ..., description="Report count by type"
-    )
+    reports_by_type: Dict[str, int] = Field(..., description="Report count by type")
     recent_reports: List[Dict[str, Any]] = Field(
         ..., description="Recently generated reports"
     )

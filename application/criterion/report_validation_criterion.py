@@ -7,9 +7,9 @@ proceed to report generation stage as specified in functional requirements.
 
 from typing import Any
 
+from application.entity.report import Report
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.report import Report
 
 
 class ReportValidationCriterion(CyodaCriteriaChecker):
@@ -101,9 +101,7 @@ class ReportValidationCriterion(CyodaCriteriaChecker):
 
         # Validate report type
         if not report.report_type:
-            self.logger.warning(
-                f"Report {report.technical_id} has missing report type"
-            )
+            self.logger.warning(f"Report {report.technical_id} has missing report type")
             return False
 
         if report.report_type not in report.ALLOWED_REPORT_TYPES:
@@ -199,17 +197,22 @@ class ReportValidationCriterion(CyodaCriteriaChecker):
             if report.data_period_start and report.data_period_end:
                 try:
                     from datetime import datetime, timedelta
-                    start_date = datetime.fromisoformat(report.data_period_start.replace("Z", "+00:00"))
-                    end_date = datetime.fromisoformat(report.data_period_end.replace("Z", "+00:00"))
+
+                    start_date = datetime.fromisoformat(
+                        report.data_period_start.replace("Z", "+00:00")
+                    )
+                    end_date = datetime.fromisoformat(
+                        report.data_period_end.replace("Z", "+00:00")
+                    )
                     period_length = end_date - start_date
-                    
+
                     # Weekly reports should cover approximately 7 days
                     if period_length.days < 6 or period_length.days > 8:
                         self.logger.warning(
                             f"Weekly report {report.technical_id} has unusual period length: {period_length.days} days"
                         )
                         # This is a warning, not a validation failure
-                        
+
                 except ValueError:
                     self.logger.warning(
                         f"Report {report.technical_id} has invalid date format in data period"
@@ -221,17 +224,22 @@ class ReportValidationCriterion(CyodaCriteriaChecker):
             if report.data_period_start and report.data_period_end:
                 try:
                     from datetime import datetime
-                    start_date = datetime.fromisoformat(report.data_period_start.replace("Z", "+00:00"))
-                    end_date = datetime.fromisoformat(report.data_period_end.replace("Z", "+00:00"))
+
+                    start_date = datetime.fromisoformat(
+                        report.data_period_start.replace("Z", "+00:00")
+                    )
+                    end_date = datetime.fromisoformat(
+                        report.data_period_end.replace("Z", "+00:00")
+                    )
                     period_length = end_date - start_date
-                    
+
                     # Monthly reports should cover approximately 30 days
                     if period_length.days < 28 or period_length.days > 32:
                         self.logger.warning(
                             f"Monthly report {report.technical_id} has unusual period length: {period_length.days} days"
                         )
                         # This is a warning, not a validation failure
-                        
+
                 except ValueError:
                     self.logger.warning(
                         f"Report {report.technical_id} has invalid date format in data period"
@@ -261,26 +269,33 @@ class ReportValidationCriterion(CyodaCriteriaChecker):
         if report.data_period_start and report.data_period_end:
             try:
                 from datetime import datetime, timezone
-                start_date = datetime.fromisoformat(report.data_period_start.replace("Z", "+00:00"))
-                end_date = datetime.fromisoformat(report.data_period_end.replace("Z", "+00:00"))
+
+                start_date = datetime.fromisoformat(
+                    report.data_period_start.replace("Z", "+00:00")
+                )
+                end_date = datetime.fromisoformat(
+                    report.data_period_end.replace("Z", "+00:00")
+                )
                 current_time = datetime.now(timezone.utc)
-                
+
                 # Start date should be before end date
                 if start_date >= end_date:
                     self.logger.warning(
                         f"Report {report.technical_id} has start date after or equal to end date"
                     )
                     return False
-                
+
                 # End date should not be too far in the future
                 if end_date > current_time:
                     future_days = (end_date - current_time).days
-                    if future_days > 1:  # Allow 1 day tolerance for timezone differences
+                    if (
+                        future_days > 1
+                    ):  # Allow 1 day tolerance for timezone differences
                         self.logger.warning(
                             f"Report {report.technical_id} has end date too far in future: {future_days} days"
                         )
                         return False
-                
+
                 # Data period should not be too long (max 1 year)
                 period_length = end_date - start_date
                 if period_length.days > 365:
@@ -288,14 +303,14 @@ class ReportValidationCriterion(CyodaCriteriaChecker):
                         f"Report {report.technical_id} has data period too long: {period_length.days} days"
                     )
                     return False
-                
+
                 # Data period should not be too short (min 1 day)
                 if period_length.total_seconds() < 86400:  # 24 hours
                     self.logger.warning(
                         f"Report {report.technical_id} has data period too short: {period_length.total_seconds()} seconds"
                     )
                     return False
-                    
+
             except ValueError as e:
                 self.logger.warning(
                     f"Report {report.technical_id} has invalid date format in data period: {str(e)}"
@@ -315,7 +330,9 @@ class ReportValidationCriterion(CyodaCriteriaChecker):
             True if content is consistent, False otherwise
         """
         # If report has been generated, it should have content
-        if report.generated_at and (not report.content or len(report.content.strip()) == 0):
+        if report.generated_at and (
+            not report.content or len(report.content.strip()) == 0
+        ):
             self.logger.warning(
                 f"Report {report.technical_id} marked as generated but has no content"
             )
@@ -328,9 +345,13 @@ class ReportValidationCriterion(CyodaCriteriaChecker):
                     f"Report {report.technical_id} has insights that are not a dictionary"
                 )
                 return False
-            
+
             # Check for required insight fields
-            expected_fields = ["total_products_analyzed", "total_revenue", "average_performance_score"]
+            expected_fields = [
+                "total_products_analyzed",
+                "total_revenue",
+                "average_performance_score",
+            ]
             for field in expected_fields:
                 if field in report.insights:
                     value = report.insights[field]
@@ -355,7 +376,7 @@ class ReportValidationCriterion(CyodaCriteriaChecker):
                     f"Report {report.technical_id} has product_highlights that are not a list"
                 )
                 return False
-            
+
             for i, highlight in enumerate(report.product_highlights):
                 if not isinstance(highlight, dict):
                     self.logger.warning(

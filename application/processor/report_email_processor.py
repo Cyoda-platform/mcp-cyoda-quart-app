@@ -9,10 +9,10 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.email_notification import EmailNotification
+from application.entity.report import Report
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.report import Report
-from application.entity.email_notification import EmailNotification
 from services.services import get_entity_service
 
 
@@ -52,7 +52,7 @@ class ReportEmailProcessor(CyodaProcessor):
 
             # Create email notification entity
             email_notification = await self._create_email_notification(report)
-            
+
             # Mark report as emailed
             recipients = ["victoria.sagdieva@cyoda.com"]  # As specified in requirements
             report.set_emailed(recipients)
@@ -80,41 +80,45 @@ class ReportEmailProcessor(CyodaProcessor):
             Created EmailNotification entity
         """
         entity_service = get_entity_service()
-        
+
         # Generate email subject
         subject = self._generate_email_subject(report)
-        
+
         # Generate email content
         content = self._generate_email_content(report)
-        
+
         # Create EmailNotification entity
         email_notification = EmailNotification(
             recipient_email="victoria.sagdieva@cyoda.com",
             subject=subject,
             content=content,
-            email_type="WEEKLY_REPORT" if report.report_type == "WEEKLY_SUMMARY" else "REPORT_NOTIFICATION",
+            email_type=(
+                "WEEKLY_REPORT"
+                if report.report_type == "WEEKLY_SUMMARY"
+                else "REPORT_NOTIFICATION"
+            ),
             priority="NORMAL",
             report_id=report.technical_id or report.entity_id,
             report_title=report.title,
-            status="PENDING"
+            status="PENDING",
         )
-        
+
         # Convert to dict for EntityService
         email_data = email_notification.model_dump(by_alias=True)
-        
+
         # Save the email notification
         response = await entity_service.save(
             entity=email_data,
             entity_class=EmailNotification.ENTITY_NAME,
-            entity_version=str(EmailNotification.ENTITY_VERSION)
+            entity_version=str(EmailNotification.ENTITY_VERSION),
         )
-        
+
         created_email_id = response.metadata.id
-        
+
         self.logger.info(
             f"Created EmailNotification {created_email_id} for report {report.technical_id}"
         )
-        
+
         return cast_entity(response.data, EmailNotification)
 
     def _generate_email_subject(self, report: Report) -> str:
@@ -129,7 +133,7 @@ class ReportEmailProcessor(CyodaProcessor):
         """
         # Get current date for subject
         current_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-        
+
         if report.report_type == "WEEKLY_SUMMARY":
             return f"Weekly Pet Store Performance Report - {current_date}"
         elif report.report_type == "MONTHLY_ANALYSIS":
@@ -149,7 +153,7 @@ class ReportEmailProcessor(CyodaProcessor):
         """
         # Get summary information
         summary = report.get_report_summary()
-        
+
         # Generate email body
         email_lines = [
             "<!DOCTYPE html>",
@@ -194,36 +198,36 @@ class ReportEmailProcessor(CyodaProcessor):
             "</div>",
             "",
             "</body>",
-            "</html>"
+            "</html>",
         ]
-        
+
         return "\n".join(email_lines)
 
     def _generate_email_summary_section(self, report: Report) -> str:
         """Generate summary section for email."""
         if not report.insights:
             return '<div class="summary">No summary data available.</div>'
-        
+
         insights = report.insights
-        
+
         summary_lines = [
             '<div class="summary">',
             f"<p><strong>Total Products Analyzed:</strong> {insights.get('total_products_analyzed', 'N/A')}</p>",
             f"<p><strong>Total Revenue:</strong> ${insights.get('total_revenue', 0):,.2f}</p>",
             f"<p><strong>Total Sales Volume:</strong> {insights.get('total_sales_volume', 0):,} units</p>",
             f"<p><strong>Average Performance Score:</strong> {insights.get('average_performance_score', 0):.1f}/100</p>",
-            "</div>"
+            "</div>",
         ]
-        
+
         return "\n".join(summary_lines)
 
     def _generate_email_metrics_section(self, report: Report) -> str:
         """Generate metrics section for email."""
         if not report.insights:
             return "<p>No metrics data available.</p>"
-        
+
         insights = report.insights
-        
+
         metrics_lines = [
             "<table>",
             "<tr><th>Metric</th><th>Value</th></tr>",
@@ -232,18 +236,21 @@ class ReportEmailProcessor(CyodaProcessor):
             f"<tr><td>Out of Stock Products</td><td>{insights.get('out_of_stock_count', 0)} products</td></tr>",
             f"<tr><td>Categories Analyzed</td><td>{insights.get('categories_analyzed', 0)} categories</td></tr>",
             f"<tr><td>Top Performing Category</td><td>{insights.get('top_category', 'N/A')}</td></tr>",
-            "</table>"
+            "</table>",
         ]
-        
+
         return "\n".join(metrics_lines)
 
     def _generate_email_highlights_section(self, report: Report) -> str:
         """Generate highlights section for email."""
         if not report.product_highlights:
             return "<p>No product highlights available.</p>"
-        
-        highlights_lines = ["<table>", "<tr><th>Type</th><th>Product</th><th>Category</th><th>Performance Score</th><th>Revenue</th></tr>"]
-        
+
+        highlights_lines = [
+            "<table>",
+            "<tr><th>Type</th><th>Product</th><th>Category</th><th>Performance Score</th><th>Revenue</th></tr>",
+        ]
+
         for highlight in report.product_highlights[:5]:  # Limit to top 5
             highlights_lines.append(
                 f"<tr>"
@@ -254,7 +261,7 @@ class ReportEmailProcessor(CyodaProcessor):
                 f"<td>${highlight.get('revenue', 0):.2f}</td>"
                 f"</tr>"
             )
-        
+
         highlights_lines.append("</table>")
         return "\n".join(highlights_lines)
 
@@ -262,31 +269,39 @@ class ReportEmailProcessor(CyodaProcessor):
         """Generate action items section for email."""
         if not report.insights:
             return "<p>No action items identified.</p>"
-        
+
         insights = report.insights
         action_items = []
-        
+
         # Out of stock items
-        out_of_stock = insights.get('out_of_stock_count', 0)
+        out_of_stock = insights.get("out_of_stock_count", 0)
         if out_of_stock > 0:
-            action_items.append(f"🚨 <strong>Immediate Action:</strong> {out_of_stock} products are out of stock and need restocking")
-        
+            action_items.append(
+                f"🚨 <strong>Immediate Action:</strong> {out_of_stock} products are out of stock and need restocking"
+            )
+
         # Low performers
-        low_performers = insights.get('low_performers_count', 0)
+        low_performers = insights.get("low_performers_count", 0)
         if low_performers > 0:
-            action_items.append(f"📊 <strong>Review Required:</strong> {low_performers} products need strategy review")
-        
+            action_items.append(
+                f"📊 <strong>Review Required:</strong> {low_performers} products need strategy review"
+            )
+
         # High performers
-        high_performers = insights.get('high_performers_count', 0)
+        high_performers = insights.get("high_performers_count", 0)
         if high_performers > 0:
-            action_items.append(f"✅ <strong>Opportunity:</strong> Consider expanding inventory for {high_performers} high-performing products")
-        
+            action_items.append(
+                f"✅ <strong>Opportunity:</strong> Consider expanding inventory for {high_performers} high-performing products"
+            )
+
         if not action_items:
-            action_items.append("✅ No immediate action items identified - continue monitoring performance")
-        
+            action_items.append(
+                "✅ No immediate action items identified - continue monitoring performance"
+            )
+
         action_lines = ['<div class="highlight">']
         for item in action_items:
             action_lines.append(f"<p>{item}</p>")
         action_lines.append("</div>")
-        
+
         return "\n".join(action_lines)

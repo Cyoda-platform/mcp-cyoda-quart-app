@@ -46,10 +46,18 @@ class ProductQueryParams(BaseModel):
         default=None, description="Filter by workflow state", pattern=r"^[a-z_]+$"
     )
     min_performance_score: Optional[float] = Field(
-        default=None, alias="minPerformanceScore", description="Minimum performance score", ge=0, le=100
+        default=None,
+        alias="minPerformanceScore",
+        description="Minimum performance score",
+        ge=0,
+        le=100,
     )
     max_performance_score: Optional[float] = Field(
-        default=None, alias="maxPerformanceScore", description="Maximum performance score", ge=0, le=100
+        default=None,
+        alias="maxPerformanceScore",
+        description="Maximum performance score",
+        ge=0,
+        le=100,
     )
     limit: int = Field(default=50, description="Number of results", ge=1, le=1000)
     offset: int = Field(default=0, description="Pagination offset", ge=0)
@@ -59,7 +67,18 @@ class ProductQueryParams(BaseModel):
     def validate_category(cls, v: Optional[str]) -> Optional[str]:
         if v is None:
             return v
-        allowed_categories = ["DOGS", "CATS", "BIRDS", "FISH", "REPTILES", "SMALL_PETS", "ACCESSORIES", "FOOD", "TOYS", "HEALTH"]
+        allowed_categories = [
+            "DOGS",
+            "CATS",
+            "BIRDS",
+            "FISH",
+            "REPTILES",
+            "SMALL_PETS",
+            "ACCESSORIES",
+            "FOOD",
+            "TOYS",
+            "HEALTH",
+        ]
         if v not in allowed_categories:
             raise ValueError(f"Category must be one of: {allowed_categories}")
         return v
@@ -69,7 +88,13 @@ class ProductQueryParams(BaseModel):
     def validate_stock_status(cls, v: Optional[str]) -> Optional[str]:
         if v is None:
             return v
-        allowed_statuses = ["IN_STOCK", "LOW_STOCK", "OUT_OF_STOCK", "RESTOCK_NEEDED", "UNKNOWN"]
+        allowed_statuses = [
+            "IN_STOCK",
+            "LOW_STOCK",
+            "OUT_OF_STOCK",
+            "RESTOCK_NEEDED",
+            "UNKNOWN",
+        ]
         if v not in allowed_statuses:
             raise ValueError(f"Stock status must be one of: {allowed_statuses}")
         return v
@@ -97,7 +122,9 @@ class ReportQueryParams(BaseModel):
         default=None, description="Filter by workflow state", pattern=r"^[a-z_]+$"
     )
     generated_after: Optional[str] = Field(
-        default=None, alias="generatedAfter", description="Filter reports generated after this date"
+        default=None,
+        alias="generatedAfter",
+        description="Filter reports generated after this date",
     )
     limit: int = Field(default=50, description="Number of results", ge=1, le=1000)
     offset: int = Field(default=0, description="Pagination offset", ge=0)
@@ -107,7 +134,13 @@ class ReportQueryParams(BaseModel):
     def validate_report_type(cls, v: Optional[str]) -> Optional[str]:
         if v is None:
             return v
-        allowed_types = ["WEEKLY_SUMMARY", "MONTHLY_ANALYSIS", "CUSTOM", "PERFORMANCE_ANALYSIS", "INVENTORY_REPORT"]
+        allowed_types = [
+            "WEEKLY_SUMMARY",
+            "MONTHLY_ANALYSIS",
+            "CUSTOM",
+            "PERFORMANCE_ANALYSIS",
+            "INVENTORY_REPORT",
+        ]
         if v not in allowed_types:
             raise ValueError(f"Report type must be one of: {allowed_types}")
         return v
@@ -131,12 +164,8 @@ class EmailNotificationQueryParams(BaseModel):
     email_type: Optional[str] = Field(
         default=None, alias="emailType", description="Filter by email type"
     )
-    status: Optional[str] = Field(
-        default=None, description="Filter by email status"
-    )
-    priority: Optional[str] = Field(
-        default=None, description="Filter by priority"
-    )
+    status: Optional[str] = Field(default=None, description="Filter by email status")
+    priority: Optional[str] = Field(default=None, description="Filter by priority")
     state: Optional[str] = Field(
         default=None, description="Filter by workflow state", pattern=r"^[a-z_]+$"
     )
@@ -151,7 +180,13 @@ class EmailNotificationQueryParams(BaseModel):
     def validate_email_type(cls, v: Optional[str]) -> Optional[str]:
         if v is None:
             return v
-        allowed_types = ["REPORT_NOTIFICATION", "ALERT", "SUMMARY", "WEEKLY_REPORT", "MONTHLY_REPORT"]
+        allowed_types = [
+            "REPORT_NOTIFICATION",
+            "ALERT",
+            "SUMMARY",
+            "WEEKLY_REPORT",
+            "MONTHLY_REPORT",
+        ]
         if v not in allowed_types:
             raise ValueError(f"Email type must be one of: {allowed_types}")
         return v
@@ -201,13 +236,13 @@ class TransitionRequest(BaseModel):
     def validate_transition_name(cls, v: str) -> str:
         allowed_transitions = [
             "create",
-            "validate", 
+            "validate",
             "extract_data",
             "analyze",
             "generate",
             "email",
             "send",
-            "complete"
+            "complete",
         ]
         if v not in allowed_transitions:
             raise ValueError(f"Transition must be one of: {allowed_transitions}")
@@ -224,9 +259,11 @@ class SearchRequest(BaseModel):
         default=None, alias="stockStatus", description="Filter by stock status"
     )
     min_performance_score: Optional[float] = Field(
-        default=None, alias="minPerformanceScore", description="Minimum performance score"
+        default=None,
+        alias="minPerformanceScore",
+        description="Minimum performance score",
     )
-    
+
     # Report search fields
     title: Optional[str] = Field(default=None, description="Filter by report title")
     report_type: Optional[str] = Field(
@@ -235,7 +272,7 @@ class SearchRequest(BaseModel):
     email_sent: Optional[bool] = Field(
         default=None, alias="emailSent", description="Filter by email sent status"
     )
-    
+
     # EmailNotification search fields
     recipient_email: Optional[str] = Field(
         default=None, alias="recipientEmail", description="Filter by recipient email"
@@ -244,7 +281,7 @@ class SearchRequest(BaseModel):
         default=None, alias="emailType", description="Filter by email type"
     )
     status: Optional[str] = Field(default=None, description="Filter by status")
-    
+
     # Common fields
     state: Optional[str] = Field(default=None, description="Filter by workflow state")
 
@@ -257,7 +294,9 @@ class BulkProductAnalysisRequest(BaseModel):
         ..., alias="productIds", description="List of product IDs to analyze"
     )
     force_reanalysis: bool = Field(
-        default=False, alias="forceReanalysis", description="Force re-analysis of already analyzed products"
+        default=False,
+        alias="forceReanalysis",
+        description="Force re-analysis of already analyzed products",
     )
 
     @field_validator("product_ids")
@@ -289,7 +328,13 @@ class BulkReportGenerationRequest(BaseModel):
     @field_validator("report_type")
     @classmethod
     def validate_report_type(cls, v: str) -> str:
-        allowed_types = ["WEEKLY_SUMMARY", "MONTHLY_ANALYSIS", "CUSTOM", "PERFORMANCE_ANALYSIS", "INVENTORY_REPORT"]
+        allowed_types = [
+            "WEEKLY_SUMMARY",
+            "MONTHLY_ANALYSIS",
+            "CUSTOM",
+            "PERFORMANCE_ANALYSIS",
+            "INVENTORY_REPORT",
+        ]
         if v not in allowed_types:
             raise ValueError(f"Report type must be one of: {allowed_types}")
         return v

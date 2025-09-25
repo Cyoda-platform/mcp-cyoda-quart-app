@@ -10,9 +10,9 @@ import random
 from datetime import datetime, timezone
 from typing import Any, Dict
 
+from application.entity.product import Product
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.product import Product
 
 
 class ProductAnalysisProcessor(CyodaProcessor):
@@ -51,10 +51,10 @@ class ProductAnalysisProcessor(CyodaProcessor):
 
             # Calculate performance score
             performance_score = self._calculate_performance_score(product)
-            
+
             # Generate trend analysis
             trend_analysis = self._generate_trend_analysis(product)
-            
+
             # Set analysis results
             product.set_analyzed(performance_score, trend_analysis)
 
@@ -85,7 +85,7 @@ class ProductAnalysisProcessor(CyodaProcessor):
         sales_score = 0.0
         revenue_score = 0.0
         inventory_score = 0.0
-        
+
         # Sales volume scoring (0-40 points)
         if product.sales_volume is not None:
             if product.sales_volume >= 200:
@@ -96,7 +96,7 @@ class ProductAnalysisProcessor(CyodaProcessor):
                 sales_score = 20.0 + (product.sales_volume - 50) * 0.2
             else:
                 sales_score = product.sales_volume * 0.4
-        
+
         # Revenue scoring (0-35 points)
         if product.revenue is not None:
             if product.revenue >= 5000:
@@ -107,7 +107,7 @@ class ProductAnalysisProcessor(CyodaProcessor):
                 revenue_score = 15.0 + (product.revenue - 500) * 0.0067
             else:
                 revenue_score = product.revenue * 0.03
-        
+
         # Inventory efficiency scoring (0-25 points)
         if product.inventory_level is not None:
             if product.stock_status == "IN_STOCK":
@@ -120,24 +120,24 @@ class ProductAnalysisProcessor(CyodaProcessor):
                 inventory_score = 5.0
             else:
                 inventory_score = 10.0
-        
+
         # Calculate total score
         total_score = sales_score + revenue_score + inventory_score
-        
+
         # Apply category-specific adjustments
         category_bonus = self._get_category_performance_bonus(product.category)
         total_score += category_bonus
-        
+
         # Ensure score is within 0-100 range
         final_score = max(0.0, min(100.0, total_score))
-        
+
         self.logger.debug(
             f"Performance calculation for {product.name}: "
             f"Sales={sales_score:.1f}, Revenue={revenue_score:.1f}, "
             f"Inventory={inventory_score:.1f}, Category Bonus={category_bonus:.1f}, "
             f"Final={final_score:.1f}"
         )
-        
+
         return round(final_score, 2)
 
     def _get_category_performance_bonus(self, category: str) -> float:
@@ -151,24 +151,24 @@ class ProductAnalysisProcessor(CyodaProcessor):
             Bonus points (can be negative)
         """
         category_bonuses = {
-            "FOOD": 5.0,      # High demand category
-            "TOYS": 3.0,      # Popular category
-            "HEALTH": 4.0,    # High-value category
-            "DOGS": 2.0,      # Popular pet category
-            "CATS": 2.0,      # Popular pet category
+            "FOOD": 5.0,  # High demand category
+            "TOYS": 3.0,  # Popular category
+            "HEALTH": 4.0,  # High-value category
+            "DOGS": 2.0,  # Popular pet category
+            "CATS": 2.0,  # Popular pet category
             "ACCESSORIES": 1.0,
             "FISH": 0.0,
-            "BIRDS": -1.0,    # Lower demand
-            "REPTILES": -2.0, # Niche category
-            "SMALL_PETS": -1.0
+            "BIRDS": -1.0,  # Lower demand
+            "REPTILES": -2.0,  # Niche category
+            "SMALL_PETS": -1.0,
         }
-        
+
         return category_bonuses.get(category, 0.0)
 
     def _generate_trend_analysis(self, product: Product) -> Dict[str, Any]:
         """
         Generate trend analysis data for the product.
-        
+
         Note: This is a simulated implementation. In a real system, this would
         analyze historical data to identify actual trends.
 
@@ -181,7 +181,7 @@ class ProductAnalysisProcessor(CyodaProcessor):
         # Simulate trend analysis based on current metrics
         trend_direction = "stable"
         trend_strength = "moderate"
-        
+
         # Determine trend based on performance score
         if product.performance_score is not None:
             if product.performance_score >= 70:
@@ -196,52 +196,58 @@ class ProductAnalysisProcessor(CyodaProcessor):
             else:
                 trend_direction = "downward"
                 trend_strength = "weak"
-        
+
         # Generate insights based on metrics
         insights = []
-        
+
         if product.sales_volume and product.sales_volume >= 200:
             insights.append("High sales volume indicates strong market demand")
         elif product.sales_volume and product.sales_volume <= 20:
             insights.append("Low sales volume suggests need for marketing boost")
-        
+
         if product.revenue and product.revenue >= 3000:
             insights.append("Strong revenue performance")
         elif product.revenue and product.revenue <= 500:
             insights.append("Revenue below expectations - consider pricing strategy")
-        
+
         if product.stock_status == "OUT_OF_STOCK":
             insights.append("Out of stock - immediate restocking required")
         elif product.stock_status == "LOW_STOCK":
             insights.append("Low inventory - plan restocking soon")
-        
+
         # Generate recommendations
         recommendations = []
-        
+
         if product.is_high_performer():
-            recommendations.append("Maintain current strategy and consider expanding inventory")
+            recommendations.append(
+                "Maintain current strategy and consider expanding inventory"
+            )
         elif product.is_low_performer():
             recommendations.append("Review pricing and marketing strategy")
             recommendations.append("Consider product positioning or discontinuation")
-        
+
         if product.needs_restocking():
             recommendations.append("Schedule inventory replenishment")
-        
+
         # Simulate seasonal factors
-        seasonal_factor = random.choice(["spring_boost", "summer_stable", "fall_decline", "winter_peak"])
-        
+        seasonal_factor = random.choice(
+            ["spring_boost", "summer_stable", "fall_decline", "winter_peak"]
+        )
+
         trend_analysis = {
             "trend_direction": trend_direction,
             "trend_strength": trend_strength,
             "insights": insights,
             "recommendations": recommendations,
             "seasonal_factor": seasonal_factor,
-            "analysis_timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+            "analysis_timestamp": datetime.now(timezone.utc)
+            .isoformat()
+            .replace("+00:00", "Z"),
             "confidence_score": round(random.uniform(0.7, 0.95), 2),
             "market_position": self._determine_market_position(product),
-            "risk_factors": self._identify_risk_factors(product)
+            "risk_factors": self._identify_risk_factors(product),
         }
-        
+
         return trend_analysis
 
     def _determine_market_position(self, product: Product) -> str:
@@ -256,7 +262,7 @@ class ProductAnalysisProcessor(CyodaProcessor):
         """
         if product.performance_score is None:
             return "unknown"
-        
+
         if product.performance_score >= 80:
             return "market_leader"
         elif product.performance_score >= 60:
@@ -279,20 +285,20 @@ class ProductAnalysisProcessor(CyodaProcessor):
             List of risk factors
         """
         risk_factors = []
-        
+
         if product.stock_status == "OUT_OF_STOCK":
             risk_factors.append("inventory_shortage")
-        
+
         if product.sales_volume and product.sales_volume <= 10:
             risk_factors.append("low_demand")
-        
+
         if product.revenue and product.revenue <= 200:
             risk_factors.append("low_profitability")
-        
+
         if product.category in ["REPTILES", "BIRDS"]:
             risk_factors.append("niche_market")
-        
+
         if product.performance_score and product.performance_score <= 25:
             risk_factors.append("poor_performance")
-        
+
         return risk_factors

@@ -30,12 +30,12 @@ from ..models import (
     CountResponse,
     DeleteResponse,
     ErrorResponse,
+    ExistsResponse,
     ProductListResponse,
     ProductQueryParams,
     ProductResponse,
     ProductSearchResponse,
     ProductUpdateQueryParams,
-    ExistsResponse,
     SearchRequest,
     TransitionRequest,
     TransitionResponse,
@@ -43,24 +43,27 @@ from ..models import (
     ValidationErrorResponse,
 )
 
+
 # Module-level service instance to avoid repeated lookups
 class _ServiceProxy:
     def __getattr__(self, name: str) -> Any:
         return getattr(get_entity_service(), name)
 
+
 service = _ServiceProxy()
 
 logger = logging.getLogger(__name__)
+
 
 # Helper to normalize entity data from service (Pydantic model or dict)
 def _to_entity_dict(data: Any) -> Dict[str, Any]:
     return data.model_dump(by_alias=True) if hasattr(data, "model_dump") else data
 
-products_bp = Blueprint(
-    "products", __name__, url_prefix="/api/products"
-)
+
+products_bp = Blueprint("products", __name__, url_prefix="/api/products")
 
 # ---- Routes -----------------------------------------------------------------
+
 
 @products_bp.route("", methods=["POST"])
 @tag(["products"])
@@ -193,14 +196,23 @@ async def list_products(
         entity_list = [_to_entity_dict(r.data) for r in entities]
 
         # Apply performance score filtering if specified
-        if query_args.min_performance_score is not None or query_args.max_performance_score is not None:
+        if (
+            query_args.min_performance_score is not None
+            or query_args.max_performance_score is not None
+        ):
             filtered_entities = []
             for entity in entity_list:
                 score = entity.get("performanceScore")
                 if score is not None:
-                    if query_args.min_performance_score is not None and score < query_args.min_performance_score:
+                    if (
+                        query_args.min_performance_score is not None
+                        and score < query_args.min_performance_score
+                    ):
                         continue
-                    if query_args.max_performance_score is not None and score > query_args.max_performance_score:
+                    if (
+                        query_args.max_performance_score is not None
+                        and score > query_args.max_performance_score
+                    ):
                         continue
                 filtered_entities.append(entity)
             entity_list = filtered_entities
@@ -263,9 +275,7 @@ async def update_product(
         return jsonify(_to_entity_dict(response.data)), 200
 
     except ValueError as e:
-        logger.warning(
-            "Validation error updating Product %s: %s", entity_id, str(e)
-        )
+        logger.warning("Validation error updating Product %s: %s", entity_id, str(e))
         return jsonify({"error": str(e), "code": "VALIDATION_ERROR"}), 400
     except Exception as e:
         logger.exception("Error updating Product %s: %s", entity_id, str(e))
@@ -319,6 +329,7 @@ async def delete_product(entity_id: str) -> ResponseReturnValue:
 
 # ---- Additional Entity Service Endpoints ----------------------------------------
 
+
 @products_bp.route("/by-business-id/<business_id>", methods=["GET"])
 @tag(["products"])
 @operation_id("get_product_by_business_id")
@@ -371,9 +382,7 @@ async def check_exists(entity_id: str) -> ResponseReturnValue:
         return response.model_dump(), 200
 
     except Exception as e:
-        logger.exception(
-            "Error checking Product existence %s: %s", entity_id, str(e)
-        )
+        logger.exception("Error checking Product existence %s: %s", entity_id, str(e))
         return {"error": str(e)}, 500
 
 
@@ -432,6 +441,7 @@ async def get_available_transitions(entity_id: str) -> ResponseReturnValue:
 
 # ---- Search Endpoints -----------------------------------------------------------
 
+
 @products_bp.route("/search", methods=["POST"])
 @tag(["products"])
 @operation_id("search_products")
@@ -477,9 +487,7 @@ async def search_entities(data: SearchRequest) -> ResponseReturnValue:
 @products_bp.route("/find-all", methods=["GET"])
 @tag(["products"])
 @operation_id("find_all_products")
-@validate(
-    responses={200: (ProductListResponse, None), 500: (ErrorResponse, None)}
-)
+@validate(responses={200: (ProductListResponse, None), 500: (ErrorResponse, None)})
 async def find_all_entities() -> ResponseReturnValue:
     """Find all Products without filtering"""
     try:

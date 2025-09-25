@@ -30,75 +30,62 @@ class EmailNotification(CyodaEntity):
 
     # Core email fields
     recipient_email: str = Field(
-        ...,
-        alias="recipientEmail",
-        description="Email address of the recipient"
+        ..., alias="recipientEmail", description="Email address of the recipient"
     )
     subject: str = Field(..., description="Email subject line")
-    content: Optional[str] = Field(
-        default=None,
-        description="Email body content"
-    )
-    
+    content: Optional[str] = Field(default=None, description="Email body content")
+
     # Email metadata
     sender_email: Optional[str] = Field(
         default="noreply@cyoda.com",
         alias="senderEmail",
-        description="Email address of the sender"
+        description="Email address of the sender",
     )
     email_type: str = Field(
         default="REPORT_NOTIFICATION",
         alias="emailType",
-        description="Type of email notification"
+        description="Type of email notification",
     )
     priority: str = Field(
-        default="NORMAL",
-        description="Email priority: LOW, NORMAL, HIGH, URGENT"
+        default="NORMAL", description="Email priority: LOW, NORMAL, HIGH, URGENT"
     )
-    
+
     # Report reference
     report_id: Optional[str] = Field(
-        default=None,
-        alias="reportId",
-        description="ID of the associated report"
+        default=None, alias="reportId", description="ID of the associated report"
     )
     report_title: Optional[str] = Field(
-        default=None,
-        alias="reportTitle",
-        description="Title of the associated report"
+        default=None, alias="reportTitle", description="Title of the associated report"
     )
-    
+
     # Email status and tracking
     status: str = Field(
-        default="PENDING",
-        description="Email status: PENDING, SENT, FAILED, DELIVERED"
+        default="PENDING", description="Email status: PENDING, SENT, FAILED, DELIVERED"
     )
     delivery_attempts: int = Field(
         default=0,
         alias="deliveryAttempts",
-        description="Number of delivery attempts made"
+        description="Number of delivery attempts made",
     )
     error_message: Optional[str] = Field(
         default=None,
         alias="errorMessage",
-        description="Error message if delivery failed"
+        description="Error message if delivery failed",
     )
-    
+
     # Timestamps
     scheduled_at: Optional[str] = Field(
         default=None,
         alias="scheduledAt",
-        description="When the email is scheduled to be sent"
+        description="When the email is scheduled to be sent",
     )
     sent_at: Optional[str] = Field(
-        default=None,
-        alias="sentAt",
-        description="Timestamp when email was sent"
+        default=None, alias="sentAt", description="Timestamp when email was sent"
     )
     delivered_at: Optional[str] = Field(
         default=None,
         alias="deliveredAt",
-        description="Timestamp when email was delivered"
+        description="Timestamp when email was delivered",
     )
 
     # Validation constants
@@ -107,22 +94,17 @@ class EmailNotification(CyodaEntity):
         "ALERT",
         "SUMMARY",
         "WEEKLY_REPORT",
-        "MONTHLY_REPORT"
+        "MONTHLY_REPORT",
     ]
-    
-    ALLOWED_PRIORITIES: ClassVar[List[str]] = [
-        "LOW",
-        "NORMAL",
-        "HIGH",
-        "URGENT"
-    ]
-    
+
+    ALLOWED_PRIORITIES: ClassVar[List[str]] = ["LOW", "NORMAL", "HIGH", "URGENT"]
+
     ALLOWED_STATUSES: ClassVar[List[str]] = [
         "PENDING",
         "SENT",
         "FAILED",
         "DELIVERED",
-        "CANCELLED"
+        "CANCELLED",
     ]
 
     @field_validator("recipient_email", "sender_email")
@@ -194,18 +176,24 @@ class EmailNotification(CyodaEntity):
         # Validate status consistency with timestamps
         if self.status == "SENT" and not self.sent_at:
             raise ValueError("If status is SENT, sent_at timestamp must be set")
-        
+
         if self.status == "DELIVERED" and not self.delivered_at:
-            raise ValueError("If status is DELIVERED, delivered_at timestamp must be set")
-        
+            raise ValueError(
+                "If status is DELIVERED, delivered_at timestamp must be set"
+            )
+
         if self.status == "FAILED" and self.delivery_attempts == 0:
-            raise ValueError("If status is FAILED, delivery_attempts must be greater than 0")
+            raise ValueError(
+                "If status is FAILED, delivery_attempts must be greater than 0"
+            )
 
         # Validate timestamp order
         if self.sent_at and self.delivered_at:
             try:
                 sent_time = datetime.fromisoformat(self.sent_at.replace("Z", "+00:00"))
-                delivered_time = datetime.fromisoformat(self.delivered_at.replace("Z", "+00:00"))
+                delivered_time = datetime.fromisoformat(
+                    self.delivered_at.replace("Z", "+00:00")
+                )
                 if sent_time > delivered_time:
                     raise ValueError("sent_at must be before delivered_at")
             except ValueError as e:
@@ -229,7 +217,9 @@ class EmailNotification(CyodaEntity):
     def mark_as_delivered(self) -> None:
         """Mark email as delivered"""
         self.status = "DELIVERED"
-        self.delivered_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.delivered_at = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
         self.update_timestamp()
 
     def mark_as_failed(self, error_message: str) -> None:
@@ -247,10 +237,10 @@ class EmailNotification(CyodaEntity):
     def is_ready_to_send(self) -> bool:
         """Check if email is ready to be sent"""
         return (
-            self.status == "PENDING" and
-            self.content is not None and
-            len(self.content.strip()) > 0 and
-            self.delivery_attempts < 3  # Max retry limit
+            self.status == "PENDING"
+            and self.content is not None
+            and len(self.content.strip()) > 0
+            and self.delivery_attempts < 3  # Max retry limit
         )
 
     def can_retry(self) -> bool:
@@ -267,7 +257,7 @@ class EmailNotification(CyodaEntity):
             "priority": self.priority,
             "delivery_attempts": self.delivery_attempts,
             "sent_at": self.sent_at,
-            "report_id": self.report_id
+            "report_id": self.report_id,
         }
 
     def to_api_response(self) -> Dict[str, Any]:

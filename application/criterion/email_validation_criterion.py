@@ -7,9 +7,9 @@ proceed to email dispatch stage as specified in functional requirements.
 
 from typing import Any
 
+from application.entity.email_notification import EmailNotification
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.email_notification import EmailNotification
 
 
 class EmailValidationCriterion(CyodaCriteriaChecker):
@@ -81,14 +81,20 @@ class EmailValidationCriterion(CyodaCriteriaChecker):
             True if all required fields are valid, False otherwise
         """
         # Validate recipient email
-        if not email_notification.recipient_email or len(email_notification.recipient_email.strip()) == 0:
+        if (
+            not email_notification.recipient_email
+            or len(email_notification.recipient_email.strip()) == 0
+        ):
             self.logger.warning(
                 f"EmailNotification {email_notification.technical_id} has empty or missing recipient email"
             )
             return False
 
         # Validate subject
-        if not email_notification.subject or len(email_notification.subject.strip()) == 0:
+        if (
+            not email_notification.subject
+            or len(email_notification.subject.strip()) == 0
+        ):
             self.logger.warning(
                 f"EmailNotification {email_notification.technical_id} has empty or missing subject"
             )
@@ -168,7 +174,10 @@ class EmailValidationCriterion(CyodaCriteriaChecker):
                 return False
 
         # Validate content length if present
-        if email_notification.content is not None and len(email_notification.content) > 100000:
+        if (
+            email_notification.content is not None
+            and len(email_notification.content) > 100000
+        ):
             self.logger.warning(
                 f"EmailNotification {email_notification.technical_id} content too long: {len(email_notification.content)} characters"
             )
@@ -193,13 +202,19 @@ class EmailValidationCriterion(CyodaCriteriaChecker):
             )
             return False
 
-        if email_notification.status == "DELIVERED" and not email_notification.delivered_at:
+        if (
+            email_notification.status == "DELIVERED"
+            and not email_notification.delivered_at
+        ):
             self.logger.warning(
                 f"EmailNotification {email_notification.technical_id} status is DELIVERED but missing delivered_at timestamp"
             )
             return False
 
-        if email_notification.status == "FAILED" and email_notification.delivery_attempts == 0:
+        if (
+            email_notification.status == "FAILED"
+            and email_notification.delivery_attempts == 0
+        ):
             self.logger.warning(
                 f"EmailNotification {email_notification.technical_id} status is FAILED but no delivery attempts recorded"
             )
@@ -228,7 +243,9 @@ class EmailValidationCriterion(CyodaCriteriaChecker):
 
         return True
 
-    def _validate_delivery_constraints(self, email_notification: EmailNotification) -> bool:
+    def _validate_delivery_constraints(
+        self, email_notification: EmailNotification
+    ) -> bool:
         """
         Validate delivery constraints and readiness.
 
@@ -240,7 +257,10 @@ class EmailValidationCriterion(CyodaCriteriaChecker):
         """
         # Check if email is ready to send
         if email_notification.status == "PENDING":
-            if not email_notification.content or len(email_notification.content.strip()) == 0:
+            if (
+                not email_notification.content
+                or len(email_notification.content.strip()) == 0
+            ):
                 self.logger.warning(
                     f"EmailNotification {email_notification.technical_id} is pending but has no content"
                 )
@@ -258,9 +278,12 @@ class EmailValidationCriterion(CyodaCriteriaChecker):
         if email_notification.scheduled_at:
             try:
                 from datetime import datetime, timezone
-                scheduled_time = datetime.fromisoformat(email_notification.scheduled_at.replace("Z", "+00:00"))
+
+                scheduled_time = datetime.fromisoformat(
+                    email_notification.scheduled_at.replace("Z", "+00:00")
+                )
                 current_time = datetime.now(timezone.utc)
-                
+
                 # Scheduled time should not be too far in the past
                 time_diff = current_time - scheduled_time
                 if time_diff.total_seconds() > 86400:  # 24 hours
@@ -268,7 +291,7 @@ class EmailValidationCriterion(CyodaCriteriaChecker):
                         f"EmailNotification {email_notification.technical_id} scheduled time is too far in the past"
                     )
                     # This is a warning, not a validation failure
-                    
+
             except ValueError:
                 self.logger.warning(
                     f"EmailNotification {email_notification.technical_id} has invalid scheduled_at timestamp format"
@@ -318,7 +341,9 @@ class EmailValidationCriterion(CyodaCriteriaChecker):
 
         return True
 
-    def _validate_timestamp_consistency(self, email_notification: EmailNotification) -> bool:
+    def _validate_timestamp_consistency(
+        self, email_notification: EmailNotification
+    ) -> bool:
         """
         Validate timestamp consistency and logic.
 
@@ -330,12 +355,15 @@ class EmailValidationCriterion(CyodaCriteriaChecker):
         """
         try:
             from datetime import datetime, timezone
+
             current_time = datetime.now(timezone.utc)
 
             # Validate sent_at timestamp
             if email_notification.sent_at:
-                sent_time = datetime.fromisoformat(email_notification.sent_at.replace("Z", "+00:00"))
-                
+                sent_time = datetime.fromisoformat(
+                    email_notification.sent_at.replace("Z", "+00:00")
+                )
+
                 # Sent time should not be in the future
                 if sent_time > current_time:
                     self.logger.warning(
@@ -345,8 +373,10 @@ class EmailValidationCriterion(CyodaCriteriaChecker):
 
             # Validate delivered_at timestamp
             if email_notification.delivered_at:
-                delivered_time = datetime.fromisoformat(email_notification.delivered_at.replace("Z", "+00:00"))
-                
+                delivered_time = datetime.fromisoformat(
+                    email_notification.delivered_at.replace("Z", "+00:00")
+                )
+
                 # Delivered time should not be in the future
                 if delivered_time > current_time:
                     self.logger.warning(
@@ -356,9 +386,13 @@ class EmailValidationCriterion(CyodaCriteriaChecker):
 
             # Validate timestamp order
             if email_notification.sent_at and email_notification.delivered_at:
-                sent_time = datetime.fromisoformat(email_notification.sent_at.replace("Z", "+00:00"))
-                delivered_time = datetime.fromisoformat(email_notification.delivered_at.replace("Z", "+00:00"))
-                
+                sent_time = datetime.fromisoformat(
+                    email_notification.sent_at.replace("Z", "+00:00")
+                )
+                delivered_time = datetime.fromisoformat(
+                    email_notification.delivered_at.replace("Z", "+00:00")
+                )
+
                 if sent_time > delivered_time:
                     self.logger.warning(
                         f"EmailNotification {email_notification.technical_id} has sent_at after delivered_at"
@@ -404,7 +438,9 @@ class EmailValidationCriterion(CyodaCriteriaChecker):
             return False
 
         # Check for valid characters (basic check)
-        valid_chars = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-_+")
+        valid_chars = set(
+            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-_+"
+        )
         if not all(c in valid_chars for c in email):
             return False
 
@@ -414,7 +450,9 @@ class EmailValidationCriterion(CyodaCriteriaChecker):
 
         return True
 
-    def _validate_content_requirements(self, email_notification: EmailNotification) -> bool:
+    def _validate_content_requirements(
+        self, email_notification: EmailNotification
+    ) -> bool:
         """
         Validate content requirements based on email type.
 
@@ -425,8 +463,15 @@ class EmailValidationCriterion(CyodaCriteriaChecker):
             True if content requirements are met, False otherwise
         """
         # Report emails should have substantial content
-        if email_notification.email_type in ["REPORT_NOTIFICATION", "WEEKLY_REPORT", "MONTHLY_REPORT"]:
-            if email_notification.content and len(email_notification.content.strip()) < 100:
+        if email_notification.email_type in [
+            "REPORT_NOTIFICATION",
+            "WEEKLY_REPORT",
+            "MONTHLY_REPORT",
+        ]:
+            if (
+                email_notification.content
+                and len(email_notification.content.strip()) < 100
+            ):
                 self.logger.warning(
                     f"Report email {email_notification.technical_id} has very short content: {len(email_notification.content)} characters"
                 )

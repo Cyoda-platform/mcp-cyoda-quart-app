@@ -33,77 +33,73 @@ class Report(CyodaEntity):
     report_type: str = Field(
         ...,
         alias="reportType",
-        description="Type of report: WEEKLY_SUMMARY, MONTHLY_ANALYSIS, CUSTOM"
+        description="Type of report: WEEKLY_SUMMARY, MONTHLY_ANALYSIS, CUSTOM",
     )
     content: Optional[str] = Field(
-        default=None,
-        description="Generated report content in markdown or HTML format"
+        default=None, description="Generated report content in markdown or HTML format"
     )
-    
+
     # Report metadata
     data_period_start: Optional[str] = Field(
         default=None,
         alias="dataPeriodStart",
-        description="Start date of the data period covered by this report"
+        description="Start date of the data period covered by this report",
     )
     data_period_end: Optional[str] = Field(
         default=None,
-        alias="dataPeriodEnd", 
-        description="End date of the data period covered by this report"
+        alias="dataPeriodEnd",
+        description="End date of the data period covered by this report",
     )
     generated_by: Optional[str] = Field(
         default="System",
         alias="generatedBy",
-        description="Who or what generated this report"
+        description="Who or what generated this report",
     )
-    
+
     # Report insights and summary data
     insights: Optional[Dict[str, Any]] = Field(
-        default=None,
-        description="Key insights and findings from the analysis"
+        default=None, description="Key insights and findings from the analysis"
     )
     summary_metrics: Optional[Dict[str, Any]] = Field(
         default=None,
         alias="summaryMetrics",
-        description="Summary performance metrics and KPIs"
+        description="Summary performance metrics and KPIs",
     )
     product_highlights: Optional[List[Dict[str, Any]]] = Field(
         default=None,
         alias="productHighlights",
-        description="Highlighted products (top performers, underperformers, etc.)"
+        description="Highlighted products (top performers, underperformers, etc.)",
     )
-    
+
     # Email tracking
     email_recipients: Optional[List[str]] = Field(
         default=None,
         alias="emailRecipients",
-        description="List of email addresses to send this report to"
+        description="List of email addresses to send this report to",
     )
     email_sent: Optional[bool] = Field(
         default=False,
         alias="emailSent",
-        description="Whether the report has been emailed"
+        description="Whether the report has been emailed",
     )
-    
+
     # Timestamps
     generated_at: Optional[str] = Field(
         default=None,
         alias="generatedAt",
-        description="Timestamp when report was generated"
+        description="Timestamp when report was generated",
     )
     emailed_at: Optional[str] = Field(
-        default=None,
-        alias="emailedAt",
-        description="Timestamp when report was emailed"
+        default=None, alias="emailedAt", description="Timestamp when report was emailed"
     )
 
     # Validation constants
     ALLOWED_REPORT_TYPES: ClassVar[List[str]] = [
         "WEEKLY_SUMMARY",
-        "MONTHLY_ANALYSIS", 
+        "MONTHLY_ANALYSIS",
         "CUSTOM",
         "PERFORMANCE_ANALYSIS",
-        "INVENTORY_REPORT"
+        "INVENTORY_REPORT",
     ]
 
     @field_validator("title")
@@ -150,8 +146,12 @@ class Report(CyodaEntity):
         # Validate data period consistency
         if self.data_period_start and self.data_period_end:
             try:
-                start_date = datetime.fromisoformat(self.data_period_start.replace("Z", "+00:00"))
-                end_date = datetime.fromisoformat(self.data_period_end.replace("Z", "+00:00"))
+                start_date = datetime.fromisoformat(
+                    self.data_period_start.replace("Z", "+00:00")
+                )
+                end_date = datetime.fromisoformat(
+                    self.data_period_end.replace("Z", "+00:00")
+                )
                 if start_date >= end_date:
                     raise ValueError("Data period start must be before end date")
             except ValueError as e:
@@ -169,12 +169,16 @@ class Report(CyodaEntity):
         """Update the updated_at timestamp to current time"""
         self.updated_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
-    def set_generated(self, content: str, insights: Dict[str, Any], summary_metrics: Dict[str, Any]) -> None:
+    def set_generated(
+        self, content: str, insights: Dict[str, Any], summary_metrics: Dict[str, Any]
+    ) -> None:
         """Mark report as generated with content and insights"""
         self.content = content
         self.insights = insights
         self.summary_metrics = summary_metrics
-        self.generated_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.generated_at = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
         self.update_timestamp()
 
     def set_emailed(self, recipients: List[str]) -> None:
@@ -200,10 +204,10 @@ class Report(CyodaEntity):
     def is_ready_for_email(self) -> bool:
         """Check if report is ready to be emailed"""
         return (
-            self.content is not None and 
-            len(self.content.strip()) > 0 and
-            self.generated_at is not None and
-            not self.email_sent
+            self.content is not None
+            and len(self.content.strip()) > 0
+            and self.generated_at is not None
+            and not self.email_sent
         )
 
     def get_report_summary(self) -> Dict[str, Any]:
@@ -213,13 +217,15 @@ class Report(CyodaEntity):
             "report_type": self.report_type,
             "data_period": {
                 "start": self.data_period_start,
-                "end": self.data_period_end
+                "end": self.data_period_end,
             },
             "generated_at": self.generated_at,
             "email_sent": self.email_sent,
             "content_length": len(self.content) if self.content else 0,
             "insights_count": len(self.insights) if self.insights else 0,
-            "highlights_count": len(self.product_highlights) if self.product_highlights else 0
+            "highlights_count": (
+                len(self.product_highlights) if self.product_highlights else 0
+            ),
         }
 
     def to_api_response(self) -> Dict[str, Any]:

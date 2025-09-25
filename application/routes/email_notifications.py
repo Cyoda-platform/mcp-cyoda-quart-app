@@ -29,12 +29,12 @@ from ..entity.email_notification import EmailNotification
 from ..models import (
     CountResponse,
     DeleteResponse,
-    ErrorResponse,
     EmailNotificationListResponse,
     EmailNotificationQueryParams,
     EmailNotificationResponse,
     EmailNotificationSearchResponse,
     EmailNotificationUpdateQueryParams,
+    ErrorResponse,
     ExistsResponse,
     SearchRequest,
     TransitionRequest,
@@ -43,24 +43,29 @@ from ..models import (
     ValidationErrorResponse,
 )
 
+
 # Module-level service instance to avoid repeated lookups
 class _ServiceProxy:
     def __getattr__(self, name: str) -> Any:
         return getattr(get_entity_service(), name)
 
+
 service = _ServiceProxy()
 
 logger = logging.getLogger(__name__)
 
+
 # Helper to normalize entity data from service (Pydantic model or dict)
 def _to_entity_dict(data: Any) -> Dict[str, Any]:
     return data.model_dump(by_alias=True) if hasattr(data, "model_dump") else data
+
 
 email_notifications_bp = Blueprint(
     "email_notifications", __name__, url_prefix="/api/email-notifications"
 )
 
 # ---- Routes -----------------------------------------------------------------
+
 
 @email_notifications_bp.route("", methods=["POST"])
 @tag(["email_notifications"])
@@ -227,7 +232,9 @@ async def list_email_notifications(
     },
 )
 async def update_email_notification(
-    entity_id: str, data: EmailNotification, query_args: EmailNotificationUpdateQueryParams
+    entity_id: str,
+    data: EmailNotification,
+    query_args: EmailNotificationUpdateQueryParams,
 ) -> ResponseReturnValue:
     """Update EmailNotification and optionally trigger workflow transition with validation"""
     try:
@@ -315,6 +322,7 @@ async def delete_email_notification(entity_id: str) -> ResponseReturnValue:
 
 # ---- Additional Entity Service Endpoints ----------------------------------------
 
+
 @email_notifications_bp.route("/by-business-id/<business_id>", methods=["GET"])
 @tag(["email_notifications"])
 @operation_id("get_email_notification_by_business_id")
@@ -328,7 +336,9 @@ async def delete_email_notification(entity_id: str) -> ResponseReturnValue:
 async def get_by_business_id(business_id: str) -> ResponseReturnValue:
     """Get EmailNotification by business ID (subject field by default)"""
     try:
-        business_id_field = request.args.get("field", "subject")  # Default to subject field
+        business_id_field = request.args.get(
+            "field", "subject"
+        )  # Default to subject field
 
         result = await service.find_by_business_id(
             entity_class=EmailNotification.ENTITY_NAME,
@@ -427,6 +437,7 @@ async def get_available_transitions(entity_id: str) -> ResponseReturnValue:
 
 
 # ---- Search Endpoints -----------------------------------------------------------
+
 
 @email_notifications_bp.route("/search", methods=["POST"])
 @tag(["email_notifications"])
