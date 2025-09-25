@@ -1,0 +1,103 @@
+{
+  "version": "1.0",
+  "name": "Pet Workflow",
+  "desc": "Workflow for managing pet adoption process in Purrfect Pets API",
+  "initialState": "initial_state",
+  "active": true,
+  "states": {
+    "initial_state": {
+      "transitions": [
+        {
+          "name": "create",
+          "next": "available",
+          "manual": false
+        }
+      ]
+    },
+    "available": {
+      "transitions": [
+        {
+          "name": "reserve",
+          "next": "reserved",
+          "manual": true,
+          "criterion": {
+            "type": "function",
+            "function": {
+              "name": "PetAdoptionEligibilityCriterion",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          },
+          "processors": [
+            {
+              "name": "PetReservationProcessor",
+              "executionMode": "SYNC",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          ]
+        },
+        {
+          "name": "need_care",
+          "next": "under_care",
+          "manual": true,
+          "processors": [
+            {
+              "name": "PetHealthProcessor",
+              "executionMode": "SYNC",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "reserved": {
+      "transitions": [
+        {
+          "name": "adopt",
+          "next": "adopted",
+          "manual": true,
+          "processors": [
+            {
+              "name": "PetAdoptionProcessor",
+              "executionMode": "SYNC",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          ]
+        },
+        {
+          "name": "cancel_reservation",
+          "next": "available",
+          "manual": true
+        }
+      ]
+    },
+    "under_care": {
+      "transitions": [
+        {
+          "name": "health_cleared",
+          "next": "available",
+          "manual": true,
+          "criterion": {
+            "type": "function",
+            "function": {
+              "name": "PetHealthClearanceCriterion",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "adopted": {
+      "transitions": []
+    }
+  }
+}
