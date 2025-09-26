@@ -6,13 +6,13 @@ Compiles report data from analyses as specified in functional requirements.
 """
 
 import logging
-from datetime import datetime
+
 from typing import Any, Dict, List
 
 from application.entity.report.version_1.report import Report
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from services.services import get_entity_service
+
 
 
 class StartReportGenerationProcessor(CyodaProcessor):

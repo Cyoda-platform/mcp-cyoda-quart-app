@@ -6,7 +6,7 @@ Performs sentiment analysis, keyword extraction, and toxicity detection as speci
 """
 
 import logging
-import random
+
 from typing import Any, Dict, List
 
 from application.entity.analysis.version_1.analysis import Analysis

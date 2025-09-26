@@ -48,7 +48,7 @@ class CompleteReportGenerationProcessor(CyodaProcessor):
             report = cast_entity(entity, Report)
 
             # Compile final summary data
-            summary_data = report.compile_final_summary()
+            report.compile_final_summary()
 
             # Set generated timestamp
             report.set_generated_at()

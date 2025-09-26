@@ -135,7 +135,6 @@ The most frequently mentioned topics were: {keywords_text}
 
 This report was generated automatically by the Comment Analysis System.
         """.strip()
-
         return email_content
 
     async def _send_email(self, recipient: str, subject: str, content: str) -> None:
