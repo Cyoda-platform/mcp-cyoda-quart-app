@@ -14,7 +14,6 @@ from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
 
 
-
 class StartReportGenerationProcessor(CyodaProcessor):
     """
     Processor for Report that begins compiling report data from analyses.

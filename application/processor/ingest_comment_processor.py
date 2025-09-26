@@ -79,7 +79,9 @@ class IngestCommentProcessor(CyodaProcessor):
             )
             raise
 
-    def _fetch_from_external_api(self, source_api: str, external_id: str) -> Dict[str, Any]:
+    def _fetch_from_external_api(
+        self, source_api: str, external_id: str
+    ) -> Dict[str, Any]:
         """
         Simulate fetching comment data from external API.
 

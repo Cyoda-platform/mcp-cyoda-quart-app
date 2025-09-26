@@ -123,7 +123,7 @@ Summary:
 - High Toxicity Comments: {high_toxicity_count}
 
 Sentiment Analysis:
-The overall sentiment for this period was {sentiment_label.lower()} with an average score of {avg_sentiment:.2f} 
+The overall sentiment for this period was {sentiment_label.lower()} with an average score of {avg_sentiment:.2f}
 (on a scale from -1 to 1, where -1 is very negative and 1 is very positive).
 
 Content Safety:

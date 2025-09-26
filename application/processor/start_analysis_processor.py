@@ -95,13 +95,11 @@ class StartAnalysisProcessor(CyodaProcessor):
         try:
             # Get the comment entity
             response = await entity_service.get_by_id(
-                entity_id=comment_id,
-                entity_class="Comment",
-                entity_version="1"
+                entity_id=comment_id, entity_class="Comment", entity_version="1"
             )
             if response:
                 # Convert the response data to dict format
-                if hasattr(response.data, 'model_dump'):
+                if hasattr(response.data, "model_dump"):
                     return response.data.model_dump()
                 else:
                     return dict(response.data) if response.data else {}
