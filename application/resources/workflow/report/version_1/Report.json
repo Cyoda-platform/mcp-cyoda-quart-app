@@ -1,0 +1,112 @@
+{
+  "version": "1.0",
+  "name": "Report",
+  "desc": "Workflow for generating and delivering email reports with comment analysis summaries",
+  "initialState": "initial_state",
+  "active": true,
+  "states": {
+    "initial_state": {
+      "transitions": [
+        {
+          "name": "start_generation",
+          "next": "generating",
+          "manual": false,
+          "processors": [
+            {
+              "name": "StartReportGenerationProcessor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 10000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "generating": {
+      "transitions": [
+        {
+          "name": "complete_generation",
+          "next": "ready",
+          "manual": true,
+          "processors": [
+            {
+              "name": "CompleteReportGenerationProcessor",
+              "executionMode": "SYNC",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 5000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        },
+        {
+          "name": "fail_generation",
+          "next": "failed",
+          "manual": true,
+          "criterion": {
+            "type": "function",
+            "function": {
+              "name": "ReportGenerationFailedCriterion",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "ready": {
+      "transitions": [
+        {
+          "name": "send_email",
+          "next": "sent",
+          "manual": true,
+          "processors": [
+            {
+              "name": "SendEmailProcessor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 10000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        },
+        {
+          "name": "fail_sending",
+          "next": "failed",
+          "manual": true,
+          "criterion": {
+            "type": "function",
+            "function": {
+              "name": "EmailSendingFailedCriterion",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "sent": {
+      "transitions": []
+    },
+    "failed": {
+      "transitions": []
+    }
+  }
+}
