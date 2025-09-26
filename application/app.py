@@ -11,6 +11,9 @@ from common.exception.exception_handler import (
 from services.services import get_grpc_client, initialize_services
 
 # Import blueprints for different route groups
+from application.routes.comments import comments_bp
+from application.routes.analyses import analyses_bp
+from application.routes.reports import reports_bp
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -27,6 +30,9 @@ QuartSchema(
             "description": "ExampleEntity management endpoints",
         },
         {"name": "OtherEntities", "description": "OtherEntity management endpoints"},
+        {"name": "comments", "description": "Comment management endpoints"},
+        {"name": "analyses", "description": "Analysis management endpoints"},
+        {"name": "reports", "description": "Report management endpoints"},
         {"name": "System", "description": "System and health endpoints"},
     ],
     security=[{"bearerAuth": []}],
