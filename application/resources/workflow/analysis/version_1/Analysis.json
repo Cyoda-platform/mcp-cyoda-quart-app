@@ -1,0 +1,104 @@
+{
+  "version": "1.0",
+  "name": "Analysis",
+  "desc": "Workflow for comment analysis including sentiment, keywords, and toxicity detection",
+  "initialState": "initial_state",
+  "active": true,
+  "states": {
+    "initial_state": {
+      "transitions": [
+        {
+          "name": "start_analysis",
+          "next": "processing",
+          "manual": false,
+          "processors": [
+            {
+              "name": "StartAnalysisProcessor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 10000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "processing": {
+      "transitions": [
+        {
+          "name": "complete_analysis",
+          "next": "completed",
+          "manual": true,
+          "processors": [
+            {
+              "name": "CompleteAnalysisProcessor",
+              "executionMode": "SYNC",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ],
+          "criterion": {
+            "type": "function",
+            "function": {
+              "name": "AnalysisSuccessfulCriterion",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          }
+        },
+        {
+          "name": "fail_analysis",
+          "next": "failed",
+          "manual": true,
+          "criterion": {
+            "type": "function",
+            "function": {
+              "name": "AnalysisFailedCriterion",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "failed": {
+      "transitions": [
+        {
+          "name": "retry_analysis",
+          "next": "processing",
+          "manual": true,
+          "processors": [
+            {
+              "name": "RetryAnalysisProcessor",
+              "executionMode": "SYNC",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "completed": {
+      "transitions": []
+    }
+  }
+}

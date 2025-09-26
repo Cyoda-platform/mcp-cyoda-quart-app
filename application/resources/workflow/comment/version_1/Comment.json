@@ -1,0 +1,84 @@
+{
+  "version": "1.0",
+  "name": "Comment",
+  "desc": "Workflow for comment ingestion, validation, and analysis triggering",
+  "initialState": "initial_state",
+  "active": true,
+  "states": {
+    "initial_state": {
+      "transitions": [
+        {
+          "name": "ingest_comment",
+          "next": "ingested",
+          "manual": false,
+          "processors": [
+            {
+              "name": "IngestCommentProcessor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 5000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "ingested": {
+      "transitions": [
+        {
+          "name": "validate_comment",
+          "next": "validated",
+          "manual": true,
+          "processors": [
+            {
+              "name": "ValidateCommentProcessor",
+              "executionMode": "SYNC",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "validated": {
+      "transitions": [
+        {
+          "name": "trigger_analysis",
+          "next": "analysis_triggered",
+          "manual": true,
+          "processors": [
+            {
+              "name": "TriggerAnalysisProcessor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "analysis_triggered": {
+      "transitions": [
+        {
+          "name": "complete_processing",
+          "next": "completed",
+          "manual": true
+        }
+      ]
+    },
+    "completed": {
+      "transitions": []
+    }
+  }
+}
