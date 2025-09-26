@@ -1,0 +1,1 @@
+create an application that ingests comments data from the provided API, analyzes the comments, and sends a report via email
