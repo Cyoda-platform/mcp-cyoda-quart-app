@@ -7,7 +7,7 @@ Performs sentiment analysis, keyword extraction, and toxicity detection as speci
 
 import logging
 import random
-from typing import Any, List
+from typing import Any, Dict, List
 
 from application.entity.analysis.version_1.analysis import Analysis
 from common.entity.entity_casting import cast_entity
@@ -100,7 +100,11 @@ class StartAnalysisProcessor(CyodaProcessor):
                 entity_version="1"
             )
             if response:
-                return response.data
+                # Convert the response data to dict format
+                if hasattr(response.data, 'model_dump'):
+                    return response.data.model_dump()
+                else:
+                    return dict(response.data) if response.data else {}
             else:
                 raise ValueError(f"Comment {comment_id} not found")
         except Exception as e:
