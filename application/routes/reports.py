@@ -10,6 +10,7 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict, Optional
 
+from pydantic import BaseModel, Field
 from quart import Blueprint, jsonify, request
 from quart.typing import ResponseReturnValue
 from quart_schema import (
@@ -18,30 +19,27 @@ from quart_schema import (
     validate,
     validate_querystring,
 )
-from pydantic import BaseModel, Field
 
+from application.entity.report.version_1.report import Report
 from common.service.entity_service import SearchConditionRequest
 from services.services import get_entity_service
-from application.entity.report.version_1.report import Report
 
 
 # Request/Response Models
 class ReportQueryParams(BaseModel):
     """Query parameters for Report endpoints."""
-    
+
     recipient_email: Optional[str] = Field(
         default=None, description="Filter by recipient email"
     )
-    state: Optional[str] = Field(
-        default=None, description="Filter by workflow state"
-    )
+    state: Optional[str] = Field(default=None, description="Filter by workflow state")
     limit: int = Field(default=50, description="Number of results", ge=1, le=1000)
     offset: int = Field(default=0, description="Pagination offset", ge=0)
 
 
 class ReportUpdateQueryParams(BaseModel):
     """Query parameters for Report update operations."""
-    
+
     transition: Optional[str] = Field(
         default=None, description="Workflow transition to trigger"
     )
@@ -49,21 +47,21 @@ class ReportUpdateQueryParams(BaseModel):
 
 class ErrorResponse(BaseModel):
     """Standard error response model."""
-    
+
     error: str = Field(..., description="Error message")
     code: Optional[str] = Field(default=None, description="Error code")
 
 
 class ReportResponse(BaseModel):
     """Response model for single report operations."""
-    
+
     id: str = Field(..., description="Report ID")
     status: str = Field(..., description="Operation status")
 
 
 class ReportListResponse(BaseModel):
     """Response model for report list operations."""
-    
+
     reports: list = Field(..., description="List of reports")
     total: int = Field(..., description="Total number of reports")
     limit: int = Field(..., description="Applied limit")
@@ -115,10 +113,7 @@ async def create_report(data: Report) -> ResponseReturnValue:
         logger.info("Created Report with ID: %s", response.metadata.id)
 
         # Return created entity ID and status
-        return {
-            "id": response.metadata.id,
-            "status": "created"
-        }, 201
+        return {"id": response.metadata.id, "status": "created"}, 201
 
     except ValueError as e:
         logger.warning("Validation error creating Report: %s", str(e))
@@ -158,7 +153,7 @@ async def get_report(entity_id: str) -> ResponseReturnValue:
         # Return the entity with state information
         entity_data = _to_entity_dict(response.data)
         entity_data["meta"] = {"state": response.metadata.state}
-        
+
         return entity_data, 200
 
     except ValueError as e:
@@ -209,11 +204,8 @@ async def update_report(
         logger.info("Updated Report %s", entity_id)
 
         # Return response with new state if transition was applied
-        result = {
-            "id": response.metadata.id,
-            "status": "updated"
-        }
-        
+        result = {"id": response.metadata.id, "status": "updated"}
+
         if transition:
             result["new_state"] = response.metadata.state
 
@@ -285,7 +277,7 @@ async def list_reports(query_args: ReportQueryParams) -> ResponseReturnValue:
             "reports": paginated_entities,
             "total": len(entity_list),
             "limit": query_args.limit,
-            "offset": query_args.offset
+            "offset": query_args.offset,
         }, 200
 
     except Exception as e:

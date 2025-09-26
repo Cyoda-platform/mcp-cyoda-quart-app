@@ -8,9 +8,9 @@ Validates that analysis results are missing or incomplete as specified in functi
 import logging
 from typing import Any
 
-from common.entity.entity_casting import cast_entity
-from common.processor.base import CyodaEntity, CyodaCriterion
 from application.entity.analysis.version_1.analysis import Analysis
+from common.entity.entity_casting import cast_entity
+from common.processor.base import CyodaCriterion, CyodaEntity
 
 
 class AnalysisFailedCriterion(CyodaCriterion):
@@ -54,8 +54,13 @@ class AnalysisFailedCriterion(CyodaCriterion):
             missing_language = analysis.language is None
             missing_toxicity = analysis.toxicity_score is None
 
-            has_failed = (missing_sentiment or missing_sentiment_label or 
-                         missing_keywords or missing_language or missing_toxicity)
+            has_failed = (
+                missing_sentiment
+                or missing_sentiment_label
+                or missing_keywords
+                or missing_language
+                or missing_toxicity
+            )
 
             self.logger.info(
                 f"Analysis {analysis.technical_id} failure check: {has_failed} "

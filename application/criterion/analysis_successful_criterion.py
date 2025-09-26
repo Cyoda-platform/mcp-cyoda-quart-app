@@ -8,9 +8,9 @@ Validates that all required analysis results are present as specified in functio
 import logging
 from typing import Any
 
-from common.entity.entity_casting import cast_entity
-from common.processor.base import CyodaEntity, CyodaCriterion
 from application.entity.analysis.version_1.analysis import Analysis
+from common.entity.entity_casting import cast_entity
+from common.processor.base import CyodaCriterion, CyodaEntity
 
 
 class AnalysisSuccessfulCriterion(CyodaCriterion):
@@ -54,8 +54,13 @@ class AnalysisSuccessfulCriterion(CyodaCriterion):
             has_language = analysis.language is not None
             has_toxicity = analysis.toxicity_score is not None
 
-            is_successful = (has_sentiment and has_sentiment_label and 
-                           has_keywords and has_language and has_toxicity)
+            is_successful = (
+                has_sentiment
+                and has_sentiment_label
+                and has_keywords
+                and has_language
+                and has_toxicity
+            )
 
             self.logger.info(
                 f"Analysis {analysis.technical_id} success check: {is_successful} "

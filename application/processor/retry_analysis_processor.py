@@ -8,9 +8,9 @@ Resets analysis for retry as specified in functional requirements.
 import logging
 from typing import Any
 
+from application.entity.analysis.version_1.analysis import Analysis
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.analysis.version_1.analysis import Analysis
 
 
 class RetryAnalysisProcessor(CyodaProcessor):
@@ -49,7 +49,7 @@ class RetryAnalysisProcessor(CyodaProcessor):
 
             # Set status to retrying
             analysis.status = "retrying"
-            
+
             # Increment retry count and set retry timestamp
             analysis.increment_retry_count()
 

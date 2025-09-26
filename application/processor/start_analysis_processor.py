@@ -9,9 +9,9 @@ import logging
 import random
 from typing import Any, List
 
+from application.entity.analysis.version_1.analysis import Analysis
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.analysis.version_1.analysis import Analysis
 from services.services import get_entity_service
 
 
@@ -67,12 +67,10 @@ class StartAnalysisProcessor(CyodaProcessor):
                 sentiment_label=sentiment_label,
                 keywords=keywords,
                 language=language,
-                toxicity_score=toxicity_score
+                toxicity_score=toxicity_score,
             )
 
-            self.logger.info(
-                f"Analysis {analysis.technical_id} completed successfully"
-            )
+            self.logger.info(f"Analysis {analysis.technical_id} completed successfully")
 
             return analysis
 
@@ -85,15 +83,15 @@ class StartAnalysisProcessor(CyodaProcessor):
     async def _get_comment_by_id(self, comment_id: str) -> dict:
         """
         Retrieve comment data by ID.
-        
+
         Args:
             comment_id: The comment ID to retrieve
-            
+
         Returns:
             Dictionary containing comment data
         """
         entity_service = get_entity_service()
-        
+
         try:
             # Get the comment entity
             response = await entity_service.get(comment_id)
@@ -105,28 +103,48 @@ class StartAnalysisProcessor(CyodaProcessor):
     def _analyze_sentiment(self, content: str) -> float:
         """
         Analyze sentiment of the comment content.
-        
+
         In a real implementation, this would use ML models or external APIs.
-        
+
         Args:
             content: The comment content to analyze
-            
+
         Returns:
             Sentiment score between -1 and 1
         """
         # Simple sentiment analysis based on keywords
-        positive_words = ["good", "great", "excellent", "amazing", "love", "like", "awesome", "fantastic", "wonderful"]
-        negative_words = ["bad", "terrible", "awful", "hate", "dislike", "horrible", "worst", "disgusting", "annoying"]
-        
+        positive_words = [
+            "good",
+            "great",
+            "excellent",
+            "amazing",
+            "love",
+            "like",
+            "awesome",
+            "fantastic",
+            "wonderful",
+        ]
+        negative_words = [
+            "bad",
+            "terrible",
+            "awful",
+            "hate",
+            "dislike",
+            "horrible",
+            "worst",
+            "disgusting",
+            "annoying",
+        ]
+
         content_lower = content.lower()
         positive_count = sum(1 for word in positive_words if word in content_lower)
         negative_count = sum(1 for word in negative_words if word in content_lower)
-        
+
         # Calculate sentiment score
         total_words = len(content.split())
         if total_words == 0:
             return 0.0
-        
+
         sentiment = (positive_count - negative_count) / max(total_words, 1)
         # Normalize to [-1, 1] range
         return max(-1.0, min(1.0, sentiment * 10))
@@ -134,10 +152,10 @@ class StartAnalysisProcessor(CyodaProcessor):
     def _get_sentiment_label(self, sentiment_score: float) -> str:
         """
         Get sentiment label based on score.
-        
+
         Args:
             sentiment_score: The sentiment score
-            
+
         Returns:
             Sentiment label: positive, negative, or neutral
         """
@@ -151,52 +169,143 @@ class StartAnalysisProcessor(CyodaProcessor):
     def _extract_keywords(self, content: str) -> List[str]:
         """
         Extract keywords from comment content.
-        
+
         In a real implementation, this would use NLP libraries like spaCy or NLTK.
-        
+
         Args:
             content: The comment content to analyze
-            
+
         Returns:
             List of extracted keywords
         """
         # Simple keyword extraction - remove common words and get significant terms
-        stop_words = {"the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for", "of", "with", "by", "is", "are", "was", "were", "be", "been", "have", "has", "had", "do", "does", "did", "will", "would", "could", "should", "may", "might", "can", "this", "that", "these", "those", "i", "you", "he", "she", "it", "we", "they", "me", "him", "her", "us", "them"}
-        
+        stop_words = {
+            "the",
+            "a",
+            "an",
+            "and",
+            "or",
+            "but",
+            "in",
+            "on",
+            "at",
+            "to",
+            "for",
+            "of",
+            "with",
+            "by",
+            "is",
+            "are",
+            "was",
+            "were",
+            "be",
+            "been",
+            "have",
+            "has",
+            "had",
+            "do",
+            "does",
+            "did",
+            "will",
+            "would",
+            "could",
+            "should",
+            "may",
+            "might",
+            "can",
+            "this",
+            "that",
+            "these",
+            "those",
+            "i",
+            "you",
+            "he",
+            "she",
+            "it",
+            "we",
+            "they",
+            "me",
+            "him",
+            "her",
+            "us",
+            "them",
+        }
+
         # Clean and split content
-        words = content.lower().replace(".", "").replace(",", "").replace("!", "").replace("?", "").split()
-        
+        words = (
+            content.lower()
+            .replace(".", "")
+            .replace(",", "")
+            .replace("!", "")
+            .replace("?", "")
+            .split()
+        )
+
         # Filter out stop words and short words
         keywords = [word for word in words if len(word) > 3 and word not in stop_words]
-        
+
         # Remove duplicates and limit to top 10
         unique_keywords = list(dict.fromkeys(keywords))[:10]
-        
+
         return unique_keywords
 
     def _detect_language(self, content: str) -> str:
         """
         Detect language of the comment content.
-        
+
         In a real implementation, this would use language detection libraries.
-        
+
         Args:
             content: The comment content to analyze
-            
+
         Returns:
             Detected language code
         """
         # Simple language detection based on common words
-        english_indicators = ["the", "and", "is", "are", "was", "were", "have", "has", "will", "would", "this", "that"]
-        spanish_indicators = ["el", "la", "es", "son", "fue", "fueron", "tiene", "tengo", "este", "esta"]
-        french_indicators = ["le", "la", "est", "sont", "était", "étaient", "avoir", "ce", "cette"]
-        
+        english_indicators = [
+            "the",
+            "and",
+            "is",
+            "are",
+            "was",
+            "were",
+            "have",
+            "has",
+            "will",
+            "would",
+            "this",
+            "that",
+        ]
+        spanish_indicators = [
+            "el",
+            "la",
+            "es",
+            "son",
+            "fue",
+            "fueron",
+            "tiene",
+            "tengo",
+            "este",
+            "esta",
+        ]
+        french_indicators = [
+            "le",
+            "la",
+            "est",
+            "sont",
+            "était",
+            "étaient",
+            "avoir",
+            "ce",
+            "cette",
+        ]
+
         content_lower = content.lower()
-        
+
         english_count = sum(1 for word in english_indicators if word in content_lower)
         spanish_count = sum(1 for word in spanish_indicators if word in content_lower)
         french_count = sum(1 for word in french_indicators if word in content_lower)
-        
+
         if english_count >= spanish_count and english_count >= french_count:
             return "en"
         elif spanish_count >= french_count:
@@ -209,29 +318,42 @@ class StartAnalysisProcessor(CyodaProcessor):
     def _analyze_toxicity(self, content: str) -> float:
         """
         Analyze toxicity of the comment content.
-        
+
         In a real implementation, this would use ML models like Perspective API.
-        
+
         Args:
             content: The comment content to analyze
-            
+
         Returns:
             Toxicity score between 0 and 1
         """
         # Simple toxicity detection based on keywords
-        toxic_words = ["hate", "stupid", "idiot", "moron", "kill", "die", "murder", "attack", "destroy", "awful", "terrible", "disgusting"]
-        
+        toxic_words = [
+            "hate",
+            "stupid",
+            "idiot",
+            "moron",
+            "kill",
+            "die",
+            "murder",
+            "attack",
+            "destroy",
+            "awful",
+            "terrible",
+            "disgusting",
+        ]
+
         content_lower = content.lower()
         toxic_count = sum(1 for word in toxic_words if word in content_lower)
-        
+
         # Check for excessive caps (shouting)
         caps_ratio = sum(1 for c in content if c.isupper()) / max(len(content), 1)
-        
+
         # Calculate toxicity score
         total_words = len(content.split())
         word_toxicity = toxic_count / max(total_words, 1)
         caps_toxicity = caps_ratio if caps_ratio > 0.5 else 0
-        
+
         toxicity = min(1.0, (word_toxicity * 0.7) + (caps_toxicity * 0.3))
-        
+
         return toxicity

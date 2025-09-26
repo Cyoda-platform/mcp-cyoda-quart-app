@@ -18,7 +18,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class Analysis(CyodaEntity):
     """
     Analysis entity represents the results of comment analysis.
-    
+
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     The state field manages workflow states: initial_state -> processing -> completed/failed
     """
@@ -29,49 +29,40 @@ class Analysis(CyodaEntity):
 
     # Required fields from functional requirements
     comment_id: str = Field(..., description="Reference to the analyzed comment")
-    
+
     # Analysis result fields (populated during processing)
     sentiment_score: Optional[float] = Field(
-        default=None,
-        description="Numerical sentiment analysis result (-1 to 1)"
+        default=None, description="Numerical sentiment analysis result (-1 to 1)"
     )
     sentiment_label: Optional[str] = Field(
-        default=None,
-        description="Text label (positive, negative, neutral)"
+        default=None, description="Text label (positive, negative, neutral)"
     )
     keywords: Optional[List[str]] = Field(
-        default=None,
-        description="Extracted keywords from the comment"
+        default=None, description="Extracted keywords from the comment"
     )
     language: Optional[str] = Field(
-        default=None,
-        description="Detected language of the comment"
+        default=None, description="Detected language of the comment"
     )
     toxicity_score: Optional[float] = Field(
-        default=None,
-        description="Content toxicity assessment (0 to 1)"
+        default=None, description="Content toxicity assessment (0 to 1)"
     )
     analyzed_at: Optional[str] = Field(
-        default=None,
-        description="When the analysis was performed (ISO 8601 format)"
+        default=None, description="When the analysis was performed (ISO 8601 format)"
     )
 
     # Processing status fields
     status: Optional[str] = Field(
         default=None,
-        description="Processing status (processing, completed, failed, retrying)"
+        description="Processing status (processing, completed, failed, retrying)",
     )
     retry_count: Optional[int] = Field(
-        default=0,
-        description="Number of retry attempts"
+        default=0, description="Number of retry attempts"
     )
     last_retry_at: Optional[str] = Field(
-        default=None,
-        description="When the last retry was attempted (ISO 8601 format)"
+        default=None, description="When the last retry was attempted (ISO 8601 format)"
     )
     completed_at: Optional[str] = Field(
-        default=None,
-        description="When the analysis was completed (ISO 8601 format)"
+        default=None, description="When the analysis was completed (ISO 8601 format)"
     )
 
     # Allowed sentiment labels
@@ -100,7 +91,9 @@ class Analysis(CyodaEntity):
         """Validate sentiment_label field"""
         if v is not None:
             if v not in cls.ALLOWED_SENTIMENT_LABELS:
-                raise ValueError(f"Sentiment label must be one of: {cls.ALLOWED_SENTIMENT_LABELS}")
+                raise ValueError(
+                    f"Sentiment label must be one of: {cls.ALLOWED_SENTIMENT_LABELS}"
+                )
         return v
 
     @field_validator("toxicity_score")
@@ -138,7 +131,7 @@ class Analysis(CyodaEntity):
         # Ensure keywords is a list if provided
         if self.keywords is not None and not isinstance(self.keywords, list):
             raise ValueError("Keywords must be a list")
-        
+
         # Validate that if sentiment_score is provided, sentiment_label should also be provided
         if self.sentiment_score is not None and self.sentiment_label is None:
             # Auto-determine sentiment label based on score
@@ -148,7 +141,7 @@ class Analysis(CyodaEntity):
                 self.sentiment_label = "negative"
             else:
                 self.sentiment_label = "neutral"
-        
+
         return self
 
     def set_analyzed_at(self) -> None:
@@ -157,11 +150,15 @@ class Analysis(CyodaEntity):
 
     def set_completed_at(self) -> None:
         """Set the completed_at timestamp to current time"""
-        self.completed_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.completed_at = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
 
     def set_last_retry_at(self) -> None:
         """Set the last_retry_at timestamp to current time"""
-        self.last_retry_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.last_retry_at = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
 
     def increment_retry_count(self) -> None:
         """Increment retry count and update timestamp"""
@@ -171,8 +168,14 @@ class Analysis(CyodaEntity):
         self.set_last_retry_at()
         self.update_timestamp()
 
-    def set_analysis_results(self, sentiment_score: float, sentiment_label: str, 
-                           keywords: List[str], language: str, toxicity_score: float) -> None:
+    def set_analysis_results(
+        self,
+        sentiment_score: float,
+        sentiment_label: str,
+        keywords: List[str],
+        language: str,
+        toxicity_score: float,
+    ) -> None:
         """Set all analysis results and update timestamp"""
         self.sentiment_score = sentiment_score
         self.sentiment_label = sentiment_label
@@ -196,11 +199,13 @@ class Analysis(CyodaEntity):
 
     def has_all_results(self) -> bool:
         """Check if all analysis results are present"""
-        return (self.sentiment_score is not None and 
-                self.sentiment_label is not None and 
-                self.keywords is not None and 
-                self.language is not None and 
-                self.toxicity_score is not None)
+        return (
+            self.sentiment_score is not None
+            and self.sentiment_label is not None
+            and self.keywords is not None
+            and self.language is not None
+            and self.toxicity_score is not None
+        )
 
     def to_api_response(self) -> Dict[str, Any]:
         """Convert to API response format"""

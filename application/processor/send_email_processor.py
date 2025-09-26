@@ -8,9 +8,9 @@ Sends report via email as specified in functional requirements.
 import logging
 from typing import Any, Dict
 
+from application.entity.report.version_1.report import Report
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.report.version_1.report import Report
 
 
 class SendEmailProcessor(CyodaProcessor):
@@ -54,7 +54,7 @@ class SendEmailProcessor(CyodaProcessor):
             await self._send_email(
                 recipient=report.recipient_email,
                 subject=report.title,
-                content=email_content
+                content=email_content,
             )
 
             # Set email sent timestamp
@@ -78,23 +78,23 @@ class SendEmailProcessor(CyodaProcessor):
     def _format_report_email(self, summary_data: Dict[str, Any]) -> str:
         """
         Format the report data into email content.
-        
+
         Args:
             summary_data: The report summary data
-            
+
         Returns:
             Formatted email content
         """
         period = summary_data.get("period", {})
         metrics = summary_data.get("metrics", {})
-        
+
         start_date = period.get("start", "N/A")
         end_date = period.get("end", "N/A")
         total_comments = metrics.get("total_comments", 0)
         avg_sentiment = metrics.get("avg_sentiment", 0.0)
         top_keywords = metrics.get("top_keywords", [])
         toxicity_summary = metrics.get("toxicity_summary", {})
-        
+
         # Format sentiment label
         if avg_sentiment > 0.1:
             sentiment_label = "Positive"
@@ -102,14 +102,14 @@ class SendEmailProcessor(CyodaProcessor):
             sentiment_label = "Negative"
         else:
             sentiment_label = "Neutral"
-        
+
         # Format keywords
         keywords_text = ", ".join(top_keywords[:5]) if top_keywords else "None"
-        
+
         # Format toxicity info
         avg_toxicity = toxicity_summary.get("avg_toxicity", 0.0)
         high_toxicity_count = toxicity_summary.get("high_toxicity_count", 0)
-        
+
         email_content = f"""
 Comment Analysis Report
 
@@ -135,15 +135,15 @@ The most frequently mentioned topics were: {keywords_text}
 
 This report was generated automatically by the Comment Analysis System.
         """.strip()
-        
+
         return email_content
 
     async def _send_email(self, recipient: str, subject: str, content: str) -> None:
         """
         Send email to the specified recipient.
-        
+
         In a real implementation, this would use an email service like SendGrid, SES, etc.
-        
+
         Args:
             recipient: Email address to send to
             subject: Email subject
@@ -153,12 +153,12 @@ This report was generated automatically by the Comment Analysis System.
         self.logger.info(f"Simulating email send to {recipient}")
         self.logger.info(f"Subject: {subject}")
         self.logger.info(f"Content preview: {content[:100]}...")
-        
+
         # In a real implementation, you would:
         # 1. Configure email service (SMTP, SendGrid, AWS SES, etc.)
         # 2. Create email message with proper formatting
         # 3. Send the email
         # 4. Handle any sending errors
-        
+
         # For now, we just log that the email would be sent
         self.logger.info("Email sent successfully (simulated)")

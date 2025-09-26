@@ -8,10 +8,10 @@ Creates analysis entities for validated comments as specified in functional requ
 import logging
 from typing import Any
 
+from application.entity.analysis.version_1.analysis import Analysis
+from application.entity.comment.version_1.comment import Comment
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.comment.version_1.comment import Comment
-from application.entity.analysis.version_1.analysis import Analysis
 from services.services import get_entity_service
 
 
@@ -55,9 +55,7 @@ class TriggerAnalysisProcessor(CyodaProcessor):
             # Set analysis triggered flag
             comment.set_analysis_triggered(True)
 
-            self.logger.info(
-                f"Analysis triggered for Comment {comment.technical_id}"
-            )
+            self.logger.info(f"Analysis triggered for Comment {comment.technical_id}")
 
             return comment
 
@@ -70,7 +68,7 @@ class TriggerAnalysisProcessor(CyodaProcessor):
     async def _create_analysis_entity(self, comment: Comment) -> None:
         """
         Create Analysis entity for the given comment.
-        
+
         Args:
             comment: The Comment entity to create analysis for
         """
@@ -80,7 +78,7 @@ class TriggerAnalysisProcessor(CyodaProcessor):
             # Create Analysis entity using direct Pydantic model construction
             analysis = Analysis(
                 comment_id=comment.technical_id or comment.entity_id or "unknown",
-                status="processing"
+                status="processing",
             )
 
             # Convert Pydantic model to dict for EntityService.save()

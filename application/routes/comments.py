@@ -10,6 +10,7 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict, Optional
 
+from pydantic import BaseModel, Field
 from quart import Blueprint, jsonify, request
 from quart.typing import ResponseReturnValue
 from quart_schema import (
@@ -18,30 +19,25 @@ from quart_schema import (
     validate,
     validate_querystring,
 )
-from pydantic import BaseModel, Field
 
+from application.entity.comment.version_1.comment import Comment
 from common.service.entity_service import SearchConditionRequest
 from services.services import get_entity_service
-from application.entity.comment.version_1.comment import Comment
 
 
 # Request/Response Models
 class CommentQueryParams(BaseModel):
     """Query parameters for Comment endpoints."""
-    
-    source_api: Optional[str] = Field(
-        default=None, description="Filter by API source"
-    )
-    state: Optional[str] = Field(
-        default=None, description="Filter by workflow state"
-    )
+
+    source_api: Optional[str] = Field(default=None, description="Filter by API source")
+    state: Optional[str] = Field(default=None, description="Filter by workflow state")
     limit: int = Field(default=50, description="Number of results", ge=1, le=1000)
     offset: int = Field(default=0, description="Pagination offset", ge=0)
 
 
 class CommentUpdateQueryParams(BaseModel):
     """Query parameters for Comment update operations."""
-    
+
     transition: Optional[str] = Field(
         default=None, description="Workflow transition to trigger"
     )
@@ -49,21 +45,21 @@ class CommentUpdateQueryParams(BaseModel):
 
 class ErrorResponse(BaseModel):
     """Standard error response model."""
-    
+
     error: str = Field(..., description="Error message")
     code: Optional[str] = Field(default=None, description="Error code")
 
 
 class CommentResponse(BaseModel):
     """Response model for single comment operations."""
-    
+
     id: str = Field(..., description="Comment ID")
     status: str = Field(..., description="Operation status")
 
 
 class CommentListResponse(BaseModel):
     """Response model for comment list operations."""
-    
+
     comments: list = Field(..., description="List of comments")
     total: int = Field(..., description="Total number of comments")
     limit: int = Field(..., description="Applied limit")
@@ -115,10 +111,7 @@ async def create_comment(data: Comment) -> ResponseReturnValue:
         logger.info("Created Comment with ID: %s", response.metadata.id)
 
         # Return created entity ID and status
-        return {
-            "id": response.metadata.id,
-            "status": "created"
-        }, 201
+        return {"id": response.metadata.id, "status": "created"}, 201
 
     except ValueError as e:
         logger.warning("Validation error creating Comment: %s", str(e))
@@ -158,7 +151,7 @@ async def get_comment(entity_id: str) -> ResponseReturnValue:
         # Return the entity with state information
         entity_data = _to_entity_dict(response.data)
         entity_data["meta"] = {"state": response.metadata.state}
-        
+
         return entity_data, 200
 
     except ValueError as e:
@@ -209,11 +202,8 @@ async def update_comment(
         logger.info("Updated Comment %s", entity_id)
 
         # Return response with new state if transition was applied
-        result = {
-            "id": response.metadata.id,
-            "status": "updated"
-        }
-        
+        result = {"id": response.metadata.id, "status": "updated"}
+
         if transition:
             result["new_state"] = response.metadata.state
 
@@ -285,7 +275,7 @@ async def list_comments(query_args: CommentQueryParams) -> ResponseReturnValue:
             "comments": paginated_entities,
             "total": len(entity_list),
             "limit": query_args.limit,
-            "offset": query_args.offset
+            "offset": query_args.offset,
         }, 200
 
     except Exception as e:

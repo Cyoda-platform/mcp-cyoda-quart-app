@@ -9,9 +9,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.comment.version_1.comment import Comment
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.comment.version_1.comment import Comment
 
 
 class IngestCommentProcessor(CyodaProcessor):
@@ -50,14 +50,16 @@ class IngestCommentProcessor(CyodaProcessor):
 
             # Simulate fetching data from external API
             # In a real implementation, this would call the actual external API
-            api_data = self._fetch_from_external_api(comment.source_api, comment.external_id)
-            
+            api_data = self._fetch_from_external_api(
+                comment.source_api, comment.external_id
+            )
+
             # Update comment with fetched data
             if api_data:
                 comment.content = api_data.get("content", comment.content)
                 comment.author = api_data.get("author", comment.author)
                 comment.timestamp = api_data.get("timestamp", comment.timestamp)
-                
+
                 # Merge metadata
                 if api_data.get("metadata"):
                     if comment.metadata is None:
@@ -67,9 +69,7 @@ class IngestCommentProcessor(CyodaProcessor):
             # Set ingestion timestamp
             comment.set_ingested_at()
 
-            self.logger.info(
-                f"Comment {comment.technical_id} ingested successfully"
-            )
+            self.logger.info(f"Comment {comment.technical_id} ingested successfully")
 
             return comment
 
@@ -82,19 +82,21 @@ class IngestCommentProcessor(CyodaProcessor):
     def _fetch_from_external_api(self, source_api: str, external_id: str) -> dict:
         """
         Simulate fetching comment data from external API.
-        
+
         In a real implementation, this would make actual API calls to the specified source.
-        
+
         Args:
             source_api: The API source to fetch from
             external_id: The external comment ID
-            
+
         Returns:
             Dictionary containing fetched comment data
         """
         # Simulate API response based on source
-        current_timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-        
+        current_timestamp = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
+
         # Mock data based on source API
         mock_data = {
             "reddit": {
@@ -105,8 +107,8 @@ class IngestCommentProcessor(CyodaProcessor):
                     "upvotes": 15,
                     "downvotes": 2,
                     "replies": 3,
-                    "subreddit": "technology"
-                }
+                    "subreddit": "technology",
+                },
             },
             "twitter": {
                 "content": f"Sample tweet content for ID {external_id}",
@@ -116,21 +118,17 @@ class IngestCommentProcessor(CyodaProcessor):
                     "likes": 25,
                     "retweets": 5,
                     "replies": 8,
-                    "hashtags": ["#tech", "#ai"]
-                }
+                    "hashtags": ["#tech", "#ai"],
+                },
             },
             "facebook": {
                 "content": f"Facebook post content for ID {external_id}",
                 "author": f"fb_user_{external_id[:8]}",
                 "timestamp": current_timestamp,
-                "metadata": {
-                    "likes": 42,
-                    "shares": 7,
-                    "comments": 12
-                }
-            }
+                "metadata": {"likes": 42, "shares": 7, "comments": 12},
+            },
         }
-        
+
         # Return mock data for known sources, or generic data for unknown sources
         if source_api.lower() in mock_data:
             return mock_data[source_api.lower()]
@@ -139,8 +137,5 @@ class IngestCommentProcessor(CyodaProcessor):
                 "content": f"Generic comment content for ID {external_id}",
                 "author": f"user_{external_id[:8]}",
                 "timestamp": current_timestamp,
-                "metadata": {
-                    "source": source_api,
-                    "fetched_at": current_timestamp
-                }
+                "metadata": {"source": source_api, "fetched_at": current_timestamp},
             }

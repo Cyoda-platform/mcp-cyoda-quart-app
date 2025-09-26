@@ -8,9 +8,9 @@ Validates that email was not sent successfully as specified in functional requir
 import logging
 from typing import Any
 
-from common.entity.entity_casting import cast_entity
-from common.processor.base import CyodaEntity, CyodaCriterion
 from application.entity.report.version_1.report import Report
+from common.entity.entity_casting import cast_entity
+from common.processor.base import CyodaCriterion, CyodaEntity
 
 
 class EmailSendingFailedCriterion(CyodaCriterion):
@@ -49,7 +49,7 @@ class EmailSendingFailedCriterion(CyodaCriterion):
 
             # Check if email_sent_at timestamp is missing
             missing_sent_at = report.email_sent_at is None
-            
+
             # Check if status is not "sent"
             status_not_sent = report.status != "sent"
 

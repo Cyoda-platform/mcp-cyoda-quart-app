@@ -18,7 +18,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class Comment(CyodaEntity):
     """
     Comment entity represents comment data ingested from external APIs.
-    
+
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     The state field manages workflow states: initial_state -> ingested -> validated -> analysis_triggered -> completed
     """
@@ -28,30 +28,34 @@ class Comment(CyodaEntity):
     ENTITY_VERSION: ClassVar[int] = 1
 
     # Required fields from functional requirements
-    source_api: str = Field(..., description="API source where the comment was retrieved from")
-    external_id: str = Field(..., description="Original comment ID from the external API")
+    source_api: str = Field(
+        ..., description="API source where the comment was retrieved from"
+    )
+    external_id: str = Field(
+        ..., description="Original comment ID from the external API"
+    )
     content: str = Field(..., description="The actual comment text content")
     author: str = Field(..., description="Comment author information")
-    timestamp: str = Field(..., description="When the comment was created (ISO 8601 format)")
-    
+    timestamp: str = Field(
+        ..., description="When the comment was created (ISO 8601 format)"
+    )
+
     # Optional fields
     metadata: Optional[Dict[str, Any]] = Field(
         default_factory=dict,
-        description="Additional data from the API (likes, replies, etc.)"
+        description="Additional data from the API (likes, replies, etc.)",
     )
     ingested_at: Optional[str] = Field(
         default=None,
-        description="When the comment was ingested into the system (ISO 8601 format)"
+        description="When the comment was ingested into the system (ISO 8601 format)",
     )
 
     # Processing-related fields (populated during processing)
     validation_status: Optional[str] = Field(
-        default=None,
-        description="Status of validation checks"
+        default=None, description="Status of validation checks"
     )
     analysis_triggered: Optional[bool] = Field(
-        default=False,
-        description="Flag indicating if analysis has been triggered"
+        default=False, description="Flag indicating if analysis has been triggered"
     )
 
     @field_validator("source_api")
@@ -102,7 +106,7 @@ class Comment(CyodaEntity):
             raise ValueError("Timestamp must be non-empty")
         try:
             # Try to parse the timestamp to validate format
-            datetime.fromisoformat(v.replace('Z', '+00:00'))
+            datetime.fromisoformat(v.replace("Z", "+00:00"))
         except ValueError:
             raise ValueError("Timestamp must be in ISO 8601 format")
         return v.strip()
@@ -113,7 +117,7 @@ class Comment(CyodaEntity):
         # Ensure metadata is a dictionary
         if self.metadata is not None and not isinstance(self.metadata, dict):
             raise ValueError("Metadata must be a dictionary")
-        
+
         return self
 
     def set_ingested_at(self) -> None:

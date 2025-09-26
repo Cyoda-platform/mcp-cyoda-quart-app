@@ -8,9 +8,9 @@ Marks analysis as complete and sets completion timestamp as specified in functio
 import logging
 from typing import Any
 
+from application.entity.analysis.version_1.analysis import Analysis
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.analysis.version_1.analysis import Analysis
 
 
 class CompleteAnalysisProcessor(CyodaProcessor):
@@ -49,13 +49,11 @@ class CompleteAnalysisProcessor(CyodaProcessor):
 
             # Set status to completed
             analysis.status = "completed"
-            
+
             # Set completion timestamp
             analysis.set_completed_at()
 
-            self.logger.info(
-                f"Analysis {analysis.technical_id} completed successfully"
-            )
+            self.logger.info(f"Analysis {analysis.technical_id} completed successfully")
 
             return analysis
 
