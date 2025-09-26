@@ -170,7 +170,7 @@ class StartReportGenerationProcessor(CyodaProcessor):
         Returns:
             List of top keywords
         """
-        keyword_counts = {}
+        keyword_counts: Dict[str, int] = {}
 
         for analysis in analyses:
             keywords = analysis.get("keywords", [])

@@ -80,7 +80,7 @@ class StartAnalysisProcessor(CyodaProcessor):
             )
             raise
 
-    async def _get_comment_by_id(self, comment_id: str) -> dict:
+    async def _get_comment_by_id(self, comment_id: str) -> Dict[str, Any]:
         """
         Retrieve comment data by ID.
 
@@ -94,8 +94,15 @@ class StartAnalysisProcessor(CyodaProcessor):
 
         try:
             # Get the comment entity
-            response = await entity_service.get(comment_id)
-            return response.entity
+            response = await entity_service.get_by_id(
+                entity_id=comment_id,
+                entity_class="Comment",
+                entity_version="1"
+            )
+            if response:
+                return response.data
+            else:
+                raise ValueError(f"Comment {comment_id} not found")
         except Exception as e:
             self.logger.error(f"Failed to retrieve comment {comment_id}: {str(e)}")
             raise

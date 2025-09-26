@@ -8,7 +8,7 @@ and workflow transitions as specified in functional requirements.
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 from quart import Blueprint, jsonify, request
