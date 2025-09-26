@@ -63,7 +63,7 @@ class Report(CyodaEntity):
     avg_sentiment: Optional[float] = Field(
         default=None, description="Average sentiment score for the period"
     )
-    top_keywords: Optional[list] = Field(
+    top_keywords: Optional[List[str]] = Field(
         default=None, description="Top keywords from the analysis period"
     )
     toxicity_summary: Optional[Dict[str, Any]] = Field(
@@ -193,7 +193,7 @@ class Report(CyodaEntity):
         self,
         total_comments: int,
         avg_sentiment: float,
-        top_keywords: list,
+        top_keywords: List[str],
         toxicity_summary: Dict[str, Any],
     ) -> None:
         """Set report metrics and update timestamp"""

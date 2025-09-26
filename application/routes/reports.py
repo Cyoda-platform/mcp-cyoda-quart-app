@@ -8,7 +8,7 @@ and workflow transitions as specified in functional requirements.
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 from quart import Blueprint, jsonify, request
@@ -62,7 +62,7 @@ class ReportResponse(BaseModel):
 class ReportListResponse(BaseModel):
     """Response model for report list operations."""
 
-    reports: list = Field(..., description="List of reports")
+    reports: List[Dict[str, Any]] = Field(..., description="List of reports")
     total: int = Field(..., description="Total number of reports")
     limit: int = Field(..., description="Applied limit")
     offset: int = Field(..., description="Applied offset")

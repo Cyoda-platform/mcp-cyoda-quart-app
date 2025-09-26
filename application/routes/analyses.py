@@ -63,7 +63,7 @@ class AnalysisResponse(BaseModel):
 class AnalysisListResponse(BaseModel):
     """Response model for analysis list operations."""
 
-    analyses: list = Field(..., description="List of analyses")
+    analyses: List[Dict[str, Any]] = Field(..., description="List of analyses")
     total: int = Field(..., description="Total number of analyses")
     limit: int = Field(..., description="Applied limit")
     offset: int = Field(..., description="Applied offset")

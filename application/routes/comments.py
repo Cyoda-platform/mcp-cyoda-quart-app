@@ -8,7 +8,7 @@ and workflow transitions as specified in functional requirements.
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 from quart import Blueprint, jsonify, request
@@ -60,7 +60,7 @@ class CommentResponse(BaseModel):
 class CommentListResponse(BaseModel):
     """Response model for comment list operations."""
 
-    comments: list = Field(..., description="List of comments")
+    comments: List[Dict[str, Any]] = Field(..., description="List of comments")
     total: int = Field(..., description="Total number of comments")
     limit: int = Field(..., description="Applied limit")
     offset: int = Field(..., description="Applied offset")
