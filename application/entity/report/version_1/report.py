@@ -9,7 +9,7 @@ Manages the generation and delivery of reports as specified in functional requir
 
 import re
 from datetime import datetime, timezone
-from typing import Any, ClassVar, Dict, Optional
+from typing import Any, ClassVar, Dict, List, Optional
 
 from pydantic import ConfigDict, Field, field_validator, model_validator
 

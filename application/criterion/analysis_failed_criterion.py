@@ -10,10 +10,10 @@ from typing import Any
 
 from application.entity.analysis.version_1.analysis import Analysis
 from common.entity.entity_casting import cast_entity
-from common.processor.base import CyodaCriterion, CyodaEntity
+from common.processor.base import CyodaCriteriaChecker, CyodaEntity
 
 
-class AnalysisFailedCriterion(CyodaCriterion):
+class AnalysisFailedCriterion(CyodaCriteriaChecker):
     """
     Criterion for Analysis that checks if analysis has failed.
     Validates that analysis results are missing or incomplete.

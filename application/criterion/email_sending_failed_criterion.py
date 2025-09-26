@@ -10,10 +10,10 @@ from typing import Any
 
 from application.entity.report.version_1.report import Report
 from common.entity.entity_casting import cast_entity
-from common.processor.base import CyodaCriterion, CyodaEntity
+from common.processor.base import CyodaCriteriaChecker, CyodaEntity
 
 
-class EmailSendingFailedCriterion(CyodaCriterion):
+class EmailSendingFailedCriterion(CyodaCriteriaChecker):
     """
     Criterion for Report that checks if email sending has failed.
     Validates that email_sent_at timestamp is missing and status is not "sent".

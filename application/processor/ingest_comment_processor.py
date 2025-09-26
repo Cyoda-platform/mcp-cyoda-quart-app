@@ -7,7 +7,7 @@ Fetches and stores comment data as specified in functional requirements.
 
 import logging
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, Dict
 
 from application.entity.comment.version_1.comment import Comment
 from common.entity.entity_casting import cast_entity
