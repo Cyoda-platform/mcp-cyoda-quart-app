@@ -10,7 +10,7 @@ import logging
 from typing import Any, Dict, List
 
 import httpx
-from quart import Blueprint, jsonify
+from quart import Blueprint
 from quart.typing import ResponseReturnValue
 from quart_schema import operation_id, tag, validate
 
