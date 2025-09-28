@@ -131,15 +131,13 @@ class ReportGenerationProcessor(CyodaProcessor):
                     # Create Comment from the result data
                     if hasattr(result.data, "model_dump"):
                         comment_data = result.data.model_dump()
+                        if isinstance(comment_data, dict):
+                            comment = Comment(**comment_data)
+                        else:
+                            continue
                     else:
-                        comment_data = result.data
-
-                    # Ensure comment_data is a dict
-                    if isinstance(comment_data, dict):
-                        comment = Comment(**comment_data)
-                    else:
-                        # Skip if not a dict
-                        continue
+                        # result.data is already a CyodaEntity, try to cast it
+                        comment = cast_entity(result.data, Comment)
                     comments.append(comment)
                 except Exception as e:
                     self.logger.warning(
