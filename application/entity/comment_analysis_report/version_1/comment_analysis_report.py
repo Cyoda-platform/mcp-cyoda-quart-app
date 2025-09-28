@@ -19,7 +19,7 @@ class CommentAnalysisReport(CyodaEntity):
     """
     CommentAnalysisReport entity represents aggregated analysis results
     for comments from a specific post, including email reporting status.
-    
+
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     The state field manages workflow states: none -> created -> analyzed -> emailed -> completed
     """
@@ -29,78 +29,84 @@ class CommentAnalysisReport(CyodaEntity):
     ENTITY_VERSION: ClassVar[int] = 1
 
     # Report identification
-    post_id: int = Field(..., alias="postId", description="ID of the post this report analyzes")
-    report_title: str = Field(..., alias="reportTitle", description="Title of the analysis report")
-    
+    post_id: int = Field(
+        ..., alias="postId", description="ID of the post this report analyzes"
+    )
+    report_title: str = Field(
+        ..., alias="reportTitle", description="Title of the analysis report"
+    )
+
     # Analysis summary statistics
     total_comments: int = Field(
         default=0,
         alias="totalComments",
-        description="Total number of comments analyzed"
+        description="Total number of comments analyzed",
     )
     positive_comments: int = Field(
         default=0,
         alias="positiveComments",
-        description="Number of comments with positive sentiment"
+        description="Number of comments with positive sentiment",
     )
     negative_comments: int = Field(
         default=0,
         alias="negativeComments",
-        description="Number of comments with negative sentiment"
+        description="Number of comments with negative sentiment",
     )
     neutral_comments: int = Field(
         default=0,
         alias="neutralComments",
-        description="Number of comments with neutral sentiment"
+        description="Number of comments with neutral sentiment",
     )
-    
+
     # Detailed analysis results
     average_sentiment_score: Optional[float] = Field(
         default=None,
         alias="averageSentimentScore",
-        description="Average sentiment score across all comments (-1.0 to 1.0)"
+        description="Average sentiment score across all comments (-1.0 to 1.0)",
     )
     most_common_keywords: Optional[List[str]] = Field(
         default=None,
         alias="mostCommonKeywords",
-        description="List of most frequently mentioned keywords"
+        description="List of most frequently mentioned keywords",
     )
     average_word_count: Optional[float] = Field(
         default=None,
         alias="averageWordCount",
-        description="Average word count per comment"
+        description="Average word count per comment",
     )
-    
+
     # Email reporting
-    recipient_email: str = Field(..., alias="recipientEmail", description="Email address to send report to")
+    recipient_email: str = Field(
+        ..., alias="recipientEmail", description="Email address to send report to"
+    )
     email_sent: bool = Field(
         default=False,
         alias="emailSent",
-        description="Whether the report has been sent via email"
+        description="Whether the report has been sent via email",
     )
     email_sent_at: Optional[str] = Field(
         default=None,
         alias="emailSentAt",
-        description="Timestamp when email was sent (ISO 8601 format)"
+        description="Timestamp when email was sent (ISO 8601 format)",
     )
     email_subject: Optional[str] = Field(
         default=None,
         alias="emailSubject",
-        description="Subject line of the email report"
+        description="Subject line of the email report",
     )
-    
+
     # Report generation metadata
     generated_at: Optional[str] = Field(
         default=None,
         alias="generatedAt",
-        description="Timestamp when report was generated (ISO 8601 format)"
+        description="Timestamp when report was generated (ISO 8601 format)",
     )
     report_version: str = Field(
         default="1.0",
         alias="reportVersion",
-        description="Version of report generation algorithm"
+        description="Version of report generation algorithm",
     )
-    
+
     # Timestamps
     created_at: Optional[str] = Field(
         default_factory=lambda: datetime.now(timezone.utc)
@@ -153,7 +159,7 @@ class CommentAnalysisReport(CyodaEntity):
         neutral_comments: int,
         average_sentiment_score: float,
         most_common_keywords: List[str],
-        average_word_count: float
+        average_word_count: float,
     ) -> None:
         """Set analysis results and update timestamps"""
         self.total_comments = total_comments
@@ -163,29 +169,33 @@ class CommentAnalysisReport(CyodaEntity):
         self.average_sentiment_score = average_sentiment_score
         self.most_common_keywords = most_common_keywords
         self.average_word_count = average_word_count
-        self.generated_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.generated_at = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
         self.update_timestamp()
 
     def mark_email_sent(self, email_subject: str) -> None:
         """Mark the report as sent via email"""
         self.email_sent = True
-        self.email_sent_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.email_sent_at = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
         self.email_subject = email_subject
         self.update_timestamp()
 
     def is_complete(self) -> bool:
         """Check if report is complete with analysis results"""
         return (
-            self.total_comments > 0 and
-            self.average_sentiment_score is not None and
-            self.generated_at is not None
+            self.total_comments > 0
+            and self.average_sentiment_score is not None
+            and self.generated_at is not None
         )
 
     def get_sentiment_distribution(self) -> Dict[str, float]:
         """Get sentiment distribution as percentages"""
         if self.total_comments == 0:
             return {"positive": 0.0, "negative": 0.0, "neutral": 0.0}
-        
+
         return {
             "positive": (self.positive_comments / self.total_comments) * 100,
             "negative": (self.negative_comments / self.total_comments) * 100,

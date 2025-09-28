@@ -7,9 +7,11 @@ before it can proceed to the report generation stage.
 
 from typing import Any
 
+from application.entity.comment_analysis_report.version_1.comment_analysis_report import (
+    CommentAnalysisReport,
+)
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.comment_analysis_report.version_1.comment_analysis_report import CommentAnalysisReport
 
 
 class ReportValidationCriterion(CyodaCriteriaChecker):
@@ -45,9 +47,7 @@ class ReportValidationCriterion(CyodaCriteriaChecker):
 
             # Validate required fields
             if not report.report_title or len(report.report_title.strip()) == 0:
-                self.logger.warning(
-                    f"Report {report.technical_id} has empty title"
-                )
+                self.logger.warning(f"Report {report.technical_id} has empty title")
                 return False
 
             if len(report.report_title) > 200:

@@ -7,9 +7,9 @@ proceed to the analysis stage.
 
 from typing import Any
 
+from application.entity.comment.version_1.comment import Comment
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.comment.version_1.comment import Comment
 
 
 class CommentValidationCriterion(CyodaCriteriaChecker):
@@ -45,9 +45,7 @@ class CommentValidationCriterion(CyodaCriteriaChecker):
 
             # Validate required fields
             if not comment.body or len(comment.body.strip()) == 0:
-                self.logger.warning(
-                    f"Comment {comment.technical_id} has empty body"
-                )
+                self.logger.warning(f"Comment {comment.technical_id} has empty body")
                 return False
 
             if len(comment.body) > 5000:
@@ -65,9 +63,7 @@ class CommentValidationCriterion(CyodaCriteriaChecker):
 
             # Validate name field
             if not comment.name or len(comment.name.strip()) == 0:
-                self.logger.warning(
-                    f"Comment {comment.technical_id} has empty name"
-                )
+                self.logger.warning(f"Comment {comment.technical_id} has empty name")
                 return False
 
             # Validate post_id and comment_id are positive

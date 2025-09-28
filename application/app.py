@@ -5,15 +5,14 @@ from typing import Callable, Dict, Optional
 from quart import Quart, Response
 from quart_schema import QuartSchema, ResponseSchemaValidationError, hide
 
+# Import blueprints for different route groups
+from application.routes.comments import comments_bp
+from application.routes.ingestion import ingestion_bp
+from application.routes.reports import reports_bp
 from common.exception.exception_handler import (
     register_error_handlers as _register_error_handlers,
 )
 from services.services import get_grpc_client, initialize_services
-
-# Import blueprints for different route groups
-from application.routes.comments import comments_bp
-from application.routes.reports import reports_bp
-from application.routes.ingestion import ingestion_bp
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -31,11 +30,11 @@ QuartSchema(
         },
         {
             "name": "reports",
-            "description": "Comment analysis report management endpoints"
+            "description": "Comment analysis report management endpoints",
         },
         {
             "name": "ingestion",
-            "description": "Comment ingestion from JSONPlaceholder API"
+            "description": "Comment ingestion from JSONPlaceholder API",
         },
         {"name": "System", "description": "System and health endpoints"},
     ],

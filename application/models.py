@@ -38,6 +38,7 @@ class CountResponse(BaseModel):
 # Comment-related models
 class CommentResponse(BaseModel):
     """Response model for Comment entity"""
+
     pass  # Will use Comment entity directly
 
 
@@ -66,6 +67,7 @@ class CommentUpdateQueryParams(BaseModel):
 # CommentAnalysisReport-related models
 class ReportResponse(BaseModel):
     """Response model for CommentAnalysisReport entity"""
+
     pass  # Will use CommentAnalysisReport entity directly
 
 
@@ -94,6 +96,7 @@ class ReportUpdateQueryParams(BaseModel):
 # Search and transition models
 class SearchRequest(BaseModel):
     """Generic search request model"""
+
     pass  # Will be populated with search fields dynamically
 
 
@@ -117,6 +120,7 @@ class TransitionsResponse(BaseModel):
 # JSONPlaceholder API models
 class JSONPlaceholderComment(BaseModel):
     """Model for comments from JSONPlaceholder API"""
+
     postId: int
     id: int
     name: str
@@ -126,12 +130,14 @@ class JSONPlaceholderComment(BaseModel):
 
 class CommentIngestionRequest(BaseModel):
     """Request model for ingesting comments from JSONPlaceholder API"""
+
     post_id: int = Field(alias="postId")
     recipient_email: str = Field(alias="recipientEmail")
 
 
 class CommentIngestionResponse(BaseModel):
     """Response model for comment ingestion"""
+
     success: bool
     message: str
     post_id: int = Field(alias="postId")

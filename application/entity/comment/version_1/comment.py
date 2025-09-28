@@ -19,7 +19,7 @@ class Comment(CyodaEntity):
     """
     Comment entity represents individual comments from JSONPlaceholder API
     with analysis results and processing metadata.
-    
+
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     The state field manages workflow states: none -> ingested -> analyzed -> completed
     """
@@ -29,8 +29,12 @@ class Comment(CyodaEntity):
     ENTITY_VERSION: ClassVar[int] = 1
 
     # Original comment data from JSONPlaceholder API
-    post_id: int = Field(..., alias="postId", description="ID of the post this comment belongs to")
-    comment_id: int = Field(..., alias="commentId", description="Original comment ID from API")
+    post_id: int = Field(
+        ..., alias="postId", description="ID of the post this comment belongs to"
+    )
+    comment_id: int = Field(
+        ..., alias="commentId", description="Original comment ID from API"
+    )
     name: str = Field(..., description="Comment title/name from API")
     email: str = Field(..., description="Email address of the commenter")
     body: str = Field(..., description="Comment body text")
@@ -39,34 +43,34 @@ class Comment(CyodaEntity):
     sentiment_score: Optional[float] = Field(
         default=None,
         alias="sentimentScore",
-        description="Sentiment analysis score (-1.0 to 1.0, negative to positive)"
+        description="Sentiment analysis score (-1.0 to 1.0, negative to positive)",
     )
     sentiment_label: Optional[str] = Field(
         default=None,
         alias="sentimentLabel",
-        description="Sentiment classification: POSITIVE, NEGATIVE, NEUTRAL"
+        description="Sentiment classification: POSITIVE, NEGATIVE, NEUTRAL",
     )
     word_count: Optional[int] = Field(
         default=None,
         alias="wordCount",
-        description="Number of words in the comment body"
+        description="Number of words in the comment body",
     )
     contains_keywords: Optional[List[str]] = Field(
         default=None,
         alias="containsKeywords",
-        description="List of detected keywords in the comment"
+        description="List of detected keywords in the comment",
     )
-    
+
     # Processing metadata
     analyzed_at: Optional[str] = Field(
         default=None,
         alias="analyzedAt",
-        description="Timestamp when analysis was completed (ISO 8601 format)"
+        description="Timestamp when analysis was completed (ISO 8601 format)",
     )
     analysis_version: Optional[str] = Field(
         default=None,
         alias="analysisVersion",
-        description="Version of analysis algorithm used"
+        description="Version of analysis algorithm used",
     )
 
     # Timestamps
@@ -109,7 +113,9 @@ class Comment(CyodaEntity):
     def validate_sentiment_label(cls, v: Optional[str]) -> Optional[str]:
         """Validate sentiment label if provided"""
         if v is not None and v not in cls.VALID_SENTIMENT_LABELS:
-            raise ValueError(f"Sentiment label must be one of: {cls.VALID_SENTIMENT_LABELS}")
+            raise ValueError(
+                f"Sentiment label must be one of: {cls.VALID_SENTIMENT_LABELS}"
+            )
         return v
 
     @field_validator("sentiment_score")
@@ -130,7 +136,7 @@ class Comment(CyodaEntity):
         sentiment_label: str,
         word_count: int,
         keywords: List[str],
-        analysis_version: str = "1.0"
+        analysis_version: str = "1.0",
     ) -> None:
         """Set analysis results and update timestamps"""
         self.sentiment_score = sentiment_score

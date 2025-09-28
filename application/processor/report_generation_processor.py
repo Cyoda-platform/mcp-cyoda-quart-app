@@ -9,11 +9,13 @@ import logging
 from collections import Counter
 from typing import Any, List
 
+from application.entity.comment.version_1.comment import Comment
+from application.entity.comment_analysis_report.version_1.comment_analysis_report import (
+    CommentAnalysisReport,
+)
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
 from common.service.entity_service import SearchConditionRequest
-from application.entity.comment.version_1.comment import Comment
-from application.entity.comment_analysis_report.version_1.comment_analysis_report import CommentAnalysisReport
 from services.services import get_entity_service
 
 
@@ -55,7 +57,9 @@ class ReportGenerationProcessor(CyodaProcessor):
             analyzed_comments = await self._get_analyzed_comments(report.post_id)
 
             if not analyzed_comments:
-                self.logger.warning(f"No analyzed comments found for post {report.post_id}")
+                self.logger.warning(
+                    f"No analyzed comments found for post {report.post_id}"
+                )
                 # Set empty results
                 report.set_analysis_results(
                     total_comments=0,
@@ -64,12 +68,12 @@ class ReportGenerationProcessor(CyodaProcessor):
                     neutral_comments=0,
                     average_sentiment_score=0.0,
                     most_common_keywords=[],
-                    average_word_count=0.0
+                    average_word_count=0.0,
                 )
             else:
                 # Calculate aggregated statistics
                 stats = self._calculate_statistics(analyzed_comments)
-                
+
                 # Set analysis results
                 report.set_analysis_results(
                     total_comments=stats["total_comments"],
@@ -78,7 +82,7 @@ class ReportGenerationProcessor(CyodaProcessor):
                     neutral_comments=stats["neutral_comments"],
                     average_sentiment_score=stats["average_sentiment_score"],
                     most_common_keywords=stats["most_common_keywords"],
-                    average_word_count=stats["average_word_count"]
+                    average_word_count=stats["average_word_count"],
                 )
 
             self.logger.info(
@@ -125,14 +129,22 @@ class ReportGenerationProcessor(CyodaProcessor):
             for result in results:
                 try:
                     # Create Comment from the result data
-                    comment_data = result.data.model_dump() if hasattr(result.data, 'model_dump') else result.data
+                    comment_data = (
+                        result.data.model_dump()
+                        if hasattr(result.data, "model_dump")
+                        else result.data
+                    )
                     comment = Comment(**comment_data)
                     comments.append(comment)
                 except Exception as e:
-                    self.logger.warning(f"Failed to convert comment result to entity: {str(e)}")
+                    self.logger.warning(
+                        f"Failed to convert comment result to entity: {str(e)}"
+                    )
                     continue
 
-            self.logger.info(f"Found {len(comments)} analyzed comments for post {post_id}")
+            self.logger.info(
+                f"Found {len(comments)} analyzed comments for post {post_id}"
+            )
             return comments
 
         except Exception as e:
@@ -150,15 +162,19 @@ class ReportGenerationProcessor(CyodaProcessor):
             Dictionary containing calculated statistics
         """
         total_comments = len(comments)
-        
+
         # Count sentiment labels
         positive_comments = sum(1 for c in comments if c.sentiment_label == "POSITIVE")
         negative_comments = sum(1 for c in comments if c.sentiment_label == "NEGATIVE")
         neutral_comments = sum(1 for c in comments if c.sentiment_label == "NEUTRAL")
 
         # Calculate average sentiment score
-        sentiment_scores = [c.sentiment_score for c in comments if c.sentiment_score is not None]
-        average_sentiment_score = sum(sentiment_scores) / len(sentiment_scores) if sentiment_scores else 0.0
+        sentiment_scores = [
+            c.sentiment_score for c in comments if c.sentiment_score is not None
+        ]
+        average_sentiment_score = (
+            sum(sentiment_scores) / len(sentiment_scores) if sentiment_scores else 0.0
+        )
 
         # Calculate average word count
         word_counts = [c.word_count for c in comments if c.word_count is not None]
@@ -169,10 +185,12 @@ class ReportGenerationProcessor(CyodaProcessor):
         for comment in comments:
             if comment.contains_keywords:
                 all_keywords.extend(comment.contains_keywords)
-        
+
         # Get top 10 most common keywords
         keyword_counter = Counter(all_keywords)
-        most_common_keywords = [keyword for keyword, _ in keyword_counter.most_common(10)]
+        most_common_keywords = [
+            keyword for keyword, _ in keyword_counter.most_common(10)
+        ]
 
         return {
             "total_comments": total_comments,
@@ -181,5 +199,5 @@ class ReportGenerationProcessor(CyodaProcessor):
             "neutral_comments": neutral_comments,
             "average_sentiment_score": round(average_sentiment_score, 3),
             "most_common_keywords": most_common_keywords,
-            "average_word_count": round(average_word_count, 1)
+            "average_word_count": round(average_word_count, 1),
         }

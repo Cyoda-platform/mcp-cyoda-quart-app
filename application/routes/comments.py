@@ -19,8 +19,6 @@ from quart_schema import (
     validate_querystring,
 )
 
-from common.service.entity_service import SearchConditionRequest
-from services.services import get_entity_service
 from application.entity.comment.version_1.comment import Comment
 from application.models import (
     CommentListResponse,
@@ -38,18 +36,24 @@ from application.models import (
     TransitionsResponse,
     ValidationErrorResponse,
 )
+from common.service.entity_service import SearchConditionRequest
+from services.services import get_entity_service
+
 
 # Module-level service proxy
 class _ServiceProxy:
     def __getattr__(self, name: str) -> Any:
         return getattr(get_entity_service(), name)
 
+
 service = _ServiceProxy()
 logger = logging.getLogger(__name__)
+
 
 # Helper to normalize entity data from service
 def _to_entity_dict(data: Any) -> Dict[str, Any]:
     return data.model_dump(by_alias=True) if hasattr(data, "model_dump") else data
+
 
 comments_bp = Blueprint("comments", __name__, url_prefix="/api/comments")
 
@@ -333,7 +337,9 @@ async def get_available_transitions(entity_id: str) -> ResponseReturnValue:
         return jsonify(response.model_dump()), 200
 
     except Exception as e:
-        logger.exception("Error getting transitions for Comment %s: %s", entity_id, str(e))
+        logger.exception(
+            "Error getting transitions for Comment %s: %s", entity_id, str(e)
+        )
         return jsonify({"error": str(e)}), 500
 
 
@@ -349,7 +355,9 @@ async def get_available_transitions(entity_id: str) -> ResponseReturnValue:
         500: (ErrorResponse, None),
     },
 )
-async def trigger_transition(entity_id: str, data: TransitionRequest) -> ResponseReturnValue:
+async def trigger_transition(
+    entity_id: str, data: TransitionRequest
+) -> ResponseReturnValue:
     """Trigger a specific workflow transition"""
     try:
         # Get current entity state
@@ -372,15 +380,24 @@ async def trigger_transition(entity_id: str, data: TransitionRequest) -> Respons
             entity_version=str(Comment.ENTITY_VERSION),
         )
 
-        logger.info("Executed transition '%s' on Comment %s", data.transition_name, entity_id)
+        logger.info(
+            "Executed transition '%s' on Comment %s", data.transition_name, entity_id
+        )
 
-        return jsonify({
-            "id": response.metadata.id,
-            "message": "Transition executed successfully",
-            "previousState": previous_state,
-            "newState": response.metadata.state,
-        }), 200
+        return (
+            jsonify(
+                {
+                    "id": response.metadata.id,
+                    "message": "Transition executed successfully",
+                    "previousState": previous_state,
+                    "newState": response.metadata.state,
+                }
+            ),
+            200,
+        )
 
     except Exception as e:
-        logger.exception("Error executing transition on Comment %s: %s", entity_id, str(e))
+        logger.exception(
+            "Error executing transition on Comment %s: %s", entity_id, str(e)
+        )
         return jsonify({"error": str(e)}), 500
