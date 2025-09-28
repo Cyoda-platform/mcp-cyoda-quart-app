@@ -1,0 +1,75 @@
+{
+  "version": "1.0",
+  "name": "CommentAnalysisReport Workflow",
+  "desc": "Workflow for generating and emailing comment analysis reports",
+  "initialState": "initial_state",
+  "active": true,
+  "states": {
+    "initial_state": {
+      "transitions": [
+        {
+          "name": "create",
+          "next": "created",
+          "manual": false
+        }
+      ]
+    },
+    "created": {
+      "transitions": [
+        {
+          "name": "analyze",
+          "next": "analyzed",
+          "manual": false,
+          "criterion": {
+            "type": "function",
+            "function": {
+              "name": "ReportValidationCriterion",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          },
+          "processors": [
+            {
+              "name": "ReportGenerationProcessor",
+              "executionMode": "SYNC",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "analyzed": {
+      "transitions": [
+        {
+          "name": "email",
+          "next": "emailed",
+          "manual": false,
+          "processors": [
+            {
+              "name": "EmailReportProcessor",
+              "executionMode": "SYNC",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "emailed": {
+      "transitions": [
+        {
+          "name": "complete",
+          "next": "completed",
+          "manual": false
+        }
+      ]
+    },
+    "completed": {
+      "transitions": []
+    }
+  }
+}
