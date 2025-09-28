@@ -129,12 +129,17 @@ class ReportGenerationProcessor(CyodaProcessor):
             for result in results:
                 try:
                     # Create Comment from the result data
-                    comment_data = (
-                        result.data.model_dump()
-                        if hasattr(result.data, "model_dump")
-                        else result.data
-                    )
-                    comment = Comment(**comment_data)
+                    if hasattr(result.data, "model_dump"):
+                        comment_data = result.data.model_dump()
+                    else:
+                        comment_data = result.data
+
+                    # Ensure comment_data is a dict
+                    if isinstance(comment_data, dict):
+                        comment = Comment(**comment_data)
+                    else:
+                        # Skip if not a dict
+                        continue
                     comments.append(comment)
                 except Exception as e:
                     self.logger.warning(

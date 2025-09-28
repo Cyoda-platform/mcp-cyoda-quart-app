@@ -79,9 +79,9 @@ async def ingest_comments(data: CommentIngestionRequest) -> ResponseReturnValue:
         response = CommentIngestionResponse(
             success=True,
             message=f"Successfully ingested {len(created_comments)} comments and created analysis report",
-            post_id=data.post_id,
-            comments_ingested=len(created_comments),
-            report_id=report_id,
+            postId=data.post_id,
+            commentsIngested=len(created_comments),
+            reportId=report_id,
         )
 
         return response.model_dump(), 200
@@ -143,8 +143,8 @@ async def _create_comment_entities(comments_data: List[Dict[str, Any]]) -> List[
 
             # Create Comment entity
             comment = Comment(
-                post_id=api_comment.postId,
-                comment_id=api_comment.id,
+                postId=api_comment.postId,
+                commentId=api_comment.id,
                 name=api_comment.name,
                 email=api_comment.email,
                 body=api_comment.body,
@@ -188,9 +188,9 @@ async def _create_analysis_report(post_id: int, recipient_email: str) -> str:
     try:
         # Create CommentAnalysisReport entity
         report = CommentAnalysisReport(
-            post_id=post_id,
-            report_title=f"Comment Analysis Report for Post {post_id}",
-            recipient_email=recipient_email,
+            postId=post_id,
+            reportTitle=f"Comment Analysis Report for Post {post_id}",
+            recipientEmail=recipient_email,
         )
 
         # Save the report entity
