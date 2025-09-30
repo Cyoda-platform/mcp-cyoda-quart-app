@@ -51,15 +51,11 @@ class ProductValidationCriterion(CyodaCriteriaChecker):
                 return False
 
             if not product.category:
-                self.logger.warning(
-                    f"Product {product.technical_id} missing category"
-                )
+                self.logger.warning(f"Product {product.technical_id} missing category")
                 return False
 
             if not product.status:
-                self.logger.warning(
-                    f"Product {product.technical_id} missing status"
-                )
+                self.logger.warning(f"Product {product.technical_id} missing status")
                 return False
 
             # Validate category is in allowed list
@@ -97,15 +93,20 @@ class ProductValidationCriterion(CyodaCriteriaChecker):
 
             # Business logic validation
             # Products with "sold" status should have sales volume > 0
-            if product.status == "sold" and (product.sales_volume is None or product.sales_volume == 0):
+            if product.status == "sold" and (
+                product.sales_volume is None or product.sales_volume == 0
+            ):
                 self.logger.warning(
                     f"Product {product.technical_id} marked as sold but has no sales volume"
                 )
                 return False
 
             # Products with revenue should have sales volume
-            if (product.revenue is not None and product.revenue > 0 and 
-                (product.sales_volume is None or product.sales_volume == 0)):
+            if (
+                product.revenue is not None
+                and product.revenue > 0
+                and (product.sales_volume is None or product.sales_volume == 0)
+            ):
                 self.logger.warning(
                     f"Product {product.technical_id} has revenue but no sales volume"
                 )

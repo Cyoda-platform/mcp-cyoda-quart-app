@@ -18,7 +18,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class Report(CyodaEntity):
     """
     Report represents a weekly performance analysis report for the pet store.
-    
+
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     The state field manages workflow states: initial_state -> generated -> validated -> emailed -> completed
     """
@@ -32,91 +32,86 @@ class Report(CyodaEntity):
     report_type: str = Field(
         default="weekly_performance",
         alias="reportType",
-        description="Type of report (weekly_performance, monthly_summary, etc.)"
+        description="Type of report (weekly_performance, monthly_summary, etc.)",
     )
     period_start: str = Field(
         ...,
-        alias="periodStart", 
-        description="Start date of reporting period (ISO 8601)"
+        alias="periodStart",
+        description="Start date of reporting period (ISO 8601)",
     )
     period_end: str = Field(
-        ...,
-        alias="periodEnd",
-        description="End date of reporting period (ISO 8601)"
+        ..., alias="periodEnd", description="End date of reporting period (ISO 8601)"
     )
-    
+
     # Report content and insights
     executive_summary: Optional[str] = Field(
         default=None,
         alias="executiveSummary",
-        description="Brief overview of key findings"
+        description="Brief overview of key findings",
     )
     total_products_analyzed: Optional[int] = Field(
         default=0,
         alias="totalProductsAnalyzed",
-        description="Number of products included in analysis"
+        description="Number of products included in analysis",
     )
-    
+
     # Performance metrics
     top_performers: Optional[List[Dict[str, Any]]] = Field(
         default_factory=list,
         alias="topPerformers",
-        description="List of highest-selling products"
+        description="List of highest-selling products",
     )
     underperformers: Optional[List[Dict[str, Any]]] = Field(
-        default_factory=list,
-        description="List of slow-moving products"
+        default_factory=list, description="List of slow-moving products"
     )
     restock_recommendations: Optional[List[Dict[str, Any]]] = Field(
         default_factory=list,
         alias="restockRecommendations",
-        description="Products requiring restocking"
+        description="Products requiring restocking",
     )
-    
+
     # Financial insights
     total_revenue: Optional[float] = Field(
-        default=0.0,
-        alias="totalRevenue",
-        description="Total revenue for the period"
+        default=0.0, alias="totalRevenue", description="Total revenue for the period"
     )
     revenue_growth: Optional[float] = Field(
         default=None,
         alias="revenueGrowth",
-        description="Revenue growth percentage vs previous period"
+        description="Revenue growth percentage vs previous period",
     )
-    
+
     # Email delivery tracking
     email_recipient: str = Field(
         default="victoria.sagdieva@cyoda.com",
         alias="emailRecipient",
-        description="Email address for report delivery"
+        description="Email address for report delivery",
     )
     email_sent: Optional[bool] = Field(
         default=False,
         alias="emailSent",
-        description="Flag indicating if email was sent successfully"
+        description="Flag indicating if email was sent successfully",
     )
     email_sent_at: Optional[str] = Field(
-        default=None,
-        alias="emailSentAt",
-        description="Timestamp when email was sent"
+        default=None, alias="emailSentAt", description="Timestamp when email was sent"
     )
-    
+
     # Report generation metadata
     generated_at: Optional[str] = Field(
         default=None,
         alias="generatedAt",
-        description="Timestamp when report was generated"
+        description="Timestamp when report was generated",
     )
     generated_by: str = Field(
         default="ReportGenerationProcessor",
         alias="generatedBy",
-        description="System component that generated the report"
+        description="System component that generated the report",
     )
 
     # Validation constants
     ALLOWED_REPORT_TYPES: ClassVar[List[str]] = [
-        "weekly_performance", "monthly_summary", "quarterly_review"
+        "weekly_performance",
+        "monthly_summary",
+        "quarterly_review",
     ]
 
     @field_validator("title")
@@ -163,12 +158,16 @@ class Report(CyodaEntity):
 
     def mark_generated(self) -> None:
         """Mark report as generated with timestamp"""
-        self.generated_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.generated_at = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
 
     def mark_email_sent(self) -> None:
         """Mark email as sent with timestamp"""
         self.email_sent = True
-        self.email_sent_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.email_sent_at = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
 
     def add_top_performer(self, product_data: Dict[str, Any]) -> None:
         """Add a product to top performers list"""
@@ -191,9 +190,9 @@ class Report(CyodaEntity):
     def is_ready_for_email(self) -> bool:
         """Check if report is ready to be emailed"""
         return (
-            self.generated_at is not None and
-            self.executive_summary is not None and
-            not self.email_sent
+            self.generated_at is not None
+            and self.executive_summary is not None
+            and not self.email_sent
         )
 
     def get_period_duration_days(self) -> int:

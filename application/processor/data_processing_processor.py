@@ -59,10 +59,10 @@ class DataProcessingProcessor(CyodaProcessor):
 
             # Process the extracted products
             await self._process_extracted_products(extraction)
-            
+
             # Clean up old extraction data if needed
             await self._cleanup_old_data(extraction)
-            
+
             # Update processing statistics
             self._update_processing_stats(extraction)
 
@@ -81,32 +81,32 @@ class DataProcessingProcessor(CyodaProcessor):
     async def _process_extracted_products(self, extraction: DataExtraction) -> None:
         """
         Process products that were created from the extraction.
-        
+
         Args:
             extraction: The DataExtraction entity
         """
         entity_service = get_entity_service()
-        
+
         try:
             # Find products created from this extraction
             # We'll look for products in 'extracted' state that were created recently
             builder = SearchConditionRequest.builder()
             builder.equals("state", "extracted")
             condition = builder.build()
-            
+
             products = await entity_service.search(
                 entity_class=Product.ENTITY_NAME,
                 condition=condition,
                 entity_version=str(Product.ENTITY_VERSION),
             )
-            
+
             processed_count = 0
             failed_count = 0
-            
+
             for product_result in products:
                 try:
                     product = cast_entity(product_result.data, Product)
-                    
+
                     # Trigger product validation and analysis workflow
                     # This will move the product through: extracted -> validated -> analyzed -> completed
                     await entity_service.execute_transition(
@@ -115,23 +115,25 @@ class DataProcessingProcessor(CyodaProcessor):
                         entity_class=Product.ENTITY_NAME,
                         entity_version=str(Product.ENTITY_VERSION),
                     )
-                    
+
                     processed_count += 1
-                    self.logger.debug(f"Triggered analysis for product {product.technical_id}")
-                    
+                    self.logger.debug(
+                        f"Triggered analysis for product {product.technical_id}"
+                    )
+
                 except Exception as e:
                     failed_count += 1
                     self.logger.warning(f"Failed to process product: {str(e)}")
                     continue
-            
+
             # Update extraction statistics
             extraction.processed_products = processed_count
             extraction.failed_products = failed_count
-            
+
             self.logger.info(
                 f"Processed {processed_count} products, {failed_count} failed for extraction {extraction.technical_id}"
             )
-            
+
         except Exception as e:
             self.logger.error(f"Error processing extracted products: {str(e)}")
             extraction.add_extraction_error(f"Product processing failed: {str(e)}")
@@ -139,7 +141,7 @@ class DataProcessingProcessor(CyodaProcessor):
     async def _cleanup_old_data(self, extraction: DataExtraction) -> None:
         """
         Clean up old extraction data to prevent storage bloat.
-        
+
         Args:
             extraction: The DataExtraction entity
         """
@@ -149,28 +151,32 @@ class DataProcessingProcessor(CyodaProcessor):
             if extraction.extracted_data:
                 # Keep summary but remove raw data
                 summary = {
-                    "extraction_timestamp": extraction.extracted_data.get("extraction_timestamp"),
+                    "extraction_timestamp": extraction.extracted_data.get(
+                        "extraction_timestamp"
+                    ),
                     "total_items": len(extraction.extracted_data.get("pets", [])),
-                    "data_cleared": True
+                    "data_cleared": True,
                 }
                 extraction.extracted_data = summary
-                
-                self.logger.debug(f"Cleaned up raw data for extraction {extraction.technical_id}")
-                
+
+                self.logger.debug(
+                    f"Cleaned up raw data for extraction {extraction.technical_id}"
+                )
+
         except Exception as e:
             self.logger.warning(f"Error cleaning up extraction data: {str(e)}")
 
     def _update_processing_stats(self, extraction: DataExtraction) -> None:
         """
         Update processing statistics for the extraction.
-        
+
         Args:
             extraction: The DataExtraction entity to update
         """
         try:
             # Calculate success rate
             success_rate = extraction.calculate_success_rate()
-            
+
             # Log processing summary
             self.logger.info(
                 f"Extraction {extraction.technical_id} processing summary: "
@@ -178,16 +184,19 @@ class DataProcessingProcessor(CyodaProcessor):
                 f"Processed: {extraction.processed_products or 0}, "
                 f"Failed: {extraction.failed_products or 0}"
             )
-            
+
             # Add processing completion timestamp
             from datetime import datetime, timezone
-            processing_timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-            
+
+            processing_timestamp = (
+                datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            )
+
             if not extraction.extracted_data:
                 extraction.extracted_data = {}
-            
+
             extraction.extracted_data["processing_completed"] = processing_timestamp
             extraction.extracted_data["success_rate"] = success_rate
-            
+
         except Exception as e:
             self.logger.warning(f"Error updating processing stats: {str(e)}")

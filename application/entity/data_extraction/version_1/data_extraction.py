@@ -18,7 +18,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class DataExtraction(CyodaEntity):
     """
     DataExtraction represents a scheduled data collection job from Pet Store API.
-    
+
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     The state field manages workflow states: initial_state -> scheduled -> extracting -> processed -> completed
     """
@@ -28,100 +28,106 @@ class DataExtraction(CyodaEntity):
     ENTITY_VERSION: ClassVar[int] = 1
 
     # Extraction job metadata
-    job_name: str = Field(..., alias="jobName", description="Name of the extraction job")
+    job_name: str = Field(
+        ..., alias="jobName", description="Name of the extraction job"
+    )
     schedule_type: str = Field(
         default="weekly",
         alias="scheduleType",
-        description="Schedule type (weekly, daily, monthly)"
+        description="Schedule type (weekly, daily, monthly)",
     )
     target_day: str = Field(
         default="monday",
         alias="targetDay",
-        description="Target day for extraction (monday, tuesday, etc.)"
+        description="Target day for extraction (monday, tuesday, etc.)",
     )
-    
+
     # API configuration
     api_endpoint: str = Field(
         default="https://petstore.swagger.io/v2",
         alias="apiEndpoint",
-        description="Pet Store API base endpoint"
+        description="Pet Store API base endpoint",
     )
     data_format: str = Field(
         default="json",
         alias="dataFormat",
-        description="Expected data format (json, xml)"
+        description="Expected data format (json, xml)",
     )
-    
+
     # Execution tracking
     last_execution: Optional[str] = Field(
         default=None,
         alias="lastExecution",
-        description="Timestamp of last successful execution"
+        description="Timestamp of last successful execution",
     )
     next_scheduled: Optional[str] = Field(
         default=None,
         alias="nextScheduled",
-        description="Timestamp of next scheduled execution"
+        description="Timestamp of next scheduled execution",
     )
     execution_status: str = Field(
         default="pending",
         alias="executionStatus",
-        description="Current execution status"
+        description="Current execution status",
     )
-    
+
     # Extraction results
     products_extracted: Optional[int] = Field(
         default=0,
         alias="productsExtracted",
-        description="Number of products extracted in last run"
+        description="Number of products extracted in last run",
     )
     extraction_errors: Optional[List[str]] = Field(
         default_factory=list,
         alias="extractionErrors",
-        description="List of errors encountered during extraction"
+        description="List of errors encountered during extraction",
     )
     extracted_data: Optional[Dict[str, Any]] = Field(
-        default=None,
-        alias="extractedData",
-        description="Raw extracted data from API"
+        default=None, alias="extractedData", description="Raw extracted data from API"
     )
-    
+
     # Processing metadata
     processed_products: Optional[int] = Field(
         default=0,
         alias="processedProducts",
-        description="Number of products successfully processed"
+        description="Number of products successfully processed",
     )
     failed_products: Optional[int] = Field(
         default=0,
         alias="failedProducts",
-        description="Number of products that failed processing"
+        description="Number of products that failed processing",
     )
-    
+
     # Configuration options
     retry_count: int = Field(
         default=3,
         alias="retryCount",
-        description="Number of retry attempts for failed extractions"
+        description="Number of retry attempts for failed extractions",
     )
     timeout_seconds: int = Field(
         default=300,
         alias="timeoutSeconds",
-        description="Timeout for API calls in seconds"
+        description="Timeout for API calls in seconds",
     )
 
     # Validation constants
-    ALLOWED_SCHEDULE_TYPES: ClassVar[List[str]] = [
-        "daily", "weekly", "monthly"
-    ]
+    ALLOWED_SCHEDULE_TYPES: ClassVar[List[str]] = ["daily", "weekly", "monthly"]
     ALLOWED_DAYS: ClassVar[List[str]] = [
-        "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+        "saturday",
+        "sunday",
     ]
-    ALLOWED_DATA_FORMATS: ClassVar[List[str]] = [
-        "json", "xml"
-    ]
+    ALLOWED_DATA_FORMATS: ClassVar[List[str]] = ["json", "xml"]
     ALLOWED_EXECUTION_STATUSES: ClassVar[List[str]] = [
-        "pending", "running", "completed", "failed", "cancelled"
+        "pending",
+        "running",
+        "completed",
+        "failed",
+        "cancelled",
     ]
 
     @field_validator("job_name")
@@ -139,7 +145,9 @@ class DataExtraction(CyodaEntity):
     def validate_schedule_type(cls, v: str) -> str:
         """Validate schedule type"""
         if v not in cls.ALLOWED_SCHEDULE_TYPES:
-            raise ValueError(f"Schedule type must be one of: {cls.ALLOWED_SCHEDULE_TYPES}")
+            raise ValueError(
+                f"Schedule type must be one of: {cls.ALLOWED_SCHEDULE_TYPES}"
+            )
         return v
 
     @field_validator("target_day")
@@ -163,7 +171,9 @@ class DataExtraction(CyodaEntity):
     def validate_execution_status(cls, v: str) -> str:
         """Validate execution status"""
         if v not in cls.ALLOWED_EXECUTION_STATUSES:
-            raise ValueError(f"Execution status must be one of: {cls.ALLOWED_EXECUTION_STATUSES}")
+            raise ValueError(
+                f"Execution status must be one of: {cls.ALLOWED_EXECUTION_STATUSES}"
+            )
         return v
 
     @field_validator("retry_count")
@@ -185,7 +195,9 @@ class DataExtraction(CyodaEntity):
     def mark_execution_start(self) -> None:
         """Mark the start of extraction execution"""
         self.execution_status = "running"
-        self.last_execution = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.last_execution = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
 
     def mark_execution_complete(self, products_count: int) -> None:
         """Mark extraction as completed successfully"""
@@ -218,7 +230,9 @@ class DataExtraction(CyodaEntity):
         if not self.next_scheduled:
             return True
         try:
-            next_time = datetime.fromisoformat(self.next_scheduled.replace("Z", "+00:00"))
+            next_time = datetime.fromisoformat(
+                self.next_scheduled.replace("Z", "+00:00")
+            )
             return datetime.now(timezone.utc) >= next_time
         except Exception:
             return True
@@ -237,7 +251,7 @@ class DataExtraction(CyodaEntity):
             # Default to next day for other schedule types
             next_run = now.replace(hour=9, minute=0, second=0, microsecond=0)
             next_run = next_run.replace(day=now.day + 1)
-        
+
         self.next_scheduled = next_run.isoformat().replace("+00:00", "Z")
 
     def to_api_response(self) -> Dict[str, Any]:

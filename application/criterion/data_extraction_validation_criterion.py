@@ -77,7 +77,10 @@ class DataExtractionValidationCriterion(CyodaCriteriaChecker):
                 return False
 
             # Validate execution status
-            if extraction.execution_status not in DataExtraction.ALLOWED_EXECUTION_STATUSES:
+            if (
+                extraction.execution_status
+                not in DataExtraction.ALLOWED_EXECUTION_STATUSES
+            ):
                 self.logger.warning(
                     f"DataExtraction {extraction.technical_id} has invalid execution status: {extraction.execution_status}"
                 )
@@ -106,7 +109,10 @@ class DataExtractionValidationCriterion(CyodaCriteriaChecker):
 
             # Business logic validation
             # Check if extraction is due for execution (if scheduled)
-            if extraction.execution_status == "pending" and not extraction.is_due_for_execution():
+            if (
+                extraction.execution_status == "pending"
+                and not extraction.is_due_for_execution()
+            ):
                 self.logger.info(
                     f"DataExtraction {extraction.technical_id} is not yet due for execution"
                 )
@@ -124,16 +130,19 @@ class DataExtractionValidationCriterion(CyodaCriteriaChecker):
             if extraction.last_execution:
                 try:
                     from datetime import datetime, timezone, timedelta
-                    last_exec = datetime.fromisoformat(extraction.last_execution.replace("Z", "+00:00"))
+
+                    last_exec = datetime.fromisoformat(
+                        extraction.last_execution.replace("Z", "+00:00")
+                    )
                     now = datetime.now(timezone.utc)
-                    
+
                     # Prevent running more than once per hour
                     if (now - last_exec) < timedelta(hours=1):
                         self.logger.warning(
                             f"DataExtraction {extraction.technical_id} was executed too recently"
                         )
                         return False
-                        
+
                 except Exception as e:
                     self.logger.warning(
                         f"DataExtraction {extraction.technical_id} has invalid last execution timestamp: {str(e)}"

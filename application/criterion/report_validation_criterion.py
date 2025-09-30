@@ -77,7 +77,10 @@ class ReportValidationCriterion(CyodaCriteriaChecker):
                 return False
 
             # Validate numeric fields
-            if report.total_products_analyzed is not None and report.total_products_analyzed < 0:
+            if (
+                report.total_products_analyzed is not None
+                and report.total_products_analyzed < 0
+            ):
                 self.logger.warning(
                     f"Report {report.technical_id} has negative products count: {report.total_products_analyzed}"
                 )
@@ -90,7 +93,10 @@ class ReportValidationCriterion(CyodaCriteriaChecker):
                 return False
 
             # Validate report content completeness
-            if not report.executive_summary or len(report.executive_summary.strip()) < 10:
+            if (
+                not report.executive_summary
+                or len(report.executive_summary.strip()) < 10
+            ):
                 self.logger.warning(
                     f"Report {report.technical_id} has insufficient executive summary"
                 )
@@ -113,15 +119,20 @@ class ReportValidationCriterion(CyodaCriteriaChecker):
             # Validate period dates make sense
             try:
                 from datetime import datetime
-                start_date = datetime.fromisoformat(report.period_start.replace("Z", "+00:00"))
-                end_date = datetime.fromisoformat(report.period_end.replace("Z", "+00:00"))
-                
+
+                start_date = datetime.fromisoformat(
+                    report.period_start.replace("Z", "+00:00")
+                )
+                end_date = datetime.fromisoformat(
+                    report.period_end.replace("Z", "+00:00")
+                )
+
                 if start_date >= end_date:
                     self.logger.warning(
                         f"Report {report.technical_id} has invalid date range: start >= end"
                     )
                     return False
-                    
+
                 # Check if period is reasonable (not too long)
                 period_days = (end_date - start_date).days
                 if period_days > 90:  # More than 3 months
@@ -129,7 +140,7 @@ class ReportValidationCriterion(CyodaCriteriaChecker):
                         f"Report {report.technical_id} has unusually long period: {period_days} days"
                     )
                     return False
-                    
+
             except Exception as e:
                 self.logger.warning(
                     f"Report {report.technical_id} has invalid date format: {str(e)}"

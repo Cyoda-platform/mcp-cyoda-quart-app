@@ -56,12 +56,14 @@ class ReportEmailProcessor(CyodaProcessor):
 
             # Simulate email sending (in a real implementation, this would integrate with an email service)
             email_content = self._prepare_email_content(report)
-            success = await self._send_email(report.email_recipient, email_content, report)
-            
+            success = await self._send_email(
+                report.email_recipient, email_content, report
+            )
+
             if success:
                 # Mark email as sent
                 report.mark_email_sent()
-                
+
                 self.logger.info(
                     f"Report {report.technical_id} successfully emailed to {report.email_recipient}"
                 )
@@ -82,23 +84,33 @@ class ReportEmailProcessor(CyodaProcessor):
     def _prepare_email_content(self, report: Report) -> dict[str, Any]:
         """
         Prepare email content including subject, body, and attachments.
-        
+
         Args:
             report: The Report entity to prepare email for
-            
+
         Returns:
             Dictionary containing email content
         """
         # Format period dates for display
         try:
-            period_start = report.period_start.split('T')[0] if 'T' in report.period_start else report.period_start
-            period_end = report.period_end.split('T')[0] if 'T' in report.period_end else report.period_end
+            period_start = (
+                report.period_start.split("T")[0]
+                if "T" in report.period_start
+                else report.period_start
+            )
+            period_end = (
+                report.period_end.split("T")[0]
+                if "T" in report.period_end
+                else report.period_end
+            )
         except Exception:
             period_start = "N/A"
             period_end = "N/A"
-        
-        subject = f"Weekly Pet Store Performance Report - {period_start} to {period_end}"
-        
+
+        subject = (
+            f"Weekly Pet Store Performance Report - {period_start} to {period_end}"
+        )
+
         # Create email body
         body_parts = [
             f"Dear Sales Team,",
@@ -112,47 +124,57 @@ class ReportEmailProcessor(CyodaProcessor):
             f"• Total Products Analyzed: {report.total_products_analyzed or 0}",
             f"• Total Revenue: ${report.total_revenue or 0:,.2f}",
         ]
-        
+
         if report.revenue_growth is not None:
             body_parts.append(f"• Revenue Growth: {report.revenue_growth:+.1f}%")
-        
-        body_parts.extend([
-            f"",
-            f"HIGHLIGHTS:",
-        ])
-        
+
+        body_parts.extend(
+            [
+                f"",
+                f"HIGHLIGHTS:",
+            ]
+        )
+
         # Top performers
         top_performers = report.top_performers or []
         if top_performers:
             body_parts.append(f"• Top Performers ({len(top_performers)}):")
             for i, product in enumerate(top_performers[:3], 1):
-                body_parts.append(f"  {i}. {product.get('name', 'Unknown')} - Score: {product.get('performance_score', 0):.1f}")
-        
+                body_parts.append(
+                    f"  {i}. {product.get('name', 'Unknown')} - Score: {product.get('performance_score', 0):.1f}"
+                )
+
         # Underperformers
         underperformers = report.underperformers or []
         if underperformers:
             body_parts.append(f"• Products Needing Attention ({len(underperformers)}):")
             for i, product in enumerate(underperformers[:3], 1):
-                body_parts.append(f"  {i}. {product.get('name', 'Unknown')} - Score: {product.get('performance_score', 0):.1f}")
-        
+                body_parts.append(
+                    f"  {i}. {product.get('name', 'Unknown')} - Score: {product.get('performance_score', 0):.1f}"
+                )
+
         # Restocking recommendations
         restock_recs = report.restock_recommendations or []
         if restock_recs:
             body_parts.append(f"• Urgent Restocking Required ({len(restock_recs)}):")
             for i, product in enumerate(restock_recs[:3], 1):
-                urgency = product.get('urgency', 'medium').upper()
-                body_parts.append(f"  {i}. {product.get('name', 'Unknown')} - {urgency} PRIORITY")
-        
-        body_parts.extend([
-            f"",
-            f"For detailed analysis and complete product listings, please refer to the full report.",
-            f"",
-            f"Best regards,",
-            f"Pet Store Performance Analysis System",
-            f"",
-            f"This is an automated report generated on {report.generated_at or 'N/A'}."
-        ])
-        
+                urgency = product.get("urgency", "medium").upper()
+                body_parts.append(
+                    f"  {i}. {product.get('name', 'Unknown')} - {urgency} PRIORITY"
+                )
+
+        body_parts.extend(
+            [
+                f"",
+                f"For detailed analysis and complete product listings, please refer to the full report.",
+                f"",
+                f"Best regards,",
+                f"Pet Store Performance Analysis System",
+                f"",
+                f"This is an automated report generated on {report.generated_at or 'N/A'}.",
+            ]
+        )
+
         return {
             "subject": subject,
             "body": "\n".join(body_parts),
@@ -165,19 +187,21 @@ class ReportEmailProcessor(CyodaProcessor):
                 "total_revenue": report.total_revenue,
                 "top_performers": top_performers,
                 "underperformers": underperformers,
-                "restock_recommendations": restock_recs
-            }
+                "restock_recommendations": restock_recs,
+            },
         }
 
-    async def _send_email(self, recipient: str, content: dict[str, Any], report: Report) -> bool:
+    async def _send_email(
+        self, recipient: str, content: dict[str, Any], report: Report
+    ) -> bool:
         """
         Send email to the specified recipient.
-        
+
         Args:
             recipient: Email address to send to
             content: Email content dictionary
             report: The Report entity being emailed
-            
+
         Returns:
             True if email was sent successfully, False otherwise
         """
@@ -187,11 +211,11 @@ class ReportEmailProcessor(CyodaProcessor):
             # - SendGrid
             # - SMTP server
             # - Microsoft Graph API for Outlook
-            
+
             self.logger.info(f"Simulating email send to {recipient}")
             self.logger.info(f"Subject: {content['subject']}")
             self.logger.info(f"Body length: {len(content['body'])} characters")
-            
+
             # Simulate email service call
             # email_service = get_email_service()
             # result = await email_service.send_email(
@@ -200,11 +224,11 @@ class ReportEmailProcessor(CyodaProcessor):
             #     body=content['body'],
             #     attachments=[self._create_pdf_attachment(report)]
             # )
-            
+
             # For now, simulate successful delivery
             self.logger.info(f"Email successfully sent to {recipient}")
             return True
-            
+
         except Exception as e:
             self.logger.error(f"Failed to send email to {recipient}: {str(e)}")
             return False
@@ -212,10 +236,10 @@ class ReportEmailProcessor(CyodaProcessor):
     def _create_pdf_attachment(self, report: Report) -> dict[str, Any]:
         """
         Create PDF attachment for the report (placeholder implementation).
-        
+
         Args:
             report: The Report entity to create PDF for
-            
+
         Returns:
             Dictionary representing PDF attachment
         """
@@ -223,10 +247,10 @@ class ReportEmailProcessor(CyodaProcessor):
         # - ReportLab
         # - WeasyPrint
         # - Matplotlib for charts
-        
+
         return {
             "filename": f"performance_report_{report.period_start[:10]}.pdf",
             "content_type": "application/pdf",
             "size": "placeholder",
-            "description": "Weekly Performance Report PDF"
+            "description": "Weekly Performance Report PDF",
         }
