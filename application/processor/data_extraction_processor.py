@@ -5,16 +5,17 @@ Handles automated data extraction from Pet Store API as specified in the
 functional requirements for scheduled data collection every Monday.
 """
 
+import asyncio
 import json
 import logging
 from typing import Any, Dict, List, Optional
-import asyncio
+
 import aiohttp
 
-from common.entity.entity_casting import cast_entity
-from common.processor.base import CyodaEntity, CyodaProcessor
 from application.entity.data_extraction.version_1.data_extraction import DataExtraction
 from application.entity.product.version_1.product import Product
+from common.entity.entity_casting import cast_entity
+from common.processor.base import CyodaEntity, CyodaProcessor
 from services.services import get_entity_service
 
 
@@ -236,10 +237,10 @@ class DataExtractionProcessor(CyodaProcessor):
                 name=name,
                 category=category,
                 status=status,
-                pet_store_id=pet_id,
-                sales_volume=sales_data["sales_volume"],
+                petStoreId=pet_id,
+                salesVolume=sales_data["sales_volume"],
                 revenue=sales_data["revenue"],
-                inventory_level=sales_data["inventory_level"],
+                inventoryLevel=sales_data["inventory_level"],
                 tags=self._extract_tags(pet_data),
             )
 

@@ -8,9 +8,9 @@ in the functional requirements for automated weekly reporting.
 import logging
 from typing import Any
 
+from application.entity.report.version_1.report import Report
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.report.version_1.report import Report
 
 
 class ReportEmailProcessor(CyodaProcessor):

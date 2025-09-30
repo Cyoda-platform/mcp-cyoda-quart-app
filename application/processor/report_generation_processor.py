@@ -6,14 +6,14 @@ and creating insights as specified in the functional requirements.
 """
 
 import logging
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List
 
+from application.entity.product.version_1.product import Product
+from application.entity.report.version_1.report import Report
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
 from common.service.entity_service import SearchConditionRequest
-from application.entity.report.version_1.report import Report
-from application.entity.product.version_1.product import Product
 from services.services import get_entity_service
 
 

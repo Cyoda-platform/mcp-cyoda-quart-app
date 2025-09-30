@@ -8,9 +8,9 @@ KPI calculations, trend analysis, and inventory recommendations.
 import logging
 from typing import Any, Dict
 
+from application.entity.product.version_1.product import Product
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.product.version_1.product import Product
 
 
 class ProductAnalysisProcessor(CyodaProcessor):

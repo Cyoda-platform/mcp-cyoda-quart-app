@@ -7,9 +7,9 @@ it can proceed to the analysis stage.
 
 from typing import Any
 
+from application.entity.product.version_1.product import Product
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.product.version_1.product import Product
 
 
 class ProductValidationCriterion(CyodaCriteriaChecker):

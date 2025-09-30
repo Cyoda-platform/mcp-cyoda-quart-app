@@ -8,11 +8,11 @@ and triggering of product analysis workflows.
 import logging
 from typing import Any
 
+from application.entity.data_extraction.version_1.data_extraction import DataExtraction
+from application.entity.product.version_1.product import Product
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
 from common.service.entity_service import SearchConditionRequest
-from application.entity.data_extraction.version_1.data_extraction import DataExtraction
-from application.entity.product.version_1.product import Product
 from services.services import get_entity_service
 
 
@@ -109,12 +109,14 @@ class DataProcessingProcessor(CyodaProcessor):
 
                     # Trigger product validation and analysis workflow
                     # This will move the product through: extracted -> validated -> analyzed -> completed
-                    await entity_service.execute_transition(
-                        entity_id=product.technical_id or product.entity_id,
-                        transition="validate",
-                        entity_class=Product.ENTITY_NAME,
-                        entity_version=str(Product.ENTITY_VERSION),
-                    )
+                    product_id = product.technical_id or product.entity_id
+                    if product_id:
+                        await entity_service.execute_transition(
+                            entity_id=product_id,
+                            transition="validate",
+                            entity_class=Product.ENTITY_NAME,
+                            entity_version=str(Product.ENTITY_VERSION),
+                        )
 
                     processed_count += 1
                     self.logger.debug(

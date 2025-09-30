@@ -7,9 +7,9 @@ it can proceed to the data extraction stage.
 
 from typing import Any
 
+from application.entity.data_extraction.version_1.data_extraction import DataExtraction
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.data_extraction.version_1.data_extraction import DataExtraction
 
 
 class DataExtractionValidationCriterion(CyodaCriteriaChecker):
@@ -129,7 +129,7 @@ class DataExtractionValidationCriterion(CyodaCriteriaChecker):
             # Validate that we're not trying to run too frequently
             if extraction.last_execution:
                 try:
-                    from datetime import datetime, timezone, timedelta
+                    from datetime import datetime, timedelta, timezone
 
                     last_exec = datetime.fromisoformat(
                         extraction.last_execution.replace("Z", "+00:00")
