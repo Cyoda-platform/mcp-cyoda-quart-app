@@ -1,0 +1,130 @@
+{
+  "version": "1.0",
+  "name": "Pet",
+  "desc": "Pet workflow for managing pet adoption lifecycle",
+  "initialState": "initial_state",
+  "active": true,
+  "states": {
+    "initial_state": {
+      "transitions": [
+        {
+          "name": "initialize_pet",
+          "next": "available",
+          "manual": false,
+          "processors": [
+            {
+              "name": "ValidatePetInfo",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "available": {
+      "transitions": [
+        {
+          "name": "reserve_pet",
+          "next": "reserved",
+          "manual": true,
+          "criterion": {
+            "type": "function",
+            "function": {
+              "name": "IsHealthy",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          }
+        },
+        {
+          "name": "make_unavailable",
+          "next": "unavailable",
+          "manual": true,
+          "processors": [
+            {
+              "name": "UpdateAvailability",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "reserved": {
+      "transitions": [
+        {
+          "name": "complete_adoption",
+          "next": "adopted",
+          "manual": true,
+          "processors": [
+            {
+              "name": "UpdateAvailability",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        },
+        {
+          "name": "cancel_reservation",
+          "next": "available",
+          "manual": true,
+          "processors": [
+            {
+              "name": "UpdateAvailability",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "unavailable": {
+      "transitions": [
+        {
+          "name": "make_available",
+          "next": "available",
+          "manual": true,
+          "processors": [
+            {
+              "name": "UpdateAvailability",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "adopted": {
+      "transitions": []
+    }
+  }
+}

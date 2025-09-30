@@ -1,0 +1,102 @@
+{
+  "version": "1.0",
+  "name": "User",
+  "desc": "User workflow for managing customer registration and verification",
+  "initialState": "initial_state",
+  "active": true,
+  "states": {
+    "initial_state": {
+      "transitions": [
+        {
+          "name": "register_user",
+          "next": "registered",
+          "manual": false,
+          "processors": [
+            {
+              "name": "ValidateUserInfo",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "registered": {
+      "transitions": [
+        {
+          "name": "verify_user",
+          "next": "verified",
+          "manual": true,
+          "criterion": {
+            "type": "function",
+            "function": {
+              "name": "IsValidEmail",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "verified": {
+      "transitions": [
+        {
+          "name": "activate_user",
+          "next": "active",
+          "manual": true,
+          "processors": [
+            {
+              "name": "SendWelcomeEmail",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "active": {
+      "transitions": [
+        {
+          "name": "suspend_user",
+          "next": "suspended",
+          "manual": true
+        }
+      ]
+    },
+    "suspended": {
+      "transitions": [
+        {
+          "name": "reactivate_user",
+          "next": "active",
+          "manual": true,
+          "processors": [
+            {
+              "name": "SendWelcomeEmail",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
