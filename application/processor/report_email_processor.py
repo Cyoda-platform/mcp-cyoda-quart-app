@@ -113,14 +113,14 @@ class ReportEmailProcessor(CyodaProcessor):
 
         # Create email body
         body_parts = [
-            f"Dear Sales Team,",
-            f"",
+            "Dear Sales Team,",
+            "",
             f"Please find attached the weekly performance report for the period {period_start} to {period_end}.",
-            f"",
-            f"EXECUTIVE SUMMARY:",
+            "",
+            "EXECUTIVE SUMMARY:",
             f"{report.executive_summary or 'Report summary not available.'}",
-            f"",
-            f"KEY METRICS:",
+            "",
+            "KEY METRICS:",
             f"• Total Products Analyzed: {report.total_products_analyzed or 0}",
             f"• Total Revenue: ${report.total_revenue or 0:,.2f}",
         ]

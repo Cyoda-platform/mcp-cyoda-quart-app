@@ -6,8 +6,7 @@ and creating insights as specified in the functional requirements.
 """
 
 import logging
-from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List
+from typing import Any, List
 
 from application.entity.product.version_1.product import Product
 from application.entity.report.version_1.report import Report

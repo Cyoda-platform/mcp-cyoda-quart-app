@@ -6,7 +6,7 @@ functional requirements for scheduled data collection every Monday.
 """
 
 import asyncio
-import json
+
 import logging
 from typing import Any, Dict, List, Optional
 
