@@ -130,8 +130,8 @@ class ReportEmailProcessor(CyodaProcessor):
 
         body_parts.extend(
             [
-                f"",
-                f"HIGHLIGHTS:",
+                "",
+                "HIGHLIGHTS:",
             ]
         )
 
@@ -165,12 +165,12 @@ class ReportEmailProcessor(CyodaProcessor):
 
         body_parts.extend(
             [
-                f"",
-                f"For detailed analysis and complete product listings, please refer to the full report.",
-                f"",
-                f"Best regards,",
-                f"Pet Store Performance Analysis System",
-                f"",
+                "",
+                "For detailed analysis and complete product listings, please refer to the full report.",
+                "",
+                "Best regards,",
+                "Pet Store Performance Analysis System",
+                "",
                 f"This is an automated report generated on {report.generated_at or 'N/A'}.",
             ]
         )
