@@ -1,0 +1,114 @@
+{
+  "version": "1.0",
+  "name": "Pet Workflow",
+  "desc": "Workflow for Pet entity managing petstore inventory and status transitions",
+  "initialState": "initial_state",
+  "active": true,
+  "states": {
+    "initial_state": {
+      "transitions": [
+        {
+          "name": "create",
+          "next": "available",
+          "manual": false
+        }
+      ]
+    },
+    "available": {
+      "transitions": [
+        {
+          "name": "validate",
+          "next": "validated",
+          "manual": false,
+          "criterion": {
+            "type": "function",
+            "function": {
+              "name": "PetValidationCriterion",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          }
+        },
+        {
+          "name": "reserve",
+          "next": "pending",
+          "manual": true
+        }
+      ]
+    },
+    "validated": {
+      "transitions": [
+        {
+          "name": "process",
+          "next": "processed",
+          "manual": false,
+          "processors": [
+            {
+              "name": "PetInventoryProcessor",
+              "executionMode": "SYNC",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "processed": {
+      "transitions": [
+        {
+          "name": "make_available",
+          "next": "available",
+          "manual": true
+        },
+        {
+          "name": "reserve",
+          "next": "pending",
+          "manual": true
+        }
+      ]
+    },
+    "pending": {
+      "transitions": [
+        {
+          "name": "sell",
+          "next": "sold",
+          "manual": true,
+          "processors": [
+            {
+              "name": "PetSaleProcessor",
+              "executionMode": "SYNC",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          ]
+        },
+        {
+          "name": "cancel_reservation",
+          "next": "available",
+          "manual": true
+        }
+      ]
+    },
+    "sold": {
+      "transitions": [
+        {
+          "name": "restock",
+          "next": "available",
+          "manual": true,
+          "processors": [
+            {
+              "name": "PetRestockProcessor",
+              "executionMode": "SYNC",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
