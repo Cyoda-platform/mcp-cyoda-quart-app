@@ -46,7 +46,10 @@ class ValidateNoActiveEmployees(CyodaCriteriaChecker):
             position_id = position.technical_id or position.entity_id
 
             # Check for active employees assigned to this position
-            active_employees_count = await self._count_active_employees(position_id)
+            if position_id:
+                active_employees_count = await self._count_active_employees(position_id)
+            else:
+                active_employees_count = 0
 
             if active_employees_count > 0:
                 self.logger.warning(

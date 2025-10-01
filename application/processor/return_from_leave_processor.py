@@ -61,13 +61,13 @@ class ReturnFromLeaveProcessor(CyodaProcessor):
 
             # Archive previous leave information
             if employee.metadata and "leave_started_at" in employee.metadata:
-                leave_duration = self._calculate_leave_duration(
-                    employee.metadata.get("leave_started_at"), current_timestamp
-                )
-                employee.add_metadata("last_leave_duration_days", leave_duration)
-                employee.add_metadata(
-                    "previous_leave_archived", employee.metadata.get("leave_started_at")
-                )
+                leave_start = employee.metadata.get("leave_started_at")
+                if leave_start:
+                    leave_duration = self._calculate_leave_duration(
+                        leave_start, current_timestamp
+                    )
+                    employee.add_metadata("last_leave_duration_days", leave_duration)
+                    employee.add_metadata("previous_leave_archived", leave_start)
 
             # Log employee return
             self.logger.info(
