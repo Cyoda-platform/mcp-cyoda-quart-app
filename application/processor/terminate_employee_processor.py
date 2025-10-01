@@ -12,7 +12,7 @@ from typing import Any
 from application.entity.employee.version_1.employee import Employee
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from services.services import get_entity_service
+# get_entity_service import removed as not used
 
 
 class TerminateEmployeeProcessor(CyodaProcessor):

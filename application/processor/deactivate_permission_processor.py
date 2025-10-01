@@ -12,7 +12,7 @@ from typing import Any
 from application.entity.permission.version_1.permission import Permission
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from services.services import get_entity_service
+# get_entity_service import removed as not used
 
 
 class DeactivatePermissionProcessor(CyodaProcessor):
