@@ -1,1 +1,1 @@
-
+# Role entity package
