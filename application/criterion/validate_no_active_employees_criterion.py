@@ -10,7 +10,7 @@ from typing import Any
 from application.entity.position.version_1.position import Position
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from services.services import get_entity_service
+# get_entity_service import removed as not used
 
 
 class ValidateNoActiveEmployees(CyodaCriteriaChecker):

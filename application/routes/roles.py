@@ -30,12 +30,9 @@ from application.models.response_models import (
     CountResponse,
     DeleteResponse,
     ErrorResponse,
-    ExistsResponse,
     RoleListResponse,
     RoleResponse,
     RoleSearchResponse,
-    TransitionResponse,
-    TransitionsResponse,
     ValidationErrorResponse,
 )
 from common.service.entity_service import SearchConditionRequest
