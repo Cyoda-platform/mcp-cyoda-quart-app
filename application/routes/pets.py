@@ -204,9 +204,15 @@ async def list_pets(query_args: PetQueryParams) -> ResponseReturnValue:
             for entity in entity_list:
                 price = entity.get("price")
                 if price is not None:
-                    if query_args.min_price is not None and price < query_args.min_price:
+                    if (
+                        query_args.min_price is not None
+                        and price < query_args.min_price
+                    ):
                         continue
-                    if query_args.max_price is not None and price > query_args.max_price:
+                    if (
+                        query_args.max_price is not None
+                        and price > query_args.max_price
+                    ):
                         continue
                 filtered_list.append(entity)
             entity_list = filtered_list
@@ -523,7 +529,9 @@ async def find_all_entities() -> ResponseReturnValue:
         500: (ErrorResponse, None),
     },
 )
-async def trigger_transition(entity_id: str, data: TransitionRequest) -> ResponseReturnValue:
+async def trigger_transition(
+    entity_id: str, data: TransitionRequest
+) -> ResponseReturnValue:
     """Trigger a specific workflow transition with validation"""
     try:
         # Get current entity state
@@ -546,7 +554,9 @@ async def trigger_transition(entity_id: str, data: TransitionRequest) -> Respons
             entity_version=str(Pet.ENTITY_VERSION),
         )
 
-        logger.info("Executed transition '%s' on Pet %s", data.transition_name, entity_id)
+        logger.info(
+            "Executed transition '%s' on Pet %s", data.transition_name, entity_id
+        )
 
         return (
             jsonify(
@@ -621,7 +631,9 @@ async def find_by_tags() -> ResponseReturnValue:
         for entity in entities:
             entity_tags = entity.get("tags", [])
             if entity_tags:
-                tag_names = [tag.get("name", "") for tag in entity_tags if isinstance(tag, dict)]
+                tag_names = [
+                    tag.get("name", "") for tag in entity_tags if isinstance(tag, dict)
+                ]
                 if any(tag in tag_names for tag in tags):
                     filtered_entities.append(entity)
 

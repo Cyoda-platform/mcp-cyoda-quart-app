@@ -115,7 +115,9 @@ class ValidationErrorResponse(BaseModel):
     error: str = Field(..., description="Validation error message")
     code: str = Field(default="VALIDATION_ERROR", description="Error code")
     field_errors: Optional[Dict[str, List[str]]] = Field(
-        default=None, alias="fieldErrors", description="Field-specific validation errors"
+        default=None,
+        alias="fieldErrors",
+        description="Field-specific validation errors",
     )
     details: Optional[Dict[str, Any]] = Field(
         default=None, description="Additional error details"

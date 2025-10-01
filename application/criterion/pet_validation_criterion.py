@@ -7,9 +7,9 @@ proceed to the processing stage. Ensures data integrity and business logic compl
 
 from typing import Any
 
+from application.entity.pet.version_1.pet import Pet
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.pet.version_1.pet import Pet
 
 
 class PetValidationCriterion(CyodaCriteriaChecker):
@@ -130,7 +130,9 @@ class PetValidationCriterion(CyodaCriteriaChecker):
             return False
 
         # Available pets should have positive inventory
-        if pet.status == "available" and (not pet.inventory_count or pet.inventory_count <= 0):
+        if pet.status == "available" and (
+            not pet.inventory_count or pet.inventory_count <= 0
+        ):
             self.logger.warning(
                 f"Pet {pet.technical_id} is available but has no inventory: {pet.inventory_count}"
             )
@@ -188,11 +190,9 @@ class PetValidationCriterion(CyodaCriteriaChecker):
                     f"Pet {pet.technical_id} has invalid category structure"
                 )
                 return False
-            
+
             if "name" in pet.category and not pet.category["name"]:
-                self.logger.warning(
-                    f"Pet {pet.technical_id} has empty category name"
-                )
+                self.logger.warning(f"Pet {pet.technical_id} has empty category name")
                 return False
 
         # Validate tags structure if provided
@@ -202,7 +202,7 @@ class PetValidationCriterion(CyodaCriteriaChecker):
                     f"Pet {pet.technical_id} has invalid tags structure"
                 )
                 return False
-            
+
             for tag in pet.tags:
                 if not isinstance(tag, dict) or "name" not in tag:
                     self.logger.warning(

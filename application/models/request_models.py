@@ -38,9 +38,7 @@ class PetQueryParams(BaseModel):
     breed: Optional[str] = Field(
         default=None, description="Filter by pet breed", pattern=r"^[A-Z_]+$"
     )
-    category: Optional[str] = Field(
-        default=None, description="Filter by category name"
-    )
+    category: Optional[str] = Field(default=None, description="Filter by category name")
     state: Optional[str] = Field(
         default=None, description="Filter by workflow state", pattern=r"^[a-z_]+$"
     )
@@ -69,9 +67,18 @@ class PetQueryParams(BaseModel):
         if v is None:
             return v
         allowed_breeds = [
-            "LABRADOR", "GOLDEN_RETRIEVER", "GERMAN_SHEPHERD", "BULLDOG", "POODLE",
-            "BEAGLE", "ROTTWEILER", "YORKSHIRE_TERRIER", "DACHSHUND", "SIBERIAN_HUSKY",
-            "MIXED", "OTHER"
+            "LABRADOR",
+            "GOLDEN_RETRIEVER",
+            "GERMAN_SHEPHERD",
+            "BULLDOG",
+            "POODLE",
+            "BEAGLE",
+            "ROTTWEILER",
+            "YORKSHIRE_TERRIER",
+            "DACHSHUND",
+            "SIBERIAN_HUSKY",
+            "MIXED",
+            "OTHER",
         ]
         if v not in allowed_breeds:
             raise ValueError(f"Breed must be one of: {allowed_breeds}")
@@ -102,8 +109,14 @@ class TransitionRequest(BaseModel):
         if not v or len(v.strip()) == 0:
             raise ValueError("Transition name cannot be empty")
         allowed_transitions = [
-            "create", "validate", "process", "reserve", "sell", "cancel_reservation",
-            "restock", "make_available"
+            "create",
+            "validate",
+            "process",
+            "reserve",
+            "sell",
+            "cancel_reservation",
+            "restock",
+            "make_available",
         ]
         if v not in allowed_transitions:
             raise ValueError(f"Transition must be one of: {allowed_transitions}")
@@ -116,16 +129,16 @@ class SearchRequest(BaseModel):
     name: Optional[str] = Field(default=None, description="Pet name to search for")
     status: Optional[str] = Field(default=None, description="Pet status to search for")
     breed: Optional[str] = Field(default=None, description="Pet breed to search for")
-    category: Optional[str] = Field(default=None, description="Category name to search for")
+    category: Optional[str] = Field(
+        default=None, description="Category name to search for"
+    )
     min_price: Optional[float] = Field(
         default=None, alias="minPrice", description="Minimum price", ge=0
     )
     max_price: Optional[float] = Field(
         default=None, alias="maxPrice", description="Maximum price", ge=0
     )
-    tags: Optional[List[str]] = Field(
-        default=None, description="Tags to search for"
-    )
+    tags: Optional[List[str]] = Field(default=None, description="Tags to search for")
 
     @field_validator("status")
     @classmethod
@@ -143,9 +156,18 @@ class SearchRequest(BaseModel):
         if v is None:
             return v
         allowed_breeds = [
-            "LABRADOR", "GOLDEN_RETRIEVER", "GERMAN_SHEPHERD", "BULLDOG", "POODLE",
-            "BEAGLE", "ROTTWEILER", "YORKSHIRE_TERRIER", "DACHSHUND", "SIBERIAN_HUSKY",
-            "MIXED", "OTHER"
+            "LABRADOR",
+            "GOLDEN_RETRIEVER",
+            "GERMAN_SHEPHERD",
+            "BULLDOG",
+            "POODLE",
+            "BEAGLE",
+            "ROTTWEILER",
+            "YORKSHIRE_TERRIER",
+            "DACHSHUND",
+            "SIBERIAN_HUSKY",
+            "MIXED",
+            "OTHER",
         ]
         if v not in allowed_breeds:
             raise ValueError(f"Breed must be one of: {allowed_breeds}")

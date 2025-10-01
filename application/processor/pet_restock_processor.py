@@ -10,9 +10,9 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict
 
+from application.entity.pet.version_1.pet import Pet
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.pet.version_1.pet import Pet
 from services.services import get_entity_service
 
 
@@ -58,9 +58,7 @@ class PetRestockProcessor(CyodaProcessor):
             self._process_restock_inventory(pet)
 
             # Log restock completion
-            self.logger.info(
-                f"Pet {pet.technical_id} restock processed successfully"
-            )
+            self.logger.info(f"Pet {pet.technical_id} restock processed successfully")
 
             return pet
 
@@ -115,16 +113,16 @@ class PetRestockProcessor(CyodaProcessor):
         """
         # Base restock quantity
         base_quantity = 10
-        
+
         # Adjust based on breed popularity (simplified logic)
         popular_breeds = ["LABRADOR", "GOLDEN_RETRIEVER", "GERMAN_SHEPHERD", "BULLDOG"]
         if pet.breed in popular_breeds:
             base_quantity = 15
-        
+
         # Adjust based on price (higher price = lower stock)
         if pet.price and pet.price > 1000:
             base_quantity = max(5, base_quantity - 5)
-        
+
         return base_quantity
 
     def _process_restock_inventory(self, pet: Pet) -> None:
@@ -136,19 +134,19 @@ class PetRestockProcessor(CyodaProcessor):
         """
         # Calculate restock quantity
         restock_quantity = self._calculate_restock_quantity(pet)
-        
+
         # Update inventory
         current_inventory = pet.inventory_count or 0
         new_inventory = current_inventory + restock_quantity
-        
+
         pet.inventory_count = new_inventory
-        
+
         # Update status to available since we now have stock
         pet.status = "available"
-        
+
         # Update timestamp
         pet.update_timestamp()
-        
+
         self.logger.info(
             f"Pet {pet.technical_id} restocked: {current_inventory} -> {new_inventory} (+{restock_quantity})"
         )

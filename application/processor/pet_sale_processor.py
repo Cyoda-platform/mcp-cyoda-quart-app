@@ -10,9 +10,9 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict
 
+from application.entity.pet.version_1.pet import Pet
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.pet.version_1.pet import Pet
 from services.services import get_entity_service
 
 
@@ -58,9 +58,7 @@ class PetSaleProcessor(CyodaProcessor):
             self._process_sale_inventory(pet)
 
             # Log sale completion
-            self.logger.info(
-                f"Pet {pet.technical_id} sale processed successfully"
-            )
+            self.logger.info(f"Pet {pet.technical_id} sale processed successfully")
 
             return pet
 
@@ -109,17 +107,19 @@ class PetSaleProcessor(CyodaProcessor):
         # Reduce inventory by 1 for the sale
         current_inventory = pet.inventory_count or 0
         new_inventory = max(0, current_inventory - 1)
-        
+
         pet.inventory_count = new_inventory
-        
+
         # Update status to sold if inventory reaches zero
         if new_inventory == 0:
             pet.status = "sold"
-            self.logger.info(f"Pet {pet.technical_id} marked as sold - inventory depleted")
-        
+            self.logger.info(
+                f"Pet {pet.technical_id} marked as sold - inventory depleted"
+            )
+
         # Update timestamp
         pet.update_timestamp()
-        
+
         self.logger.info(
             f"Pet {pet.technical_id} inventory updated: {current_inventory} -> {new_inventory}"
         )

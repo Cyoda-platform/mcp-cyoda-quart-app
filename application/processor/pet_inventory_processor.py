@@ -11,9 +11,9 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict
 
+from application.entity.pet.version_1.pet import Pet
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.pet.version_1.pet import Pet
 from services.services import get_entity_service
 
 
@@ -59,9 +59,7 @@ class PetInventoryProcessor(CyodaProcessor):
             self._update_inventory_status(pet)
 
             # Log processing completion
-            self.logger.info(
-                f"Pet {pet.technical_id} inventory processed successfully"
-            )
+            self.logger.info(f"Pet {pet.technical_id} inventory processed successfully")
 
             return pet
 
@@ -110,7 +108,7 @@ class PetInventoryProcessor(CyodaProcessor):
             Availability status string
         """
         inventory_count = pet.inventory_count or 0
-        
+
         if pet.status == "sold" or inventory_count == 0:
             return "OUT_OF_STOCK"
         elif inventory_count < 5:
@@ -128,14 +126,18 @@ class PetInventoryProcessor(CyodaProcessor):
             pet: The Pet entity to update
         """
         inventory_count = pet.inventory_count or 0
-        
+
         # Update status based on inventory
         if inventory_count == 0 and pet.status != "sold":
             pet.status = "sold"
-            self.logger.info(f"Pet {pet.technical_id} status updated to 'sold' due to zero inventory")
+            self.logger.info(
+                f"Pet {pet.technical_id} status updated to 'sold' due to zero inventory"
+            )
         elif inventory_count > 0 and pet.status == "sold":
             pet.status = "available"
-            self.logger.info(f"Pet {pet.technical_id} status updated to 'available' due to restocking")
-        
+            self.logger.info(
+                f"Pet {pet.technical_id} status updated to 'available' due to restocking"
+            )
+
         # Update timestamp
         pet.update_timestamp()

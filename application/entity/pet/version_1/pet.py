@@ -17,14 +17,14 @@ from common.entity.cyoda_entity import CyodaEntity
 
 class Category(CyodaEntity):
     """Category model for pet categorization"""
-    
+
     id: Optional[int] = Field(default=None, description="Category ID")
     name: str = Field(..., description="Category name")
 
 
 class Tag(CyodaEntity):
     """Tag model for pet tagging"""
-    
+
     id: Optional[int] = Field(default=None, description="Tag ID")
     name: str = Field(..., description="Tag name")
 
@@ -65,14 +65,14 @@ class Pet(CyodaEntity):
     age: Optional[int] = Field(default=None, description="Pet age in years")
     price: Optional[float] = Field(default=None, description="Pet price")
     description: Optional[str] = Field(default=None, description="Pet description")
-    
+
     # Inventory tracking
     inventory_count: Optional[int] = Field(
         default=1,
         alias="inventoryCount",
         description="Number of pets available in inventory",
     )
-    
+
     # Timestamps (inherited from CyodaEntity but customized)
     created_at: Optional[str] = Field(
         default_factory=lambda: datetime.now(timezone.utc)
@@ -103,7 +103,7 @@ class Pet(CyodaEntity):
     ALLOWED_STATUSES: ClassVar[List[str]] = ["available", "pending", "sold"]
     ALLOWED_BREEDS: ClassVar[List[str]] = [
         "LABRADOR",
-        "GOLDEN_RETRIEVER", 
+        "GOLDEN_RETRIEVER",
         "GERMAN_SHEPHERD",
         "BULLDOG",
         "POODLE",
@@ -113,7 +113,7 @@ class Pet(CyodaEntity):
         "DACHSHUND",
         "SIBERIAN_HUSKY",
         "MIXED",
-        "OTHER"
+        "OTHER",
     ]
 
     @field_validator("name")
@@ -183,11 +183,15 @@ class Pet(CyodaEntity):
         # Sold pets should have zero inventory
         if self.status == "sold" and self.inventory_count and self.inventory_count > 0:
             raise ValueError("Sold pets cannot have inventory count greater than 0")
-        
+
         # Pending pets should have limited inventory
-        if self.status == "pending" and self.inventory_count and self.inventory_count > 10:
+        if (
+            self.status == "pending"
+            and self.inventory_count
+            and self.inventory_count > 10
+        ):
             raise ValueError("Pending pets cannot have inventory count greater than 10")
-        
+
         return self
 
     def update_timestamp(self) -> None:
