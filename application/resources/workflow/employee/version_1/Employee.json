@@ -1,0 +1,125 @@
+{
+  "version": "1.0",
+  "name": "Employee",
+  "desc": "Employee management workflow",
+  "initialState": "initial_state",
+  "active": true,
+  "states": {
+    "initial_state": {
+      "transitions": [
+        {
+          "name": "create_employee",
+          "next": "onboarding",
+          "manual": false,
+          "processors": [
+            {
+              "name": "CreateEmployeeProcessor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "onboarding": {
+      "transitions": [
+        {
+          "name": "complete_onboarding",
+          "next": "active",
+          "manual": true,
+          "processors": [
+            {
+              "name": "CompleteOnboardingProcessor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ],
+          "criterion": {
+            "type": "function",
+            "function": {
+              "name": "ValidateEmployeeSetup",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 5000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "active": {
+      "transitions": [
+        {
+          "name": "start_leave",
+          "next": "on_leave",
+          "manual": true,
+          "processors": [
+            {
+              "name": "StartLeaveProcessor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        },
+        {
+          "name": "terminate_employee",
+          "next": "terminated",
+          "manual": true,
+          "processors": [
+            {
+              "name": "TerminateEmployeeProcessor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "on_leave": {
+      "transitions": [
+        {
+          "name": "return_from_leave",
+          "next": "active",
+          "manual": true,
+          "processors": [
+            {
+              "name": "ReturnFromLeaveProcessor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "terminated": {
+      "transitions": []
+    }
+  }
+}
