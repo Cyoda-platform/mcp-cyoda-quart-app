@@ -1,0 +1,1 @@
+build an small SPA with an admin menu which can associate roles, permissions and users and also has one option for employees and positions and lets assign positions and employees. each employee has its own user login. create also the user interface in a modern framework with tailwind
