@@ -89,7 +89,6 @@ class DeactivatePermissionProcessor(CyodaProcessor):
             permission: The permission to remove from roles
         """
         try:
-            entity_service = get_entity_service()
             permission_id = permission.technical_id or permission.entity_id
 
             # Note: In a real implementation, you would:

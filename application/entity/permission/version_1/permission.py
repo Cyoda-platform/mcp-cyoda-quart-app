@@ -7,7 +7,7 @@ Represents specific access rights and capabilities within the system
 as specified in functional requirements.
 """
 
-from datetime import datetime, timezone
+# datetime imports removed as not used in this entity
 from typing import Any, ClassVar, Dict, List, Optional
 
 from pydantic import ConfigDict, Field, field_validator, model_validator

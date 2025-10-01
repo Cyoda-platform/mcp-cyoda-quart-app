@@ -79,8 +79,6 @@ class ValidateNoActiveEmployees(CyodaCriteriaChecker):
             Number of active employees
         """
         try:
-            entity_service = get_entity_service()
-
             # Note: In a real implementation, you would:
             # 1. Search for employees with this position_id
             # 2. Filter for active employees only

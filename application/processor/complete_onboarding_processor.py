@@ -86,8 +86,6 @@ class CompleteOnboardingProcessor(CyodaProcessor):
             user_id: The user ID to activate
         """
         try:
-            entity_service = get_entity_service()
-
             # Note: In a real implementation, you would:
             # 1. Get the user entity
             # 2. Trigger the activate_user transition

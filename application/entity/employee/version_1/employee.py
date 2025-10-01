@@ -7,7 +7,7 @@ Represents staff members with personal and professional information
 as specified in functional requirements.
 """
 
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Any, ClassVar, Dict, Optional
 
 from pydantic import ConfigDict, Field, field_validator, model_validator

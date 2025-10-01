@@ -97,8 +97,6 @@ class TerminateEmployeeProcessor(CyodaProcessor):
             user_id: The user ID to deactivate
         """
         try:
-            entity_service = get_entity_service()
-
             # Note: In a real implementation, you would:
             # 1. Get the user entity
             # 2. Trigger the deactivate_user transition

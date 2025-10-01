@@ -25,7 +25,6 @@ from application.models.request_models import (
     RoleQueryParams,
     RoleUpdateQueryParams,
     SearchRequest,
-    TransitionRequest,
 )
 from application.models.response_models import (
     CountResponse,
