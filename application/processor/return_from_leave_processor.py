@@ -9,9 +9,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.employee.version_1.employee import Employee
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.employee.version_1.employee import Employee
 
 
 class ReturnFromLeaveProcessor(CyodaProcessor):
@@ -49,20 +49,25 @@ class ReturnFromLeaveProcessor(CyodaProcessor):
             employee = cast_entity(entity, Employee)
 
             # Return employee to active status
-            current_timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            current_timestamp = (
+                datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            )
 
             # Add return metadata
             employee.add_metadata("returned_from_leave_at", current_timestamp)
-            employee.add_metadata("return_processed_by", kwargs.get("processed_by", "system"))
+            employee.add_metadata(
+                "return_processed_by", kwargs.get("processed_by", "system")
+            )
 
             # Archive previous leave information
             if employee.metadata and "leave_started_at" in employee.metadata:
                 leave_duration = self._calculate_leave_duration(
-                    employee.metadata.get("leave_started_at"), 
-                    current_timestamp
+                    employee.metadata.get("leave_started_at"), current_timestamp
                 )
                 employee.add_metadata("last_leave_duration_days", leave_duration)
-                employee.add_metadata("previous_leave_archived", employee.metadata.get("leave_started_at"))
+                employee.add_metadata(
+                    "previous_leave_archived", employee.metadata.get("leave_started_at")
+                )
 
             # Log employee return
             self.logger.info(
@@ -80,11 +85,11 @@ class ReturnFromLeaveProcessor(CyodaProcessor):
     def _calculate_leave_duration(self, start_date: str, end_date: str) -> int:
         """
         Calculate leave duration in days.
-        
+
         Args:
             start_date: Leave start date in ISO format
             end_date: Leave end date in ISO format
-            
+
         Returns:
             Duration in days
         """

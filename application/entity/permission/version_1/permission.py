@@ -18,7 +18,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class Permission(CyodaEntity):
     """
     Permission represents specific access rights and capabilities within the system.
-    
+
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     The state field manages workflow states: initial_state -> active -> inactive
     """
@@ -32,23 +32,32 @@ class Permission(CyodaEntity):
     description: str = Field(..., description="Permission description")
     resource: str = Field(..., description="Target resource/module")
     action: str = Field(..., description="Allowed action")
-    
+
     # Optional fields
     is_active: Optional[bool] = Field(
-        default=True,
-        description="Permission status flag"
+        default=True, description="Permission status flag"
     )
 
     # Timestamps (inherited created_at from CyodaEntity)
 
     # Valid actions
     VALID_ACTIONS: ClassVar[List[str]] = [
-        "create", "read", "update", "delete", "manage", "view", "edit", "admin"
+        "create",
+        "read",
+        "update",
+        "delete",
+        "manage",
+        "view",
+        "edit",
+        "admin",
     ]
 
     # System permissions that cannot be deleted
     SYSTEM_PERMISSIONS: ClassVar[List[str]] = [
-        "system.admin", "user.manage", "role.manage", "permission.manage"
+        "system.admin",
+        "user.manage",
+        "role.manage",
+        "permission.manage",
     ]
 
     @field_validator("name")
@@ -70,7 +79,9 @@ class Permission(CyodaEntity):
         if not v or len(v.strip()) == 0:
             raise ValueError("Permission description must be non-empty")
         if len(v) > 500:
-            raise ValueError("Permission description must be at most 500 characters long")
+            raise ValueError(
+                "Permission description must be at most 500 characters long"
+            )
         return v.strip()
 
     @field_validator("resource")
@@ -106,7 +117,10 @@ class Permission(CyodaEntity):
     def is_system_permission(self) -> bool:
         """Check if this is a system permission that cannot be deleted"""
         permission_key = f"{self.resource}.{self.action}"
-        return permission_key in self.SYSTEM_PERMISSIONS or self.name in self.SYSTEM_PERMISSIONS
+        return (
+            permission_key in self.SYSTEM_PERMISSIONS
+            or self.name in self.SYSTEM_PERMISSIONS
+        )
 
     def is_permission_active(self) -> bool:
         """Check if permission is active and can be assigned"""

@@ -9,9 +9,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.user.version_1.user import User
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.user.version_1.user import User
 
 
 class SuspendUserProcessor(CyodaProcessor):
@@ -50,17 +50,19 @@ class SuspendUserProcessor(CyodaProcessor):
 
             # Suspend the user account
             user.is_active = False
-            current_timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            current_timestamp = (
+                datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            )
             user.updated_at = current_timestamp
 
             # Add suspension metadata
             user.add_metadata("suspended_at", current_timestamp)
-            user.add_metadata("suspension_reason", kwargs.get("reason", "Manual suspension"))
+            user.add_metadata(
+                "suspension_reason", kwargs.get("reason", "Manual suspension")
+            )
 
             # Log user suspension
-            self.logger.info(
-                f"User {user.username} suspended successfully"
-            )
+            self.logger.info(f"User {user.username} suspended successfully")
 
             # Note: In a real implementation, you would:
             # - Revoke all active sessions for this user

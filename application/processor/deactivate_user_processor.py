@@ -9,9 +9,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.user.version_1.user import User
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.user.version_1.user import User
 
 
 class DeactivateUserProcessor(CyodaProcessor):
@@ -50,12 +50,16 @@ class DeactivateUserProcessor(CyodaProcessor):
 
             # Permanently deactivate the user account
             user.is_active = False
-            current_timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            current_timestamp = (
+                datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            )
             user.updated_at = current_timestamp
 
             # Add deactivation metadata
             user.add_metadata("deactivated_at", current_timestamp)
-            user.add_metadata("deactivation_reason", kwargs.get("reason", "Manual deactivation"))
+            user.add_metadata(
+                "deactivation_reason", kwargs.get("reason", "Manual deactivation")
+            )
             user.add_metadata("deactivation_type", "permanent")
 
             # Clear role assignments for security
@@ -64,9 +68,7 @@ class DeactivateUserProcessor(CyodaProcessor):
                 user.role_ids = []
 
             # Log user deactivation
-            self.logger.info(
-                f"User {user.username} deactivated permanently"
-            )
+            self.logger.info(f"User {user.username} deactivated permanently")
 
             # Note: In a real implementation, you would:
             # - Revoke all active sessions permanently

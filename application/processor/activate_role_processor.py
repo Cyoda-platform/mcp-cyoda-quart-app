@@ -9,9 +9,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.role.version_1.role import Role
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.role.version_1.role import Role
 
 
 class ActivateRoleProcessor(CyodaProcessor):
@@ -50,7 +50,9 @@ class ActivateRoleProcessor(CyodaProcessor):
 
             # Activate the role
             role.is_active = True
-            current_timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            current_timestamp = (
+                datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            )
             role.updated_at = current_timestamp
 
             # Add activation metadata
@@ -58,9 +60,7 @@ class ActivateRoleProcessor(CyodaProcessor):
             role.add_metadata("activation_method", "manual")
 
             # Log role activation
-            self.logger.info(
-                f"Role {role.name} activated successfully"
-            )
+            self.logger.info(f"Role {role.name} activated successfully")
 
             return role
 

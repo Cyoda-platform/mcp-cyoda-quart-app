@@ -18,7 +18,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class Role(CyodaEntity):
     """
     Role represents user roles that group permissions for access control.
-    
+
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     The state field manages workflow states: initial_state -> draft -> active -> inactive
     """
@@ -30,21 +30,17 @@ class Role(CyodaEntity):
     # Required fields from functional requirements
     name: str = Field(..., description="Role name (unique)")
     description: str = Field(..., description="Role description")
-    
+
     # Optional fields
     permission_ids: Optional[List[str]] = Field(
-        default_factory=list,
-        description="Array of assigned permission IDs"
+        default_factory=list, description="Array of assigned permission IDs"
     )
-    is_active: Optional[bool] = Field(
-        default=True,
-        description="Role status flag"
-    )
+    is_active: Optional[bool] = Field(default=True, description="Role status flag")
 
     # Timestamps (inherited created_at from CyodaEntity)
     updated_at: Optional[str] = Field(
         default=None,
-        description="Timestamp when the entity was last updated (ISO 8601 format)"
+        description="Timestamp when the entity was last updated (ISO 8601 format)",
     )
 
     # System role protection

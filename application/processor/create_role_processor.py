@@ -9,9 +9,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.role.version_1.role import Role
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.role.version_1.role import Role
 
 
 class CreateRoleProcessor(CyodaProcessor):
@@ -50,8 +50,10 @@ class CreateRoleProcessor(CyodaProcessor):
 
             # Set default values for new role
             role.is_active = False  # Roles start inactive until activated
-            current_timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-            
+            current_timestamp = (
+                datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            )
+
             # Update timestamps
             if not role.created_at:
                 role.created_at = current_timestamp
@@ -62,9 +64,7 @@ class CreateRoleProcessor(CyodaProcessor):
                 role.permission_ids = []
 
             # Log role creation
-            self.logger.info(
-                f"Role {role.name} created successfully in draft state"
-            )
+            self.logger.info(f"Role {role.name} created successfully in draft state")
 
             return role
 

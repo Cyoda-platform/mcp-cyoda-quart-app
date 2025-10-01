@@ -9,9 +9,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.role.version_1.role import Role
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.role.version_1.role import Role
 
 
 class DeactivateRoleProcessor(CyodaProcessor):
@@ -50,17 +50,19 @@ class DeactivateRoleProcessor(CyodaProcessor):
 
             # Deactivate the role
             role.is_active = False
-            current_timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            current_timestamp = (
+                datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            )
             role.updated_at = current_timestamp
 
             # Add deactivation metadata
             role.add_metadata("deactivated_at", current_timestamp)
-            role.add_metadata("deactivation_reason", kwargs.get("reason", "Manual deactivation"))
+            role.add_metadata(
+                "deactivation_reason", kwargs.get("reason", "Manual deactivation")
+            )
 
             # Log role deactivation
-            self.logger.info(
-                f"Role {role.name} deactivated successfully"
-            )
+            self.logger.info(f"Role {role.name} deactivated successfully")
 
             # Note: In a real implementation, you would:
             # - Check if role is assigned to any users

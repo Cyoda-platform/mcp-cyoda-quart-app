@@ -9,9 +9,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.employee.version_1.employee import Employee
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.employee.version_1.employee import Employee
 from services.services import get_entity_service
 
 
@@ -51,11 +51,15 @@ class CompleteOnboardingProcessor(CyodaProcessor):
 
             # Activate the employee
             employee.is_active = True
-            current_timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            current_timestamp = (
+                datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            )
 
             # Add onboarding completion metadata
             employee.add_metadata("onboarding_completed_at", current_timestamp)
-            employee.add_metadata("onboarding_completed_by", kwargs.get("completed_by", "system"))
+            employee.add_metadata(
+                "onboarding_completed_by", kwargs.get("completed_by", "system")
+            )
 
             # If employee has a user account, activate it
             if employee.user_id:
@@ -77,19 +81,19 @@ class CompleteOnboardingProcessor(CyodaProcessor):
     async def _activate_user_account(self, user_id: str) -> None:
         """
         Activate the associated user account.
-        
+
         Args:
             user_id: The user ID to activate
         """
         try:
             entity_service = get_entity_service()
-            
+
             # Note: In a real implementation, you would:
             # 1. Get the user entity
             # 2. Trigger the activate_user transition
-            
+
             self.logger.info(f"Would activate user account: {user_id}")
-            
+
             # This is where you would implement the actual user activation:
             # await entity_service.execute_transition(
             #     entity_id=user_id,

@@ -9,9 +9,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.user.version_1.user import User
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.user.version_1.user import User
 
 
 class ReactivateUserProcessor(CyodaProcessor):
@@ -50,21 +50,25 @@ class ReactivateUserProcessor(CyodaProcessor):
 
             # Reactivate the user account
             user.is_active = True
-            current_timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            current_timestamp = (
+                datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            )
             user.updated_at = current_timestamp
 
             # Add reactivation metadata
             user.add_metadata("reactivated_at", current_timestamp)
-            user.add_metadata("reactivation_reason", kwargs.get("reason", "Manual reactivation"))
+            user.add_metadata(
+                "reactivation_reason", kwargs.get("reason", "Manual reactivation")
+            )
 
             # Clear suspension metadata
             if user.metadata and "suspended_at" in user.metadata:
-                user.add_metadata("previous_suspension_cleared", user.metadata.get("suspended_at"))
+                user.add_metadata(
+                    "previous_suspension_cleared", user.metadata.get("suspended_at")
+                )
 
             # Log user reactivation
-            self.logger.info(
-                f"User {user.username} reactivated successfully"
-            )
+            self.logger.info(f"User {user.username} reactivated successfully")
 
             # Note: In a real implementation, you would:
             # - Send reactivation notification email

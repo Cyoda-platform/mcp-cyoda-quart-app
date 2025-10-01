@@ -9,9 +9,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.employee.version_1.employee import Employee
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.employee.version_1.employee import Employee
 from services.services import get_entity_service
 
 
@@ -51,13 +51,21 @@ class TerminateEmployeeProcessor(CyodaProcessor):
 
             # Terminate the employee
             employee.is_active = False
-            current_timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            current_timestamp = (
+                datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            )
 
             # Add termination metadata
             employee.add_metadata("terminated_at", current_timestamp)
-            employee.add_metadata("termination_reason", kwargs.get("reason", "Employment terminated"))
-            employee.add_metadata("termination_type", kwargs.get("termination_type", "voluntary"))
-            employee.add_metadata("terminated_by", kwargs.get("terminated_by", "system"))
+            employee.add_metadata(
+                "termination_reason", kwargs.get("reason", "Employment terminated")
+            )
+            employee.add_metadata(
+                "termination_type", kwargs.get("termination_type", "voluntary")
+            )
+            employee.add_metadata(
+                "terminated_by", kwargs.get("terminated_by", "system")
+            )
 
             # If employee has a user account, deactivate it
             if employee.user_id:
@@ -66,15 +74,12 @@ class TerminateEmployeeProcessor(CyodaProcessor):
             # Archive employment information
             if employee.hire_date:
                 employment_duration = self._calculate_employment_duration(
-                    employee.hire_date, 
-                    current_timestamp
+                    employee.hire_date, current_timestamp
                 )
                 employee.add_metadata("employment_duration_days", employment_duration)
 
             # Log employee termination
-            self.logger.info(
-                f"Employee {employee.employee_id} terminated successfully"
-            )
+            self.logger.info(f"Employee {employee.employee_id} terminated successfully")
 
             return employee
 
@@ -87,19 +92,19 @@ class TerminateEmployeeProcessor(CyodaProcessor):
     async def _deactivate_user_account(self, user_id: str) -> None:
         """
         Deactivate the associated user account.
-        
+
         Args:
             user_id: The user ID to deactivate
         """
         try:
             entity_service = get_entity_service()
-            
+
             # Note: In a real implementation, you would:
             # 1. Get the user entity
             # 2. Trigger the deactivate_user transition
-            
+
             self.logger.info(f"Would deactivate user account: {user_id}")
-            
+
             # This is where you would implement the actual user deactivation:
             # await entity_service.execute_transition(
             #     entity_id=user_id,
@@ -111,14 +116,16 @@ class TerminateEmployeeProcessor(CyodaProcessor):
             self.logger.error(f"Error deactivating user account {user_id}: {str(e)}")
             # Don't raise here - employee termination can still complete
 
-    def _calculate_employment_duration(self, hire_date: str, termination_date: str) -> int:
+    def _calculate_employment_duration(
+        self, hire_date: str, termination_date: str
+    ) -> int:
         """
         Calculate employment duration in days.
-        
+
         Args:
             hire_date: Hire date in ISO format
             termination_date: Termination date in ISO format
-            
+
         Returns:
             Duration in days
         """

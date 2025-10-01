@@ -9,9 +9,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.permission.version_1.permission import Permission
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.permission.version_1.permission import Permission
 from services.services import get_entity_service
 
 
@@ -51,23 +51,27 @@ class DeactivatePermissionProcessor(CyodaProcessor):
 
             # Check if this is a system permission that cannot be deactivated
             if permission.is_system_permission():
-                raise ValueError(f"Cannot deactivate system permission: {permission.name}")
+                raise ValueError(
+                    f"Cannot deactivate system permission: {permission.name}"
+                )
 
             # Deactivate the permission
             permission.is_active = False
-            current_timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            current_timestamp = (
+                datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            )
 
             # Add deactivation metadata
             permission.add_metadata("deactivated_at", current_timestamp)
-            permission.add_metadata("deactivation_reason", kwargs.get("reason", "Manual deactivation"))
+            permission.add_metadata(
+                "deactivation_reason", kwargs.get("reason", "Manual deactivation")
+            )
 
             # Remove permission from all roles that have it
             await self._remove_from_roles(permission)
 
             # Log permission deactivation
-            self.logger.info(
-                f"Permission {permission.name} deactivated successfully"
-            )
+            self.logger.info(f"Permission {permission.name} deactivated successfully")
 
             return permission
 
@@ -80,7 +84,7 @@ class DeactivatePermissionProcessor(CyodaProcessor):
     async def _remove_from_roles(self, permission: Permission) -> None:
         """
         Remove the permission from all roles that have it assigned.
-        
+
         Args:
             permission: The permission to remove from roles
         """
@@ -92,12 +96,12 @@ class DeactivatePermissionProcessor(CyodaProcessor):
             # 1. Query all roles that have this permission
             # 2. Remove the permission from their permission_ids list
             # 3. Update each role
-            
+
             # For now, we'll just log the action
             self.logger.info(
                 f"Would remove permission {permission_id} from all assigned roles"
             )
-            
+
             # This is where you would implement the actual role updates:
             # roles_with_permission = await entity_service.search(
             #     entity_class="Role",
@@ -105,7 +109,7 @@ class DeactivatePermissionProcessor(CyodaProcessor):
             #         .contains("permission_ids", permission_id)
             #         .build()
             # )
-            # 
+            #
             # for role_response in roles_with_permission:
             #     role_data = role_response.data
             #     if permission_id in role_data.get("permission_ids", []):

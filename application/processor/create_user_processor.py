@@ -9,9 +9,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.user.version_1.user import User
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.user.version_1.user import User
 
 
 class CreateUserProcessor(CyodaProcessor):
@@ -50,8 +50,10 @@ class CreateUserProcessor(CyodaProcessor):
 
             # Set default values for new user
             user.is_active = False  # Users start inactive until activated
-            current_timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-            
+            current_timestamp = (
+                datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            )
+
             # Update timestamps
             if not user.created_at:
                 user.created_at = current_timestamp

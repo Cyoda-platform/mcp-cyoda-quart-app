@@ -9,9 +9,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.position.version_1.position import Position
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.position.version_1.position import Position
 
 
 class DeactivatePositionProcessor(CyodaProcessor):
@@ -50,12 +50,16 @@ class DeactivatePositionProcessor(CyodaProcessor):
 
             # Deactivate the position
             position.is_active = False
-            current_timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            current_timestamp = (
+                datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            )
             position.updated_at = current_timestamp
 
             # Add deactivation metadata
             position.add_metadata("deactivated_at", current_timestamp)
-            position.add_metadata("deactivation_reason", kwargs.get("reason", "Manual deactivation"))
+            position.add_metadata(
+                "deactivation_reason", kwargs.get("reason", "Manual deactivation")
+            )
 
             # Log position deactivation
             self.logger.info(

@@ -101,23 +101,15 @@ class UserResponse(BaseModel):
     is_active: bool = Field(..., description="Active status")
     role_ids: List[str] = Field(..., description="Assigned role IDs")
     state: str = Field(..., description="Current workflow state")
-    created_at: Optional[str] = Field(
-        default=None, description="Creation timestamp"
-    )
-    updated_at: Optional[str] = Field(
-        default=None, description="Last update timestamp"
-    )
-    last_login: Optional[str] = Field(
-        default=None, description="Last login timestamp"
-    )
+    created_at: Optional[str] = Field(default=None, description="Creation timestamp")
+    updated_at: Optional[str] = Field(default=None, description="Last update timestamp")
+    last_login: Optional[str] = Field(default=None, description="Last login timestamp")
 
 
 class UserListResponse(BaseModel):
     """Response model for User list operations."""
 
-    entities: List[Dict[str, Any]] = Field(
-        ..., description="List of User objects"
-    )
+    entities: List[Dict[str, Any]] = Field(..., description="List of User objects")
     total: int = Field(..., description="Total number of entities")
     limit: Optional[int] = Field(default=None, description="Applied limit")
     offset: Optional[int] = Field(default=None, description="Applied offset")
@@ -146,20 +138,14 @@ class RoleResponse(BaseModel):
     permission_ids: List[str] = Field(..., description="Assigned permission IDs")
     is_active: bool = Field(..., description="Active status")
     state: str = Field(..., description="Current workflow state")
-    created_at: Optional[str] = Field(
-        default=None, description="Creation timestamp"
-    )
-    updated_at: Optional[str] = Field(
-        default=None, description="Last update timestamp"
-    )
+    created_at: Optional[str] = Field(default=None, description="Creation timestamp")
+    updated_at: Optional[str] = Field(default=None, description="Last update timestamp")
 
 
 class RoleListResponse(BaseModel):
     """Response model for Role list operations."""
 
-    entities: List[Dict[str, Any]] = Field(
-        ..., description="List of Role objects"
-    )
+    entities: List[Dict[str, Any]] = Field(..., description="List of Role objects")
     total: int = Field(..., description="Total number of entities")
 
 
@@ -184,9 +170,7 @@ class PermissionResponse(BaseModel):
     action: str = Field(..., description="Allowed action")
     is_active: bool = Field(..., description="Active status")
     state: str = Field(..., description="Current workflow state")
-    created_at: Optional[str] = Field(
-        default=None, description="Creation timestamp"
-    )
+    created_at: Optional[str] = Field(default=None, description="Creation timestamp")
 
 
 class PermissionListResponse(BaseModel):
@@ -229,9 +213,7 @@ class EmployeeResponse(BaseModel):
 class EmployeeListResponse(BaseModel):
     """Response model for Employee list operations."""
 
-    entities: List[Dict[str, Any]] = Field(
-        ..., description="List of Employee objects"
-    )
+    entities: List[Dict[str, Any]] = Field(..., description="List of Employee objects")
     total: int = Field(..., description="Total number of entities")
 
 
@@ -254,24 +236,22 @@ class PositionResponse(BaseModel):
     description: str = Field(..., description="Position description")
     department: str = Field(..., description="Department")
     level: Optional[str] = Field(default=None, description="Position level")
-    salary_range_min: Optional[float] = Field(default=None, description="Minimum salary")
-    salary_range_max: Optional[float] = Field(default=None, description="Maximum salary")
+    salary_range_min: Optional[float] = Field(
+        default=None, description="Minimum salary"
+    )
+    salary_range_max: Optional[float] = Field(
+        default=None, description="Maximum salary"
+    )
     is_active: bool = Field(..., description="Active status")
     state: str = Field(..., description="Current workflow state")
-    created_at: Optional[str] = Field(
-        default=None, description="Creation timestamp"
-    )
-    updated_at: Optional[str] = Field(
-        default=None, description="Last update timestamp"
-    )
+    created_at: Optional[str] = Field(default=None, description="Creation timestamp")
+    updated_at: Optional[str] = Field(default=None, description="Last update timestamp")
 
 
 class PositionListResponse(BaseModel):
     """Response model for Position list operations."""
 
-    entities: List[Dict[str, Any]] = Field(
-        ..., description="List of Position objects"
-    )
+    entities: List[Dict[str, Any]] = Field(..., description="List of Position objects")
     total: int = Field(..., description="Total number of entities")
 
 

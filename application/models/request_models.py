@@ -36,7 +36,9 @@ class SearchRequest(BaseModel):
 
     name: Optional[str] = Field(default=None, description="Search by name")
     email: Optional[str] = Field(default=None, description="Search by email")
-    is_active: Optional[bool] = Field(default=None, description="Filter by active status")
+    is_active: Optional[bool] = Field(
+        default=None, description="Filter by active status"
+    )
     state: Optional[str] = Field(default=None, description="Filter by workflow state")
 
 
@@ -46,7 +48,9 @@ class UserQueryParams(BaseModel):
 
     username: Optional[str] = Field(default=None, description="Filter by username")
     email: Optional[str] = Field(default=None, description="Filter by email")
-    is_active: Optional[bool] = Field(default=None, description="Filter by active status")
+    is_active: Optional[bool] = Field(
+        default=None, description="Filter by active status"
+    )
     state: Optional[str] = Field(default=None, description="Filter by workflow state")
     limit: int = Field(default=50, description="Number of results", ge=1, le=1000)
     offset: int = Field(default=0, description="Pagination offset", ge=0)
@@ -65,7 +69,9 @@ class RoleQueryParams(BaseModel):
     """Query parameters for Role endpoints."""
 
     name: Optional[str] = Field(default=None, description="Filter by role name")
-    is_active: Optional[bool] = Field(default=None, description="Filter by active status")
+    is_active: Optional[bool] = Field(
+        default=None, description="Filter by active status"
+    )
     state: Optional[str] = Field(default=None, description="Filter by workflow state")
     limit: int = Field(default=50, description="Number of results", ge=1, le=1000)
     offset: int = Field(default=0, description="Pagination offset", ge=0)
@@ -86,7 +92,9 @@ class PermissionQueryParams(BaseModel):
     name: Optional[str] = Field(default=None, description="Filter by permission name")
     resource: Optional[str] = Field(default=None, description="Filter by resource")
     action: Optional[str] = Field(default=None, description="Filter by action")
-    is_active: Optional[bool] = Field(default=None, description="Filter by active status")
+    is_active: Optional[bool] = Field(
+        default=None, description="Filter by active status"
+    )
     state: Optional[str] = Field(default=None, description="Filter by workflow state")
     limit: int = Field(default=50, description="Number of results", ge=1, le=1000)
     offset: int = Field(default=0, description="Pagination offset", ge=0)
@@ -104,11 +112,15 @@ class PermissionUpdateQueryParams(BaseModel):
 class EmployeeQueryParams(BaseModel):
     """Query parameters for Employee endpoints."""
 
-    employee_id: Optional[str] = Field(default=None, description="Filter by employee ID")
+    employee_id: Optional[str] = Field(
+        default=None, description="Filter by employee ID"
+    )
     email: Optional[str] = Field(default=None, description="Filter by email")
     position_id: Optional[str] = Field(default=None, description="Filter by position")
     department: Optional[str] = Field(default=None, description="Filter by department")
-    is_active: Optional[bool] = Field(default=None, description="Filter by active status")
+    is_active: Optional[bool] = Field(
+        default=None, description="Filter by active status"
+    )
     state: Optional[str] = Field(default=None, description="Filter by workflow state")
     limit: int = Field(default=50, description="Number of results", ge=1, le=1000)
     offset: int = Field(default=0, description="Pagination offset", ge=0)
@@ -129,7 +141,9 @@ class PositionQueryParams(BaseModel):
     title: Optional[str] = Field(default=None, description="Filter by position title")
     department: Optional[str] = Field(default=None, description="Filter by department")
     level: Optional[str] = Field(default=None, description="Filter by level")
-    is_active: Optional[bool] = Field(default=None, description="Filter by active status")
+    is_active: Optional[bool] = Field(
+        default=None, description="Filter by active status"
+    )
     state: Optional[str] = Field(default=None, description="Filter by workflow state")
     limit: int = Field(default=50, description="Number of results", ge=1, le=1000)
     offset: int = Field(default=0, description="Pagination offset", ge=0)

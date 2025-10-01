@@ -7,9 +7,9 @@ as specified in functional requirements.
 
 from typing import Any
 
+from application.entity.employee.version_1.employee import Employee
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.employee.version_1.employee import Employee
 
 
 class ValidateEmployeeSetup(CyodaCriteriaChecker):
@@ -60,6 +60,7 @@ class ValidateEmployeeSetup(CyodaCriteriaChecker):
             # Validate hire date format
             try:
                 from datetime import datetime
+
                 datetime.fromisoformat(employee.hire_date.replace("Z", "+00:00"))
             except ValueError:
                 self.logger.warning(
@@ -75,9 +76,7 @@ class ValidateEmployeeSetup(CyodaCriteriaChecker):
                 return False
 
             if not employee.last_name or len(employee.last_name.strip()) == 0:
-                self.logger.warning(
-                    f"Employee {employee.employee_id} has no last name"
-                )
+                self.logger.warning(f"Employee {employee.employee_id} has no last name")
                 return False
 
             if not employee.email or len(employee.email.strip()) == 0:
@@ -86,9 +85,7 @@ class ValidateEmployeeSetup(CyodaCriteriaChecker):
                 )
                 return False
 
-            self.logger.info(
-                f"Employee {employee.employee_id} passed setup validation"
-            )
+            self.logger.info(f"Employee {employee.employee_id} passed setup validation")
             return True
 
         except Exception as e:

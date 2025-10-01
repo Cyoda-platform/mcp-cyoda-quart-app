@@ -9,9 +9,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.employee.version_1.employee import Employee
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.employee.version_1.employee import Employee
 
 
 class CreateEmployeeProcessor(CyodaProcessor):
@@ -50,8 +50,10 @@ class CreateEmployeeProcessor(CyodaProcessor):
 
             # Set employee as inactive during onboarding
             employee.is_active = False
-            current_timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-            
+            current_timestamp = (
+                datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            )
+
             # Update timestamps
             if not employee.created_at:
                 employee.created_at = current_timestamp
@@ -78,27 +80,27 @@ class CreateEmployeeProcessor(CyodaProcessor):
     def _validate_position_exists(self, position_id: str) -> None:
         """
         Validate that the position exists.
-        
+
         Args:
             position_id: The position ID to validate
         """
         # In a real implementation, you would query the entity service to check if position exists
         if not position_id or len(position_id.strip()) == 0:
             raise ValueError("Position ID is required")
-        
+
         self.logger.debug(f"Position validation passed for: {position_id}")
 
     def _validate_employee_id(self, employee: Employee) -> None:
         """
         Validate or generate employee ID.
-        
+
         Args:
             employee: The employee entity
         """
         if not employee.employee_id or len(employee.employee_id.strip()) == 0:
             raise ValueError("Employee ID is required")
-        
+
         # Ensure employee ID is uppercase
         employee.employee_id = employee.employee_id.upper()
-        
+
         self.logger.debug(f"Employee ID validated: {employee.employee_id}")

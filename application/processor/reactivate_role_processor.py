@@ -9,9 +9,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.role.version_1.role import Role
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.role.version_1.role import Role
 
 
 class ReactivateRoleProcessor(CyodaProcessor):
@@ -50,21 +50,25 @@ class ReactivateRoleProcessor(CyodaProcessor):
 
             # Reactivate the role
             role.is_active = True
-            current_timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            current_timestamp = (
+                datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            )
             role.updated_at = current_timestamp
 
             # Add reactivation metadata
             role.add_metadata("reactivated_at", current_timestamp)
-            role.add_metadata("reactivation_reason", kwargs.get("reason", "Manual reactivation"))
+            role.add_metadata(
+                "reactivation_reason", kwargs.get("reason", "Manual reactivation")
+            )
 
             # Clear previous deactivation metadata
             if role.metadata and "deactivated_at" in role.metadata:
-                role.add_metadata("previous_deactivation_cleared", role.metadata.get("deactivated_at"))
+                role.add_metadata(
+                    "previous_deactivation_cleared", role.metadata.get("deactivated_at")
+                )
 
             # Log role reactivation
-            self.logger.info(
-                f"Role {role.name} reactivated successfully"
-            )
+            self.logger.info(f"Role {role.name} reactivated successfully")
 
             return role
 

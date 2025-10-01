@@ -19,9 +19,6 @@ from quart_schema import (
     validate_querystring,
 )
 
-from common.service.entity_service import SearchConditionRequest
-from services.services import get_entity_service
-
 # Import entity and models
 from application.entity.employee.version_1.employee import Employee
 from application.models.request_models import (
@@ -38,17 +35,23 @@ from application.models.response_models import (
     ErrorResponse,
     ValidationErrorResponse,
 )
+from common.service.entity_service import SearchConditionRequest
+from services.services import get_entity_service
+
 
 # Module-level service instance
 class _ServiceProxy:
     def __getattr__(self, name: str) -> Any:
         return getattr(get_entity_service(), name)
 
+
 service = _ServiceProxy()
 logger = logging.getLogger(__name__)
 
+
 def _to_entity_dict(data: Any) -> Dict[str, Any]:
     return data.model_dump(by_alias=True) if hasattr(data, "model_dump") else data
+
 
 employees_bp = Blueprint("employees", __name__, url_prefix="/api/employees")
 

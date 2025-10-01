@@ -9,9 +9,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.position.version_1.position import Position
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.position.version_1.position import Position
 
 
 class CreatePositionProcessor(CyodaProcessor):
@@ -50,8 +50,10 @@ class CreatePositionProcessor(CyodaProcessor):
 
             # Set position as active immediately upon creation
             position.is_active = True
-            current_timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-            
+            current_timestamp = (
+                datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            )
+
             # Update timestamps
             if not position.created_at:
                 position.created_at = current_timestamp
@@ -76,15 +78,20 @@ class CreatePositionProcessor(CyodaProcessor):
     def _validate_salary_range(self, position: Position) -> None:
         """
         Validate the salary range if provided.
-        
+
         Args:
             position: The position to validate
         """
-        if position.salary_range_min is not None and position.salary_range_max is not None:
+        if (
+            position.salary_range_min is not None
+            and position.salary_range_max is not None
+        ):
             if position.salary_range_min > position.salary_range_max:
                 raise ValueError("Minimum salary cannot be greater than maximum salary")
-            
+
             if position.salary_range_min < 0 or position.salary_range_max < 0:
                 raise ValueError("Salary range values cannot be negative")
-        
-        self.logger.debug(f"Salary range validation passed for position: {position.title}")
+
+        self.logger.debug(
+            f"Salary range validation passed for position: {position.title}"
+        )

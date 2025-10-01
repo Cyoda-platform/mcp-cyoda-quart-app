@@ -19,11 +19,6 @@ from quart_schema import (
     validate_querystring,
 )
 
-from common.service.entity_service import (
-    SearchConditionRequest,
-)
-from services.services import get_entity_service
-
 # Import entity and models
 from application.entity.user.version_1.user import User
 from application.models.request_models import (
@@ -44,18 +39,26 @@ from application.models.response_models import (
     UserSearchResponse,
     ValidationErrorResponse,
 )
+from common.service.entity_service import (
+    SearchConditionRequest,
+)
+from services.services import get_entity_service
+
 
 # Module-level service instance to avoid repeated lookups
 class _ServiceProxy:
     def __getattr__(self, name: str) -> Any:
         return getattr(get_entity_service(), name)
 
+
 service = _ServiceProxy()
 logger = logging.getLogger(__name__)
+
 
 # Helper to normalize entity data from service
 def _to_entity_dict(data: Any) -> Dict[str, Any]:
     return data.model_dump(by_alias=True) if hasattr(data, "model_dump") else data
+
 
 users_bp = Blueprint("users", __name__, url_prefix="/api/users")
 
@@ -247,9 +250,7 @@ async def update_user(
         return jsonify(_to_entity_dict(response.data)), 200
 
     except ValueError as e:
-        logger.warning(
-            "Validation error updating User %s: %s", entity_id, str(e)
-        )
+        logger.warning("Validation error updating User %s: %s", entity_id, str(e))
         return jsonify({"error": str(e), "code": "VALIDATION_ERROR"}), 400
     except Exception as e:
         logger.exception("Error updating User %s: %s", entity_id, str(e))
@@ -317,7 +318,9 @@ async def delete_user(entity_id: str) -> ResponseReturnValue:
 async def get_by_business_id(business_id: str) -> ResponseReturnValue:
     """Get User by business ID (username field by default)"""
     try:
-        business_id_field = request.args.get("field", "username")  # Default to username field
+        business_id_field = request.args.get(
+            "field", "username"
+        )  # Default to username field
 
         result = await service.find_by_business_id(
             entity_class=User.ENTITY_NAME,
@@ -356,9 +359,7 @@ async def check_exists(entity_id: str) -> ResponseReturnValue:
         return response.model_dump(), 200
 
     except Exception as e:
-        logger.exception(
-            "Error checking User existence %s: %s", entity_id, str(e)
-        )
+        logger.exception("Error checking User existence %s: %s", entity_id, str(e))
         return {"error": str(e)}, 500
 
 
@@ -409,9 +410,7 @@ async def get_available_transitions(entity_id: str) -> ResponseReturnValue:
         return jsonify(response.model_dump()), 200
 
     except Exception as e:
-        logger.exception(
-            "Error getting transitions for User %s: %s", entity_id, str(e)
-        )
+        logger.exception("Error getting transitions for User %s: %s", entity_id, str(e))
         return jsonify({"error": str(e)}), 500
 
 
@@ -463,9 +462,7 @@ async def search_entities(data: SearchRequest) -> ResponseReturnValue:
 @users_bp.route("/find-all", methods=["GET"])
 @tag(["users"])
 @operation_id("find_all_users")
-@validate(
-    responses={200: (UserListResponse, None), 500: (ErrorResponse, None)}
-)
+@validate(responses={200: (UserListResponse, None), 500: (ErrorResponse, None)})
 async def find_all_entities() -> ResponseReturnValue:
     """Find all Users without filtering"""
     try:
@@ -538,7 +535,5 @@ async def trigger_transition(
         )
 
     except Exception as e:
-        logger.exception(
-            "Error executing transition on User %s: %s", entity_id, str(e)
-        )
+        logger.exception("Error executing transition on User %s: %s", entity_id, str(e))
         return jsonify({"error": str(e)}), 500

@@ -18,7 +18,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class Employee(CyodaEntity):
     """
     Employee represents staff members with personal and professional information.
-    
+
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     The state field manages workflow states: initial_state -> onboarding -> active -> on_leave/terminated
     """
@@ -34,23 +34,15 @@ class Employee(CyodaEntity):
     email: str = Field(..., description="Employee email address (unique)")
     hire_date: str = Field(..., description="Employment start date (ISO 8601 format)")
     position_id: str = Field(..., description="Assigned position ID")
-    
+
     # Optional fields
-    phone: Optional[str] = Field(
-        default=None,
-        description="Phone number"
-    )
+    phone: Optional[str] = Field(default=None, description="Phone number")
     user_id: Optional[str] = Field(
-        default=None,
-        description="Associated user account ID"
+        default=None, description="Associated user account ID"
     )
-    department: Optional[str] = Field(
-        default=None,
-        description="Department name"
-    )
+    department: Optional[str] = Field(default=None, description="Department name")
     is_active: Optional[bool] = Field(
-        default=True,
-        description="Employment status flag"
+        default=True, description="Employment status flag"
     )
 
     @field_validator("employee_id")

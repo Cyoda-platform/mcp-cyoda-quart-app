@@ -18,7 +18,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class Position(CyodaEntity):
     """
     Position represents job positions and titles within the organization.
-    
+
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     The state field manages workflow states: initial_state -> active -> inactive
     """
@@ -31,29 +31,21 @@ class Position(CyodaEntity):
     title: str = Field(..., description="Position title (unique within department)")
     description: str = Field(..., description="Position description")
     department: str = Field(..., description="Department name")
-    
+
     # Optional fields
-    level: Optional[str] = Field(
-        default=None,
-        description="Position level/grade"
-    )
+    level: Optional[str] = Field(default=None, description="Position level/grade")
     salary_range_min: Optional[float] = Field(
-        default=None,
-        description="Minimum salary"
+        default=None, description="Minimum salary"
     )
     salary_range_max: Optional[float] = Field(
-        default=None,
-        description="Maximum salary"
+        default=None, description="Maximum salary"
     )
-    is_active: Optional[bool] = Field(
-        default=True,
-        description="Position status flag"
-    )
+    is_active: Optional[bool] = Field(default=True, description="Position status flag")
 
     # Timestamps (inherited created_at from CyodaEntity)
     updated_at: Optional[str] = Field(
         default=None,
-        description="Timestamp when the entity was last updated (ISO 8601 format)"
+        description="Timestamp when the entity was last updated (ISO 8601 format)",
     )
 
     @field_validator("title")
@@ -75,7 +67,9 @@ class Position(CyodaEntity):
         if not v or len(v.strip()) == 0:
             raise ValueError("Position description must be non-empty")
         if len(v) > 1000:
-            raise ValueError("Position description must be at most 1000 characters long")
+            raise ValueError(
+                "Position description must be at most 1000 characters long"
+            )
         return v.strip()
 
     @field_validator("department")
@@ -124,10 +118,14 @@ class Position(CyodaEntity):
     def validate_business_logic(self) -> "Position":
         """Validate business logic rules according to functional requirements"""
         # Validate salary range
-        if (self.salary_range_min is not None and 
-            self.salary_range_max is not None and 
-            self.salary_range_min > self.salary_range_max):
-            raise ValueError("Minimum salary must be less than or equal to maximum salary")
+        if (
+            self.salary_range_min is not None
+            and self.salary_range_max is not None
+            and self.salary_range_min > self.salary_range_max
+        ):
+            raise ValueError(
+                "Minimum salary must be less than or equal to maximum salary"
+            )
         return self
 
     def update_timestamp(self) -> None:
@@ -140,8 +138,7 @@ class Position(CyodaEntity):
 
     def has_salary_range(self) -> bool:
         """Check if position has a defined salary range"""
-        return (self.salary_range_min is not None and 
-                self.salary_range_max is not None)
+        return self.salary_range_min is not None and self.salary_range_max is not None
 
     def get_salary_range_display(self) -> str:
         """Get formatted salary range for display"""

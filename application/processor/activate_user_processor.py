@@ -9,9 +9,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.user.version_1.user import User
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.user.version_1.user import User
 
 
 class ActivateUserProcessor(CyodaProcessor):
@@ -50,7 +50,9 @@ class ActivateUserProcessor(CyodaProcessor):
 
             # Activate the user account
             user.is_active = True
-            current_timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            current_timestamp = (
+                datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            )
             user.updated_at = current_timestamp
 
             # Add activation metadata
@@ -58,9 +60,7 @@ class ActivateUserProcessor(CyodaProcessor):
             user.add_metadata("activation_method", "manual")
 
             # Log user activation
-            self.logger.info(
-                f"User {user.username} activated successfully"
-            )
+            self.logger.info(f"User {user.username} activated successfully")
 
             # Note: In a real implementation, you would:
             # - Send welcome email to user.email

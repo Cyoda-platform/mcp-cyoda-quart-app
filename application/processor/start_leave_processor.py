@@ -9,9 +9,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.employee.version_1.employee import Employee
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.employee.version_1.employee import Employee
 
 
 class StartLeaveProcessor(CyodaProcessor):
@@ -49,16 +49,22 @@ class StartLeaveProcessor(CyodaProcessor):
             employee = cast_entity(entity, Employee)
 
             # Put employee on leave (keep is_active as True since they're still employed)
-            current_timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            current_timestamp = (
+                datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            )
 
             # Add leave metadata
             employee.add_metadata("leave_started_at", current_timestamp)
             employee.add_metadata("leave_type", kwargs.get("leave_type", "general"))
-            employee.add_metadata("leave_reason", kwargs.get("reason", "Personal leave"))
-            
+            employee.add_metadata(
+                "leave_reason", kwargs.get("reason", "Personal leave")
+            )
+
             # Expected return date if provided
             if "expected_return_date" in kwargs:
-                employee.add_metadata("expected_return_date", kwargs["expected_return_date"])
+                employee.add_metadata(
+                    "expected_return_date", kwargs["expected_return_date"]
+                )
 
             # Log employee leave start
             self.logger.info(

@@ -7,9 +7,9 @@ as specified in functional requirements.
 
 from typing import Any
 
+from application.entity.role.version_1.role import Role
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.role.version_1.role import Role
 
 
 class ValidateRolePermissions(CyodaCriteriaChecker):
@@ -45,14 +45,16 @@ class ValidateRolePermissions(CyodaCriteriaChecker):
 
             # Check if role has at least one permission
             if not role.permission_ids or len(role.permission_ids) == 0:
-                self.logger.warning(
-                    f"Role {role.name} has no permissions assigned"
-                )
+                self.logger.warning(f"Role {role.name} has no permissions assigned")
                 return False
 
             # Validate that all permission IDs are non-empty strings
             for permission_id in role.permission_ids:
-                if not permission_id or not isinstance(permission_id, str) or len(permission_id.strip()) == 0:
+                if (
+                    not permission_id
+                    or not isinstance(permission_id, str)
+                    or len(permission_id.strip()) == 0
+                ):
                     self.logger.warning(
                         f"Role {role.name} has invalid permission ID: {permission_id}"
                     )
@@ -60,9 +62,7 @@ class ValidateRolePermissions(CyodaCriteriaChecker):
 
             # Check for duplicate permission IDs
             if len(role.permission_ids) != len(set(role.permission_ids)):
-                self.logger.warning(
-                    f"Role {role.name} has duplicate permission IDs"
-                )
+                self.logger.warning(f"Role {role.name} has duplicate permission IDs")
                 return False
 
             self.logger.info(

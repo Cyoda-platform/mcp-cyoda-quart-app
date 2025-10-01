@@ -9,9 +9,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.permission.version_1.permission import Permission
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.permission.version_1.permission import Permission
 
 
 class ReactivatePermissionProcessor(CyodaProcessor):
@@ -50,20 +50,25 @@ class ReactivatePermissionProcessor(CyodaProcessor):
 
             # Reactivate the permission
             permission.is_active = True
-            current_timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            current_timestamp = (
+                datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            )
 
             # Add reactivation metadata
             permission.add_metadata("reactivated_at", current_timestamp)
-            permission.add_metadata("reactivation_reason", kwargs.get("reason", "Manual reactivation"))
+            permission.add_metadata(
+                "reactivation_reason", kwargs.get("reason", "Manual reactivation")
+            )
 
             # Clear previous deactivation metadata
             if permission.metadata and "deactivated_at" in permission.metadata:
-                permission.add_metadata("previous_deactivation_cleared", permission.metadata.get("deactivated_at"))
+                permission.add_metadata(
+                    "previous_deactivation_cleared",
+                    permission.metadata.get("deactivated_at"),
+                )
 
             # Log permission reactivation
-            self.logger.info(
-                f"Permission {permission.name} reactivated successfully"
-            )
+            self.logger.info(f"Permission {permission.name} reactivated successfully")
 
             return permission
 

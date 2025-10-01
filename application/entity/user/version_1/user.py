@@ -18,7 +18,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class User(CyodaEntity):
     """
     User represents system users with authentication credentials and role assignments.
-    
+
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     The state field manages workflow states: initial_state -> pending -> active -> suspended/inactive
     """
@@ -33,25 +33,20 @@ class User(CyodaEntity):
     password_hash: str = Field(..., description="Encrypted password")
     first_name: str = Field(..., description="User's first name")
     last_name: str = Field(..., description="User's last name")
-    
+
     # Optional fields
-    is_active: Optional[bool] = Field(
-        default=True,
-        description="Account status flag"
-    )
+    is_active: Optional[bool] = Field(default=True, description="Account status flag")
     role_ids: Optional[List[str]] = Field(
-        default_factory=list,
-        description="Array of assigned role IDs"
+        default_factory=list, description="Array of assigned role IDs"
     )
     last_login: Optional[str] = Field(
-        default=None,
-        description="Last login timestamp (ISO 8601 format)"
+        default=None, description="Last login timestamp (ISO 8601 format)"
     )
 
     # Timestamps (inherited created_at from CyodaEntity)
     updated_at: Optional[str] = Field(
         default=None,
-        description="Timestamp when the entity was last updated (ISO 8601 format)"
+        description="Timestamp when the entity was last updated (ISO 8601 format)",
     )
 
     @field_validator("username")
@@ -66,7 +61,9 @@ class User(CyodaEntity):
             raise ValueError("Username must be at most 50 characters long")
         # Basic alphanumeric validation
         if not v.replace("_", "").replace("-", "").isalnum():
-            raise ValueError("Username can only contain letters, numbers, underscores, and hyphens")
+            raise ValueError(
+                "Username can only contain letters, numbers, underscores, and hyphens"
+            )
         return v.strip().lower()
 
     @field_validator("email")
