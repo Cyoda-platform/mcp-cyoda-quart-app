@@ -231,12 +231,13 @@ class EmailCampaignSendingProcessor(CyodaProcessor):
                         subscriber.record_email_sent()
                         
                         # Update subscriber in the system
-                        await entity_service.update(
-                            entity_id=subscriber.technical_id,
-                            entity=subscriber.model_dump(by_alias=True),
-                            entity_class=Subscriber.ENTITY_NAME,
-                            entity_version=str(Subscriber.ENTITY_VERSION),
-                        )
+                        if subscriber.technical_id:
+                            await entity_service.update(
+                                entity_id=subscriber.technical_id,
+                                entity=subscriber.model_dump(by_alias=True),
+                                entity_class=Subscriber.ENTITY_NAME,
+                                entity_version=str(Subscriber.ENTITY_VERSION),
+                            )
                     else:
                         campaign.record_email_failed("Email delivery failed")
             

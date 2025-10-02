@@ -66,11 +66,15 @@ class DeleteResponse(BaseModel):
     message: str
     entity_id: str = Field(alias="entityId")
 
+    model_config = {"populate_by_name": True}
+
 
 class ExistsResponse(BaseModel):
     """Response model for existence checks"""
     exists: bool
     entity_id: str = Field(alias="entityId")
+
+    model_config = {"populate_by_name": True}
 
 
 class CountResponse(BaseModel):
@@ -83,6 +87,8 @@ class TransitionsResponse(BaseModel):
     entity_id: str = Field(alias="entityId")
     available_transitions: List[str] = Field(alias="availableTransitions")
     current_state: Optional[str] = Field(default=None, alias="currentState")
+
+    model_config = {"populate_by_name": True}
 
 
 class TransitionResponse(BaseModel):

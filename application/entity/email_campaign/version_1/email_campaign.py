@@ -164,9 +164,9 @@ class EmailCampaign(CyodaEntity):
     def is_ready_to_send(self) -> bool:
         """Check if the campaign is ready to send"""
         return (
-            self.state == "scheduled" 
-            and self.cat_fact_id 
-            and self.subject_line 
+            self.state == "scheduled"
+            and bool(self.cat_fact_id.strip()) if self.cat_fact_id else False
+            and bool(self.subject_line.strip()) if self.subject_line else False
             and self.target_subscriber_count > 0
         )
 
