@@ -7,9 +7,9 @@ proceed to the preparation stage.
 
 from typing import Any
 
+from application.entity.cat_fact.version_1.cat_fact import CatFact
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.cat_fact.version_1.cat_fact import CatFact
 
 
 class CatFactValidationCriterion(CyodaCriteriaChecker):
@@ -91,36 +91,53 @@ class CatFactValidationCriterion(CyodaCriteriaChecker):
     def _has_cat_related_content(self, fact: str) -> bool:
         """
         Check if the fact content is cat-related.
-        
+
         Args:
             fact: The fact content to check
-            
+
         Returns:
             True if cat-related, False otherwise
         """
         cat_keywords = [
-            "cat", "cats", "feline", "felines", "kitten", "kittens",
-            "meow", "purr", "whiskers", "paw", "paws", "tail"
+            "cat",
+            "cats",
+            "feline",
+            "felines",
+            "kitten",
+            "kittens",
+            "meow",
+            "purr",
+            "whiskers",
+            "paw",
+            "paws",
+            "tail",
         ]
-        
+
         fact_lower = fact.lower()
         return any(keyword in fact_lower for keyword in cat_keywords)
 
     def _contains_inappropriate_content(self, fact: str) -> bool:
         """
         Check if the fact contains inappropriate content.
-        
+
         Args:
             fact: The fact content to check
-            
+
         Returns:
             True if inappropriate content found, False otherwise
         """
         # Simple inappropriate content detection
         inappropriate_words = [
-            "inappropriate", "offensive", "bad", "terrible", "awful",
-            "hate", "violence", "death", "kill"
+            "inappropriate",
+            "offensive",
+            "bad",
+            "terrible",
+            "awful",
+            "hate",
+            "violence",
+            "death",
+            "kill",
         ]
-        
+
         fact_lower = fact.lower()
         return any(word in fact_lower for word in inappropriate_words)

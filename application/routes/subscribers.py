@@ -10,7 +10,7 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict, Optional
 
-from quart import Blueprint, jsonify, request
+from quart import Blueprint, jsonify
 from quart.typing import ResponseReturnValue
 from quart_schema import (
     operation_id,
@@ -40,22 +40,24 @@ from ..models import (
     ValidationErrorResponse,
 )
 
+
 # Module-level service instance to avoid repeated lookups
 class _ServiceProxy:
     def __getattr__(self, name: str) -> Any:
         return getattr(get_entity_service(), name)
 
+
 service = _ServiceProxy()
 
 logger = logging.getLogger(__name__)
+
 
 # Helper to normalize entity data from service
 def _to_entity_dict(data: Any) -> Dict[str, Any]:
     return data.model_dump(by_alias=True) if hasattr(data, "model_dump") else data
 
-subscribers_bp = Blueprint(
-    "subscribers", __name__, url_prefix="/api/subscribers"
-)
+
+subscribers_bp = Blueprint("subscribers", __name__, url_prefix="/api/subscribers")
 
 
 @subscribers_bp.route("", methods=["POST"])
@@ -242,9 +244,7 @@ async def update_subscriber(
         return jsonify(_to_entity_dict(response.data)), 200
 
     except ValueError as e:
-        logger.warning(
-            "Validation error updating Subscriber %s: %s", entity_id, str(e)
-        )
+        logger.warning("Validation error updating Subscriber %s: %s", entity_id, str(e))
         return jsonify({"error": str(e), "code": "VALIDATION_ERROR"}), 400
     except Exception as e:
         logger.exception("Error updating Subscriber %s: %s", entity_id, str(e))
@@ -323,9 +323,7 @@ async def get_by_email(email: str) -> ResponseReturnValue:
         return jsonify(_to_entity_dict(result.data)), 200
 
     except Exception as e:
-        logger.exception(
-            "Error getting Subscriber by email %s: %s", email, str(e)
-        )
+        logger.exception("Error getting Subscriber by email %s: %s", email, str(e))
         return jsonify({"error": str(e)}), 500
 
 

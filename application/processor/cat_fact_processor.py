@@ -7,9 +7,9 @@ Handles cat fact preparation and delivery processing.
 import logging
 from typing import Any
 
+from application.entity.cat_fact.version_1.cat_fact import CatFact
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.cat_fact.version_1.cat_fact import CatFact
 
 
 class CatFactPreparationProcessor(CyodaProcessor):
@@ -75,48 +75,48 @@ class CatFactPreparationProcessor(CyodaProcessor):
     def _calculate_quality_score(self, cat_fact: CatFact) -> float:
         """
         Calculate a quality score for the cat fact.
-        
+
         Args:
             cat_fact: The cat fact to score
-            
+
         Returns:
             Quality score between 0.0 and 1.0
         """
         score = 0.5  # Base score
-        
+
         # Length scoring (prefer facts between 50-300 characters)
         if cat_fact.fact_length:
             if 50 <= cat_fact.fact_length <= 300:
                 score += 0.3
             elif 30 <= cat_fact.fact_length < 50 or 300 < cat_fact.fact_length <= 500:
                 score += 0.1
-        
+
         # Content quality (simple checks)
         fact_lower = cat_fact.fact.lower()
         if "cat" in fact_lower:
             score += 0.2
-        
+
         # Ensure score is within bounds
         return min(1.0, max(0.0, score))
 
     def _is_appropriate_content(self, cat_fact: CatFact) -> bool:
         """
         Check if the cat fact content is appropriate for email delivery.
-        
+
         Args:
             cat_fact: The cat fact to check
-            
+
         Returns:
             True if appropriate, False otherwise
         """
         # Simple content filtering
         inappropriate_words = ["inappropriate", "offensive", "bad"]
         fact_lower = cat_fact.fact.lower()
-        
+
         for word in inappropriate_words:
             if word in fact_lower:
                 return False
-        
+
         return True
 
 

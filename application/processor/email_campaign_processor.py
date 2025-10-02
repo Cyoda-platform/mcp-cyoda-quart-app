@@ -7,10 +7,10 @@ Handles email campaign creation, scheduling, sending, and completion.
 import logging
 from typing import Any
 
-from common.entity.entity_casting import cast_entity
-from common.processor.base import CyodaEntity, CyodaProcessor
 from application.entity.email_campaign.version_1.email_campaign import EmailCampaign
 from application.entity.subscriber.version_1.subscriber import Subscriber
+from common.entity.entity_casting import cast_entity
+from common.processor.base import CyodaEntity, CyodaProcessor
 from services.services import get_entity_service
 
 
@@ -122,28 +122,28 @@ class EmailCampaignSchedulingProcessor(CyodaProcessor):
     async def _count_active_subscribers(self) -> int:
         """
         Count the number of active subscribers.
-        
+
         Returns:
             Number of active subscribers
         """
         try:
             entity_service = get_entity_service()
-            
+
             # Get all subscribers
             subscribers = await entity_service.find_all(
                 entity_class=Subscriber.ENTITY_NAME,
                 entity_version=str(Subscriber.ENTITY_VERSION),
             )
-            
+
             # Count active subscribers
             active_count = 0
             for subscriber_response in subscribers:
                 subscriber = cast_entity(subscriber_response.data, Subscriber)
                 if subscriber.is_eligible_for_email():
                     active_count += 1
-            
+
             return active_count
-            
+
         except Exception as e:
             self.logger.error(f"Error counting active subscribers: {str(e)}")
             return 0
@@ -204,32 +204,32 @@ class EmailCampaignSendingProcessor(CyodaProcessor):
     async def _send_emails_to_subscribers(self, campaign: EmailCampaign) -> None:
         """
         Send emails to all active subscribers.
-        
+
         Args:
             campaign: The email campaign to send
         """
         try:
             entity_service = get_entity_service()
-            
+
             # Get all subscribers
             subscribers = await entity_service.find_all(
                 entity_class=Subscriber.ENTITY_NAME,
                 entity_version=str(Subscriber.ENTITY_VERSION),
             )
-            
+
             # Send to each active subscriber
             for subscriber_response in subscribers:
                 subscriber = cast_entity(subscriber_response.data, Subscriber)
-                
+
                 if subscriber.is_eligible_for_email():
                     # Simulate email sending
                     success = await self._simulate_email_send(subscriber, campaign)
-                    
+
                     if success:
                         campaign.record_email_sent()
                         # Update subscriber's email tracking
                         subscriber.record_email_sent()
-                        
+
                         # Update subscriber in the system
                         if subscriber.technical_id:
                             await entity_service.update(
@@ -240,27 +240,32 @@ class EmailCampaignSendingProcessor(CyodaProcessor):
                             )
                     else:
                         campaign.record_email_failed("Email delivery failed")
-            
+
         except Exception as e:
             self.logger.error(f"Error sending emails to subscribers: {str(e)}")
             campaign.record_email_failed(f"Bulk send error: {str(e)}")
 
-    async def _simulate_email_send(self, subscriber: Subscriber, campaign: EmailCampaign) -> bool:
+    async def _simulate_email_send(
+        self, subscriber: Subscriber, campaign: EmailCampaign
+    ) -> bool:
         """
         Simulate sending an email to a subscriber.
-        
+
         Args:
             subscriber: The subscriber to send to
             campaign: The campaign being sent
-            
+
         Returns:
             True if successful, False otherwise
         """
         # Simulate email sending (in real implementation, this would use an email service)
-        self.logger.info(f"Simulating email send to {subscriber.email} for campaign {campaign.campaign_name}")
-        
+        self.logger.info(
+            f"Simulating email send to {subscriber.email} for campaign {campaign.campaign_name}"
+        )
+
         # Simulate 95% success rate
         import random
+
         return random.random() < 0.95
 
 

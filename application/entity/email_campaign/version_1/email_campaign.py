@@ -18,7 +18,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class EmailCampaign(CyodaEntity):
     """
     EmailCampaign entity represents a weekly email campaign for sending cat facts.
-    
+
     Manages campaign scheduling, subscriber targeting, and delivery metrics.
     The state field manages workflow states: initial_state -> created -> scheduled -> sent -> completed
     """
@@ -28,72 +28,76 @@ class EmailCampaign(CyodaEntity):
     ENTITY_VERSION: ClassVar[int] = 1
 
     # Required fields
-    campaign_name: str = Field(..., alias="campaignName", description="Name of the email campaign")
-    
+    campaign_name: str = Field(
+        ..., alias="campaignName", description="Name of the email campaign"
+    )
+
     # Campaign content
-    cat_fact_id: str = Field(..., alias="catFactId", description="ID of the cat fact to send")
-    subject_line: str = Field(..., alias="subjectLine", description="Email subject line")
-    
+    cat_fact_id: str = Field(
+        ..., alias="catFactId", description="ID of the cat fact to send"
+    )
+    subject_line: str = Field(
+        ..., alias="subjectLine", description="Email subject line"
+    )
+
     # Scheduling
-    scheduled_date: str = Field(..., alias="scheduledDate", description="Scheduled delivery date (ISO 8601)")
-    
+    scheduled_date: str = Field(
+        ..., alias="scheduledDate", description="Scheduled delivery date (ISO 8601)"
+    )
+
     # Targeting
     target_subscriber_count: int = Field(
         default=0,
         alias="targetSubscriberCount",
-        description="Number of subscribers targeted for this campaign"
+        description="Number of subscribers targeted for this campaign",
     )
-    
+
     # Delivery tracking
     emails_sent: int = Field(
-        default=0,
-        alias="emailsSent",
-        description="Number of emails successfully sent"
+        default=0, alias="emailsSent", description="Number of emails successfully sent"
     )
     emails_failed: int = Field(
         default=0,
         alias="emailsFailed",
-        description="Number of emails that failed to send"
+        description="Number of emails that failed to send",
     )
-    
+
     # Campaign metadata
     campaign_type: str = Field(
-        default="weekly_cat_fact",
-        alias="campaignType",
-        description="Type of campaign"
+        default="weekly_cat_fact", alias="campaignType", description="Type of campaign"
     )
-    
+
     # Timestamps
     created_at: Optional[str] = Field(
         default_factory=lambda: datetime.now(timezone.utc)
         .isoformat()
         .replace("+00:00", "Z"),
         alias="createdAt",
-        description="Timestamp when the campaign was created (ISO 8601 format)"
+        description="Timestamp when the campaign was created (ISO 8601 format)",
     )
     sent_at: Optional[str] = Field(
         default=None,
         alias="sentAt",
-        description="Timestamp when the campaign was sent (ISO 8601 format)"
+        description="Timestamp when the campaign was sent (ISO 8601 format)",
     )
     completed_at: Optional[str] = Field(
         default=None,
         alias="completedAt",
-        description="Timestamp when the campaign was completed (ISO 8601 format)"
+        description="Timestamp when the campaign was completed (ISO 8601 format)",
     )
-    
+
     # Performance metrics
     delivery_rate: Optional[float] = Field(
         default=None,
         alias="deliveryRate",
-        description="Delivery success rate (0.0 to 1.0)"
+        description="Delivery success rate (0.0 to 1.0)",
     )
-    
+
     # Error tracking
     error_messages: List[str] = Field(
         default_factory=list,
         alias="errorMessages",
-        description="List of error messages encountered during delivery"
+        description="List of error messages encountered during delivery",
     )
 
     @field_validator("campaign_name")
@@ -102,10 +106,10 @@ class EmailCampaign(CyodaEntity):
         """Validate campaign name"""
         if not v or len(v.strip()) == 0:
             raise ValueError("Campaign name must be non-empty")
-        
+
         if len(v) > 200:
             raise ValueError("Campaign name must be at most 200 characters long")
-        
+
         return v.strip()
 
     @field_validator("subject_line")
@@ -114,10 +118,10 @@ class EmailCampaign(CyodaEntity):
         """Validate email subject line"""
         if not v or len(v.strip()) == 0:
             raise ValueError("Subject line must be non-empty")
-        
+
         if len(v) > 150:
             raise ValueError("Subject line must be at most 150 characters long")
-        
+
         return v.strip()
 
     @field_validator("delivery_rate")
@@ -126,10 +130,10 @@ class EmailCampaign(CyodaEntity):
         """Validate delivery rate"""
         if v is None:
             return v
-        
+
         if not 0.0 <= v <= 1.0:
             raise ValueError("Delivery rate must be between 0.0 and 1.0")
-        
+
         return v
 
     def calculate_delivery_rate(self) -> None:
@@ -158,16 +162,21 @@ class EmailCampaign(CyodaEntity):
 
     def mark_as_completed(self) -> None:
         """Mark the campaign as completed"""
-        self.completed_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.completed_at = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
         self.calculate_delivery_rate()
 
     def is_ready_to_send(self) -> bool:
         """Check if the campaign is ready to send"""
         return (
-            self.state == "scheduled"
-            and bool(self.cat_fact_id.strip()) if self.cat_fact_id else False
-            and bool(self.subject_line.strip()) if self.subject_line else False
-            and self.target_subscriber_count > 0
+            self.state == "scheduled" and bool(self.cat_fact_id.strip())
+            if self.cat_fact_id
+            else (
+                False and bool(self.subject_line.strip())
+                if self.subject_line
+                else False and self.target_subscriber_count > 0
+            )
         )
 
     def get_success_rate_percentage(self) -> float:

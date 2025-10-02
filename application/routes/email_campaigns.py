@@ -10,7 +10,7 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict, Optional
 
-from quart import Blueprint, jsonify, request
+from quart import Blueprint, jsonify
 from quart.typing import ResponseReturnValue
 from quart_schema import (
     operation_id,
@@ -40,18 +40,22 @@ from ..models import (
     ValidationErrorResponse,
 )
 
+
 # Module-level service instance to avoid repeated lookups
 class _ServiceProxy:
     def __getattr__(self, name: str) -> Any:
         return getattr(get_entity_service(), name)
 
+
 service = _ServiceProxy()
 
 logger = logging.getLogger(__name__)
 
+
 # Helper to normalize entity data from service
 def _to_entity_dict(data: Any) -> Dict[str, Any]:
     return data.model_dump(by_alias=True) if hasattr(data, "model_dump") else data
+
 
 email_campaigns_bp = Blueprint(
     "email_campaigns", __name__, url_prefix="/api/email-campaigns"
@@ -147,7 +151,9 @@ async def get_email_campaign(entity_id: str) -> ResponseReturnValue:
         500: (ErrorResponse, None),
     }
 )
-async def list_email_campaigns(query_args: EmailCampaignQueryParams) -> ResponseReturnValue:
+async def list_email_campaigns(
+    query_args: EmailCampaignQueryParams,
+) -> ResponseReturnValue:
     """List EmailCampaigns with optional filtering"""
     try:
         # Build search conditions based on query parameters

@@ -7,9 +7,9 @@ Handles subscriber registration, unsubscription, and resubscription logic.
 import logging
 from typing import Any
 
+from application.entity.subscriber.version_1.subscriber import Subscriber
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.subscriber.version_1.subscriber import Subscriber
 
 
 class SubscriberRegistrationProcessor(CyodaProcessor):
@@ -106,9 +106,7 @@ class SubscriberUnsubscribeProcessor(CyodaProcessor):
             # Mark as unsubscribed
             subscriber.unsubscribe()
 
-            self.logger.info(
-                f"Subscriber {subscriber.email} unsubscribed successfully"
-            )
+            self.logger.info(f"Subscriber {subscriber.email} unsubscribed successfully")
 
             return subscriber
 
@@ -155,9 +153,7 @@ class SubscriberResubscribeProcessor(CyodaProcessor):
             # Reactivate subscription
             subscriber.resubscribe()
 
-            self.logger.info(
-                f"Subscriber {subscriber.email} resubscribed successfully"
-            )
+            self.logger.info(f"Subscriber {subscriber.email} resubscribed successfully")
 
             return subscriber
 

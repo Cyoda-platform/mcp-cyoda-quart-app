@@ -10,7 +10,7 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict, Optional
 
-from quart import Blueprint, jsonify, request
+from quart import Blueprint, jsonify
 from quart.typing import ResponseReturnValue
 from quart_schema import (
     operation_id,
@@ -40,22 +40,24 @@ from ..models import (
     ValidationErrorResponse,
 )
 
+
 # Module-level service instance to avoid repeated lookups
 class _ServiceProxy:
     def __getattr__(self, name: str) -> Any:
         return getattr(get_entity_service(), name)
 
+
 service = _ServiceProxy()
 
 logger = logging.getLogger(__name__)
+
 
 # Helper to normalize entity data from service
 def _to_entity_dict(data: Any) -> Dict[str, Any]:
     return data.model_dump(by_alias=True) if hasattr(data, "model_dump") else data
 
-cat_facts_bp = Blueprint(
-    "cat_facts", __name__, url_prefix="/api/cat-facts"
-)
+
+cat_facts_bp = Blueprint("cat_facts", __name__, url_prefix="/api/cat-facts")
 
 
 @cat_facts_bp.route("", methods=["POST"])
@@ -154,7 +156,9 @@ async def list_cat_facts(query_args: CatFactQueryParams) -> ResponseReturnValue:
         search_conditions: Dict[str, str] = {}
 
         if query_args.is_used_for_delivery is not None:
-            search_conditions["isUsedForDelivery"] = str(query_args.is_used_for_delivery).lower()
+            search_conditions["isUsedForDelivery"] = str(
+                query_args.is_used_for_delivery
+            ).lower()
 
         if query_args.is_appropriate is not None:
             search_conditions["isAppropriate"] = str(query_args.is_appropriate).lower()
@@ -245,9 +249,7 @@ async def update_cat_fact(
         return jsonify(_to_entity_dict(response.data)), 200
 
     except ValueError as e:
-        logger.warning(
-            "Validation error updating CatFact %s: %s", entity_id, str(e)
-        )
+        logger.warning("Validation error updating CatFact %s: %s", entity_id, str(e))
         return jsonify({"error": str(e), "code": "VALIDATION_ERROR"}), 400
     except Exception as e:
         logger.exception("Error updating CatFact %s: %s", entity_id, str(e))
@@ -350,9 +352,7 @@ async def check_exists(entity_id: str) -> ResponseReturnValue:
         return response.model_dump(), 200
 
     except Exception as e:
-        logger.exception(
-            "Error checking CatFact existence %s: %s", entity_id, str(e)
-        )
+        logger.exception("Error checking CatFact existence %s: %s", entity_id, str(e))
         return {"error": str(e)}, 500
 
 
