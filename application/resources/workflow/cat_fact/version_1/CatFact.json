@@ -1,0 +1,75 @@
+{
+  "version": "1.0",
+  "name": "CatFact Workflow",
+  "desc": "Workflow for processing cat facts from API ingestion to delivery readiness",
+  "initialState": "initial_state",
+  "active": true,
+  "states": {
+    "initial_state": {
+      "transitions": [
+        {
+          "name": "ingest",
+          "next": "ingested",
+          "manual": false
+        }
+      ]
+    },
+    "ingested": {
+      "transitions": [
+        {
+          "name": "validate",
+          "next": "validated",
+          "manual": false,
+          "criterion": {
+            "type": "function",
+            "function": {
+              "name": "CatFactValidationCriterion",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "validated": {
+      "transitions": [
+        {
+          "name": "prepare_for_delivery",
+          "next": "ready_for_delivery",
+          "manual": false,
+          "processors": [
+            {
+              "name": "CatFactPreparationProcessor",
+              "executionMode": "SYNC",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "ready_for_delivery": {
+      "transitions": [
+        {
+          "name": "mark_delivered",
+          "next": "delivered",
+          "manual": true,
+          "processors": [
+            {
+              "name": "CatFactDeliveryProcessor",
+              "executionMode": "SYNC",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "delivered": {
+      "transitions": []
+    }
+  }
+}

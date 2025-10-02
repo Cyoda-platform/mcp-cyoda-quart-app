@@ -1,0 +1,63 @@
+{
+  "version": "1.0",
+  "name": "Subscriber Workflow",
+  "desc": "Workflow for managing subscriber lifecycle from registration to active subscription or unsubscription",
+  "initialState": "initial_state",
+  "active": true,
+  "states": {
+    "initial_state": {
+      "transitions": [
+        {
+          "name": "register",
+          "next": "active",
+          "manual": false,
+          "processors": [
+            {
+              "name": "SubscriberRegistrationProcessor",
+              "executionMode": "SYNC",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "active": {
+      "transitions": [
+        {
+          "name": "unsubscribe",
+          "next": "unsubscribed",
+          "manual": true,
+          "processors": [
+            {
+              "name": "SubscriberUnsubscribeProcessor",
+              "executionMode": "SYNC",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "unsubscribed": {
+      "transitions": [
+        {
+          "name": "resubscribe",
+          "next": "active",
+          "manual": true,
+          "processors": [
+            {
+              "name": "SubscriberResubscribeProcessor",
+              "executionMode": "SYNC",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
