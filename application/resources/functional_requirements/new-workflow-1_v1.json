@@ -1,0 +1,129 @@
+{
+  "version": "1.0",
+  "name": "Pet Hamster Workflow",
+  "desc": "Workflow for safely approaching and petting a hamster",
+  "initialState": "INITIAL",
+  "active": true,
+  "states": {
+    "INITIAL": {
+      "transitions": [
+        {
+          "name": "Start Approach",
+          "next": "APPROACH",
+          "manual": true
+        },
+        {
+          "name": "Abort",
+          "next": "FINISH",
+          "manual": true
+        }
+      ]
+    },
+    "APPROACH": {
+      "transitions": [
+        {
+          "name": "Observe Mood",
+          "next": "CHECK_MOOD",
+          "manual": false,
+          "processors": [
+            {
+              "name": "camera-analysis",
+              "executionMode": "SYNC",
+              "config": {
+                "calculationNodesTags": "cyoda_application",
+                "attachEntity": false,
+                "responseTimeoutMs": 5000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "CHECK_MOOD": {
+      "transitions": [
+        {
+          "name": "Mood Calm -> Pick Up",
+          "next": "PICK_UP",
+          "manual": true,
+          "criterion": {
+            "type": "simple",
+            "jsonPath": "$.mood",
+            "operation": "EQUALS",
+            "value": "calm"
+          }
+        },
+        {
+          "name": "Mood Not Calm -> Return",
+          "next": "RETURN_TO_CAGE",
+          "manual": true,
+          "criterion": {
+            "type": "simple",
+            "jsonPath": "$.mood",
+            "operation": "NOT_EQUALS",
+            "value": "calm"
+          }
+        }
+      ]
+    },
+    "PICK_UP": {
+      "transitions": [
+        {
+          "name": "Place In Hand",
+          "next": "PET",
+          "manual": true,
+          "processors": [
+            {
+              "name": "safety-check",
+              "executionMode": "SYNC",
+              "config": {
+                "calculationNodesTags": "cyoda_application",
+                "attachEntity": true,
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "PET": {
+      "transitions": [
+        {
+          "name": "Stroke",
+          "next": "FINISH",
+          "manual": true,
+          "processors": [
+            {
+              "name": "interaction-logger",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "calculationNodesTags": "cyoda_application",
+                "attachEntity": true,
+                "responseTimeoutMs": 1000,
+                "retryPolicy": "LINEAR"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Hamster Bites",
+          "next": "RETURN_TO_CAGE",
+          "manual": true
+        }
+      ]
+    },
+    "RETURN_TO_CAGE": {
+      "transitions": [
+        {
+          "name": "Place Back",
+          "next": "FINISH",
+          "manual": true
+        }
+      ]
+    },
+    "FINISH": {
+      "transitions": []
+    }
+  }
+}
