@@ -1,0 +1,75 @@
+{
+  "version": "1.0",
+  "name": "Report Workflow",
+  "desc": "Workflow for Report entity with generation, validation, and email dispatch",
+  "initialState": "initial_state",
+  "active": true,
+  "states": {
+    "initial_state": {
+      "transitions": [
+        {
+          "name": "create",
+          "next": "created",
+          "manual": false
+        }
+      ]
+    },
+    "created": {
+      "transitions": [
+        {
+          "name": "generate",
+          "next": "generated",
+          "manual": false,
+          "processors": [
+            {
+              "name": "ReportGenerationProcessor",
+              "executionMode": "SYNC",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "generated": {
+      "transitions": [
+        {
+          "name": "validate",
+          "next": "validated",
+          "manual": false,
+          "criterion": {
+            "type": "function",
+            "function": {
+              "name": "ReportValidationCriterion",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "validated": {
+      "transitions": [
+        {
+          "name": "email",
+          "next": "emailed",
+          "manual": false,
+          "processors": [
+            {
+              "name": "EmailDispatchProcessor",
+              "executionMode": "SYNC",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "emailed": {
+      "transitions": []
+    }
+  }
+}
