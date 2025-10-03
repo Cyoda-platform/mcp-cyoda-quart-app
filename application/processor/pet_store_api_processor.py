@@ -5,7 +5,7 @@ Handles data extraction from Pet Store API and creates/updates Product entities
 as specified in functional requirements for automated data collection.
 """
 
-import json
+
 import logging
 from typing import Any, Dict, List
 

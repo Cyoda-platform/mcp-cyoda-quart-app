@@ -6,7 +6,6 @@ performance scores and inventory turnover rates as specified in functional requi
 """
 
 import logging
-from datetime import datetime, timezone
 from typing import Any
 
 from application.entity.product.version_1.product import Product

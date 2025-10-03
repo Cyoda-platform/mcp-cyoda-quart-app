@@ -97,7 +97,7 @@ class EmailDispatchProcessor(CyodaProcessor):
             email_subject = f"Weekly Performance Report - {report.title}"
             email_body = self._generate_email_body(report)
 
-            self.logger.info(f"Simulating email dispatch:")
+            self.logger.info("Simulating email dispatch:")
             self.logger.info(f"To: {', '.join(report.email_recipients)}")
             self.logger.info(f"Subject: {email_subject}")
             self.logger.info(f"Body length: {len(email_body)} characters")
