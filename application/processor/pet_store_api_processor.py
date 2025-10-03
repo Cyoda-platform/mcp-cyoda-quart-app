@@ -5,14 +5,14 @@ Handles data extraction from Pet Store API and creates/updates Product entities
 as specified in functional requirements for automated data collection.
 """
 
+import json
 import logging
 from typing import Any, Dict, List
-import json
 
-from common.entity.entity_casting import cast_entity
-from common.processor.base import CyodaEntity, CyodaProcessor
 from application.entity.data_extraction.version_1.data_extraction import DataExtraction
 from application.entity.product.version_1.product import Product
+from common.entity.entity_casting import cast_entity
+from common.processor.base import CyodaEntity, CyodaProcessor
 from services.services import get_entity_service
 
 
@@ -55,15 +55,15 @@ class PetStoreApiProcessor(CyodaProcessor):
 
             # Simulate API data extraction (in real implementation, call actual Pet Store API)
             api_data = await self._fetch_pet_store_data(extraction)
-            
+
             # Process the extracted data and create/update Product entities
             processed_count, failed_count = await self._process_api_data(api_data)
-            
+
             # Mark extraction as completed
             extraction.complete_extraction(
                 records_extracted=len(api_data),
                 records_processed=processed_count,
-                records_failed=failed_count
+                records_failed=failed_count,
             )
 
             # Set data quality score
@@ -82,26 +82,28 @@ class PetStoreApiProcessor(CyodaProcessor):
                 f"Error in Pet Store API extraction {getattr(entity, 'technical_id', '<unknown>')}: {str(e)}"
             )
             # Mark extraction as failed
-            if hasattr(entity, 'fail_extraction'):
+            if hasattr(entity, "fail_extraction"):
                 entity.fail_extraction(str(e))
             raise
 
-    async def _fetch_pet_store_data(self, extraction: DataExtraction) -> List[Dict[str, Any]]:
+    async def _fetch_pet_store_data(
+        self, extraction: DataExtraction
+    ) -> List[Dict[str, Any]]:
         """
         Fetch data from Pet Store API.
-        
+
         Args:
             extraction: The DataExtraction entity with API configuration
-            
+
         Returns:
             List of product data from API
         """
         try:
             # In a real implementation, this would make HTTP requests to the Pet Store API
             # For now, simulate API response with sample data
-            
+
             self.logger.info(f"Fetching data from {extraction.api_endpoint}")
-            
+
             # Simulate Pet Store API response data
             sample_data = [
                 {
@@ -111,25 +113,25 @@ class PetStoreApiProcessor(CyodaProcessor):
                     "status": "available",
                     "salesVolume": 45,
                     "revenue": 1350.0,
-                    "stockLevel": 12
+                    "stockLevel": 12,
                 },
                 {
-                    "id": "pet2", 
+                    "id": "pet2",
                     "name": "Persian Cat",
                     "category": "Cats",
                     "status": "available",
                     "salesVolume": 23,
                     "revenue": 690.0,
-                    "stockLevel": 8
+                    "stockLevel": 8,
                 },
                 {
                     "id": "pet3",
                     "name": "Canary Bird",
                     "category": "Birds",
-                    "status": "available", 
+                    "status": "available",
                     "salesVolume": 67,
                     "revenue": 1005.0,
-                    "stockLevel": 25
+                    "stockLevel": 25,
                 },
                 {
                     "id": "pet4",
@@ -138,7 +140,7 @@ class PetStoreApiProcessor(CyodaProcessor):
                     "status": "available",
                     "salesVolume": 120,
                     "revenue": 360.0,
-                    "stockLevel": 50
+                    "stockLevel": 50,
                 },
                 {
                     "id": "pet5",
@@ -147,31 +149,35 @@ class PetStoreApiProcessor(CyodaProcessor):
                     "status": "available",
                     "salesVolume": 89,
                     "revenue": 445.0,
-                    "stockLevel": 15
-                }
+                    "stockLevel": 15,
+                },
             ]
-            
-            self.logger.info(f"Successfully fetched {len(sample_data)} records from Pet Store API")
+
+            self.logger.info(
+                f"Successfully fetched {len(sample_data)} records from Pet Store API"
+            )
             return sample_data
-            
+
         except Exception as e:
             self.logger.error(f"Error fetching Pet Store API data: {str(e)}")
             raise
 
-    async def _process_api_data(self, api_data: List[Dict[str, Any]]) -> tuple[int, int]:
+    async def _process_api_data(
+        self, api_data: List[Dict[str, Any]]
+    ) -> tuple[int, int]:
         """
         Process API data and create/update Product entities.
-        
+
         Args:
             api_data: List of product data from API
-            
+
         Returns:
             Tuple of (processed_count, failed_count)
         """
         entity_service = get_entity_service()
         processed_count = 0
         failed_count = 0
-        
+
         for product_data in api_data:
             try:
                 # Create Product entity from API data
@@ -183,28 +189,32 @@ class PetStoreApiProcessor(CyodaProcessor):
                     revenue=product_data.get("revenue", 0.0),
                     stock_level=product_data.get("stockLevel", 0),
                     api_product_id=product_data.get("id"),
-                    api_source="petstore"
+                    api_source="petstore",
                 )
-                
+
                 # Update extraction timestamp
                 product.update_extraction_timestamp()
-                
+
                 # Convert to dict for EntityService
                 product_dict = product.model_dump(by_alias=True)
-                
+
                 # Save the Product entity
                 response = await entity_service.save(
                     entity=product_dict,
                     entity_class=Product.ENTITY_NAME,
                     entity_version=str(Product.ENTITY_VERSION),
                 )
-                
+
                 processed_count += 1
-                self.logger.debug(f"Created Product entity {response.metadata.id} for {product.name}")
-                
+                self.logger.debug(
+                    f"Created Product entity {response.metadata.id} for {product.name}"
+                )
+
             except Exception as e:
                 failed_count += 1
-                self.logger.warning(f"Failed to process product {product_data.get('name', 'Unknown')}: {str(e)}")
+                self.logger.warning(
+                    f"Failed to process product {product_data.get('name', 'Unknown')}: {str(e)}"
+                )
                 continue
-        
+
         return processed_count, failed_count

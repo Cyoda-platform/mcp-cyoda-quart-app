@@ -7,9 +7,9 @@ be marked as completed as specified in functional requirements.
 
 from typing import Any
 
+from application.entity.data_extraction.version_1.data_extraction import DataExtraction
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.data_extraction.version_1.data_extraction import DataExtraction
 
 
 class DataExtractionValidationCriterion(CyodaCriteriaChecker):
@@ -79,7 +79,9 @@ class DataExtractionValidationCriterion(CyodaCriteriaChecker):
 
             # Validate data quality - at least 50% success rate required
             if extraction.records_extracted > 0:
-                success_rate = (extraction.records_processed or 0) / extraction.records_extracted
+                success_rate = (
+                    extraction.records_processed or 0
+                ) / extraction.records_extracted
                 if success_rate < 0.5:
                     self.logger.warning(
                         f"DataExtraction {extraction.technical_id} has low success rate: {success_rate:.2%}"

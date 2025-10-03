@@ -19,33 +19,37 @@ from quart_schema import (
     validate_querystring,
 )
 
-from common.service.entity_service import SearchConditionRequest
-from services.services import get_entity_service
 from application.entity.data_extraction.version_1.data_extraction import DataExtraction
 from application.models import (
-    DataExtractionResponse,
+    CountResponse,
     DataExtractionListResponse,
-    DataExtractionSearchResponse,
     DataExtractionQueryParams,
+    DataExtractionResponse,
+    DataExtractionSearchResponse,
     DataExtractionUpdateQueryParams,
+    DeleteResponse,
+    ErrorResponse,
+    ExistsResponse,
     SearchRequest,
     TransitionRequest,
     TransitionResponse,
     TransitionsResponse,
-    CountResponse,
-    DeleteResponse,
-    ExistsResponse,
-    ErrorResponse,
     ValidationErrorResponse,
 )
+from common.service.entity_service import SearchConditionRequest
+from services.services import get_entity_service
 
 logger = logging.getLogger(__name__)
+
 
 # Helper to normalize entity data from service
 def _to_entity_dict(data: Any) -> Dict[str, Any]:
     return data.model_dump(by_alias=True) if hasattr(data, "model_dump") else data
 
-data_extractions_bp = Blueprint("data_extractions", __name__, url_prefix="/api/data-extractions")
+
+data_extractions_bp = Blueprint(
+    "data_extractions", __name__, url_prefix="/api/data-extractions"
+)
 
 
 @data_extractions_bp.route("", methods=["POST"])
@@ -63,16 +67,16 @@ async def create_data_extraction(data: DataExtraction) -> ResponseReturnValue:
     """Create a new DataExtraction with comprehensive validation"""
     try:
         entity_data = data.model_dump(by_alias=True)
-        
+
         response = await get_entity_service().save(
             entity=entity_data,
             entity_class=DataExtraction.ENTITY_NAME,
             entity_version=str(DataExtraction.ENTITY_VERSION),
         )
-        
+
         logger.info("Created DataExtraction with ID: %s", response.metadata.id)
         return _to_entity_dict(response.data), 201
-        
+
     except ValueError as e:
         logger.warning("Validation error creating DataExtraction: %s", str(e))
         return {"error": str(e), "code": "VALIDATION_ERROR"}, 400
@@ -97,18 +101,18 @@ async def get_data_extraction(entity_id: str) -> ResponseReturnValue:
     try:
         if not entity_id or len(entity_id.strip()) == 0:
             return {"error": "Entity ID is required", "code": "INVALID_ID"}, 400
-            
+
         response = await get_entity_service().get_by_id(
             entity_id=entity_id,
             entity_class=DataExtraction.ENTITY_NAME,
             entity_version=str(DataExtraction.ENTITY_VERSION),
         )
-        
+
         if not response:
             return {"error": "DataExtraction not found", "code": "NOT_FOUND"}, 404
-            
+
         return _to_entity_dict(response.data), 200
-        
+
     except ValueError as e:
         logger.warning("Invalid entity ID %s: %s", entity_id, str(e))
         return {"error": str(e), "code": "INVALID_ID"}, 400
@@ -128,11 +132,13 @@ async def get_data_extraction(entity_id: str) -> ResponseReturnValue:
         500: (ErrorResponse, None),
     }
 )
-async def list_data_extractions(query_args: DataExtractionQueryParams) -> ResponseReturnValue:
+async def list_data_extractions(
+    query_args: DataExtractionQueryParams,
+) -> ResponseReturnValue:
     """List DataExtractions with optional filtering and validation"""
     try:
         search_conditions: Dict[str, str] = {}
-        
+
         if query_args.extraction_type:
             search_conditions["extractionType"] = query_args.extraction_type
         if query_args.extraction_status:
@@ -141,13 +147,13 @@ async def list_data_extractions(query_args: DataExtractionQueryParams) -> Respon
             search_conditions["apiSource"] = query_args.api_source
         if query_args.state:
             search_conditions["state"] = query_args.state
-            
+
         if search_conditions:
             builder = SearchConditionRequest.builder()
             for field, value in search_conditions.items():
                 builder.equals(field, value)
             condition = builder.build()
-            
+
             entities = await get_entity_service().search(
                 entity_class=DataExtraction.ENTITY_NAME,
                 condition=condition,
@@ -158,16 +164,16 @@ async def list_data_extractions(query_args: DataExtractionQueryParams) -> Respon
                 entity_class=DataExtraction.ENTITY_NAME,
                 entity_version=str(DataExtraction.ENTITY_VERSION),
             )
-            
+
         entity_list = [_to_entity_dict(r.data) for r in entities]
-        
+
         # Apply pagination
         start = query_args.offset
         end = start + query_args.limit
         paginated_entities = entity_list[start:end]
-        
+
         return {"entities": paginated_entities, "total": len(entity_list)}, 200
-        
+
     except Exception as e:
         logger.exception("Error listing DataExtractions: %s", str(e))
         return {"error": str(e)}, 500
@@ -193,10 +199,10 @@ async def update_data_extraction(
     try:
         if not entity_id or len(entity_id.strip()) == 0:
             return {"error": "Entity ID is required", "code": "INVALID_ID"}, 400
-            
+
         transition: Optional[str] = query_args.transition
         entity_data: Dict[str, Any] = data.model_dump(by_alias=True)
-        
+
         response = await get_entity_service().update(
             entity_id=entity_id,
             entity=entity_data,
@@ -204,12 +210,14 @@ async def update_data_extraction(
             transition=transition,
             entity_version=str(DataExtraction.ENTITY_VERSION),
         )
-        
+
         logger.info("Updated DataExtraction %s", entity_id)
         return _to_entity_dict(response.data), 200
-        
+
     except ValueError as e:
-        logger.warning("Validation error updating DataExtraction %s: %s", entity_id, str(e))
+        logger.warning(
+            "Validation error updating DataExtraction %s: %s", entity_id, str(e)
+        )
         return {"error": str(e), "code": "VALIDATION_ERROR"}, 400
     except Exception as e:
         logger.exception("Error updating DataExtraction %s: %s", entity_id, str(e))
@@ -232,22 +240,22 @@ async def delete_data_extraction(entity_id: str) -> ResponseReturnValue:
     try:
         if not entity_id or len(entity_id.strip()) == 0:
             return {"error": "Entity ID is required", "code": "INVALID_ID"}, 400
-            
+
         await get_entity_service().delete_by_id(
             entity_id=entity_id,
             entity_class=DataExtraction.ENTITY_NAME,
             entity_version=str(DataExtraction.ENTITY_VERSION),
         )
-        
+
         logger.info("Deleted DataExtraction %s", entity_id)
-        
+
         response = DeleteResponse(
             success=True,
             message="DataExtraction deleted successfully",
-            entity_id=entity_id,
+            entityId=entity_id,
         )
         return response.model_dump(), 200
-        
+
     except ValueError as e:
         logger.warning("Invalid entity ID %s: %s", entity_id, str(e))
         return {"error": str(e), "code": "INVALID_ID"}, 400

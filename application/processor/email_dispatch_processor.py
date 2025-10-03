@@ -8,9 +8,9 @@ in functional requirements for automated weekly reporting.
 import logging
 from typing import Any
 
+from application.entity.report.version_1.report import Report
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.report.version_1.report import Report
 
 
 class EmailDispatchProcessor(CyodaProcessor):
@@ -56,7 +56,7 @@ class EmailDispatchProcessor(CyodaProcessor):
 
             # Simulate email dispatch (in real implementation, integrate with email service)
             success = await self._send_email(report)
-            
+
             if success:
                 report.mark_email_sent()
                 self.logger.info(
@@ -65,7 +65,9 @@ class EmailDispatchProcessor(CyodaProcessor):
             else:
                 error_msg = "Email service unavailable"
                 report.mark_email_failed(error_msg)
-                self.logger.error(f"Failed to email Report {report.technical_id}: {error_msg}")
+                self.logger.error(
+                    f"Failed to email Report {report.technical_id}: {error_msg}"
+                )
 
             return report
 
@@ -74,36 +76,36 @@ class EmailDispatchProcessor(CyodaProcessor):
                 f"Error dispatching email for Report {getattr(entity, 'technical_id', '<unknown>')}: {str(e)}"
             )
             # Mark email as failed
-            if hasattr(entity, 'mark_email_failed'):
+            if hasattr(entity, "mark_email_failed"):
                 entity.mark_email_failed(str(e))
             raise
 
     async def _send_email(self, report: Report) -> bool:
         """
         Send email with report content to recipients.
-        
+
         Args:
             report: The Report entity to email
-            
+
         Returns:
             True if email was sent successfully, False otherwise
         """
         try:
             # In a real implementation, this would integrate with an email service
             # like SendGrid, AWS SES, or SMTP server
-            
+
             email_subject = f"Weekly Performance Report - {report.title}"
             email_body = self._generate_email_body(report)
-            
+
             self.logger.info(f"Simulating email dispatch:")
             self.logger.info(f"To: {', '.join(report.email_recipients)}")
             self.logger.info(f"Subject: {email_subject}")
             self.logger.info(f"Body length: {len(email_body)} characters")
-            
+
             # Simulate successful email dispatch
             # In real implementation, replace with actual email service call
             return True
-            
+
         except Exception as e:
             self.logger.error(f"Error in email service: {str(e)}")
             return False
@@ -111,10 +113,10 @@ class EmailDispatchProcessor(CyodaProcessor):
     def _generate_email_body(self, report: Report) -> str:
         """
         Generate email body content from report data.
-        
+
         Args:
             report: The Report entity
-            
+
         Returns:
             Formatted email body content
         """
@@ -131,22 +133,22 @@ KEY METRICS:
 
 TOP PERFORMERS:
 """
-        
+
         if report.top_performers:
             for i, product in enumerate(report.top_performers[:3], 1):
                 body += f"{i}. {product.get('name', 'Unknown')} - Score: {product.get('performanceScore', 0):.1f}\n"
         else:
             body += "No top performers identified.\n"
-        
+
         body += "\nRESTOCK RECOMMENDATIONS:\n"
-        
+
         if report.restock_recommendations:
             for product in report.restock_recommendations[:5]:
-                priority = product.get('priority', 'MEDIUM')
+                priority = product.get("priority", "MEDIUM")
                 body += f"- {product.get('name', 'Unknown')} (Priority: {priority})\n"
         else:
             body += "No immediate restocking required.\n"
-        
+
         body += f"""
 For detailed analysis and complete product listings, please access the full report in the system.
 
@@ -156,5 +158,5 @@ Products analyzed: {report.products_analyzed or 0}
 Best regards,
 Automated Performance Analysis System
 """
-        
+
         return body

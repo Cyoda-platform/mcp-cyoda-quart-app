@@ -9,9 +9,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.product.version_1.product import Product
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.product.version_1.product import Product
 
 
 class ProductAnalysisProcessor(CyodaProcessor):
@@ -50,10 +50,10 @@ class ProductAnalysisProcessor(CyodaProcessor):
 
             # Calculate performance score
             performance_score = self._calculate_performance_score(product)
-            
+
             # Calculate inventory turnover rate
             turnover_rate = self._calculate_inventory_turnover_rate(product)
-            
+
             # Update product with calculated metrics
             product.set_performance_metrics(performance_score, turnover_rate)
 
@@ -72,15 +72,15 @@ class ProductAnalysisProcessor(CyodaProcessor):
     def _calculate_performance_score(self, product: Product) -> float:
         """
         Calculate performance score based on sales volume, revenue, and stock status.
-        
+
         Args:
             product: The Product entity to analyze
-            
+
         Returns:
             Performance score (0-100)
         """
         score = 0.0
-        
+
         # Sales volume component (40% of score)
         sales_volume = product.sales_volume or 0
         if sales_volume > 100:
@@ -91,7 +91,7 @@ class ProductAnalysisProcessor(CyodaProcessor):
             score += 20.0
         elif sales_volume > 0:
             score += 10.0
-        
+
         # Revenue component (40% of score)
         revenue = product.revenue or 0.0
         if revenue > 1000.0:
@@ -102,7 +102,7 @@ class ProductAnalysisProcessor(CyodaProcessor):
             score += 20.0
         elif revenue > 0.0:
             score += 10.0
-        
+
         # Stock availability component (20% of score)
         stock_level = product.stock_level or 0
         if stock_level > 50:
@@ -113,28 +113,28 @@ class ProductAnalysisProcessor(CyodaProcessor):
             score += 10.0
         elif stock_level > 0:
             score += 5.0
-        
+
         return min(score, 100.0)
 
     def _calculate_inventory_turnover_rate(self, product: Product) -> float:
         """
         Calculate inventory turnover rate based on sales and stock levels.
-        
+
         Args:
             product: The Product entity to analyze
-            
+
         Returns:
             Inventory turnover rate
         """
         sales_volume = product.sales_volume or 0
         stock_level = product.stock_level or 1  # Avoid division by zero
-        
+
         if stock_level == 0:
             # If no stock, return high turnover if there were sales
             return 10.0 if sales_volume > 0 else 0.0
-        
+
         # Simple turnover calculation: sales / average stock
         # Assuming current stock is representative of average stock
         turnover_rate = sales_volume / stock_level
-        
+
         return round(turnover_rate, 2)

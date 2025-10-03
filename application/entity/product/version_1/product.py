@@ -18,7 +18,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class Product(CyodaEntity):
     """
     Product represents a pet store product with performance metrics and sales data.
-    
+
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     The state field manages workflow states: initial_state -> extracted -> analyzed -> reported
     """
@@ -31,67 +31,61 @@ class Product(CyodaEntity):
     name: str = Field(..., description="Product name from Pet Store API")
     category: str = Field(..., description="Product category (e.g., Dogs, Cats, Birds)")
     status: str = Field(..., description="Product status (available, pending, sold)")
-    
+
     # Performance metrics fields
     sales_volume: Optional[int] = Field(
-        default=0,
-        alias="salesVolume", 
-        description="Total units sold"
+        default=0, alias="salesVolume", description="Total units sold"
     )
-    revenue: Optional[float] = Field(
-        default=0.0,
-        description="Total revenue generated"
-    )
+    revenue: Optional[float] = Field(default=0.0, description="Total revenue generated")
     stock_level: Optional[int] = Field(
-        default=0,
-        alias="stockLevel",
-        description="Current inventory stock level"
+        default=0, alias="stockLevel", description="Current inventory stock level"
     )
-    
+
     # Analysis fields (populated during processing)
     performance_score: Optional[float] = Field(
         default=None,
         alias="performanceScore",
-        description="Calculated performance score (0-100)"
+        description="Calculated performance score (0-100)",
     )
     inventory_turnover_rate: Optional[float] = Field(
         default=None,
-        alias="inventoryTurnoverRate", 
-        description="Inventory turnover rate calculation"
+        alias="inventoryTurnoverRate",
+        description="Inventory turnover rate calculation",
     )
-    
+
     # Timestamps
     last_extracted_at: Optional[str] = Field(
         default=None,
         alias="lastExtractedAt",
-        description="Timestamp when data was last extracted from API"
+        description="Timestamp when data was last extracted from API",
     )
     last_analyzed_at: Optional[str] = Field(
         default=None,
         alias="lastAnalyzedAt",
-        description="Timestamp when performance analysis was last run"
+        description="Timestamp when performance analysis was last run",
     )
-    
+
     # API source tracking
     api_product_id: Optional[str] = Field(
         default=None,
         alias="apiProductId",
-        description="Original product ID from Pet Store API"
+        description="Original product ID from Pet Store API",
     )
     api_source: Optional[str] = Field(
-        default="petstore",
-        alias="apiSource",
-        description="Source API identifier"
+        default="petstore", alias="apiSource", description="Source API identifier"
     )
 
     # Validation rules
     ALLOWED_CATEGORIES: ClassVar[List[str]] = [
-        "Dogs", "Cats", "Birds", "Fish", "Reptiles", "Small Pets"
+        "Dogs",
+        "Cats",
+        "Birds",
+        "Fish",
+        "Reptiles",
+        "Small Pets",
     ]
-    
-    ALLOWED_STATUSES: ClassVar[List[str]] = [
-        "available", "pending", "sold"
-    ]
+
+    ALLOWED_STATUSES: ClassVar[List[str]] = ["available", "pending", "sold"]
 
     @field_validator("name")
     @classmethod
@@ -145,13 +139,19 @@ class Product(CyodaEntity):
 
     def update_extraction_timestamp(self) -> None:
         """Update the last extracted timestamp to current time"""
-        self.last_extracted_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.last_extracted_at = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
 
     def update_analysis_timestamp(self) -> None:
         """Update the last analyzed timestamp to current time"""
-        self.last_analyzed_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.last_analyzed_at = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
 
-    def set_performance_metrics(self, performance_score: float, turnover_rate: float) -> None:
+    def set_performance_metrics(
+        self, performance_score: float, turnover_rate: float
+    ) -> None:
         """Set performance metrics and update analysis timestamp"""
         self.performance_score = performance_score
         self.inventory_turnover_rate = turnover_rate
@@ -163,14 +163,16 @@ class Product(CyodaEntity):
 
     def is_high_performer(self, threshold: float = 70.0) -> bool:
         """Check if product is a high performer based on score"""
-        return self.performance_score is not None and self.performance_score >= threshold
+        return (
+            self.performance_score is not None and self.performance_score >= threshold
+        )
 
     def needs_restocking(self) -> bool:
         """Check if product needs restocking based on turnover and stock"""
         return (
-            self.is_low_stock() and 
-            self.inventory_turnover_rate is not None and 
-            self.inventory_turnover_rate > 2.0
+            self.is_low_stock()
+            and self.inventory_turnover_rate is not None
+            and self.inventory_turnover_rate > 2.0
         )
 
     def to_api_response(self) -> Dict[str, Any]:

@@ -7,9 +7,9 @@ proceed to email dispatch as specified in functional requirements.
 
 from typing import Any
 
+from application.entity.report.version_1.report import Report
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.report.version_1.report import Report
 
 
 class ReportValidationCriterion(CyodaCriteriaChecker):
@@ -50,7 +50,10 @@ class ReportValidationCriterion(CyodaCriteriaChecker):
                 )
                 return False
 
-            if not report.report_type or report.report_type not in Report.ALLOWED_REPORT_TYPES:
+            if (
+                not report.report_type
+                or report.report_type not in Report.ALLOWED_REPORT_TYPES
+            ):
                 self.logger.warning(
                     f"Report {report.technical_id} has invalid report type: {report.report_type}"
                 )
@@ -64,7 +67,10 @@ class ReportValidationCriterion(CyodaCriteriaChecker):
                 return False
 
             # Validate executive summary exists and has content
-            if not report.executive_summary or len(report.executive_summary.strip()) < 50:
+            if (
+                not report.executive_summary
+                or len(report.executive_summary.strip()) < 50
+            ):
                 self.logger.warning(
                     f"Report {report.technical_id} has insufficient executive summary"
                 )
@@ -101,9 +107,12 @@ class ReportValidationCriterion(CyodaCriteriaChecker):
 
             # Business logic validation - ensure report has meaningful content
             has_content = (
-                (report.top_performers and len(report.top_performers) > 0) or
-                (report.underperformers and len(report.underperformers) > 0) or
-                (report.restock_recommendations and len(report.restock_recommendations) > 0)
+                (report.top_performers and len(report.top_performers) > 0)
+                or (report.underperformers and len(report.underperformers) > 0)
+                or (
+                    report.restock_recommendations
+                    and len(report.restock_recommendations) > 0
+                )
             )
 
             if not has_content:

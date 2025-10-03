@@ -7,9 +7,9 @@ proceed to analysis stage as specified in functional requirements.
 
 from typing import Any
 
+from application.entity.product.version_1.product import Product
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.product.version_1.product import Product
 
 
 class ProductValidationCriterion(CyodaCriteriaChecker):
@@ -50,7 +50,10 @@ class ProductValidationCriterion(CyodaCriteriaChecker):
                 )
                 return False
 
-            if not product.category or product.category not in Product.ALLOWED_CATEGORIES:
+            if (
+                not product.category
+                or product.category not in Product.ALLOWED_CATEGORIES
+            ):
                 self.logger.warning(
                     f"Product {product.technical_id} has invalid category: {product.category}"
                 )
