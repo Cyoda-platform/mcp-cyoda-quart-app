@@ -8,7 +8,7 @@ ensuring both hamster and handler safety.
 import logging
 import random
 from datetime import datetime, timezone
-from typing import Any, Dict
+from typing import Any, Dict, cast
 
 from application.entity.pet_hamster.version_1.pet_hamster import PetHamster
 from common.entity.entity_casting import cast_entity
@@ -138,7 +138,7 @@ class SafetyCheckProcessor(CyodaProcessor):
         max_score = 0.0
 
         for check_name, check_data in checks.items():
-            weight = check_data["weight"]
+            weight = float(check_data["weight"])
             max_score += weight
             if check_data["passed"]:
                 total_score += weight
