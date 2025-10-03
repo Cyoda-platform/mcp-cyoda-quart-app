@@ -11,6 +11,9 @@ from common.exception.exception_handler import (
 from services.services import get_grpc_client, initialize_services
 
 # Import blueprints for different route groups
+from application.routes.products import products_bp
+from application.routes.reports import reports_bp
+from application.routes.data_extractions import data_extractions_bp
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -20,13 +23,14 @@ app = Quart(__name__)
 
 QuartSchema(
     app,
-    info={"title": "Cyoda Client Application", "version": "1.0.0"},
+    info={"title": "Pet Store Performance Analysis System", "version": "1.0.0"},
     tags=[
         {
-            "name": "ExampleEntities",
-            "description": "ExampleEntity management endpoints",
+            "name": "products",
+            "description": "Product management endpoints",
         },
-        {"name": "OtherEntities", "description": "OtherEntity management endpoints"},
+        {"name": "reports", "description": "Report management endpoints"},
+        {"name": "data-extractions", "description": "Data extraction management endpoints"},
         {"name": "System", "description": "System and health endpoints"},
     ],
     security=[{"bearerAuth": []}],
@@ -37,6 +41,11 @@ QuartSchema(
         }
     },
 )
+
+# Register blueprints
+app.register_blueprint(products_bp)
+app.register_blueprint(reports_bp)
+app.register_blueprint(data_extractions_bp)
 
 # Global holder for the background task to satisfy mypy
 # (avoid setting arbitrary attrs on app)
