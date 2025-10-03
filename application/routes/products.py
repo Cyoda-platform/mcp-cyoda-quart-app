@@ -230,25 +230,83 @@ async def delete_product(entity_id: str) -> ResponseReturnValue:
     try:
         if not entity_id or len(entity_id.strip()) == 0:
             return {"error": "Entity ID is required", "code": "INVALID_ID"}, 400
-            
+
         await get_entity_service().delete_by_id(
             entity_id=entity_id,
             entity_class=Product.ENTITY_NAME,
             entity_version=str(Product.ENTITY_VERSION),
         )
-        
+
         logger.info("Deleted Product %s", entity_id)
-        
+
         response = DeleteResponse(
             success=True,
             message="Product deleted successfully",
             entity_id=entity_id,
         )
         return response.model_dump(), 200
-        
+
     except ValueError as e:
         logger.warning("Invalid entity ID %s: %s", entity_id, str(e))
         return {"error": str(e), "code": "INVALID_ID"}, 400
     except Exception as e:
         logger.exception("Error deleting Product %s: %s", entity_id, str(e))
         return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
+
+
+@products_bp.route("/search", methods=["POST"])
+@tag(["products"])
+@operation_id("search_products")
+@validate(
+    request=SearchRequest,
+    responses={
+        200: (ProductSearchResponse, None),
+        400: (ValidationErrorResponse, None),
+        500: (ErrorResponse, None),
+    },
+)
+async def search_products(data: SearchRequest) -> ResponseReturnValue:
+    """Search Products using field-value search"""
+    try:
+        search_data = data.model_dump(by_alias=True, exclude_none=True)
+
+        if not search_data:
+            return {"error": "Search conditions required", "code": "EMPTY_SEARCH"}, 400
+
+        builder = SearchConditionRequest.builder()
+        for field, value in search_data.items():
+            builder.equals(field, value)
+
+        search_request = builder.build()
+        results = await get_entity_service().search(
+            entity_class=Product.ENTITY_NAME,
+            condition=search_request,
+            entity_version=str(Product.ENTITY_VERSION),
+        )
+
+        entities = [_to_entity_dict(r.data) for r in results]
+        return {"entities": entities, "total": len(entities)}, 200
+
+    except Exception as e:
+        logger.exception("Error searching Products: %s", str(e))
+        return {"error": str(e)}, 500
+
+
+@products_bp.route("/count", methods=["GET"])
+@tag(["products"])
+@operation_id("count_products")
+@validate(responses={200: (CountResponse, None), 500: (ErrorResponse, None)})
+async def count_products() -> ResponseReturnValue:
+    """Count total number of Products"""
+    try:
+        count = await get_entity_service().count(
+            entity_class=Product.ENTITY_NAME,
+            entity_version=str(Product.ENTITY_VERSION),
+        )
+
+        response = CountResponse(count=count)
+        return response.model_dump(), 200
+
+    except Exception as e:
+        logger.exception("Error counting Products: %s", str(e))
+        return {"error": str(e)}, 500
