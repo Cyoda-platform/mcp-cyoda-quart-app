@@ -430,3 +430,132 @@ async def get_available_transitions(entity_id: str) -> ResponseReturnValue:
             "Error getting transitions for PetHamster %s: %s", entity_id, str(e)
         )
         return jsonify({"error": str(e)}), 500
+
+
+# ---- Search Endpoints -----------------------------------------------------------
+
+
+@pet_hamsters_bp.route("/search", methods=["POST"])
+@tag(["pet-hamsters"])
+@operation_id("search_pet_hamsters")
+@validate(
+    request=SearchRequest,
+    responses={
+        200: (PetHamsterSearchResponse, None),
+        400: (ValidationErrorResponse, None),
+        500: (ErrorResponse, None),
+    },
+)
+async def search_entities(data: SearchRequest) -> ResponseReturnValue:
+    """Search PetHamsters using simple field-value search with validation"""
+    try:
+        # Convert Pydantic model to dict for search
+        search_data = data.model_dump(by_alias=True, exclude_none=True)
+
+        if not search_data:
+            return {"error": "Search conditions required", "code": "EMPTY_SEARCH"}, 400
+
+        # KISS: Simple field-value search only
+        builder = SearchConditionRequest.builder()
+        for field, value in search_data.items():
+            builder.equals(field, value)
+
+        search_request = builder.build()
+        results = await service.search(
+            entity_class=PetHamster.ENTITY_NAME,
+            condition=search_request,
+            entity_version=str(PetHamster.ENTITY_VERSION),
+        )
+
+        # Thin proxy: return list of entities directly
+        entities = [_to_entity_dict(r.data) for r in results]
+
+        return {"entities": entities, "total": len(entities)}, 200
+
+    except Exception as e:
+        logger.exception("Error searching PetHamsters: %s", str(e))
+        return {"error": str(e)}, 500
+
+
+@pet_hamsters_bp.route("/find-all", methods=["GET"])
+@tag(["pet-hamsters"])
+@operation_id("find_all_pet_hamsters")
+@validate(
+    responses={200: (PetHamsterListResponse, None), 500: (ErrorResponse, None)}
+)
+async def find_all_entities() -> ResponseReturnValue:
+    """Find all PetHamsters without filtering"""
+    try:
+        results = await service.find_all(
+            entity_class=PetHamster.ENTITY_NAME,
+            entity_version=str(PetHamster.ENTITY_VERSION),
+        )
+
+        entities = [_to_entity_dict(r.data) for r in results]
+        return {"entities": entities, "total": len(entities)}, 200
+
+    except Exception as e:
+        logger.exception("Error finding all PetHamsters: %s", str(e))
+        return {"error": str(e)}, 500
+
+
+@pet_hamsters_bp.route("/<entity_id>/transitions", methods=["POST"])
+@tag(["pet-hamsters"])
+@operation_id("trigger_pet_hamster_transition")
+@validate(
+    request=TransitionRequest,
+    responses={
+        200: (TransitionResponse, None),
+        404: (ErrorResponse, None),
+        400: (ValidationErrorResponse, None),
+        500: (ErrorResponse, None),
+    },
+)
+async def trigger_transition(
+    entity_id: str, data: TransitionRequest
+) -> ResponseReturnValue:
+    """Trigger a specific workflow transition with validation"""
+    try:
+        # Get current entity state
+        current_entity = await service.get_by_id(
+            entity_id=entity_id,
+            entity_class=PetHamster.ENTITY_NAME,
+            entity_version=str(PetHamster.ENTITY_VERSION),
+        )
+
+        if not current_entity:
+            return jsonify({"error": "PetHamster not found"}), 404
+
+        previous_state = current_entity.metadata.state
+
+        # Execute the transition
+        response = await service.execute_transition(
+            entity_id=entity_id,
+            transition=data.transition_name,
+            entity_class=PetHamster.ENTITY_NAME,
+            entity_version=str(PetHamster.ENTITY_VERSION),
+        )
+
+        logger.info(
+            "Executed transition '%s' on PetHamster %s",
+            data.transition_name,
+            entity_id,
+        )
+
+        return (
+            jsonify(
+                {
+                    "id": response.metadata.id,
+                    "message": "Transition executed successfully",
+                    "previousState": previous_state,
+                    "newState": response.metadata.state,
+                }
+            ),
+            200,
+        )
+
+    except Exception as e:  # pragma: no cover
+        logger.exception(
+            "Error executing transition on PetHamster %s: %s", entity_id, str(e)
+        )
+        return jsonify({"error": str(e)}), 500
