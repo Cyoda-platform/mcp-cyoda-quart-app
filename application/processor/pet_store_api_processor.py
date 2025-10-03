@@ -185,11 +185,11 @@ class PetStoreApiProcessor(CyodaProcessor):
                     name=product_data.get("name", "Unknown Product"),
                     category=product_data.get("category", "Dogs"),
                     status=product_data.get("status", "available"),
-                    sales_volume=product_data.get("salesVolume", 0),
+                    salesVolume=product_data.get("salesVolume", 0),
                     revenue=product_data.get("revenue", 0.0),
-                    stock_level=product_data.get("stockLevel", 0),
-                    api_product_id=product_data.get("id"),
-                    api_source="petstore",
+                    stockLevel=product_data.get("stockLevel", 0),
+                    apiProductId=product_data.get("id"),
+                    apiSource="petstore",
                 )
 
                 # Update extraction timestamp
