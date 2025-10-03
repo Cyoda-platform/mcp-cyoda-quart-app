@@ -138,7 +138,7 @@ class SafetyCheckProcessor(CyodaProcessor):
         max_score = 0.0
 
         for check_name, check_data in checks.items():
-            weight = float(check_data["weight"])
+            weight = cast(float, check_data["weight"])
             max_score += weight
             if check_data["passed"]:
                 total_score += weight
