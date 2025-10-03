@@ -7,6 +7,7 @@ from scripts import import_workflows
 
 workflows_dir = 'tests/e2e/workflow/'
 
+
 @given(u'I have a prize:')
 def i_have_a_new_pize(context):
     context.prize_to_create = context.table.rows[0].as_dict()
