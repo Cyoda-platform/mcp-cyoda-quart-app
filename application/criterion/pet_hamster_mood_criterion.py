@@ -7,9 +7,9 @@ and handling based on comprehensive behavioral analysis.
 
 from typing import Any
 
+from application.entity.pet_hamster.version_1.pet_hamster import PetHamster
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.pet_hamster.version_1.pet_hamster import PetHamster
 
 
 class PetHamsterMoodCriterion(CyodaCriteriaChecker):
@@ -51,7 +51,7 @@ class PetHamsterMoodCriterion(CyodaCriteriaChecker):
                 return False
 
             # Additional safety checks for comprehensive validation
-            
+
             # Check activity level - should not be too high
             if pet_hamster.activity_level == "high":
                 self.logger.warning(
@@ -61,7 +61,9 @@ class PetHamsterMoodCriterion(CyodaCriteriaChecker):
 
             # Check if camera analysis data is available and recent
             if pet_hamster.camera_analysis_data:
-                confidence_score = pet_hamster.camera_analysis_data.get("confidence_score", 0)
+                confidence_score = pet_hamster.camera_analysis_data.get(
+                    "confidence_score", 0
+                )
                 if confidence_score < 0.7:
                     self.logger.warning(
                         f"PetHamster {pet_hamster.technical_id} mood analysis has low confidence: {confidence_score}"
@@ -69,16 +71,19 @@ class PetHamsterMoodCriterion(CyodaCriteriaChecker):
                     return False
 
             # Check behavioral indicators if available
-            if pet_hamster.camera_analysis_data and "behavioral_indicators" in pet_hamster.camera_analysis_data:
+            if (
+                pet_hamster.camera_analysis_data
+                and "behavioral_indicators" in pet_hamster.camera_analysis_data
+            ):
                 indicators = pet_hamster.camera_analysis_data["behavioral_indicators"]
-                
+
                 # Check if posture is relaxed
                 if not indicators.get("posture_relaxed", True):
                     self.logger.warning(
                         f"PetHamster {pet_hamster.technical_id} does not have relaxed posture"
                     )
                     return False
-                
+
                 # Check breathing rate
                 if indicators.get("breathing_rate") == "elevated":
                     self.logger.warning(

@@ -10,9 +10,9 @@ import random
 from datetime import datetime, timezone
 from typing import Any, Dict
 
+from application.entity.pet_hamster.version_1.pet_hamster import PetHamster
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.pet_hamster.version_1.pet_hamster import PetHamster
 
 
 class CameraAnalysisProcessor(CyodaProcessor):
@@ -51,11 +51,11 @@ class CameraAnalysisProcessor(CyodaProcessor):
 
             # Simulate camera analysis (in real implementation, this would connect to camera API)
             analysis_data = self._perform_camera_analysis(pet_hamster)
-            
+
             # Update the hamster's mood based on analysis
             pet_hamster.mood = analysis_data["detected_mood"]
             pet_hamster.activity_level = analysis_data["activity_level"]
-            
+
             # Store the full analysis data
             pet_hamster.set_camera_analysis_data(analysis_data)
 
@@ -75,25 +75,25 @@ class CameraAnalysisProcessor(CyodaProcessor):
     def _perform_camera_analysis(self, hamster: PetHamster) -> Dict[str, Any]:
         """
         Perform the actual camera analysis (simulated).
-        
+
         In a real implementation, this would:
         - Connect to camera feed
         - Use computer vision to analyze hamster behavior
         - Detect movement patterns, posture, etc.
-        
+
         Args:
             hamster: The PetHamster entity being analyzed
-            
+
         Returns:
             Dictionary containing analysis results
         """
         current_timestamp = (
             datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
         )
-        
+
         # Simulate camera analysis with realistic behavior patterns
         # In reality, this would use ML models for behavior recognition
-        
+
         # Simulate different mood probabilities based on time and previous interactions
         mood_probabilities = {
             "calm": 0.4,
@@ -103,33 +103,33 @@ class CameraAnalysisProcessor(CyodaProcessor):
             "playing": 0.1,
             "hiding": 0.05,
         }
-        
+
         # Adjust probabilities based on interaction history
         if hamster.interaction_count and hamster.interaction_count > 5:
             # More experienced hamsters are more likely to be calm
             mood_probabilities["calm"] = 0.6
             mood_probabilities["agitated"] = 0.1
-        
+
         # Select mood based on probabilities
         moods = list(mood_probabilities.keys())
         weights = list(mood_probabilities.values())
         detected_mood = random.choices(moods, weights=weights)[0]
-        
+
         # Determine activity level based on mood
         activity_mapping = {
             "calm": "low",
-            "agitated": "high", 
+            "agitated": "high",
             "sleeping": "low",
             "eating": "medium",
             "playing": "high",
             "hiding": "low",
         }
-        
+
         activity_level = activity_mapping.get(detected_mood, "medium")
-        
+
         # Generate confidence score
         confidence_score = random.uniform(0.7, 0.95)
-        
+
         # Simulate additional behavioral indicators
         behavioral_indicators = {
             "movement_frequency": random.uniform(0.1, 1.0),
@@ -137,7 +137,7 @@ class CameraAnalysisProcessor(CyodaProcessor):
             "ears_position": "forward" if detected_mood == "curious" else "normal",
             "breathing_rate": "normal" if detected_mood == "calm" else "elevated",
         }
-        
+
         analysis_data = {
             "analysis_timestamp": current_timestamp,
             "detected_mood": detected_mood,
@@ -151,7 +151,7 @@ class CameraAnalysisProcessor(CyodaProcessor):
             },
             "analysis_duration_ms": random.randint(500, 2000),
         }
-        
+
         self.logger.debug(f"Camera analysis results: {analysis_data}")
-        
+
         return analysis_data

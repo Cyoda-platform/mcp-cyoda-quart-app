@@ -63,9 +63,7 @@ def _to_entity_dict(data: Any) -> Dict[str, Any]:
     return data.model_dump(by_alias=True) if hasattr(data, "model_dump") else data
 
 
-pet_hamsters_bp = Blueprint(
-    "pet_hamsters", __name__, url_prefix="/api/pet-hamsters"
-)
+pet_hamsters_bp = Blueprint("pet_hamsters", __name__, url_prefix="/api/pet-hamsters")
 
 
 # ---- Routes -----------------------------------------------------------------
@@ -174,7 +172,9 @@ async def list_pet_hamsters(
             search_conditions["mood"] = query_args.mood
 
         if query_args.is_safe_to_handle is not None:
-            search_conditions["isSafeToHandle"] = str(query_args.is_safe_to_handle).lower()
+            search_conditions["isSafeToHandle"] = str(
+                query_args.is_safe_to_handle
+            ).lower()
 
         if query_args.current_location:
             search_conditions["currentLocation"] = query_args.current_location
@@ -262,9 +262,7 @@ async def update_pet_hamster(
         return jsonify(_to_entity_dict(response.data)), 200
 
     except ValueError as e:
-        logger.warning(
-            "Validation error updating PetHamster %s: %s", entity_id, str(e)
-        )
+        logger.warning("Validation error updating PetHamster %s: %s", entity_id, str(e))
         return jsonify({"error": str(e), "code": "VALIDATION_ERROR"}), 400
     except Exception as e:  # pragma: no cover
         logger.exception("Error updating PetHamster %s: %s", entity_id, str(e))
@@ -480,9 +478,7 @@ async def search_entities(data: SearchRequest) -> ResponseReturnValue:
 @pet_hamsters_bp.route("/find-all", methods=["GET"])
 @tag(["pet-hamsters"])
 @operation_id("find_all_pet_hamsters")
-@validate(
-    responses={200: (PetHamsterListResponse, None), 500: (ErrorResponse, None)}
-)
+@validate(responses={200: (PetHamsterListResponse, None), 500: (ErrorResponse, None)})
 async def find_all_entities() -> ResponseReturnValue:
     """Find all PetHamsters without filtering"""
     try:

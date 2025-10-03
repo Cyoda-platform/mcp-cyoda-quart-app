@@ -10,9 +10,9 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict
 
+from application.entity.pet_hamster.version_1.pet_hamster import PetHamster
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.pet_hamster.version_1.pet_hamster import PetHamster
 
 
 class InteractionLoggerProcessor(CyodaProcessor):
@@ -51,15 +51,15 @@ class InteractionLoggerProcessor(CyodaProcessor):
 
             # Log the interaction
             interaction_data = self._log_interaction(pet_hamster)
-            
+
             # Update interaction statistics
             pet_hamster.increment_interaction_count()
             pet_hamster.last_interaction_result = interaction_data["interaction_result"]
             pet_hamster.last_handled_at = interaction_data["interaction_timestamp"]
-            
+
             # Update location back to cage after interaction
             pet_hamster.current_location = "cage"
-            
+
             # Store the full interaction log data
             pet_hamster.set_interaction_log_data(interaction_data)
 
@@ -80,43 +80,46 @@ class InteractionLoggerProcessor(CyodaProcessor):
     def _log_interaction(self, hamster: PetHamster) -> Dict[str, Any]:
         """
         Log the petting interaction with detailed information.
-        
+
         In a real implementation, this would:
         - Record interaction duration
         - Log handler information
         - Store video/photo evidence
         - Update behavioral patterns
-        
+
         Args:
             hamster: The PetHamster entity that was petted
-            
+
         Returns:
             Dictionary containing interaction log data
         """
         current_timestamp = (
             datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
         )
-        
+
         interaction_id = str(uuid.uuid4())
-        
+
         # Simulate interaction details
         # In reality, this would come from sensors, timers, and user input
-        interaction_duration_seconds = 30 + (15 * (hamster.interaction_count or 0) % 60)  # Longer interactions for experienced hamsters
-        
+        interaction_duration_seconds = 30 + (
+            15 * (hamster.interaction_count or 0) % 60
+        )  # Longer interactions for experienced hamsters
+
         # Determine interaction result based on hamster's mood and experience
         interaction_success_rate = 0.9  # Base success rate
         if hamster.mood == "calm":
             interaction_success_rate = 0.95
         elif hamster.mood in ["agitated", "hiding"]:
             interaction_success_rate = 0.7
-        
+
         # More experienced hamsters have better success rates
         if hamster.interaction_count and hamster.interaction_count > 3:
             interaction_success_rate = min(0.98, interaction_success_rate + 0.05)
-        
+
         import random
+
         interaction_successful = random.random() < interaction_success_rate
-        
+
         if interaction_successful:
             interaction_result = "success"
             hamster_response = "enjoyed_petting"
@@ -125,16 +128,20 @@ class InteractionLoggerProcessor(CyodaProcessor):
             failure_types = ["bite", "escape", "stress_signs"]
             interaction_result = random.choice(failure_types)
             hamster_response = "showed_discomfort"
-        
+
         # Generate interaction metrics
         interaction_metrics = {
             "duration_seconds": interaction_duration_seconds,
             "strokes_count": max(1, interaction_duration_seconds // 3),
             "hamster_response": hamster_response,
-            "stress_indicators": [] if interaction_successful else ["rapid_breathing", "attempts_to_escape"],
+            "stress_indicators": (
+                []
+                if interaction_successful
+                else ["rapid_breathing", "attempts_to_escape"]
+            ),
             "handler_technique_score": random.uniform(0.7, 1.0),
         }
-        
+
         # Generate behavioral observations
         behavioral_observations = []
         if interaction_successful:
@@ -153,7 +160,7 @@ class InteractionLoggerProcessor(CyodaProcessor):
                 "Required careful monitoring",
             ]
             behavioral_observations = random.sample(observations, random.randint(1, 3))
-        
+
         # Create comprehensive interaction log
         interaction_data = {
             "interaction_id": interaction_id,
@@ -177,46 +184,58 @@ class InteractionLoggerProcessor(CyodaProcessor):
             },
             "post_interaction_assessment": {
                 "hamster_stress_level": "low" if interaction_successful else "medium",
-                "recovery_time_needed": "none" if interaction_successful else "5_minutes",
-                "recommendations": self._generate_recommendations(interaction_successful, hamster),
+                "recovery_time_needed": (
+                    "none" if interaction_successful else "5_minutes"
+                ),
+                "recommendations": self._generate_recommendations(
+                    interaction_successful, hamster
+                ),
             },
         }
-        
+
         self.logger.debug(f"Interaction log data: {interaction_data}")
-        
+
         return interaction_data
-    
-    def _generate_recommendations(self, successful: bool, hamster: PetHamster) -> list[str]:
+
+    def _generate_recommendations(
+        self, successful: bool, hamster: PetHamster
+    ) -> list[str]:
         """
         Generate recommendations based on interaction outcome.
-        
+
         Args:
             successful: Whether the interaction was successful
             hamster: The PetHamster entity
-            
+
         Returns:
             List of recommendations for future interactions
         """
         recommendations = []
-        
+
         if successful:
-            recommendations.extend([
-                "Continue with current handling technique",
-                "Hamster is comfortable with interactions",
-                "Can gradually increase interaction duration",
-            ])
-            
+            recommendations.extend(
+                [
+                    "Continue with current handling technique",
+                    "Hamster is comfortable with interactions",
+                    "Can gradually increase interaction duration",
+                ]
+            )
+
             if hamster.interaction_count and hamster.interaction_count > 5:
                 recommendations.append("Hamster is well-socialized and enjoys handling")
         else:
-            recommendations.extend([
-                "Allow more time between interactions",
-                "Ensure hamster is in calm mood before next attempt",
-                "Consider shorter interaction duration",
-                "Monitor for stress indicators more closely",
-            ])
-            
+            recommendations.extend(
+                [
+                    "Allow more time between interactions",
+                    "Ensure hamster is in calm mood before next attempt",
+                    "Consider shorter interaction duration",
+                    "Monitor for stress indicators more closely",
+                ]
+            )
+
             if hamster.mood != "calm":
-                recommendations.append("Wait for hamster to be in calm mood before next interaction")
-        
+                recommendations.append(
+                    "Wait for hamster to be in calm mood before next interaction"
+                )
+
         return recommendations

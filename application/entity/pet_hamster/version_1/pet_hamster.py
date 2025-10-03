@@ -38,7 +38,7 @@ class PetHamster(CyodaEntity):
         alias="ageMonths",
         description="Age of the hamster in months",
     )
-    
+
     # Mood and behavior fields (populated by camera analysis)
     mood: Optional[str] = Field(
         default=None,
@@ -49,7 +49,7 @@ class PetHamster(CyodaEntity):
         alias="activityLevel",
         description="Current activity level (low, medium, high)",
     )
-    
+
     # Safety and handling fields
     is_safe_to_handle: Optional[bool] = Field(
         default=None,
@@ -61,14 +61,14 @@ class PetHamster(CyodaEntity):
         alias="lastHandledAt",
         description="Timestamp when the hamster was last handled (ISO 8601 format)",
     )
-    
+
     # Location and environment
     current_location: Optional[str] = Field(
         default="cage",
         alias="currentLocation",
         description="Current location of the hamster (cage, hand, play_area)",
     )
-    
+
     # Interaction history and logging
     interaction_count: Optional[int] = Field(
         default=0,
@@ -80,7 +80,7 @@ class PetHamster(CyodaEntity):
         alias="lastInteractionResult",
         description="Result of the last interaction (success, bite, escape, etc.)",
     )
-    
+
     # Processing data from workflow processors
     camera_analysis_data: Optional[Dict[str, Any]] = Field(
         default=None,
@@ -122,14 +122,14 @@ class PetHamster(CyodaEntity):
         "hiding",
         "curious",
     ]
-    
+
     ALLOWED_LOCATIONS: ClassVar[List[str]] = [
         "cage",
         "hand",
         "play_area",
         "unknown",
     ]
-    
+
     ALLOWED_ACTIVITY_LEVELS: ClassVar[List[str]] = [
         "low",
         "medium",
@@ -172,7 +172,9 @@ class PetHamster(CyodaEntity):
     def validate_current_location(cls, v: Optional[str]) -> Optional[str]:
         """Validate current location field"""
         if v is not None and v not in cls.ALLOWED_LOCATIONS:
-            raise ValueError(f"Current location must be one of: {cls.ALLOWED_LOCATIONS}")
+            raise ValueError(
+                f"Current location must be one of: {cls.ALLOWED_LOCATIONS}"
+            )
         return v
 
     @field_validator("activity_level")
@@ -180,7 +182,9 @@ class PetHamster(CyodaEntity):
     def validate_activity_level(cls, v: Optional[str]) -> Optional[str]:
         """Validate activity level field"""
         if v is not None and v not in cls.ALLOWED_ACTIVITY_LEVELS:
-            raise ValueError(f"Activity level must be one of: {cls.ALLOWED_ACTIVITY_LEVELS}")
+            raise ValueError(
+                f"Activity level must be one of: {cls.ALLOWED_ACTIVITY_LEVELS}"
+            )
         return v
 
     @field_validator("interaction_count")
