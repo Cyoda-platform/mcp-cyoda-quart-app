@@ -248,7 +248,7 @@ class ReportGenerationProcessor(CyodaProcessor):
     def _analyze_booking_patterns(self, bookings: List[Booking]) -> Dict[str, Any]:
         """Analyze booking patterns for additional insights"""
         try:
-            patterns = {
+            patterns: Dict[str, Any] = {
                 "peak_months": [],
                 "average_stay_duration": 0.0,
                 "most_common_additional_needs": [],

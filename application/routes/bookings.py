@@ -196,7 +196,7 @@ async def list_bookings(query_args: BookingQueryParams) -> ResponseReturnValue:
             for entity_data in entity_list:
                 try:
                     booking = Booking(**entity_data)
-                    filter_criteria = {}
+                    filter_criteria: Dict[str, Any] = {}
 
                     if query_args.min_price is not None:
                         filter_criteria["min_price"] = query_args.min_price
