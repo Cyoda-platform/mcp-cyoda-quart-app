@@ -146,7 +146,6 @@ class BookingDataProcessor(CyodaProcessor):
     async def _update_related_entities(self, booking_entity: Booking) -> None:
         """Update or create related entities based on booking data"""
         try:
-            entity_service = get_entity_service()
 
             # Check if we should trigger report generation
             # This could be based on certain conditions or thresholds
