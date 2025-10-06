@@ -18,6 +18,7 @@ from common.entity.cyoda_entity import CyodaEntity
 
 class BookingDates(BaseModel):
     """Nested model for booking check-in and check-out dates"""
+
     checkin: str = Field(..., description="Check-in date in YYYY-MM-DD format")
     checkout: str = Field(..., description="Check-out date in YYYY-MM-DD format")
 
@@ -35,7 +36,7 @@ class BookingDates(BaseModel):
 class Booking(CyodaEntity):
     """
     Booking entity represents booking data from the Restful Booker API.
-    
+
     Used for retrieving, filtering, and generating reports on booking data
     including total revenue, average prices, and booking counts within date ranges.
     """
@@ -47,8 +48,8 @@ class Booking(CyodaEntity):
     # Core booking fields from Restful Booker API
     booking_id: Optional[int] = Field(
         default=None,
-        alias="bookingId", 
-        description="External booking ID from Restful Booker API"
+        alias="bookingId",
+        description="External booking ID from Restful Booker API",
     )
     firstname: str = Field(..., description="Guest first name")
     lastname: str = Field(..., description="Guest last name")
@@ -56,8 +57,7 @@ class Booking(CyodaEntity):
     depositpaid: bool = Field(..., description="Whether deposit has been paid")
     bookingdates: BookingDates = Field(..., description="Check-in and check-out dates")
     additionalneeds: Optional[str] = Field(
-        default=None,
-        description="Additional needs or requests"
+        default=None, description="Additional needs or requests"
     )
 
     # Processing and filtering fields
@@ -66,19 +66,19 @@ class Booking(CyodaEntity):
         .isoformat()
         .replace("+00:00", "Z"),
         alias="retrievedAt",
-        description="Timestamp when booking was retrieved from API"
+        description="Timestamp when booking was retrieved from API",
     )
-    
+
     # Report generation fields
     nights_count: Optional[int] = Field(
         default=None,
         alias="nightsCount",
-        description="Number of nights calculated from booking dates"
+        description="Number of nights calculated from booking dates",
     )
     price_per_night: Optional[float] = Field(
         default=None,
-        alias="pricePerNight", 
-        description="Price per night calculated from total price and nights"
+        alias="pricePerNight",
+        description="Price per night calculated from total price and nights",
     )
 
     @field_validator("firstname", "lastname")
@@ -105,8 +105,10 @@ class Booking(CyodaEntity):
         if self.bookingdates:
             try:
                 checkin_date = datetime.strptime(self.bookingdates.checkin, "%Y-%m-%d")
-                checkout_date = datetime.strptime(self.bookingdates.checkout, "%Y-%m-%d")
-                
+                checkout_date = datetime.strptime(
+                    self.bookingdates.checkout, "%Y-%m-%d"
+                )
+
                 # Calculate nights count
                 nights = (checkout_date - checkin_date).days
                 if nights > 0:
@@ -115,11 +117,11 @@ class Booking(CyodaEntity):
                 else:
                     self.nights_count = 0
                     self.price_per_night = 0.0
-                    
+
             except (ValueError, AttributeError):
                 # If date parsing fails, leave derived fields as None
                 pass
-                
+
         return self
 
     def is_within_date_range(self, start_date: str, end_date: str) -> bool:
@@ -128,7 +130,7 @@ class Booking(CyodaEntity):
             start = datetime.strptime(start_date, "%Y-%m-%d")
             end = datetime.strptime(end_date, "%Y-%m-%d")
             checkin = datetime.strptime(self.bookingdates.checkin, "%Y-%m-%d")
-            
+
             return start <= checkin <= end
         except (ValueError, AttributeError):
             return False
@@ -137,17 +139,19 @@ class Booking(CyodaEntity):
         """Check if booking matches given filter criteria"""
         if "depositpaid" in criteria and self.depositpaid != criteria["depositpaid"]:
             return False
-            
+
         if "min_price" in criteria and self.totalprice < criteria["min_price"]:
             return False
-            
+
         if "max_price" in criteria and self.totalprice > criteria["max_price"]:
             return False
-            
+
         if "start_date" in criteria and "end_date" in criteria:
-            if not self.is_within_date_range(criteria["start_date"], criteria["end_date"]):
+            if not self.is_within_date_range(
+                criteria["start_date"], criteria["end_date"]
+            ):
                 return False
-                
+
         return True
 
     def to_api_response(self) -> Dict[str, Any]:

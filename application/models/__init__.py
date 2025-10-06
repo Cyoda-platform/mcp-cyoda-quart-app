@@ -32,7 +32,7 @@ __all__ = [
     # Request models
     "BookingQueryParams",
     "BookingUpdateQueryParams",
-    "ReportQueryParams", 
+    "ReportQueryParams",
     "ReportUpdateQueryParams",
     "SearchRequest",
     "TransitionRequest",

@@ -69,7 +69,7 @@ async def create_report(data: Report) -> ResponseReturnValue:
     """Create a new Report entity"""
     try:
         entity_service = get_entity_service()
-        
+
         # Convert request to entity data
         entity_data = data.model_dump(by_alias=True)
 
@@ -108,7 +108,7 @@ async def generate_report(data: ReportGenerationRequest) -> ResponseReturnValue:
     """Generate a new report with specified criteria"""
     try:
         entity_service = get_entity_service()
-        
+
         # Create Report entity from generation request
         from ..entity.report.version_1.report import ReportSummary
 
@@ -119,7 +119,7 @@ async def generate_report(data: ReportGenerationRequest) -> ResponseReturnValue:
             averageBookingPrice=0.0,
             averageNightsPerBooking=0.0,
             depositPaidCount=0,
-            depositPaidPercentage=0.0
+            depositPaidPercentage=0.0,
         )
 
         report = Report(
@@ -170,7 +170,7 @@ async def get_report(entity_id: str) -> ResponseReturnValue:
     """Get Report by ID"""
     try:
         entity_service = get_entity_service()
-        
+
         # Validate entity ID format
         if not entity_id or len(entity_id.strip()) == 0:
             return {"error": "Entity ID is required", "code": "INVALID_ID"}, 400
@@ -210,7 +210,7 @@ async def get_report_display(entity_id: str) -> ResponseReturnValue:
     """Get Report in user-friendly display format"""
     try:
         entity_service = get_entity_service()
-        
+
         # Validate entity ID format
         if not entity_id or len(entity_id.strip()) == 0:
             return {"error": "Entity ID is required", "code": "INVALID_ID"}, 400
@@ -233,7 +233,7 @@ async def get_report_display(entity_id: str) -> ResponseReturnValue:
             return jsonify(display_data), 200
         else:
             # If it's already a Report object, call the method directly
-            if hasattr(report_data, 'to_display_format'):
+            if hasattr(report_data, "to_display_format"):
                 display_data = report_data.to_display_format()
                 return jsonify(display_data), 200
             else:
@@ -263,7 +263,7 @@ async def list_reports(query_args: ReportQueryParams) -> ResponseReturnValue:
     """List Reports with optional filtering"""
     try:
         entity_service = get_entity_service()
-        
+
         # Build search conditions based on query parameters
         search_conditions: Dict[str, str] = {}
 
@@ -410,6 +410,7 @@ async def delete_report(entity_id: str) -> ResponseReturnValue:
 
 
 # Additional endpoints for report operations
+
 
 @reports_bp.route("/search", methods=["POST"])
 @tag(["reports"])

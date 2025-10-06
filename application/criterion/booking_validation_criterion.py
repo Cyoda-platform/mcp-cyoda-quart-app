@@ -7,9 +7,9 @@ proceed to data retrieval and processing stages as specified in functional requi
 
 from typing import Any
 
+from application.entity.booking.version_1.booking import Booking
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.booking.version_1.booking import Booking
 
 
 class BookingValidationCriterion(CyodaCriteriaChecker):
@@ -46,7 +46,10 @@ class BookingValidationCriterion(CyodaCriteriaChecker):
             # State is managed by Cyoda workflow engine - no manual state checks needed
 
             # Validate required fields
-            if not booking_entity.firstname or len(booking_entity.firstname.strip()) < 1:
+            if (
+                not booking_entity.firstname
+                or len(booking_entity.firstname.strip()) < 1
+            ):
                 self.logger.warning(
                     f"Booking {booking_entity.technical_id} has invalid firstname: '{booking_entity.firstname}'"
                 )
@@ -67,7 +70,10 @@ class BookingValidationCriterion(CyodaCriteriaChecker):
 
             # Validate booking dates if present
             if booking_entity.bookingdates:
-                if not booking_entity.bookingdates.checkin or not booking_entity.bookingdates.checkout:
+                if (
+                    not booking_entity.bookingdates.checkin
+                    or not booking_entity.bookingdates.checkout
+                ):
                     self.logger.warning(
                         f"Booking {booking_entity.technical_id} has incomplete booking dates"
                     )
@@ -76,9 +82,14 @@ class BookingValidationCriterion(CyodaCriteriaChecker):
                 # Validate date format and logic
                 try:
                     from datetime import datetime
-                    checkin_date = datetime.strptime(booking_entity.bookingdates.checkin, "%Y-%m-%d")
-                    checkout_date = datetime.strptime(booking_entity.bookingdates.checkout, "%Y-%m-%d")
-                    
+
+                    checkin_date = datetime.strptime(
+                        booking_entity.bookingdates.checkin, "%Y-%m-%d"
+                    )
+                    checkout_date = datetime.strptime(
+                        booking_entity.bookingdates.checkout, "%Y-%m-%d"
+                    )
+
                     if checkout_date <= checkin_date:
                         self.logger.warning(
                             f"Booking {booking_entity.technical_id} has invalid date range: "
@@ -86,7 +97,7 @@ class BookingValidationCriterion(CyodaCriteriaChecker):
                             f"checkin ({booking_entity.bookingdates.checkin})"
                         )
                         return False
-                        
+
                 except ValueError as e:
                     self.logger.warning(
                         f"Booking {booking_entity.technical_id} has invalid date format: {str(e)}"
@@ -104,14 +115,20 @@ class BookingValidationCriterion(CyodaCriteriaChecker):
                 # return False
 
             # Validate name fields are reasonable
-            if len(booking_entity.firstname) > 100 or len(booking_entity.lastname) > 100:
+            if (
+                len(booking_entity.firstname) > 100
+                or len(booking_entity.lastname) > 100
+            ):
                 self.logger.warning(
                     f"Booking {booking_entity.technical_id} has unusually long name fields"
                 )
                 return False
 
             # Validate additional needs if present
-            if booking_entity.additionalneeds and len(booking_entity.additionalneeds) > 500:
+            if (
+                booking_entity.additionalneeds
+                and len(booking_entity.additionalneeds) > 500
+            ):
                 self.logger.warning(
                     f"Booking {booking_entity.technical_id} has excessively long additional needs"
                 )

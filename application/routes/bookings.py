@@ -68,7 +68,7 @@ async def create_booking(data: Booking) -> ResponseReturnValue:
     """Create a new Booking entity"""
     try:
         entity_service = get_entity_service()
-        
+
         # Convert request to entity data
         entity_data = data.model_dump(by_alias=True)
 
@@ -107,7 +107,7 @@ async def get_booking(entity_id: str) -> ResponseReturnValue:
     """Get Booking by ID"""
     try:
         entity_service = get_entity_service()
-        
+
         # Validate entity ID format
         if not entity_id or len(entity_id.strip()) == 0:
             return {"error": "Entity ID is required", "code": "INVALID_ID"}, 400
@@ -147,7 +147,7 @@ async def list_bookings(query_args: BookingQueryParams) -> ResponseReturnValue:
     """List Bookings with optional filtering"""
     try:
         entity_service = get_entity_service()
-        
+
         # Build search conditions based on query parameters
         search_conditions: Dict[str, str] = {}
 
@@ -184,24 +184,29 @@ async def list_bookings(query_args: BookingQueryParams) -> ResponseReturnValue:
 
         # Convert to list and apply additional filters
         entity_list = [_to_entity_dict(r.data) for r in entities]
-        
+
         # Apply price and date filters (not supported by search conditions)
-        if query_args.min_price is not None or query_args.max_price is not None or query_args.start_date or query_args.end_date:
+        if (
+            query_args.min_price is not None
+            or query_args.max_price is not None
+            or query_args.start_date
+            or query_args.end_date
+        ):
             filtered_list = []
             for entity_data in entity_list:
                 try:
                     booking = Booking(**entity_data)
                     filter_criteria = {}
-                    
+
                     if query_args.min_price is not None:
-                        filter_criteria["min_price"] = int(query_args.min_price)
+                        filter_criteria["min_price"] = query_args.min_price
                     if query_args.max_price is not None:
-                        filter_criteria["max_price"] = int(query_args.max_price)
+                        filter_criteria["max_price"] = query_args.max_price
                     if query_args.start_date:
                         filter_criteria["start_date"] = query_args.start_date
                     if query_args.end_date:
                         filter_criteria["end_date"] = query_args.end_date
-                    
+
                     if booking.matches_filter_criteria(**filter_criteria):
                         filtered_list.append(entity_data)
                 except Exception as e:
@@ -240,7 +245,7 @@ async def update_booking(
     """Update Booking and optionally trigger workflow transition"""
     try:
         entity_service = get_entity_service()
-        
+
         # Validate entity ID format
         if not entity_id or len(entity_id.strip()) == 0:
             return {"error": "Entity ID is required", "code": "INVALID_ID"}, 400
@@ -318,6 +323,7 @@ async def delete_booking(entity_id: str) -> ResponseReturnValue:
 
 
 # Additional endpoints for booking operations
+
 
 @bookings_bp.route("/search", methods=["POST"])
 @tag(["bookings"])
@@ -437,7 +443,9 @@ async def get_booking_transitions(entity_id: str) -> ResponseReturnValue:
         return jsonify(response.model_dump()), 200
 
     except Exception as e:
-        logger.exception("Error getting transitions for Booking %s: %s", entity_id, str(e))
+        logger.exception(
+            "Error getting transitions for Booking %s: %s", entity_id, str(e)
+        )
         return jsonify({"error": str(e)}), 500
 
 
@@ -453,7 +461,9 @@ async def get_booking_transitions(entity_id: str) -> ResponseReturnValue:
         500: (ErrorResponse, None),
     },
 )
-async def trigger_booking_transition(entity_id: str, data: TransitionRequest) -> ResponseReturnValue:
+async def trigger_booking_transition(
+    entity_id: str, data: TransitionRequest
+) -> ResponseReturnValue:
     """Trigger a specific workflow transition"""
     try:
         entity_service = get_entity_service()
@@ -478,16 +488,25 @@ async def trigger_booking_transition(entity_id: str, data: TransitionRequest) ->
             entity_version=str(Booking.ENTITY_VERSION),
         )
 
-        logger.info("Executed transition '%s' on Booking %s", data.transition_name, entity_id)
+        logger.info(
+            "Executed transition '%s' on Booking %s", data.transition_name, entity_id
+        )
 
-        return jsonify({
-            "id": response.metadata.id,
-            "message": "Transition executed successfully",
-            "previousState": previous_state,
-            "newState": response.metadata.state,
-            "transitionName": data.transition_name,
-        }), 200
+        return (
+            jsonify(
+                {
+                    "id": response.metadata.id,
+                    "message": "Transition executed successfully",
+                    "previousState": previous_state,
+                    "newState": response.metadata.state,
+                    "transitionName": data.transition_name,
+                }
+            ),
+            200,
+        )
 
     except Exception as e:
-        logger.exception("Error executing transition on Booking %s: %s", entity_id, str(e))
+        logger.exception(
+            "Error executing transition on Booking %s: %s", entity_id, str(e)
+        )
         return jsonify({"error": str(e)}), 500
