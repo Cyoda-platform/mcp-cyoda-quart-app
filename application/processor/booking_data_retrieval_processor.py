@@ -57,7 +57,7 @@ class BookingDataRetrievalProcessor(CyodaProcessor):
             self.logger.info(f"Retrieved {len(booking_ids)} booking IDs from API")
 
             # If this is a specific booking request, process only that booking
-            if booking_entity.booking_id:
+            if booking_entity.booking_id is not None:
                 await self._retrieve_specific_booking(booking_entity)
             else:
                 # Otherwise, retrieve all bookings and create entities for them
@@ -156,17 +156,21 @@ class BookingDataRetrievalProcessor(CyodaProcessor):
         # Extract booking dates
         booking_dates_data = api_data.get("bookingdates", {})
         
+        # Create BookingDates object first
+        from application.entity.booking.version_1.booking import BookingDates
+        booking_dates_obj = BookingDates(
+            checkin=booking_dates_data.get("checkin", ""),
+            checkout=booking_dates_data.get("checkout", "")
+        )
+
         # Create Booking entity
         booking = Booking(
-            booking_id=None,  # Will be set by the API response structure
+            bookingId=None,  # Will be set by the API response structure
             firstname=api_data.get("firstname", ""),
             lastname=api_data.get("lastname", ""),
             totalprice=api_data.get("totalprice", 0),
             depositpaid=api_data.get("depositpaid", False),
-            bookingdates={
-                "checkin": booking_dates_data.get("checkin", ""),
-                "checkout": booking_dates_data.get("checkout", "")
-            },
+            bookingdates=booking_dates_obj,
             additionalneeds=api_data.get("additionalneeds")
         )
         

@@ -136,12 +136,12 @@ class ReportGenerationProcessor(CyodaProcessor):
         """Generate summary statistics for the bookings"""
         if not bookings:
             return ReportSummary(
-                total_bookings=0,
-                total_revenue=0.0,
-                average_booking_price=0.0,
-                average_nights_per_booking=0.0,
-                deposit_paid_count=0,
-                deposit_paid_percentage=0.0
+                totalBookings=0,
+                totalRevenue=0.0,
+                averageBookingPrice=0.0,
+                averageNightsPerBooking=0.0,
+                depositPaidCount=0,
+                depositPaidPercentage=0.0
             )
             
         total_bookings = len(bookings)
@@ -163,12 +163,12 @@ class ReportGenerationProcessor(CyodaProcessor):
         deposit_paid_percentage = (deposit_paid_count / total_bookings * 100) if total_bookings > 0 else 0.0
         
         return ReportSummary(
-            total_bookings=total_bookings,
-            total_revenue=round(total_revenue, 2),
-            average_booking_price=round(average_booking_price, 2),
-            average_nights_per_booking=round(average_nights_per_booking, 2),
-            deposit_paid_count=deposit_paid_count,
-            deposit_paid_percentage=round(deposit_paid_percentage, 2)
+            totalBookings=total_bookings,
+            totalRevenue=round(total_revenue, 2),
+            averageBookingPrice=round(average_booking_price, 2),
+            averageNightsPerBooking=round(average_nights_per_booking, 2),
+            depositPaidCount=deposit_paid_count,
+            depositPaidPercentage=round(deposit_paid_percentage, 2)
         )
 
     async def _generate_date_range_statistics(self, bookings: List[Booking]) -> List[DateRangeStats]:
@@ -198,11 +198,11 @@ class ReportGenerationProcessor(CyodaProcessor):
                     average_price = revenue / booking_count if booking_count > 0 else 0.0
                     
                     date_range_stat = DateRangeStats(
-                        start_date=start_date_str,
-                        end_date=end_date_str,
-                        booking_count=booking_count,
+                        startDate=start_date_str,
+                        endDate=end_date_str,
+                        bookingCount=booking_count,
                         revenue=round(revenue, 2),
-                        average_price=round(average_price, 2)
+                        averagePrice=round(average_price, 2)
                     )
                     
                     date_ranges.append(date_range_stat)
@@ -234,10 +234,10 @@ class ReportGenerationProcessor(CyodaProcessor):
                 return patterns
                 
             # Analyze months
-            month_counts = {}
+            month_counts: Dict[str, int] = {}
             total_nights = 0
             nights_count = 0
-            additional_needs = {}
+            additional_needs: Dict[str, int] = {}
             
             for booking in bookings:
                 try:
@@ -258,12 +258,13 @@ class ReportGenerationProcessor(CyodaProcessor):
                         additional_needs[need] = additional_needs.get(need, 0) + 1
                     
                     # Price distribution
+                    price_dist = patterns["price_distribution"]
                     if booking.totalprice < 100:
-                        patterns["price_distribution"]["low"] += 1
+                        price_dist["low"] += 1
                     elif booking.totalprice <= 300:
-                        patterns["price_distribution"]["medium"] += 1
+                        price_dist["medium"] += 1
                     else:
-                        patterns["price_distribution"]["high"] += 1
+                        price_dist["high"] += 1
                         
                 except Exception as e:
                     self.logger.warning(f"Error analyzing booking pattern: {str(e)}")

@@ -176,7 +176,7 @@ class BookingDataProcessor(CyodaProcessor):
             )
             
             # Filter by date range
-            filtered_bookings = []
+            filtered_bookings: List[Booking] = []
             for response in booking_responses:
                 booking_data = response.data
                 if isinstance(booking_data, dict):
