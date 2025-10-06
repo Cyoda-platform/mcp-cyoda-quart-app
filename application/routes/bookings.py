@@ -24,7 +24,7 @@ from common.service.entity_service import SearchConditionRequest
 from services.services import get_entity_service
 
 # Import entity and models
-from ..entity.booking import Booking
+from ..entity.booking.version_1.booking import Booking
 from ..models import (
     BookingListResponse,
     BookingQueryParams,

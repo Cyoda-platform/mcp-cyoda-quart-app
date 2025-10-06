@@ -11,12 +11,12 @@ filtering and report generation as specified in functional requirements.
 from datetime import datetime, timezone
 from typing import Any, ClassVar, Dict, Optional
 
-from pydantic import ConfigDict, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from common.entity.cyoda_entity import CyodaEntity
 
 
-class BookingDates(CyodaEntity):
+class BookingDates(BaseModel):
     """Nested model for booking check-in and check-out dates"""
     checkin: str = Field(..., description="Check-in date in YYYY-MM-DD format")
     checkout: str = Field(..., description="Check-out date in YYYY-MM-DD format")

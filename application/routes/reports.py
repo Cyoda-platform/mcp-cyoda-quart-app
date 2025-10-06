@@ -23,7 +23,7 @@ from common.service.entity_service import SearchConditionRequest
 from services.services import get_entity_service
 
 # Import entity and models
-from ..entity.report import Report
+from ..entity.report.version_1.report import Report
 from ..models import (
     CountResponse,
     DeleteResponse,

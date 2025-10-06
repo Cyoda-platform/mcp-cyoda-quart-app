@@ -11,12 +11,12 @@ as specified in functional requirements.
 from datetime import datetime, timezone
 from typing import Any, ClassVar, Dict, List, Optional
 
-from pydantic import ConfigDict, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from common.entity.cyoda_entity import CyodaEntity
 
 
-class ReportSummary(CyodaEntity):
+class ReportSummary(BaseModel):
     """Summary statistics for the report"""
     total_bookings: int = Field(..., alias="totalBookings", description="Total number of bookings")
     total_revenue: float = Field(..., alias="totalRevenue", description="Total revenue from all bookings")
@@ -26,7 +26,7 @@ class ReportSummary(CyodaEntity):
     deposit_paid_percentage: float = Field(..., alias="depositPaidPercentage", description="Percentage of bookings with deposit paid")
 
 
-class DateRangeStats(CyodaEntity):
+class DateRangeStats(BaseModel):
     """Statistics for a specific date range"""
     start_date: str = Field(..., alias="startDate", description="Start date of the range")
     end_date: str = Field(..., alias="endDate", description="End date of the range")
