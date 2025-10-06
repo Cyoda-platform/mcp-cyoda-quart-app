@@ -12,7 +12,7 @@ from typing import Any, Dict, List
 
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.booking import Booking
+from application.entity.booking.version_1.booking import Booking
 from services.services import get_entity_service
 
 

@@ -9,7 +9,7 @@ from typing import Any
 
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.booking import Booking
+from application.entity.booking.version_1.booking import Booking
 
 
 class BookingValidationCriterion(CyodaCriteriaChecker):

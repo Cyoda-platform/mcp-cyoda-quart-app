@@ -25,10 +25,13 @@ QuartSchema(
     info={"title": "Cyoda Client Application", "version": "1.0.0"},
     tags=[
         {
-            "name": "ExampleEntities",
-            "description": "ExampleEntity management endpoints",
+            "name": "bookings",
+            "description": "Booking management endpoints for Restful Booker API integration",
         },
-        {"name": "OtherEntities", "description": "OtherEntity management endpoints"},
+        {
+            "name": "reports",
+            "description": "Report generation and analysis endpoints for booking data",
+        },
         {"name": "System", "description": "System and health endpoints"},
     ],
     security=[{"bearerAuth": []}],
@@ -111,6 +114,11 @@ async def shutdown() -> None:
             _background_task = None
 
     logger.info("Application shutdown complete")
+
+
+# Register blueprints
+app.register_blueprint(bookings_bp)
+app.register_blueprint(reports_bp)
 
 
 # Middleware to add CORS headers to every response

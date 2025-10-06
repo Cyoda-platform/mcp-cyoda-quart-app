@@ -12,8 +12,8 @@ from typing import Any, Dict, List
 
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.booking import Booking
-from application.entity.report import Report, ReportSummary, DateRangeStats
+from application.entity.booking.version_1.booking import Booking
+from application.entity.report.version_1.report import Report, ReportSummary, DateRangeStats
 from services.services import get_entity_service
 
 
