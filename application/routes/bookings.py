@@ -194,9 +194,9 @@ async def list_bookings(query_args: BookingQueryParams) -> ResponseReturnValue:
                     filter_criteria = {}
                     
                     if query_args.min_price is not None:
-                        filter_criteria["min_price"] = query_args.min_price
+                        filter_criteria["min_price"] = int(query_args.min_price)
                     if query_args.max_price is not None:
-                        filter_criteria["max_price"] = query_args.max_price
+                        filter_criteria["max_price"] = int(query_args.max_price)
                     if query_args.start_date:
                         filter_criteria["start_date"] = query_args.start_date
                     if query_args.end_date:
@@ -305,7 +305,7 @@ async def delete_booking(entity_id: str) -> ResponseReturnValue:
         response = DeleteResponse(
             success=True,
             message="Booking deleted successfully",
-            entity_id=entity_id,
+            entityId=entity_id,
         )
         return response.model_dump(), 200
 
@@ -377,7 +377,7 @@ async def count_bookings() -> ResponseReturnValue:
             entity_version=str(Booking.ENTITY_VERSION),
         )
 
-        response = CountResponse(count=count, entity_type="Booking")
+        response = CountResponse(count=count, entityType="Booking")
         return jsonify(response.model_dump()), 200
 
     except Exception as e:
@@ -400,7 +400,7 @@ async def check_booking_exists(entity_id: str) -> ResponseReturnValue:
             entity_version=str(Booking.ENTITY_VERSION),
         )
 
-        response = ExistsResponse(exists=exists, entity_id=entity_id)
+        response = ExistsResponse(exists=exists, entityId=entity_id)
         return response.model_dump(), 200
 
     except Exception as e:
@@ -430,9 +430,9 @@ async def get_booking_transitions(entity_id: str) -> ResponseReturnValue:
         )
 
         response = TransitionsResponse(
-            entity_id=entity_id,
-            available_transitions=transitions,
-            current_state=None,  # Could be enhanced to get current state
+            entityId=entity_id,
+            availableTransitions=transitions,
+            currentState=None,  # Could be enhanced to get current state
         )
         return jsonify(response.model_dump()), 200
 

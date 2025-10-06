@@ -89,26 +89,26 @@ class ReportGenerationProcessor(CyodaProcessor):
         """Retrieve all booking entities from the system"""
         try:
             entity_service = get_entity_service()
-            
+
             booking_responses = await entity_service.find_all(
                 entity_class=Booking.ENTITY_NAME,
                 entity_version=str(Booking.ENTITY_VERSION),
             )
-            
-            bookings = []
+
+            bookings: List[Booking] = []
             for response in booking_responses:
                 try:
                     booking_data = response.data
                     if isinstance(booking_data, dict):
                         booking = Booking(**booking_data)
                         bookings.append(booking)
-                    else:
+                    elif isinstance(booking_data, Booking):
                         # If it's already a Booking object
                         bookings.append(booking_data)
                 except Exception as e:
                     self.logger.warning(f"Error parsing booking data: {str(e)}")
                     continue
-                    
+
             return bookings
             
         except Exception as e:

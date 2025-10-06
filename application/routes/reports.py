@@ -228,12 +228,17 @@ async def get_report_display(entity_id: str) -> ResponseReturnValue:
         report_data = response.data
         if isinstance(report_data, dict):
             report = Report(**report_data)
+            # Return in display format
+            display_data = report.to_display_format()
+            return jsonify(display_data), 200
         else:
-            report = report_data
-
-        # Return in display format
-        display_data = report.to_display_format()
-        return jsonify(display_data), 200
+            # If it's already a Report object, call the method directly
+            if hasattr(report_data, 'to_display_format'):
+                display_data = report_data.to_display_format()
+                return jsonify(display_data), 200
+            else:
+                # Fallback to regular entity data
+                return _to_entity_dict(report_data), 200
 
     except ValueError as e:
         logger.warning("Invalid entity ID %s: %s", entity_id, str(e))
@@ -392,7 +397,7 @@ async def delete_report(entity_id: str) -> ResponseReturnValue:
         response = DeleteResponse(
             success=True,
             message="Report deleted successfully",
-            entity_id=entity_id,
+            entityId=entity_id,
         )
         return response.model_dump(), 200
 
@@ -464,7 +469,7 @@ async def count_reports() -> ResponseReturnValue:
             entity_version=str(Report.ENTITY_VERSION),
         )
 
-        response = CountResponse(count=count, entity_type="Report")
+        response = CountResponse(count=count, entityType="Report")
         return jsonify(response.model_dump()), 200
 
     except Exception as e:
