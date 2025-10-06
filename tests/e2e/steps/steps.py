@@ -48,6 +48,7 @@ def i_create_the_prizes_in_bulk(context):
 
 @when(u'I get all of model {model_name} version {model_version}')
 def i_get_all_of_model(context, model_name, model_version):
+    model_name = model_name.replace('"', '')
     context.search_result = run(context.entity_service.find_all(
         model_name,
         model_version
@@ -65,6 +66,8 @@ def i_get_prize_by_id(context):
 
 @when(u'I update the prize with the year {year} and transition {transition_name}')
 def i_update_prize_year_with_transition(context, year, transition_name):
+    year = year.replace('"', '')
+    transition_name = transition_name.replace('"', '')
     entity_to_update = context.create_result
     entity_to_update.data['year'] = year
     context.update_result = run(context.entity_service.update(
@@ -87,11 +90,13 @@ def i_delete_the_prize_by_its_id(context):
 
 @when(u'I delete all of model {model_name} version {model_version}')
 def i_delete_all_models(context, model_name, model_version):
+    model_name = model_name.replace('"', '')
     context.deleted_count = run(context.entity_service.delete_all(model_name, model_version))
 
 
 @when(u'I fetching of models {model_name} version {model_version} by condition:')
 def fetching_by_condition(context, model_name, model_version):
+    model_name = model_name.replace('"', '')
     condition = json.loads(context.text)['conditions'][0]
     context.search_result = run(context.entity_service.search(
         model_name,
@@ -104,6 +109,8 @@ def fetching_by_condition(context, model_name, model_version):
 
 @when(u'I import workflow from file {workflow_file_name} for model {model_name} version {model_version}')
 def import_workflow(context, workflow_file_name, model_name, model_version):
+    workflow_file_name = workflow_file_name.replace('"', '')
+    model_name = model_name.replace('"', '')
     context.workflow_import_result = run(import_workflows.import_workflows_from_file(
         model_name,
         model_version,
@@ -114,6 +121,7 @@ def import_workflow(context, workflow_file_name, model_name, model_version):
 
 @when(u'I update the prize with transition {transition_name}')
 def apply_transition(context, transition_name):
+    transition_name = transition_name.replace('"', '')
     entity_to_update = context.create_result
     run(context.entity_service.update(
         entity_to_update.get_id(),
@@ -135,6 +143,7 @@ def prizes_should_be_created(context, expected_amount):
 
 @then(u'the prize\'s year should be {expected_year}')
 def the_prizes_year_should_be(context, expected_year):
+    expected_year = expected_year.replace('"', '')
     actual_year = str(context.get_by_id.data['year'])
     assert actual_year == expected_year, f"Expected year: {expected_year}, but got {actual_year}"
 
