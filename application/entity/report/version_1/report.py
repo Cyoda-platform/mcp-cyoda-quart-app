@@ -169,7 +169,7 @@ class Report(CyodaEntity):
 
     def to_display_format(self) -> Dict[str, Any]:
         """Convert report to user-friendly display format"""
-        display_data = {
+        display_data: Dict[str, Any] = {
             "title": self.title,
             "description": self.description,
             "generated_at": self.generated_at,

@@ -133,7 +133,7 @@ class Booking(CyodaEntity):
         except (ValueError, AttributeError):
             return False
 
-    def matches_filter_criteria(self, **criteria) -> bool:
+    def matches_filter_criteria(self, **criteria: Any) -> bool:
         """Check if booking matches given filter criteria"""
         if "depositpaid" in criteria and self.depositpaid != criteria["depositpaid"]:
             return False

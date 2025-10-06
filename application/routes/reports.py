@@ -110,14 +110,26 @@ async def generate_report(data: ReportGenerationRequest) -> ResponseReturnValue:
         entity_service = get_entity_service()
         
         # Create Report entity from generation request
+        from ..entity.report.version_1.report import ReportSummary
+
+        # Create a minimal summary that will be replaced by processor
+        minimal_summary = ReportSummary(
+            totalBookings=0,
+            totalRevenue=0.0,
+            averageBookingPrice=0.0,
+            averageNightsPerBooking=0.0,
+            depositPaidCount=0,
+            depositPaidPercentage=0.0
+        )
+
         report = Report(
             title=data.title,
             description=data.description,
-            report_type=data.report_type,
-            display_format=data.display_format,
-            filter_criteria=data.filter_criteria,
-            summary=None,  # Will be populated by processor
-            booking_count=0,  # Will be populated by processor
+            reportType=data.report_type,
+            displayFormat=data.display_format,
+            filterCriteria=data.filter_criteria,
+            summary=minimal_summary,
+            bookingCount=0,  # Will be populated by processor
         )
 
         # Convert to entity data
