@@ -1,4 +1,5 @@
 import asyncio
+from enum import verify
 import logging
 import time
 from typing import Any, Mapping, Optional
@@ -21,11 +22,15 @@ class AsyncTokenFetcher(BaseTokenFetcher):
         client_id: str,
         client_secret: str,
         token_url: str,
+        skip_ssl: bool,
         scope: Optional[str] = None,
     ) -> None:
         super().__init__()
         self._client: AsyncOAuth2Client = AsyncOAuth2Client(  # type: ignore[call-arg]
-            client_id=client_id, client_secret=client_secret, scope=scope
+            client_id=client_id,
+            client_secret=client_secret,
+            scope=scope,
+            verify=not skip_ssl
         )
         self._token_url: str = token_url
         self._lock: asyncio.Lock = asyncio.Lock()

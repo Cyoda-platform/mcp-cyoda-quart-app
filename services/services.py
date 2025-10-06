@@ -19,7 +19,11 @@ logger = logging.getLogger(__name__)
 
 
 def _create_auth_service(
-    client_id: str, client_secret: str, token_url: str, scope: str = "read write"
+    client_id: str,
+    client_secret: str,
+    token_url: str,
+    skip_ssl: bool,
+    scope: str = "read write",
 ) -> IAuthService:
     """Create auth service with lazy import."""
     from common.auth.cyoda_auth import CyodaAuthService
@@ -31,6 +35,7 @@ def _create_auth_service(
             client_id=client_id,
             client_secret=client_secret,
             token_url=token_url,
+            skip_ssl=skip_ssl,
             scope=scope,
         ),
     )
@@ -145,6 +150,7 @@ class ServiceContainer(containers.DeclarativeContainer):
         client_id=config.authentication.client_id,
         client_secret=config.authentication.client_secret,
         token_url=config.authentication.token_url,
+        skip_ssl=config.authentication.skip_ssl,
         scope=config.authentication.scope,
     )
 

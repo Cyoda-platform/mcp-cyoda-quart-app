@@ -1,3 +1,4 @@
+from enum import verify
 import threading
 from typing import Optional
 
@@ -12,11 +13,15 @@ class SyncTokenFetcher(BaseTokenFetcher):
         client_id: str,
         client_secret: str,
         token_url: str,
+        skip_ssl: bool,
         scope: Optional[str] = None,
     ) -> None:
         super().__init__()
         self._client = OAuth2Session(
-            client_id=client_id, client_secret=client_secret, scope=scope
+            client_id=client_id,
+            client_secret=client_secret,
+            scope=scope,
+            verify=not skip_ssl,
         )
         self._token_url = token_url
         self._lock = threading.Lock()

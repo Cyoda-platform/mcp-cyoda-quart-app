@@ -7,7 +7,7 @@ from typing import Any, Optional, Tuple, cast
 
 import grpc
 
-from common.config.config import GRPC_ADDRESS
+from common.config.config import GRPC_ADDRESS, SKIP_SSL
 from common.grpc_client.middleware.base import MiddlewareLink
 from common.grpc_client.outbox import Outbox
 from common.grpc_client.responses.builders import ResponseBuilderRegistry
@@ -60,7 +60,8 @@ class GrpcStreamingFacade:
         call_creds: grpc.CallCredentials = grpc.metadata_call_credentials(
             self.metadata_callback
         )
-        ssl_creds: grpc.ChannelCredentials = grpc.ssl_channel_credentials()
+
+        ssl_creds = grpc.local_channel_credentials() if SKIP_SSL else grpc.ssl_channel_credentials()
         return grpc.composite_channel_credentials(ssl_creds, call_creds)
 
     def _on_event(self, event: CloudEvent) -> None:
@@ -94,7 +95,9 @@ class GrpcStreamingFacade:
                 ]
 
                 async with grpc.aio.secure_channel(
-                    GRPC_ADDRESS, creds, options=keepalive_opts
+                    GRPC_ADDRESS,
+                    creds,
+                    options=keepalive_opts
                 ) as channel:
                     # Generated stubs are untyped; suppress no-untyped-call for this line.
                     stub: Any = CloudEventsServiceStub(channel)  # type: ignore[no-untyped-call]

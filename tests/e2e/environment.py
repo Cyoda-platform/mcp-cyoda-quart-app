@@ -1,18 +1,22 @@
 import asyncio
+import logging
 import threading
 from services.services import initialize_services, get_grpc_client, get_entity_service, get_processor_manager, shutdown_services
 from services.config import get_service_config
 
+logger = logging.getLogger(__name__)
+test_processor_module = 'tests.e2e.processors'
+
 
 def before_all(context):
     config = get_service_config()
+    config['processor']['modules'].append(test_processor_module)
+    logger.info(f'Config was ehanced. Added new processor module: {test_processor_module}')
     initialize_services(config)
     context.entity_service = get_entity_service()
     processor_manager = get_processor_manager()
 
-    processors = getattr(processor_manager, 'processors').items()
-
-    for n, p in processors:
+    for n, p in getattr(processor_manager, 'processors').items():
         if n != 'test-processor-1':
             continue
 
@@ -47,24 +51,29 @@ def before_scenario(context, scenario):
 
 
 def after_scenario(context, scenario):
-    #context.processors.clear()
-    print("  - Cleaning up entities...")
-    cleanup_future = asyncio.run_coroutine_threadsafe(
-        context.entity_service.delete_all("nobel-prize", "1"),
-        context.loop
-    )
-    try:
-        cleanup_future.result(timeout=10)
-        print("  - Entity cleanup successful.")
-    except Exception as e:
-        print(f"  - WARNING: Cleanup failed with error: {e}")
-
-    print("  - Cancelling background gRPC stream...")
-    if hasattr(context, 'bg_task_future') and not context.bg_task_future.done():
-        context.loop.call_soon_threadsafe(context.bg_task_future.cancel)
+    logger.info("  - Cleaning up entities...")
+    if hasattr(context, 'entity_service'):
+        cleanup_future = asyncio.run_coroutine_threadsafe(
+            context.entity_service.delete_all("nobel-prize", "1"),
+            context.loop
+        )
         try:
-            context.bg_task_future.result(timeout=5)
-        except asyncio.CancelledError:
-            print("  - Background task successfully cancelled.")
+            cleanup_future.result(timeout=10)
+            logger.info("  - Entity cleanup successful.")
         except Exception as e:
-            print(f"  - An error occurred during task cancellation: {e}")
+            logger.warn(f"  - Cleanup failed with error: {e}")
+
+    logger.info("  - Gracefully shutting down gRPC stream...")
+    if hasattr(context, 'bg_task_future') and not context.bg_task_future.done():
+        try:
+            shutdown_coro = context.grpc_client.close()
+            shutdown_future = asyncio.run_coroutine_threadsafe(shutdown_coro, context.loop)
+            shutdown_future.result(timeout=5)
+
+            context.bg_task_future.result(timeout=5)
+            logger.info("  - Background gRPC task finished cleanly.")
+
+        except Exception as e:
+            logger.warn(f"  - An error occurred during gRPC shutdown: {e}")
+            if not context.bg_task_future.done():
+                context.loop.call_soon_threadsafe(context.bg_task_future.cancel)
