@@ -6,7 +6,7 @@ Handles email campaign scheduling, sending, and analysis.
 
 import logging
 from datetime import datetime, timezone
-from typing import Any, List
+from typing import Any, List, Optional
 
 from application.entity.cat_fact.version_1.cat_fact import CatFact
 from application.entity.email_campaign.version_1.email_campaign import EmailCampaign
@@ -191,7 +191,7 @@ class EmailCampaignSendingProcessor(CyodaProcessor):
             )
             raise
 
-    async def _get_cat_fact(self, cat_fact_id: str) -> CatFact:
+    async def _get_cat_fact(self, cat_fact_id: str) -> Optional[CatFact]:
         """
         Get the cat fact for the campaign.
 
@@ -199,7 +199,7 @@ class EmailCampaignSendingProcessor(CyodaProcessor):
             cat_fact_id: ID of the cat fact
 
         Returns:
-            The cat fact entity
+            The cat fact entity or None if not found
         """
         entity_service = get_entity_service()
 
@@ -267,12 +267,14 @@ class EmailCampaignSendingProcessor(CyodaProcessor):
                 subscriber.record_email_sent()
 
                 # Update subscriber in database
-                await entity_service.update(
-                    entity_id=subscriber.technical_id or subscriber.entity_id,
-                    entity=subscriber.model_dump(by_alias=True),
-                    entity_class=Subscriber.ENTITY_NAME,
-                    entity_version=str(Subscriber.ENTITY_VERSION),
-                )
+                entity_id = subscriber.technical_id or subscriber.entity_id
+                if entity_id:
+                    await entity_service.update(
+                        entity_id=entity_id,
+                        entity=subscriber.model_dump(by_alias=True),
+                        entity_class=Subscriber.ENTITY_NAME,
+                        entity_version=str(Subscriber.ENTITY_VERSION),
+                    )
 
             except Exception as e:
                 self.logger.error(

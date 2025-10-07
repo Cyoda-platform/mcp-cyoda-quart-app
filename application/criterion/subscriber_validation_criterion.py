@@ -73,7 +73,7 @@ class SubscriberValidationCriterion(CyodaCriteriaChecker):
                 return False
 
             # Validate name fields if provided
-            if not self._are_valid_names(subscriber.first_name, subscriber.last_name):
+            if not self._are_valid_names(subscriber.first_name or "", subscriber.last_name or ""):
                 self.logger.warning(
                     f"Subscriber {subscriber.technical_id} has invalid name fields"
                 )

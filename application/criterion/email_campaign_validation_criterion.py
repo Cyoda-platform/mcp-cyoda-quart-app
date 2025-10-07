@@ -5,7 +5,7 @@ Validates that an EmailCampaign meets all required business rules before proceed
 to the scheduling stage.
 """
 
-from typing import Any
+from typing import Any, Dict
 
 from application.entity.email_campaign.version_1.email_campaign import EmailCampaign
 from common.entity.entity_casting import cast_entity
@@ -210,7 +210,7 @@ class EmailCampaignValidationCriterion(CyodaCriteriaChecker):
 
         return True
 
-    def _is_valid_target_criteria(self, target_criteria: dict) -> bool:
+    def _is_valid_target_criteria(self, target_criteria: Dict[str, Any]) -> bool:
         """
         Validate target criteria configuration.
 
