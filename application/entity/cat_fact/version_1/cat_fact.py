@@ -18,7 +18,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class CatFact(CyodaEntity):
     """
     CatFact entity represents a cat fact retrieved from external sources.
-    
+
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     The state field manages workflow states: initial_state -> retrieved -> validated -> ready -> sent
     """
@@ -30,68 +30,60 @@ class CatFact(CyodaEntity):
     # Required fields
     fact_text: str = Field(..., description="The cat fact content")
     source_api: str = Field(..., description="API source where fact was retrieved from")
-    
+
     # Optional fields
     fact_id: Optional[str] = Field(
-        default=None,
-        description="Original ID from the source API"
+        default=None, description="Original ID from the source API"
     )
     category: Optional[str] = Field(
-        default="general",
-        description="Category of the cat fact"
+        default="general", description="Category of the cat fact"
     )
-    
+
     # Retrieval metadata
     retrieved_at: Optional[str] = Field(
         default_factory=lambda: datetime.now(timezone.utc)
         .isoformat()
         .replace("+00:00", "Z"),
-        description="Timestamp when fact was retrieved (ISO 8601 format)"
+        description="Timestamp when fact was retrieved (ISO 8601 format)",
     )
     api_response_data: Optional[Dict[str, Any]] = Field(
-        default=None,
-        description="Original API response data for reference"
+        default=None, description="Original API response data for reference"
     )
-    
+
     # Quality and validation
     fact_length: int = Field(
-        default=0,
-        description="Length of the fact text in characters"
+        default=0, description="Length of the fact text in characters"
     )
     is_validated: bool = Field(
-        default=False,
-        description="Whether the fact has been validated for quality"
+        default=False, description="Whether the fact has been validated for quality"
     )
     validation_score: Optional[float] = Field(
-        default=None,
-        description="Quality validation score (0.0 to 1.0)"
+        default=None, description="Quality validation score (0.0 to 1.0)"
     )
-    
+
     # Usage tracking
     times_sent: int = Field(
-        default=0,
-        description="Number of times this fact has been sent to subscribers"
+        default=0, description="Number of times this fact has been sent to subscribers"
     )
     last_sent_at: Optional[str] = Field(
-        default=None,
-        description="Timestamp when fact was last sent (ISO 8601 format)"
+        default=None, description="Timestamp when fact was last sent (ISO 8601 format)"
     )
-    
+
     # Email campaign tracking
     campaign_ids: list[str] = Field(
         default_factory=list,
-        description="List of email campaign IDs that used this fact"
+        description="List of email campaign IDs that used this fact",
     )
-    
+
     # Validation constants
     ALLOWED_SOURCES: ClassVar[list[str]] = [
         "catfact.ninja",
         "cat-facts-api",
         "meowfacts",
         "manual_entry",
-        "other"
+        "other",
     ]
-    
+
     ALLOWED_CATEGORIES: ClassVar[list[str]] = [
         "general",
         "behavior",
@@ -99,7 +91,7 @@ class CatFact(CyodaEntity):
         "history",
         "breeds",
         "fun",
-        "science"
+        "science",
     ]
 
     @field_validator("fact_text")
@@ -156,7 +148,9 @@ class CatFact(CyodaEntity):
     def mark_as_sent(self, campaign_id: str) -> None:
         """Record that this fact was sent in an email campaign"""
         self.times_sent += 1
-        self.last_sent_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.last_sent_at = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
         if campaign_id not in self.campaign_ids:
             self.campaign_ids.append(campaign_id)
         self.update_timestamp()
@@ -164,10 +158,10 @@ class CatFact(CyodaEntity):
     def is_ready_for_sending(self) -> bool:
         """Check if fact is ready to be sent to subscribers"""
         return (
-            self.is_validated and 
-            self.validation_score is not None and 
-            self.validation_score >= 0.7 and
-            len(self.fact_text.strip()) >= 10
+            self.is_validated
+            and self.validation_score is not None
+            and self.validation_score >= 0.7
+            and len(self.fact_text.strip()) >= 10
         )
 
     def get_usage_frequency(self) -> str:
@@ -187,7 +181,7 @@ class CatFact(CyodaEntity):
         """Get age of the fact in days since retrieval"""
         if not self.retrieved_at:
             return 0
-        
+
         retrieved_dt = datetime.fromisoformat(self.retrieved_at.replace("Z", "+00:00"))
         now = datetime.now(timezone.utc)
         return (now - retrieved_dt).days

@@ -8,9 +8,9 @@ to the confirmation stage.
 import re
 from typing import Any
 
+from application.entity.subscriber.version_1.subscriber import Subscriber
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.subscriber.version_1.subscriber import Subscriber
 
 
 class SubscriberValidationCriterion(CyodaCriteriaChecker):
@@ -116,9 +116,9 @@ class SubscriberValidationCriterion(CyodaCriteriaChecker):
         """
         if not email:
             return False
-            
+
         # Basic email regex pattern
-        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
         return re.match(email_pattern, email) is not None
 
     def _is_allowed_email_domain(self, email: str) -> bool:
@@ -131,21 +131,21 @@ class SubscriberValidationCriterion(CyodaCriteriaChecker):
         Returns:
             True if domain is allowed
         """
-        if not email or '@' not in email:
+        if not email or "@" not in email:
             return False
-            
-        domain = email.split('@')[1].lower()
-        
+
+        domain = email.split("@")[1].lower()
+
         # List of blocked domains (spam, temporary email services)
         blocked_domains = {
-            '10minutemail.com',
-            'tempmail.org',
-            'guerrillamail.com',
-            'mailinator.com',
-            'throwaway.email',
-            'temp-mail.org'
+            "10minutemail.com",
+            "tempmail.org",
+            "guerrillamail.com",
+            "mailinator.com",
+            "throwaway.email",
+            "temp-mail.org",
         }
-        
+
         return domain not in blocked_domains
 
     def _are_valid_names(self, first_name: str, last_name: str) -> bool:
@@ -165,15 +165,15 @@ class SubscriberValidationCriterion(CyodaCriteriaChecker):
                 # Check for minimum length
                 if len(name.strip()) == 0:
                     continue  # Empty names are allowed (will be set to None)
-                    
+
                 # Check for reasonable length
                 if len(name) > 100:
                     return False
-                    
+
                 # Check for valid characters (letters, spaces, hyphens, apostrophes)
                 if not re.match(r"^[a-zA-Z\s\-']+$", name):
                     return False
-                    
+
         return True
 
     async def _is_unique_email(self, email: str) -> bool:
@@ -189,28 +189,28 @@ class SubscriberValidationCriterion(CyodaCriteriaChecker):
         # In a real implementation, this would query the database
         # For now, we'll assume all emails are unique
         # This could be enhanced to use the entity service to search for existing subscribers
-        
+
         try:
-            from services.services import get_entity_service
             from common.service.entity_service import SearchConditionRequest
-            
+            from services.services import get_entity_service
+
             entity_service = get_entity_service()
-            
+
             # Build search condition for email
             builder = SearchConditionRequest.builder()
             builder.equals("email", email)
             condition = builder.build()
-            
+
             # Search for existing subscribers with this email
             existing_subscribers = await entity_service.search(
                 entity_class=Subscriber.ENTITY_NAME,
                 condition=condition,
                 entity_version=str(Subscriber.ENTITY_VERSION),
             )
-            
+
             # If any subscribers found, email is not unique
             return len(existing_subscribers) == 0
-            
+
         except Exception as e:
             self.logger.warning(f"Could not check email uniqueness: {str(e)}")
             # If we can't check, assume it's unique to avoid blocking valid subscriptions
@@ -227,17 +227,19 @@ class SubscriberValidationCriterion(CyodaCriteriaChecker):
             True if engagement metrics are valid
         """
         # All counts should be non-negative
-        if (subscriber.total_emails_sent < 0 or 
-            subscriber.total_emails_opened < 0 or 
-            subscriber.total_emails_clicked < 0):
+        if (
+            subscriber.total_emails_sent < 0
+            or subscriber.total_emails_opened < 0
+            or subscriber.total_emails_clicked < 0
+        ):
             return False
-            
+
         # Opened emails cannot exceed sent emails
         if subscriber.total_emails_opened > subscriber.total_emails_sent:
             return False
-            
+
         # Clicked emails cannot exceed opened emails
         if subscriber.total_emails_clicked > subscriber.total_emails_opened:
             return False
-            
+
         return True

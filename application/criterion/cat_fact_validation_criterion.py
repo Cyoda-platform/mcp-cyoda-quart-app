@@ -8,9 +8,9 @@ to the processing stage.
 import re
 from typing import Any
 
+from application.entity.cat_fact.version_1.cat_fact import CatFact
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.cat_fact.version_1.cat_fact import CatFact
 
 
 class CatFactValidationCriterion(CyodaCriteriaChecker):
@@ -59,7 +59,10 @@ class CatFactValidationCriterion(CyodaCriteriaChecker):
                 return False
 
             # Validate category if provided
-            if cat_fact.category and cat_fact.category not in cat_fact.ALLOWED_CATEGORIES:
+            if (
+                cat_fact.category
+                and cat_fact.category not in cat_fact.ALLOWED_CATEGORIES
+            ):
                 self.logger.warning(
                     f"Cat fact {cat_fact.technical_id} has invalid category: {cat_fact.category}"
                 )
@@ -94,7 +97,9 @@ class CatFactValidationCriterion(CyodaCriteriaChecker):
                 return False
 
             # Validate validation score if present
-            if cat_fact.validation_score is not None and not self._is_valid_score(cat_fact.validation_score):
+            if cat_fact.validation_score is not None and not self._is_valid_score(
+                cat_fact.validation_score
+            ):
                 self.logger.warning(
                     f"Cat fact {cat_fact.technical_id} has invalid validation score: {cat_fact.validation_score}"
                 )
@@ -123,21 +128,21 @@ class CatFactValidationCriterion(CyodaCriteriaChecker):
         """
         if not fact_text:
             return False
-            
+
         text = fact_text.strip()
-        
+
         # Check minimum length
         if len(text) < 10:
             return False
-            
+
         # Check maximum length
         if len(text) > 1000:
             return False
-            
+
         # Check for basic sentence structure
         if not self._has_basic_sentence_structure(text):
             return False
-            
+
         return True
 
     def _has_basic_sentence_structure(self, text: str) -> bool:
@@ -151,18 +156,18 @@ class CatFactValidationCriterion(CyodaCriteriaChecker):
             True if text has basic sentence structure
         """
         # Should contain at least one letter
-        if not re.search(r'[a-zA-Z]', text):
+        if not re.search(r"[a-zA-Z]", text):
             return False
-            
+
         # Should not be all uppercase (shouting)
         if text.isupper() and len(text) > 10:
             return False
-            
+
         # Should not contain excessive punctuation
-        punctuation_count = len(re.findall(r'[!?.]', text))
+        punctuation_count = len(re.findall(r"[!?.]", text))
         if punctuation_count > len(text) / 10:  # More than 10% punctuation
             return False
-            
+
         return True
 
     def _is_consistent_fact_length(self, cat_fact: CatFact) -> bool:
@@ -189,36 +194,50 @@ class CatFactValidationCriterion(CyodaCriteriaChecker):
             True if content meets quality standards
         """
         text = fact_text.strip().lower()
-        
+
         # Should be cat-related
         cat_keywords = [
-            'cat', 'cats', 'kitten', 'kittens', 'feline', 'felines',
-            'meow', 'purr', 'whiskers', 'paw', 'paws', 'tail'
+            "cat",
+            "cats",
+            "kitten",
+            "kittens",
+            "feline",
+            "felines",
+            "meow",
+            "purr",
+            "whiskers",
+            "paw",
+            "paws",
+            "tail",
         ]
-        
+
         if not any(keyword in text for keyword in cat_keywords):
             return False
-            
+
         # Should not be too generic
-        generic_phrases = [
-            'cats are animals',
-            'cats have four legs',
-            'cats are pets'
-        ]
-        
+        generic_phrases = ["cats are animals", "cats have four legs", "cats are pets"]
+
         if any(phrase in text for phrase in generic_phrases):
             return False
-            
+
         # Should have some educational or interesting content
         interesting_indicators = [
-            'did you know', 'fact', 'research', 'study', 'discovered',
-            'years', 'history', 'behavior', 'instinct', 'species'
+            "did you know",
+            "fact",
+            "research",
+            "study",
+            "discovered",
+            "years",
+            "history",
+            "behavior",
+            "instinct",
+            "species",
         ]
-        
+
         # At least some indication of interesting content OR reasonable length
         has_indicators = any(indicator in text for indicator in interesting_indicators)
         has_reasonable_length = 30 <= len(fact_text) <= 500
-        
+
         return has_indicators or has_reasonable_length
 
     def _are_valid_usage_metrics(self, cat_fact: CatFact) -> bool:
@@ -234,12 +253,12 @@ class CatFactValidationCriterion(CyodaCriteriaChecker):
         # Times sent should be non-negative
         if cat_fact.times_sent < 0:
             return False
-            
+
         # Campaign IDs list length should match or be less than times sent
         # (one fact could be sent in multiple campaigns)
         if len(cat_fact.campaign_ids) > cat_fact.times_sent:
             return False
-            
+
         return True
 
     def _contains_inappropriate_content(self, fact_text: str) -> bool:
@@ -253,13 +272,20 @@ class CatFactValidationCriterion(CyodaCriteriaChecker):
             True if content is inappropriate
         """
         text = fact_text.lower()
-        
+
         # List of inappropriate words/phrases
         inappropriate_terms = [
-            'hate', 'kill', 'death', 'violence', 'abuse',
-            'stupid', 'dumb', 'idiot', 'moron'
+            "hate",
+            "kill",
+            "death",
+            "violence",
+            "abuse",
+            "stupid",
+            "dumb",
+            "idiot",
+            "moron",
         ]
-        
+
         return any(term in text for term in inappropriate_terms)
 
     def _is_valid_score(self, score: float) -> bool:

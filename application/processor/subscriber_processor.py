@@ -9,9 +9,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from application.entity.subscriber.version_1.subscriber import Subscriber
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.subscriber.version_1.subscriber import Subscriber
 
 
 class SubscriberConfirmationProcessor(CyodaProcessor):
@@ -78,14 +78,13 @@ class SubscriberConfirmationProcessor(CyodaProcessor):
         self.logger.info(
             f"Sending confirmation email to {subscriber.email} for subscriber {subscriber.technical_id}"
         )
-        
+
         # Simulate email sending delay
         import asyncio
+
         await asyncio.sleep(0.1)
-        
-        self.logger.info(
-            f"Confirmation email sent successfully to {subscriber.email}"
-        )
+
+        self.logger.info(f"Confirmation email sent successfully to {subscriber.email}")
 
 
 class SubscriberActivationProcessor(CyodaProcessor):
@@ -150,11 +149,10 @@ class SubscriberActivationProcessor(CyodaProcessor):
         self.logger.info(
             f"Sending welcome email to {subscriber.email} for subscriber {subscriber.technical_id}"
         )
-        
+
         # Simulate email sending delay
         import asyncio
+
         await asyncio.sleep(0.1)
-        
-        self.logger.info(
-            f"Welcome email sent successfully to {subscriber.email}"
-        )
+
+        self.logger.info(f"Welcome email sent successfully to {subscriber.email}")

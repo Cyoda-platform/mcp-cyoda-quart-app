@@ -8,9 +8,9 @@ import logging
 import re
 from typing import Any
 
+from application.entity.cat_fact.version_1.cat_fact import CatFact
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.cat_fact.version_1.cat_fact import CatFact
 
 
 class CatFactProcessor(CyodaProcessor):
@@ -48,7 +48,7 @@ class CatFactProcessor(CyodaProcessor):
 
             # Validate and score the fact quality
             quality_score = await self._validate_fact_quality(cat_fact)
-            
+
             # Update the fact with validation results
             cat_fact.validate_fact(quality_score)
 
@@ -81,7 +81,7 @@ class CatFactProcessor(CyodaProcessor):
             Quality score between 0.0 and 1.0
         """
         score = 0.0
-        
+
         # Length check (10-500 characters is ideal)
         length = len(cat_fact.fact_text.strip())
         if 50 <= length <= 300:
@@ -122,26 +122,26 @@ class CatFactProcessor(CyodaProcessor):
         """
         # Basic checks for good grammar
         text = text.strip()
-        
+
         # Should start with capital letter
         if not text[0].isupper():
             return False
-            
+
         # Should end with proper punctuation
-        if not text.endswith(('.', '!', '?')):
+        if not text.endswith((".", "!", "?")):
             return False
-            
+
         # Should not have multiple consecutive spaces
-        if '  ' in text:
+        if "  " in text:
             return False
-            
+
         # Should not have obvious typos (very basic check)
-        common_typos = ['teh', 'adn', 'hte', 'taht', 'thier']
+        common_typos = ["teh", "adn", "hte", "taht", "thier"]
         text_lower = text.lower()
         for typo in common_typos:
             if typo in text_lower:
                 return False
-                
+
         return True
 
     def _is_cat_related(self, text: str) -> bool:
@@ -155,12 +155,30 @@ class CatFactProcessor(CyodaProcessor):
             True if text is cat-related
         """
         cat_keywords = [
-            'cat', 'cats', 'kitten', 'kittens', 'feline', 'felines',
-            'meow', 'purr', 'whiskers', 'paw', 'paws', 'tail',
-            'domestic cat', 'house cat', 'tabby', 'calico', 'siamese',
-            'persian', 'maine coon', 'bengal', 'ragdoll', 'british shorthair'
+            "cat",
+            "cats",
+            "kitten",
+            "kittens",
+            "feline",
+            "felines",
+            "meow",
+            "purr",
+            "whiskers",
+            "paw",
+            "paws",
+            "tail",
+            "domestic cat",
+            "house cat",
+            "tabby",
+            "calico",
+            "siamese",
+            "persian",
+            "maine coon",
+            "bengal",
+            "ragdoll",
+            "british shorthair",
         ]
-        
+
         text_lower = text.lower()
         return any(keyword in text_lower for keyword in cat_keywords)
 
@@ -176,14 +194,14 @@ class CatFactProcessor(CyodaProcessor):
         """
         # In a real implementation, this would check against a database
         # For now, we'll do basic checks for common/generic content
-        
+
         generic_phrases = [
-            'cats are animals',
-            'cats have four legs',
-            'cats are pets',
-            'cats meow'
+            "cats are animals",
+            "cats have four legs",
+            "cats are pets",
+            "cats meow",
         ]
-        
+
         text_lower = text.lower()
         return not any(phrase in text_lower for phrase in generic_phrases)
 
@@ -198,11 +216,23 @@ class CatFactProcessor(CyodaProcessor):
             True if text has educational value
         """
         educational_indicators = [
-            'did you know', 'fact', 'research', 'study', 'scientists',
-            'discovered', 'found', 'years', 'history', 'ancient',
-            'behavior', 'instinct', 'evolution', 'species', 'breed'
+            "did you know",
+            "fact",
+            "research",
+            "study",
+            "scientists",
+            "discovered",
+            "found",
+            "years",
+            "history",
+            "ancient",
+            "behavior",
+            "instinct",
+            "evolution",
+            "species",
+            "breed",
         ]
-        
+
         text_lower = text.lower()
         return any(indicator in text_lower for indicator in educational_indicators)
 
@@ -217,14 +247,14 @@ class CatFactProcessor(CyodaProcessor):
             Cleaned text
         """
         # Remove extra whitespace
-        text = re.sub(r'\s+', ' ', text.strip())
-        
+        text = re.sub(r"\s+", " ", text.strip())
+
         # Ensure proper sentence ending
-        if not text.endswith(('.', '!', '?')):
-            text += '.'
-            
+        if not text.endswith((".", "!", "?")):
+            text += "."
+
         # Capitalize first letter
         if text and text[0].islower():
             text = text[0].upper() + text[1:]
-            
+
         return text

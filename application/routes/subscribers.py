@@ -19,19 +19,20 @@ from quart_schema import (
     validate_querystring,
 )
 
+from application.entity.subscriber.version_1.subscriber import Subscriber
 from common.service.entity_service import SearchConditionRequest
 from services.services import get_entity_service
-from application.entity.subscriber.version_1.subscriber import Subscriber
 
 logger = logging.getLogger(__name__)
+
 
 # Helper to normalize entity data from service
 def _to_entity_dict(data: Any) -> Dict[str, Any]:
     return data.model_dump(by_alias=True) if hasattr(data, "model_dump") else data
 
-subscribers_bp = Blueprint(
-    "subscribers", __name__, url_prefix="/api/subscribers"
-)
+
+subscribers_bp = Blueprint("subscribers", __name__, url_prefix="/api/subscribers")
+
 
 @subscribers_bp.route("", methods=["POST"])
 @tag(["subscribers"])
@@ -65,6 +66,7 @@ async def create_subscriber() -> ResponseReturnValue:
         logger.exception("Error creating Subscriber: %s", str(e))
         return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
 
+
 @subscribers_bp.route("/<entity_id>", methods=["GET"])
 @tag(["subscribers"])
 @operation_id("get_subscriber")
@@ -90,6 +92,7 @@ async def get_subscriber(entity_id: str) -> ResponseReturnValue:
         logger.exception("Error getting Subscriber %s: %s", entity_id, str(e))
         return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
 
+
 @subscribers_bp.route("", methods=["GET"])
 @tag(["subscribers"])
 @operation_id("list_subscribers")
@@ -106,7 +109,7 @@ async def list_subscribers() -> ResponseReturnValue:
         # Build search conditions if filters provided
         if subscription_status or preferred_frequency or is_active:
             builder = SearchConditionRequest.builder()
-            
+
             if subscription_status:
                 builder.equals("subscription_status", subscription_status)
             if preferred_frequency:
@@ -132,6 +135,7 @@ async def list_subscribers() -> ResponseReturnValue:
     except Exception as e:
         logger.exception("Error listing Subscribers: %s", str(e))
         return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
+
 
 @subscribers_bp.route("/<entity_id>", methods=["PUT"])
 @tag(["subscribers"])
@@ -173,6 +177,7 @@ async def update_subscriber(entity_id: str) -> ResponseReturnValue:
         logger.exception("Error updating Subscriber %s: %s", entity_id, str(e))
         return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
 
+
 @subscribers_bp.route("/<entity_id>", methods=["DELETE"])
 @tag(["subscribers"])
 @operation_id("delete_subscriber")
@@ -200,6 +205,7 @@ async def delete_subscriber(entity_id: str) -> ResponseReturnValue:
         logger.exception("Error deleting Subscriber %s: %s", entity_id, str(e))
         return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
 
+
 @subscribers_bp.route("/<entity_id>/confirm", methods=["POST"])
 @tag(["subscribers"])
 @operation_id("confirm_subscriber")
@@ -207,7 +213,7 @@ async def confirm_subscriber(entity_id: str) -> ResponseReturnValue:
     """Confirm subscriber subscription"""
     try:
         service = get_entity_service()
-        
+
         # Execute confirm transition
         response = await service.execute_transition(
             entity_id=entity_id,
@@ -228,6 +234,7 @@ async def confirm_subscriber(entity_id: str) -> ResponseReturnValue:
         logger.exception("Error confirming Subscriber %s: %s", entity_id, str(e))
         return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
 
+
 @subscribers_bp.route("/<entity_id>/unsubscribe", methods=["POST"])
 @tag(["subscribers"])
 @operation_id("unsubscribe_subscriber")
@@ -235,7 +242,7 @@ async def unsubscribe_subscriber(entity_id: str) -> ResponseReturnValue:
     """Unsubscribe subscriber"""
     try:
         service = get_entity_service()
-        
+
         # Execute unsubscribe transition
         response = await service.execute_transition(
             entity_id=entity_id,
@@ -256,6 +263,7 @@ async def unsubscribe_subscriber(entity_id: str) -> ResponseReturnValue:
         logger.exception("Error unsubscribing Subscriber %s: %s", entity_id, str(e))
         return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
 
+
 @subscribers_bp.route("/stats", methods=["GET"])
 @tag(["subscribers"])
 @operation_id("get_subscriber_stats")
@@ -263,7 +271,7 @@ async def get_subscriber_stats() -> ResponseReturnValue:
     """Get subscriber statistics"""
     try:
         service = get_entity_service()
-        
+
         # Get all subscribers
         subscribers = await service.find_all(
             entity_class=Subscriber.ENTITY_NAME,
@@ -280,7 +288,7 @@ async def get_subscriber_stats() -> ResponseReturnValue:
                 "total_emails_opened": 0,
                 "total_emails_clicked": 0,
                 "average_engagement_rate": 0.0,
-            }
+            },
         }
 
         total_engagement = 0.0
@@ -288,28 +296,33 @@ async def get_subscriber_stats() -> ResponseReturnValue:
 
         for subscriber_response in subscribers:
             from common.entity.entity_casting import cast_entity
+
             subscriber = cast_entity(subscriber_response.data, Subscriber)
-            
+
             # Count by status
             status = subscriber.subscription_status
             stats["by_status"][status] = stats["by_status"].get(status, 0) + 1
-            
+
             # Count by frequency
             freq = subscriber.preferred_frequency
             stats["by_frequency"][freq] = stats["by_frequency"].get(freq, 0) + 1
-            
+
             # Aggregate engagement metrics
             stats["engagement"]["total_emails_sent"] += subscriber.total_emails_sent
             stats["engagement"]["total_emails_opened"] += subscriber.total_emails_opened
-            stats["engagement"]["total_emails_clicked"] += subscriber.total_emails_clicked
-            
+            stats["engagement"][
+                "total_emails_clicked"
+            ] += subscriber.total_emails_clicked
+
             if subscriber.is_active_subscriber():
                 total_engagement += subscriber.get_engagement_rate()
                 active_subscribers += 1
 
         # Calculate average engagement rate
         if active_subscribers > 0:
-            stats["engagement"]["average_engagement_rate"] = total_engagement / active_subscribers
+            stats["engagement"]["average_engagement_rate"] = (
+                total_engagement / active_subscribers
+            )
 
         return stats, 200
 

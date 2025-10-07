@@ -7,9 +7,9 @@ to the scheduling stage.
 
 from typing import Any
 
+from application.entity.email_campaign.version_1.email_campaign import EmailCampaign
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.email_campaign.version_1.email_campaign import EmailCampaign
 
 
 class EmailCampaignValidationCriterion(CyodaCriteriaChecker):
@@ -72,14 +72,18 @@ class EmailCampaignValidationCriterion(CyodaCriteriaChecker):
                 return False
 
             # Validate email subject if provided
-            if campaign.email_subject and not self._is_valid_email_subject(campaign.email_subject):
+            if campaign.email_subject and not self._is_valid_email_subject(
+                campaign.email_subject
+            ):
                 self.logger.warning(
                     f"Email campaign {campaign.technical_id} has invalid email subject"
                 )
                 return False
 
             # Validate target criteria if provided
-            if campaign.target_criteria and not self._is_valid_target_criteria(campaign.target_criteria):
+            if campaign.target_criteria and not self._is_valid_target_criteria(
+                campaign.target_criteria
+            ):
                 self.logger.warning(
                     f"Email campaign {campaign.technical_id} has invalid target criteria"
                 )
@@ -129,22 +133,23 @@ class EmailCampaignValidationCriterion(CyodaCriteriaChecker):
         """
         if not campaign_name:
             return False
-            
+
         name = campaign_name.strip()
-        
+
         # Check minimum length
         if len(name) < 3:
             return False
-            
+
         # Check maximum length
         if len(name) > 200:
             return False
-            
+
         # Check for valid characters (letters, numbers, spaces, hyphens, underscores)
         import re
-        if not re.match(r'^[a-zA-Z0-9\s\-_]+$', name):
+
+        if not re.match(r"^[a-zA-Z0-9\s\-_]+$", name):
             return False
-            
+
         return True
 
     def _is_valid_cat_fact_id(self, cat_fact_id: str) -> bool:
@@ -159,15 +164,15 @@ class EmailCampaignValidationCriterion(CyodaCriteriaChecker):
         """
         if not cat_fact_id:
             return False
-            
+
         # Basic format validation (should be non-empty string)
         if len(cat_fact_id.strip()) == 0:
             return False
-            
+
         # Check reasonable length
         if len(cat_fact_id) > 100:
             return False
-            
+
         return True
 
     def _is_valid_email_subject(self, email_subject: str) -> bool:
@@ -182,23 +187,27 @@ class EmailCampaignValidationCriterion(CyodaCriteriaChecker):
         """
         if not email_subject:
             return True  # Subject is optional
-            
+
         subject = email_subject.strip()
-        
+
         # Check maximum length
         if len(subject) > 200:
             return False
-            
+
         # Check for suspicious content (basic spam detection)
         spam_indicators = [
-            'free money', 'click here now', 'urgent!!!',
-            'winner', 'congratulations!!!', 'act now'
+            "free money",
+            "click here now",
+            "urgent!!!",
+            "winner",
+            "congratulations!!!",
+            "act now",
         ]
-        
+
         subject_lower = subject.lower()
         if any(indicator in subject_lower for indicator in spam_indicators):
             return False
-            
+
         return True
 
     def _is_valid_target_criteria(self, target_criteria: dict) -> bool:
@@ -213,28 +222,32 @@ class EmailCampaignValidationCriterion(CyodaCriteriaChecker):
         """
         if not isinstance(target_criteria, dict):
             return False
-            
+
         # Check for valid criteria keys
         valid_keys = {
-            'subscription_status', 'preferred_frequency', 'min_engagement_rate',
-            'max_unsubscribe_rate', 'active_since_days', 'exclude_recent_campaigns'
+            "subscription_status",
+            "preferred_frequency",
+            "min_engagement_rate",
+            "max_unsubscribe_rate",
+            "active_since_days",
+            "exclude_recent_campaigns",
         }
-        
+
         for key in target_criteria.keys():
             if key not in valid_keys:
                 return False
-                
+
         # Validate specific criteria values
-        if 'min_engagement_rate' in target_criteria:
-            rate = target_criteria['min_engagement_rate']
+        if "min_engagement_rate" in target_criteria:
+            rate = target_criteria["min_engagement_rate"]
             if not isinstance(rate, (int, float)) or rate < 0 or rate > 1:
                 return False
-                
-        if 'max_unsubscribe_rate' in target_criteria:
-            rate = target_criteria['max_unsubscribe_rate']
+
+        if "max_unsubscribe_rate" in target_criteria:
+            rate = target_criteria["max_unsubscribe_rate"]
             if not isinstance(rate, (int, float)) or rate < 0 or rate > 1:
                 return False
-                
+
         return True
 
     def _are_valid_metrics(self, campaign: EmailCampaign) -> bool:
@@ -254,9 +267,9 @@ class EmailCampaignValidationCriterion(CyodaCriteriaChecker):
             campaign.emails_bounced,
             campaign.emails_opened,
             campaign.emails_clicked,
-            campaign.unsubscribes
+            campaign.unsubscribes,
         ]
-        
+
         return all(metric >= 0 for metric in metrics)
 
     def _are_metrics_logically_consistent(self, campaign: EmailCampaign) -> bool:
@@ -270,22 +283,24 @@ class EmailCampaignValidationCriterion(CyodaCriteriaChecker):
             True if metrics are logically consistent
         """
         # Total attempts should equal sent + failed + bounced
-        total_attempts = campaign.emails_sent + campaign.emails_failed + campaign.emails_bounced
-        
+        total_attempts = (
+            campaign.emails_sent + campaign.emails_failed + campaign.emails_bounced
+        )
+
         # If we have any delivery metrics, they should be consistent
         if total_attempts > 0:
             # Opened emails cannot exceed sent emails
             if campaign.emails_opened > campaign.emails_sent:
                 return False
-                
+
             # Clicked emails cannot exceed opened emails
             if campaign.emails_clicked > campaign.emails_opened:
                 return False
-                
+
             # Unsubscribes cannot exceed sent emails
             if campaign.unsubscribes > campaign.emails_sent:
                 return False
-                
+
         return True
 
     async def _is_cat_fact_available(self, cat_fact_id: str) -> bool:
@@ -299,25 +314,25 @@ class EmailCampaignValidationCriterion(CyodaCriteriaChecker):
             True if cat fact is available
         """
         try:
-            from services.services import get_entity_service
             from application.entity.cat_fact.version_1.cat_fact import CatFact
-            
+            from services.services import get_entity_service
+
             entity_service = get_entity_service()
-            
+
             # Try to get the cat fact
             response = await entity_service.get_by_id(
                 entity_id=cat_fact_id,
                 entity_class=CatFact.ENTITY_NAME,
                 entity_version=str(CatFact.ENTITY_VERSION),
             )
-            
+
             if not response:
                 return False
-                
+
             # Check if cat fact is in a ready state
             cat_fact = cast_entity(response.data, CatFact)
             return cat_fact.is_ready_for_sending()
-            
+
         except Exception as e:
             self.logger.warning(f"Could not verify cat fact availability: {str(e)}")
             # If we can't check, assume it's available to avoid blocking valid campaigns

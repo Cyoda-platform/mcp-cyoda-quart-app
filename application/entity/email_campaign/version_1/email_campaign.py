@@ -18,7 +18,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class EmailCampaign(CyodaEntity):
     """
     EmailCampaign entity represents an email distribution campaign.
-    
+
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     The state field manages workflow states: initial_state -> scheduled -> sending -> completed -> analyzed
     """
@@ -30,95 +30,83 @@ class EmailCampaign(CyodaEntity):
     # Required fields
     campaign_name: str = Field(..., description="Name of the email campaign")
     cat_fact_id: str = Field(..., description="ID of the cat fact to send")
-    
+
     # Campaign scheduling
     scheduled_at: Optional[str] = Field(
         default=None,
-        description="Timestamp when campaign is scheduled to send (ISO 8601 format)"
+        description="Timestamp when campaign is scheduled to send (ISO 8601 format)",
     )
     campaign_type: str = Field(
         default="weekly",
-        description="Type of campaign: weekly, daily, monthly, special"
+        description="Type of campaign: weekly, daily, monthly, special",
     )
-    
+
     # Target audience
     target_subscriber_count: int = Field(
-        default=0,
-        description="Number of subscribers targeted for this campaign"
+        default=0, description="Number of subscribers targeted for this campaign"
     )
     target_criteria: Optional[Dict[str, Any]] = Field(
-        default=None,
-        description="Criteria for selecting target subscribers"
+        default=None, description="Criteria for selecting target subscribers"
     )
-    
+
     # Delivery tracking
     emails_sent: int = Field(
-        default=0,
-        description="Number of emails successfully sent"
+        default=0, description="Number of emails successfully sent"
     )
     emails_failed: int = Field(
-        default=0,
-        description="Number of emails that failed to send"
+        default=0, description="Number of emails that failed to send"
     )
-    emails_bounced: int = Field(
-        default=0,
-        description="Number of emails that bounced"
-    )
-    
+    emails_bounced: int = Field(default=0, description="Number of emails that bounced")
+
     # Engagement tracking
     emails_opened: int = Field(
-        default=0,
-        description="Number of emails opened by recipients"
+        default=0, description="Number of emails opened by recipients"
     )
     emails_clicked: int = Field(
-        default=0,
-        description="Number of emails with link clicks"
+        default=0, description="Number of emails with link clicks"
     )
     unsubscribes: int = Field(
-        default=0,
-        description="Number of unsubscribes triggered by this campaign"
+        default=0, description="Number of unsubscribes triggered by this campaign"
     )
-    
+
     # Timestamps
     started_at: Optional[str] = Field(
         default=None,
-        description="Timestamp when campaign sending started (ISO 8601 format)"
+        description="Timestamp when campaign sending started (ISO 8601 format)",
     )
     completed_at: Optional[str] = Field(
         default=None,
-        description="Timestamp when campaign sending completed (ISO 8601 format)"
+        description="Timestamp when campaign sending completed (ISO 8601 format)",
     )
-    
+
     # Campaign content
     email_subject: Optional[str] = Field(
-        default=None,
-        description="Subject line for the email"
+        default=None, description="Subject line for the email"
     )
     email_template: str = Field(
-        default="default",
-        description="Email template to use for the campaign"
+        default="default", description="Email template to use for the campaign"
     )
-    
+
     # Error tracking
     error_messages: list[str] = Field(
         default_factory=list,
-        description="List of error messages encountered during campaign"
+        description="List of error messages encountered during campaign",
     )
-    
+
     # Validation constants
     ALLOWED_CAMPAIGN_TYPES: ClassVar[list[str]] = [
         "daily",
         "weekly",
         "monthly",
         "special",
-        "test"
+        "test",
     ]
-    
+
     ALLOWED_TEMPLATES: ClassVar[list[str]] = [
         "default",
         "minimal",
         "rich",
-        "newsletter"
+        "newsletter",
     ]
 
     @field_validator("campaign_name")
@@ -139,7 +127,9 @@ class EmailCampaign(CyodaEntity):
     def validate_campaign_type(cls, v: str) -> str:
         """Validate campaign type field"""
         if v not in cls.ALLOWED_CAMPAIGN_TYPES:
-            raise ValueError(f"Campaign type must be one of: {cls.ALLOWED_CAMPAIGN_TYPES}")
+            raise ValueError(
+                f"Campaign type must be one of: {cls.ALLOWED_CAMPAIGN_TYPES}"
+            )
         return v
 
     @field_validator("email_template")
@@ -169,7 +159,9 @@ class EmailCampaign(CyodaEntity):
 
     def complete_campaign(self) -> None:
         """Mark campaign as completed"""
-        self.completed_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.completed_at = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
         self.update_timestamp()
 
     def record_email_sent(self) -> None:
@@ -243,7 +235,7 @@ class EmailCampaign(CyodaEntity):
         """Get campaign duration in minutes"""
         if not self.started_at or not self.completed_at:
             return None
-        
+
         start_dt = datetime.fromisoformat(self.started_at.replace("Z", "+00:00"))
         end_dt = datetime.fromisoformat(self.completed_at.replace("Z", "+00:00"))
         return (end_dt - start_dt).total_seconds() / 60
@@ -262,7 +254,7 @@ class EmailCampaign(CyodaEntity):
             "total_bounced": self.emails_bounced,
             "total_opened": self.emails_opened,
             "total_clicked": self.emails_clicked,
-            "total_unsubscribes": self.unsubscribes
+            "total_unsubscribes": self.unsubscribes,
         }
 
     def to_api_response(self) -> Dict[str, Any]:

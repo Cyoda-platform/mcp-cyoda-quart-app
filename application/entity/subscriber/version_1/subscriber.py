@@ -10,7 +10,7 @@ Manages subscription status, email validation, and user preferences.
 from datetime import datetime, timezone
 from typing import Any, ClassVar, Dict, Optional
 
-from pydantic import ConfigDict, Field, field_validator, EmailStr
+from pydantic import ConfigDict, EmailStr, Field, field_validator
 
 from common.entity.cyoda_entity import CyodaEntity
 
@@ -18,7 +18,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class Subscriber(CyodaEntity):
     """
     Subscriber entity represents a user who has subscribed to receive weekly cat facts.
-    
+
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     The state field manages workflow states: initial_state -> subscribed -> confirmed -> active
     """
@@ -31,76 +31,67 @@ class Subscriber(CyodaEntity):
     email: EmailStr = Field(..., description="Subscriber's email address")
     subscription_status: str = Field(
         default="pending",
-        description="Current subscription status: pending, confirmed, active, paused, unsubscribed"
+        description="Current subscription status: pending, confirmed, active, paused, unsubscribed",
     )
-    
+
     # Optional fields
     first_name: Optional[str] = Field(
-        default=None,
-        description="Subscriber's first name"
+        default=None, description="Subscriber's first name"
     )
-    last_name: Optional[str] = Field(
-        default=None,
-        description="Subscriber's last name"
-    )
-    
+    last_name: Optional[str] = Field(default=None, description="Subscriber's last name")
+
     # Subscription preferences
     preferred_frequency: str = Field(
         default="weekly",
-        description="Preferred email frequency: weekly, daily, monthly"
+        description="Preferred email frequency: weekly, daily, monthly",
     )
-    
+
     # Timestamps
     subscribed_at: Optional[str] = Field(
         default_factory=lambda: datetime.now(timezone.utc)
         .isoformat()
         .replace("+00:00", "Z"),
-        description="Timestamp when user subscribed (ISO 8601 format)"
+        description="Timestamp when user subscribed (ISO 8601 format)",
     )
     confirmed_at: Optional[str] = Field(
         default=None,
-        description="Timestamp when subscription was confirmed (ISO 8601 format)"
+        description="Timestamp when subscription was confirmed (ISO 8601 format)",
     )
     last_email_sent_at: Optional[str] = Field(
         default=None,
-        description="Timestamp of last email sent to subscriber (ISO 8601 format)"
+        description="Timestamp of last email sent to subscriber (ISO 8601 format)",
     )
-    
+
     # Engagement tracking
     total_emails_sent: int = Field(
-        default=0,
-        description="Total number of emails sent to this subscriber"
+        default=0, description="Total number of emails sent to this subscriber"
     )
     total_emails_opened: int = Field(
-        default=0,
-        description="Total number of emails opened by this subscriber"
+        default=0, description="Total number of emails opened by this subscriber"
     )
     total_emails_clicked: int = Field(
-        default=0,
-        description="Total number of emails clicked by this subscriber"
+        default=0, description="Total number of emails clicked by this subscriber"
     )
-    
+
     # Validation constants
     ALLOWED_STATUSES: ClassVar[list[str]] = [
         "pending",
-        "confirmed", 
+        "confirmed",
         "active",
         "paused",
-        "unsubscribed"
+        "unsubscribed",
     ]
-    
-    ALLOWED_FREQUENCIES: ClassVar[list[str]] = [
-        "daily",
-        "weekly", 
-        "monthly"
-    ]
+
+    ALLOWED_FREQUENCIES: ClassVar[list[str]] = ["daily", "weekly", "monthly"]
 
     @field_validator("subscription_status")
     @classmethod
     def validate_subscription_status(cls, v: str) -> str:
         """Validate subscription status field"""
         if v not in cls.ALLOWED_STATUSES:
-            raise ValueError(f"Subscription status must be one of: {cls.ALLOWED_STATUSES}")
+            raise ValueError(
+                f"Subscription status must be one of: {cls.ALLOWED_STATUSES}"
+            )
         return v
 
     @field_validator("preferred_frequency")
@@ -108,7 +99,9 @@ class Subscriber(CyodaEntity):
     def validate_preferred_frequency(cls, v: str) -> str:
         """Validate preferred frequency field"""
         if v not in cls.ALLOWED_FREQUENCIES:
-            raise ValueError(f"Preferred frequency must be one of: {cls.ALLOWED_FREQUENCIES}")
+            raise ValueError(
+                f"Preferred frequency must be one of: {cls.ALLOWED_FREQUENCIES}"
+            )
         return v
 
     @field_validator("first_name", "last_name")
@@ -126,7 +119,9 @@ class Subscriber(CyodaEntity):
     def confirm_subscription(self) -> None:
         """Mark subscription as confirmed and update timestamp"""
         self.subscription_status = "confirmed"
-        self.confirmed_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.confirmed_at = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
         self.update_timestamp()
 
     def activate_subscription(self) -> None:
@@ -147,7 +142,9 @@ class Subscriber(CyodaEntity):
     def record_email_sent(self) -> None:
         """Record that an email was sent to this subscriber"""
         self.total_emails_sent += 1
-        self.last_email_sent_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self.last_email_sent_at = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
         self.update_timestamp()
 
     def record_email_opened(self) -> None:

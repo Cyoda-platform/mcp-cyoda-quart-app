@@ -14,19 +14,20 @@ from quart import Blueprint, jsonify, request
 from quart.typing import ResponseReturnValue
 from quart_schema import operation_id, tag
 
+from application.entity.cat_fact.version_1.cat_fact import CatFact
 from common.service.entity_service import SearchConditionRequest
 from services.services import get_entity_service
-from application.entity.cat_fact.version_1.cat_fact import CatFact
 
 logger = logging.getLogger(__name__)
+
 
 # Helper to normalize entity data from service
 def _to_entity_dict(data: Any) -> Dict[str, Any]:
     return data.model_dump(by_alias=True) if hasattr(data, "model_dump") else data
 
-cat_facts_bp = Blueprint(
-    "cat_facts", __name__, url_prefix="/api/cat-facts"
-)
+
+cat_facts_bp = Blueprint("cat_facts", __name__, url_prefix="/api/cat-facts")
+
 
 @cat_facts_bp.route("", methods=["POST"])
 @tag(["cat-facts"])
@@ -60,6 +61,7 @@ async def create_cat_fact() -> ResponseReturnValue:
         logger.exception("Error creating CatFact: %s", str(e))
         return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
 
+
 @cat_facts_bp.route("/<entity_id>", methods=["GET"])
 @tag(["cat-facts"])
 @operation_id("get_cat_fact")
@@ -85,6 +87,7 @@ async def get_cat_fact(entity_id: str) -> ResponseReturnValue:
         logger.exception("Error getting CatFact %s: %s", entity_id, str(e))
         return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
 
+
 @cat_facts_bp.route("", methods=["GET"])
 @tag(["cat-facts"])
 @operation_id("list_cat_facts")
@@ -102,7 +105,7 @@ async def list_cat_facts() -> ResponseReturnValue:
         # Build search conditions if filters provided
         if source_api or category or is_validated:
             builder = SearchConditionRequest.builder()
-            
+
             if source_api:
                 builder.equals("source_api", source_api)
             if category:
@@ -127,6 +130,7 @@ async def list_cat_facts() -> ResponseReturnValue:
         # Filter for ready_for_sending if requested
         if ready_for_sending and ready_for_sending.lower() == "true":
             from common.entity.entity_casting import cast_entity
+
             filtered_list = []
             for entity_dict in entity_list:
                 cat_fact = cast_entity(CatFact(**entity_dict), CatFact)
@@ -139,6 +143,7 @@ async def list_cat_facts() -> ResponseReturnValue:
     except Exception as e:
         logger.exception("Error listing CatFacts: %s", str(e))
         return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
+
 
 @cat_facts_bp.route("/<entity_id>", methods=["PUT"])
 @tag(["cat-facts"])
@@ -180,6 +185,7 @@ async def update_cat_fact(entity_id: str) -> ResponseReturnValue:
         logger.exception("Error updating CatFact %s: %s", entity_id, str(e))
         return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
 
+
 @cat_facts_bp.route("/<entity_id>", methods=["DELETE"])
 @tag(["cat-facts"])
 @operation_id("delete_cat_fact")
@@ -207,6 +213,7 @@ async def delete_cat_fact(entity_id: str) -> ResponseReturnValue:
         logger.exception("Error deleting CatFact %s: %s", entity_id, str(e))
         return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
 
+
 @cat_facts_bp.route("/ready", methods=["GET"])
 @tag(["cat-facts"])
 @operation_id("get_ready_cat_facts")
@@ -214,7 +221,7 @@ async def get_ready_cat_facts() -> ResponseReturnValue:
     """Get cat facts that are ready for sending"""
     try:
         service = get_entity_service()
-        
+
         # Get all cat facts
         entities = await service.find_all(
             entity_class=CatFact.ENTITY_NAME,
@@ -223,6 +230,7 @@ async def get_ready_cat_facts() -> ResponseReturnValue:
 
         # Filter for ready facts
         from common.entity.entity_casting import cast_entity
+
         ready_facts = []
         for entity_response in entities:
             cat_fact = cast_entity(entity_response.data, CatFact)
@@ -235,6 +243,7 @@ async def get_ready_cat_facts() -> ResponseReturnValue:
         logger.exception("Error getting ready CatFacts: %s", str(e))
         return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
 
+
 @cat_facts_bp.route("/random", methods=["GET"])
 @tag(["cat-facts"])
 @operation_id("get_random_cat_fact")
@@ -242,9 +251,9 @@ async def get_random_cat_fact() -> ResponseReturnValue:
     """Get a random cat fact that's ready for sending"""
     try:
         import random
-        
+
         service = get_entity_service()
-        
+
         # Get all ready cat facts
         entities = await service.find_all(
             entity_class=CatFact.ENTITY_NAME,
@@ -253,6 +262,7 @@ async def get_random_cat_fact() -> ResponseReturnValue:
 
         # Filter for ready facts
         from common.entity.entity_casting import cast_entity
+
         ready_facts = []
         for entity_response in entities:
             cat_fact = cast_entity(entity_response.data, CatFact)
@@ -270,6 +280,7 @@ async def get_random_cat_fact() -> ResponseReturnValue:
         logger.exception("Error getting random CatFact: %s", str(e))
         return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
 
+
 @cat_facts_bp.route("/stats", methods=["GET"])
 @tag(["cat-facts"])
 @operation_id("get_cat_fact_stats")
@@ -277,7 +288,7 @@ async def get_cat_fact_stats() -> ResponseReturnValue:
     """Get cat fact statistics"""
     try:
         service = get_entity_service()
-        
+
         # Get all cat facts
         entities = await service.find_all(
             entity_class=CatFact.ENTITY_NAME,
@@ -290,7 +301,13 @@ async def get_cat_fact_stats() -> ResponseReturnValue:
             "by_source": {},
             "by_category": {},
             "by_validation_status": {"validated": 0, "unvalidated": 0},
-            "by_usage": {"unused": 0, "used_once": 0, "low_usage": 0, "medium_usage": 0, "high_usage": 0},
+            "by_usage": {
+                "unused": 0,
+                "used_once": 0,
+                "low_usage": 0,
+                "medium_usage": 0,
+                "high_usage": 0,
+            },
             "ready_for_sending": 0,
             "average_length": 0,
             "total_times_sent": 0,
@@ -301,29 +318,29 @@ async def get_cat_fact_stats() -> ResponseReturnValue:
 
         for entity_response in entities:
             cat_fact = cast_entity(entity_response.data, CatFact)
-            
+
             # Count by source
             source = cat_fact.source_api
             stats["by_source"][source] = stats["by_source"].get(source, 0) + 1
-            
+
             # Count by category
             category = cat_fact.category or "unknown"
             stats["by_category"][category] = stats["by_category"].get(category, 0) + 1
-            
+
             # Count by validation status
             if cat_fact.is_validated:
                 stats["by_validation_status"]["validated"] += 1
             else:
                 stats["by_validation_status"]["unvalidated"] += 1
-            
+
             # Count by usage frequency
             usage = cat_fact.get_usage_frequency()
             stats["by_usage"][usage] += 1
-            
+
             # Count ready for sending
             if cat_fact.is_ready_for_sending():
                 stats["ready_for_sending"] += 1
-            
+
             # Aggregate metrics
             total_length += cat_fact.fact_length
             stats["total_times_sent"] += cat_fact.times_sent

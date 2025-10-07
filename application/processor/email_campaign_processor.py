@@ -8,11 +8,11 @@ import logging
 from datetime import datetime, timezone
 from typing import Any, List
 
-from common.entity.entity_casting import cast_entity
-from common.processor.base import CyodaEntity, CyodaProcessor
+from application.entity.cat_fact.version_1.cat_fact import CatFact
 from application.entity.email_campaign.version_1.email_campaign import EmailCampaign
 from application.entity.subscriber.version_1.subscriber import Subscriber
-from application.entity.cat_fact.version_1.cat_fact import CatFact
+from common.entity.entity_casting import cast_entity
+from common.processor.base import CyodaEntity, CyodaProcessor
 from services.services import get_entity_service
 
 
@@ -59,7 +59,9 @@ class EmailCampaignSchedulingProcessor(CyodaProcessor):
 
             # Set scheduled time if not provided
             if not campaign.scheduled_at:
-                campaign.scheduled_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+                campaign.scheduled_at = (
+                    datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+                )
 
             campaign.update_timestamp()
 
@@ -87,22 +89,22 @@ class EmailCampaignSchedulingProcessor(CyodaProcessor):
         """
         try:
             entity_service = get_entity_service()
-            
+
             # Get all active subscribers
             subscribers = await entity_service.find_all(
                 entity_class=Subscriber.ENTITY_NAME,
                 entity_version=str(Subscriber.ENTITY_VERSION),
             )
-            
+
             # Filter for active subscribers
             active_count = 0
             for subscriber_response in subscribers:
                 subscriber = cast_entity(subscriber_response.data, Subscriber)
                 if subscriber.is_active_subscriber():
                     active_count += 1
-                    
+
             return active_count
-            
+
         except Exception as e:
             self.logger.warning(f"Could not count target subscribers: {str(e)}")
             return 0
@@ -200,18 +202,20 @@ class EmailCampaignSendingProcessor(CyodaProcessor):
             The cat fact entity
         """
         entity_service = get_entity_service()
-        
+
         response = await entity_service.get_by_id(
             entity_id=cat_fact_id,
             entity_class=CatFact.ENTITY_NAME,
             entity_version=str(CatFact.ENTITY_VERSION),
         )
-        
+
         if response:
             return cast_entity(response.data, CatFact)
         return None
 
-    async def _get_target_subscribers(self, campaign: EmailCampaign) -> List[Subscriber]:
+    async def _get_target_subscribers(
+        self, campaign: EmailCampaign
+    ) -> List[Subscriber]:
         """
         Get target subscribers for the campaign.
 
@@ -222,20 +226,20 @@ class EmailCampaignSendingProcessor(CyodaProcessor):
             List of target subscribers
         """
         entity_service = get_entity_service()
-        
+
         # Get all subscribers
         subscribers_response = await entity_service.find_all(
             entity_class=Subscriber.ENTITY_NAME,
             entity_version=str(Subscriber.ENTITY_VERSION),
         )
-        
+
         # Filter for active subscribers
         active_subscribers = []
         for subscriber_response in subscribers_response:
             subscriber = cast_entity(subscriber_response.data, Subscriber)
             if subscriber.is_active_subscriber():
                 active_subscribers.append(subscriber)
-                
+
         return active_subscribers
 
     async def _send_emails_to_subscribers(
@@ -250,18 +254,18 @@ class EmailCampaignSendingProcessor(CyodaProcessor):
             subscribers: List of target subscribers
         """
         entity_service = get_entity_service()
-        
+
         for subscriber in subscribers:
             try:
                 # Simulate sending email
                 await self._send_email_to_subscriber(campaign, cat_fact, subscriber)
-                
+
                 # Record successful send
                 campaign.record_email_sent()
-                
+
                 # Update subscriber stats
                 subscriber.record_email_sent()
-                
+
                 # Update subscriber in database
                 await entity_service.update(
                     entity_id=subscriber.technical_id or subscriber.entity_id,
@@ -269,9 +273,11 @@ class EmailCampaignSendingProcessor(CyodaProcessor):
                     entity_class=Subscriber.ENTITY_NAME,
                     entity_version=str(Subscriber.ENTITY_VERSION),
                 )
-                
+
             except Exception as e:
-                self.logger.error(f"Failed to send email to {subscriber.email}: {str(e)}")
+                self.logger.error(
+                    f"Failed to send email to {subscriber.email}: {str(e)}"
+                )
                 campaign.record_email_failed(str(e))
 
     async def _send_email_to_subscriber(
@@ -289,11 +295,12 @@ class EmailCampaignSendingProcessor(CyodaProcessor):
         self.logger.info(
             f"Sending email to {subscriber.email} with cat fact: {cat_fact.fact_text[:50]}..."
         )
-        
+
         # Simulate email sending delay
         import asyncio
+
         await asyncio.sleep(0.01)  # Small delay to simulate email sending
-        
+
         self.logger.debug(f"Email sent successfully to {subscriber.email}")
 
 
@@ -332,7 +339,7 @@ class EmailCampaignAnalysisProcessor(CyodaProcessor):
 
             # Generate performance summary
             performance = campaign.get_performance_summary()
-            
+
             # Log performance metrics
             self.logger.info(
                 f"Campaign {campaign.technical_id} performance: "
@@ -342,8 +349,10 @@ class EmailCampaignAnalysisProcessor(CyodaProcessor):
             )
 
             # Add analysis metadata
-            campaign.add_metadata("analysis_completed_at", 
-                                datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"))
+            campaign.add_metadata(
+                "analysis_completed_at",
+                datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+            )
             campaign.add_metadata("performance_summary", performance)
 
             return campaign
