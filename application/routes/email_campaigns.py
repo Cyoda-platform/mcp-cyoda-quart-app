@@ -278,7 +278,7 @@ async def get_email_campaign_stats() -> ResponseReturnValue:
         )
 
         # Calculate statistics
-        stats = {
+        stats: Dict[str, Any] = {
             "total_campaigns": len(entities),
             "by_type": {},
             "by_state": {},

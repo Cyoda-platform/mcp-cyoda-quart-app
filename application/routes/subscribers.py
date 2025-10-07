@@ -279,7 +279,7 @@ async def get_subscriber_stats() -> ResponseReturnValue:
         )
 
         # Calculate statistics
-        stats = {
+        stats: Dict[str, Any] = {
             "total_subscribers": len(subscribers),
             "by_status": {},
             "by_frequency": {},

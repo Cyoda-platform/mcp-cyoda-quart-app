@@ -296,7 +296,7 @@ async def get_cat_fact_stats() -> ResponseReturnValue:
         )
 
         # Calculate statistics
-        stats = {
+        stats: Dict[str, Any] = {
             "total_facts": len(entities),
             "by_source": {},
             "by_category": {},
