@@ -10,7 +10,7 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict
 
-from quart import Blueprint, jsonify, request
+from quart import Blueprint, request
 from quart.typing import ResponseReturnValue
 from quart_schema import operation_id, tag
 
@@ -250,7 +250,7 @@ async def get_ready_cat_facts() -> ResponseReturnValue:
 async def get_random_cat_fact() -> ResponseReturnValue:
     """Get a random cat fact that's ready for sending"""
     try:
-        import random
+        import secrets
 
         service = get_entity_service()
 
@@ -273,7 +273,7 @@ async def get_random_cat_fact() -> ResponseReturnValue:
             return {"error": "No ready cat facts available", "code": "NO_FACTS"}, 404
 
         # Select random fact
-        random_fact = random.choice(ready_facts)
+        random_fact = secrets.choice(ready_facts)
         return _to_entity_dict(random_fact), 200
 
     except Exception as e:

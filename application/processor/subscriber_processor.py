@@ -6,7 +6,6 @@ for the subscription workflow.
 """
 
 import logging
-from datetime import datetime, timezone
 from typing import Any
 
 from application.entity.subscriber.version_1.subscriber import Subscriber
