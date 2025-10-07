@@ -1,0 +1,126 @@
+{
+  "version": "1.0",
+  "name": "Subscriber Workflow",
+  "desc": "Workflow for managing subscriber lifecycle from subscription to activation",
+  "initialState": "initial_state",
+  "active": true,
+  "states": {
+    "initial_state": {
+      "transitions": [
+        {
+          "name": "subscribe",
+          "next": "subscribed",
+          "manual": false
+        }
+      ]
+    },
+    "subscribed": {
+      "transitions": [
+        {
+          "name": "validate",
+          "next": "validated",
+          "manual": false,
+          "criterion": {
+            "type": "function",
+            "function": {
+              "name": "SubscriberValidationCriterion",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "validated": {
+      "transitions": [
+        {
+          "name": "send_confirmation",
+          "next": "confirmation_sent",
+          "manual": false,
+          "processors": [
+            {
+              "name": "SubscriberConfirmationProcessor",
+              "executionMode": "SYNC",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "confirmation_sent": {
+      "transitions": [
+        {
+          "name": "confirm",
+          "next": "confirmed",
+          "manual": true
+        },
+        {
+          "name": "resend_confirmation",
+          "next": "confirmation_sent",
+          "manual": true,
+          "processors": [
+            {
+              "name": "SubscriberConfirmationProcessor",
+              "executionMode": "SYNC",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "confirmed": {
+      "transitions": [
+        {
+          "name": "activate",
+          "next": "active",
+          "manual": false,
+          "processors": [
+            {
+              "name": "SubscriberActivationProcessor",
+              "executionMode": "SYNC",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "active": {
+      "transitions": [
+        {
+          "name": "pause",
+          "next": "paused",
+          "manual": true
+        },
+        {
+          "name": "unsubscribe",
+          "next": "unsubscribed",
+          "manual": true
+        }
+      ]
+    },
+    "paused": {
+      "transitions": [
+        {
+          "name": "reactivate",
+          "next": "active",
+          "manual": true
+        },
+        {
+          "name": "unsubscribe",
+          "next": "unsubscribed",
+          "manual": true
+        }
+      ]
+    },
+    "unsubscribed": {
+      "transitions": []
+    }
+  }
+}
