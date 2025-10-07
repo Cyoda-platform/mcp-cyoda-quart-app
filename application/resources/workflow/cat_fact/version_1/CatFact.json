@@ -1,0 +1,100 @@
+{
+  "version": "1.0",
+  "name": "CatFact Workflow",
+  "desc": "Workflow for managing cat facts from retrieval to distribution",
+  "initialState": "initial_state",
+  "active": true,
+  "states": {
+    "initial_state": {
+      "transitions": [
+        {
+          "name": "retrieve",
+          "next": "retrieved",
+          "manual": false
+        }
+      ]
+    },
+    "retrieved": {
+      "transitions": [
+        {
+          "name": "validate",
+          "next": "validated",
+          "manual": false,
+          "criterion": {
+            "type": "function",
+            "function": {
+              "name": "CatFactValidationCriterion",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "validated": {
+      "transitions": [
+        {
+          "name": "process",
+          "next": "processed",
+          "manual": false,
+          "processors": [
+            {
+              "name": "CatFactProcessor",
+              "executionMode": "SYNC",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "processed": {
+      "transitions": [
+        {
+          "name": "approve",
+          "next": "ready",
+          "manual": false
+        }
+      ]
+    },
+    "ready": {
+      "transitions": [
+        {
+          "name": "send",
+          "next": "sent",
+          "manual": true
+        },
+        {
+          "name": "archive",
+          "next": "archived",
+          "manual": true
+        }
+      ]
+    },
+    "sent": {
+      "transitions": [
+        {
+          "name": "reuse",
+          "next": "ready",
+          "manual": true
+        },
+        {
+          "name": "archive",
+          "next": "archived",
+          "manual": true
+        }
+      ]
+    },
+    "archived": {
+      "transitions": [
+        {
+          "name": "restore",
+          "next": "ready",
+          "manual": true
+        }
+      ]
+    }
+  }
+}
