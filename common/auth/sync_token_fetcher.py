@@ -1,4 +1,3 @@
-from enum import verify
 import threading
 from typing import Optional
 
