@@ -10,10 +10,11 @@ class CyodaAuthService:
         client_id: str,
         client_secret: str,
         token_url: str,
+        skip_ssl: bool,
         scope: Optional[str] = None,
     ):
-        self._sync = SyncTokenFetcher(client_id, client_secret, token_url, scope)
-        self._async = AsyncTokenFetcher(client_id, client_secret, token_url, scope)
+        self._sync = SyncTokenFetcher(client_id, client_secret, token_url, skip_ssl, scope)
+        self._async = AsyncTokenFetcher(client_id, client_secret, token_url, skip_ssl, scope)
 
     def get_access_token_sync(self) -> str:
         return self._sync.get_token()

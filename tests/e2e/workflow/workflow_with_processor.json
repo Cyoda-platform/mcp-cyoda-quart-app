@@ -1,0 +1,45 @@
+{
+  "name": "Default for 'nobel-prize.1'",
+  "initialState": "CREATED",
+  "active": true,
+  "states": {
+    "CREATED": {
+      "transitions": [
+        {
+          "name": "UPDATE",
+          "next": "CREATED",
+          "manual": true,
+          "disabled": false
+        },
+        {
+          "name": "TRIGGER_PROCESSOR",
+          "next": "CREATED",
+          "manual": true,
+          "disabled": false,
+          "processors": [
+            {
+              "name": "test-processor-1",
+              "executionMode": "SYNC",
+              "config": {
+                "attachEntity": true,
+                "_calculationNodesTags": "test-cyoda_application",
+                "calculationNodesTags": "cloud_manager_app",
+                "responseTimeoutMs": 5000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE",
+          "next": "DELETED",
+          "manual": true,
+          "disabled": false
+        }
+      ]
+    },
+    "DELETED": {
+      "transitions": []
+    }
+  }
+}
