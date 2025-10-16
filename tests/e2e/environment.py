@@ -1,14 +1,15 @@
 import asyncio
 import logging
 import threading
+
+from services.config import get_service_config
 from services.services import (
-    initialize_services,
-    get_grpc_client,
     get_entity_service,
+    get_grpc_client,
     get_processor_manager,
+    initialize_services,
     shutdown_services,
 )
-from services.config import get_service_config
 
 logger = logging.getLogger(__name__)
 test_processor_module = "tests.e2e.processors"

@@ -7,9 +7,9 @@ proceed to the processing stage.
 
 from typing import Any
 
+from application.entity.task.version_1.task import Task
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.task.version_1.task import Task
 
 
 class TaskValidationCriterion(CyodaCriteriaChecker):

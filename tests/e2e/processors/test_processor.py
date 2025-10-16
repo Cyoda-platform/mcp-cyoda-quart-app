@@ -1,5 +1,6 @@
-from common.processor.base import CyodaEntity, CyodaProcessor
 from typing import Any, Dict
+
+from common.processor.base import CyodaEntity, CyodaProcessor
 
 
 class ExampleEntityProcessor(CyodaProcessor):

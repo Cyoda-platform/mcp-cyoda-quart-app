@@ -4,16 +4,6 @@ Models package for Application.
 Provides request and response models for Task API validation.
 """
 
-from .request_models import (
-    TaskQueryParams,
-    TaskUpdateQueryParams,
-)
-from .response_models import (
-    TaskResponse,
-    TaskListResponse,
-    TaskSearchResponse,
-)
-
 # Import common models from example_application
 from example_application.models import (
     CountResponse,
@@ -25,6 +15,16 @@ from example_application.models import (
     TransitionResponse,
     TransitionsResponse,
     ValidationErrorResponse,
+)
+
+from .request_models import (
+    TaskQueryParams,
+    TaskUpdateQueryParams,
+)
+from .response_models import (
+    TaskListResponse,
+    TaskResponse,
+    TaskSearchResponse,
 )
 
 __all__ = [

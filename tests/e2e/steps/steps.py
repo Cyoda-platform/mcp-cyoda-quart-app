@@ -1,7 +1,9 @@
 import json
 import time
 from asyncio import run
-from behave import given, when, then
+
+from behave import given, then, when
+
 from common.service.entity_service import SearchConditionRequest
 from scripts import import_workflows
 
