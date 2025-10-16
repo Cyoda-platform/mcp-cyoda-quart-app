@@ -12,12 +12,22 @@ from quart import Blueprint, jsonify, request
 from quart.typing import ResponseReturnValue
 
 from application.entity.product.version_1.product import Product
-from common.service.entity_service import SearchConditionRequest
+from common.service.entity_service import SearchConditionRequest, SearchOperator
 from services.services import get_entity_service
 
 logger = logging.getLogger(__name__)
 
 ui_products_bp = Blueprint("ui_products", __name__, url_prefix="/ui")
+
+
+def _to_dict(data: Any) -> Dict[str, Any]:
+    """Convert entity data to dictionary format"""
+    if hasattr(data, "model_dump"):
+        return data.model_dump(by_alias=True)
+    elif hasattr(data, '__dict__'):
+        return dict(data)
+    else:
+        return data
 
 
 @ui_products_bp.route("/products", methods=["GET"])
@@ -59,7 +69,7 @@ async def list_products() -> ResponseReturnValue:
         if min_price:
             try:
                 min_price_val = float(min_price)
-                builder.greater_or_equal("price", min_price_val)
+                builder.add_condition("price", SearchOperator.GREATER_OR_EQUAL, min_price_val)
                 has_conditions = True
             except ValueError:
                 return jsonify({"error": "Invalid minPrice value"}), 400
@@ -67,7 +77,7 @@ async def list_products() -> ResponseReturnValue:
         if max_price:
             try:
                 max_price_val = float(max_price)
-                builder.less_or_equal("price", max_price_val)
+                builder.add_condition("price", SearchOperator.LESS_OR_EQUAL, max_price_val)
                 has_conditions = True
             except ValueError:
                 return jsonify({"error": "Invalid maxPrice value"}), 400
@@ -89,11 +99,7 @@ async def list_products() -> ResponseReturnValue:
         # Convert to Product entities and apply text search
         product_list: List[Dict[str, Any]] = []
         for product_response in products:
-            product_data = product_response.data
-            if hasattr(product_data, "model_dump"):
-                product_dict = product_data.model_dump(by_alias=True)
-            else:
-                product_dict = product_data
+            product_dict = _to_dict(product_response.data)
 
             # Apply free-text search on name/description
             if search:
@@ -164,11 +170,7 @@ async def get_product_detail(sku: str) -> ResponseReturnValue:
             return jsonify({"error": "Product not found"}), 404
 
         # Return full product document
-        product_data = product_response.data
-        if hasattr(product_data, "model_dump"):
-            product_dict = product_data.model_dump(by_alias=True)
-        else:
-            product_dict = product_data
+        product_dict = _to_dict(product_response.data)
 
         return jsonify(product_dict), 200
 
