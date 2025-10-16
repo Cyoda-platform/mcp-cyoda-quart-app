@@ -210,3 +210,141 @@ async def add_cart_line(cart_id: str) -> ResponseReturnValue:
     except Exception as e:
         logger.exception("Error adding line to cart %s: %s", cart_id, str(e))
         return jsonify({"error": str(e)}), 500
+
+
+@ui_cart_bp.route("/cart/<cart_id>/lines", methods=["PATCH"])
+async def update_cart_line(cart_id: str) -> ResponseReturnValue:
+    """
+    Set/decrement line item quantity (remove if qty=0).
+    Body: {sku, qty}
+    """
+    try:
+        if not cart_id or len(cart_id.strip()) == 0:
+            return jsonify({"error": "Cart ID is required"}), 400
+
+        data = await request.get_json()
+        if not data:
+            return jsonify({"error": "Request body is required"}), 400
+
+        sku = data.get("sku")
+        qty = data.get("qty", 0)
+
+        if not sku:
+            return jsonify({"error": "SKU is required"}), 400
+        if qty < 0:
+            return jsonify({"error": "Quantity must be non-negative"}), 400
+
+        entity_service = get_entity_service()
+
+        # Get cart
+        cart_response = await entity_service.find_by_business_id(
+            entity_class=Cart.ENTITY_NAME,
+            business_id=cart_id,
+            business_id_field="cartId",
+            entity_version=str(Cart.ENTITY_VERSION),
+        )
+
+        if not cart_response:
+            return jsonify({"error": "Cart not found"}), 404
+
+        # Update cart line item
+        cart_data = cart_response.data
+        if hasattr(cart_data, "model_dump"):
+            cart_dict = cart_data.model_dump(by_alias=True)
+        else:
+            cart_dict = cart_data
+
+        lines = cart_dict.get("lines", [])
+
+        # Find and update/remove line
+        for i, line in enumerate(lines):
+            if line.get("sku") == sku:
+                if qty == 0:
+                    lines.pop(i)
+                else:
+                    line["qty"] = qty
+                break
+        else:
+            return jsonify({"error": "Line item not found"}), 404
+
+        cart_dict["lines"] = lines
+
+        # Update cart
+        updated_response = await entity_service.update(
+            entity_id=cart_response.metadata.id,
+            entity=cart_dict,
+            entity_class=Cart.ENTITY_NAME,
+            transition="remove_item",
+            entity_version=str(Cart.ENTITY_VERSION),
+        )
+
+        logger.info("Updated line %s in cart %s to qty %d", sku, cart_id, qty)
+
+        # Return updated cart
+        result_data = updated_response.data
+        if hasattr(result_data, "model_dump"):
+            result_dict = result_data.model_dump(by_alias=True)
+        else:
+            result_dict = result_data
+
+        return jsonify(result_dict), 200
+
+    except Exception as e:
+        logger.exception("Error updating line in cart %s: %s", cart_id, str(e))
+        return jsonify({"error": str(e)}), 500
+
+
+@ui_cart_bp.route("/cart/<cart_id>/open-checkout", methods=["POST"])
+async def open_checkout(cart_id: str) -> ResponseReturnValue:
+    """
+    Set cart to CHECKING_OUT status.
+    """
+    try:
+        if not cart_id or len(cart_id.strip()) == 0:
+            return jsonify({"error": "Cart ID is required"}), 400
+
+        entity_service = get_entity_service()
+
+        # Get cart
+        cart_response = await entity_service.find_by_business_id(
+            entity_class=Cart.ENTITY_NAME,
+            business_id=cart_id,
+            business_id_field="cartId",
+            entity_version=str(Cart.ENTITY_VERSION),
+        )
+
+        if not cart_response:
+            return jsonify({"error": "Cart not found"}), 404
+
+        # Update cart status
+        cart_data = cart_response.data
+        if hasattr(cart_data, "model_dump"):
+            cart_dict = cart_data.model_dump(by_alias=True)
+        else:
+            cart_dict = cart_data
+
+        cart_dict["status"] = "CHECKING_OUT"
+
+        # Update cart
+        updated_response = await entity_service.update(
+            entity_id=cart_response.metadata.id,
+            entity=cart_dict,
+            entity_class=Cart.ENTITY_NAME,
+            transition="open_checkout",
+            entity_version=str(Cart.ENTITY_VERSION),
+        )
+
+        logger.info("Opened checkout for cart %s", cart_id)
+
+        # Return updated cart
+        result_data = updated_response.data
+        if hasattr(result_data, "model_dump"):
+            result_dict = result_data.model_dump(by_alias=True)
+        else:
+            result_dict = result_data
+
+        return jsonify(result_dict), 200
+
+    except Exception as e:
+        logger.exception("Error opening checkout for cart %s: %s", cart_id, str(e))
+        return jsonify({"error": str(e)}), 500
