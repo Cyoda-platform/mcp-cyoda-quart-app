@@ -211,3 +211,348 @@ async def list_tasks(
     except Exception as e:  # pragma: no cover
         logger.exception("Error listing Tasks: %s", str(e))
         return jsonify({"error": str(e)}), 500
+
+
+@tasks_bp.route("/<entity_id>", methods=["PUT"])
+@validate_querystring(TaskUpdateQueryParams)
+@tag(["tasks"])
+@operation_id("update_task")
+@validate(
+    request=Task,
+    responses={
+        200: (TaskResponse, None),
+        404: (ErrorResponse, None),
+        400: (ValidationErrorResponse, None),
+        500: (ErrorResponse, None),
+    },
+)
+async def update_task(
+    entity_id: str, data: Task, query_args: TaskUpdateQueryParams
+) -> ResponseReturnValue:
+    """Update Task and optionally trigger workflow transition with validation"""
+    try:
+        # Validate entity ID format
+        if not entity_id or len(entity_id.strip()) == 0:
+            return (
+                jsonify({"error": "Entity ID is required", "code": "INVALID_ID"}),
+                400,
+            )
+
+        # Get transition from query parameters
+        transition: Optional[str] = query_args.transition
+
+        # Convert request to entity data
+        entity_data: Dict[str, Any] = data.model_dump(by_alias=True)
+
+        # Update the entity
+        response = await service.update(
+            entity_id=entity_id,
+            entity=entity_data,
+            entity_class=Task.ENTITY_NAME,
+            transition=transition,
+            entity_version=str(Task.ENTITY_VERSION),
+        )
+
+        logger.info("Updated Task %s", entity_id)
+
+        # Return updated entity directly (thin proxy)
+        return jsonify(_to_entity_dict(response.data)), 200
+
+    except ValueError as e:
+        logger.warning(
+            "Validation error updating Task %s: %s", entity_id, str(e)
+        )
+        return jsonify({"error": str(e), "code": "VALIDATION_ERROR"}), 400
+    except Exception as e:  # pragma: no cover
+        logger.exception("Error updating Task %s: %s", entity_id, str(e))
+        return jsonify({"error": str(e), "code": "INTERNAL_ERROR"}), 500
+
+
+@tasks_bp.route("/<entity_id>", methods=["DELETE"])
+@tag(["tasks"])
+@operation_id("delete_task")
+@validate(
+    responses={
+        200: (DeleteResponse, None),
+        404: (ErrorResponse, None),
+        400: (ErrorResponse, None),
+        500: (ErrorResponse, None),
+    }
+)
+async def delete_task(entity_id: str) -> ResponseReturnValue:
+    """Delete Task with validation"""
+    try:
+        # Validate entity ID format
+        if not entity_id or len(entity_id.strip()) == 0:
+            return (
+                jsonify({"error": "Entity ID is required", "code": "INVALID_ID"}),
+                400,
+            )
+
+        await service.delete_by_id(
+            entity_id=entity_id,
+            entity_class=Task.ENTITY_NAME,
+            entity_version=str(Task.ENTITY_VERSION),
+        )
+
+        logger.info("Deleted Task %s", entity_id)
+
+        # Thin proxy: return success message
+        response = DeleteResponse(
+            success=True,
+            message="Task deleted successfully",
+            entity_id=entity_id,
+        )
+        return response.model_dump(), 200
+
+    except ValueError as e:
+        logger.warning("Invalid entity ID %s: %s", entity_id, str(e))
+        return {"error": str(e), "code": "INVALID_ID"}, 400
+    except Exception as e:  # pragma: no cover
+        logger.exception("Error deleting Task %s: %s", entity_id, str(e))
+        return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
+
+
+# ---- Additional Entity Service Endpoints ----------------------------------------
+
+
+@tasks_bp.route("/by-business-id/<business_id>", methods=["GET"])
+@tag(["tasks"])
+@operation_id("get_task_by_business_id")
+@validate(
+    responses={
+        200: (TaskResponse, None),
+        404: (ErrorResponse, None),
+        500: (ErrorResponse, None),
+    }
+)
+async def get_by_business_id(business_id: str) -> ResponseReturnValue:
+    """Get Task by business ID (title field by default)"""
+    try:
+        business_id_field = request.args.get("field", "title")  # Default to title field
+
+        result = await service.find_by_business_id(
+            entity_class=Task.ENTITY_NAME,
+            business_id=business_id,
+            business_id_field=business_id_field,
+            entity_version=str(Task.ENTITY_VERSION),
+        )
+
+        if not result:
+            return jsonify({"error": "Task not found"}), 404
+
+        # Thin proxy: return the entity directly
+        return jsonify(_to_entity_dict(result.data)), 200
+
+    except Exception as e:
+        logger.exception(
+            "Error getting Task by business ID %s: %s", business_id, str(e)
+        )
+        return jsonify({"error": str(e)}), 500
+
+
+@tasks_bp.route("/<entity_id>/exists", methods=["GET"])
+@tag(["tasks"])
+@operation_id("check_task_exists")
+@validate(responses={200: (ExistsResponse, None), 500: (ErrorResponse, None)})
+async def check_exists(entity_id: str) -> ResponseReturnValue:
+    """Check if Task exists by ID"""
+    try:
+        exists = await service.exists_by_id(
+            entity_id=entity_id,
+            entity_class=Task.ENTITY_NAME,
+            entity_version=str(Task.ENTITY_VERSION),
+        )
+
+        response = ExistsResponse(exists=exists, entity_id=entity_id)
+        return response.model_dump(), 200
+
+    except Exception as e:
+        logger.exception(
+            "Error checking Task existence %s: %s", entity_id, str(e)
+        )
+        return {"error": str(e)}, 500
+
+
+@tasks_bp.route("/count", methods=["GET"])
+@tag(["tasks"])
+@operation_id("count_tasks")
+@validate(responses={200: (CountResponse, None), 500: (ErrorResponse, None)})
+async def count_entities() -> ResponseReturnValue:
+    """Count total number of Tasks"""
+    try:
+        service = get_entity_service()
+
+        count = await service.count(
+            entity_class=Task.ENTITY_NAME,
+            entity_version=str(Task.ENTITY_VERSION),
+        )
+
+        response = CountResponse(count=count)
+        return jsonify(response.model_dump()), 200
+
+    except Exception as e:
+        logger.exception("Error counting Tasks: %s", str(e))
+        return jsonify({"error": str(e)}), 500
+
+
+@tasks_bp.route("/<entity_id>/transitions", methods=["GET"])
+@tag(["tasks"])
+@operation_id("get_task_transitions")
+@validate(
+    responses={
+        200: (TransitionsResponse, None),
+        404: (ErrorResponse, None),
+        500: (ErrorResponse, None),
+    }
+)
+async def get_available_transitions(entity_id: str) -> ResponseReturnValue:
+    """Get available workflow transitions for Task"""
+    try:
+        transitions = await service.get_transitions(
+            entity_id=entity_id,
+            entity_class=Task.ENTITY_NAME,
+            entity_version=str(Task.ENTITY_VERSION),
+        )
+
+        response = TransitionsResponse(
+            entity_id=entity_id,
+            available_transitions=transitions,
+            current_state=None,  # Could be enhanced to get current state
+        )
+        return jsonify(response.model_dump()), 200
+
+    except Exception as e:
+        logger.exception(
+            "Error getting transitions for Task %s: %s", entity_id, str(e)
+        )
+        return jsonify({"error": str(e)}), 500
+
+
+# ---- Search Endpoints -----------------------------------------------------------
+
+
+@tasks_bp.route("/search", methods=["POST"])
+@tag(["tasks"])
+@operation_id("search_tasks")
+@validate(
+    request=SearchRequest,
+    responses={
+        200: (TaskSearchResponse, None),
+        400: (ValidationErrorResponse, None),
+        500: (ErrorResponse, None),
+    },
+)
+async def search_entities(data: SearchRequest) -> ResponseReturnValue:
+    """Search Tasks using simple field-value search with validation"""
+    try:
+        # Convert Pydantic model to dict for search
+        search_data = data.model_dump(by_alias=True, exclude_none=True)
+
+        if not search_data:
+            return {"error": "Search conditions required", "code": "EMPTY_SEARCH"}, 400
+
+        # KISS: Simple field-value search only
+        builder = SearchConditionRequest.builder()
+        for field, value in search_data.items():
+            builder.equals(field, value)
+
+        search_request = builder.build()
+        results = await service.search(
+            entity_class=Task.ENTITY_NAME,
+            condition=search_request,
+            entity_version=str(Task.ENTITY_VERSION),
+        )
+
+        # Thin proxy: return list of entities directly
+        entities = [_to_entity_dict(r.data) for r in results]
+
+        return {"entities": entities, "total": len(entities)}, 200
+
+    except Exception as e:
+        logger.exception("Error searching Tasks: %s", str(e))
+        return {"error": str(e)}, 500
+
+
+@tasks_bp.route("/find-all", methods=["GET"])
+@tag(["tasks"])
+@operation_id("find_all_tasks")
+@validate(
+    responses={200: (TaskListResponse, None), 500: (ErrorResponse, None)}
+)
+async def find_all_entities() -> ResponseReturnValue:
+    """Find all Tasks without filtering"""
+    try:
+        results = await service.find_all(
+            entity_class=Task.ENTITY_NAME,
+            entity_version=str(Task.ENTITY_VERSION),
+        )
+
+        entities = [_to_entity_dict(r.data) for r in results]
+        return {"entities": entities, "total": len(entities)}, 200
+
+    except Exception as e:
+        logger.exception("Error finding all Tasks: %s", str(e))
+        return {"error": str(e)}, 500
+
+
+@tasks_bp.route("/<entity_id>/transitions", methods=["POST"])
+@tag(["tasks"])
+@operation_id("trigger_task_transition")
+@validate(
+    request=TransitionRequest,
+    responses={
+        200: (TransitionResponse, None),
+        404: (ErrorResponse, None),
+        400: (ValidationErrorResponse, None),
+        500: (ErrorResponse, None),
+    },
+)
+async def trigger_transition(
+    entity_id: str, data: TransitionRequest
+) -> ResponseReturnValue:
+    """Trigger a specific workflow transition with validation"""
+    try:
+        # Get current entity state
+        current_entity = await service.get_by_id(
+            entity_id=entity_id,
+            entity_class=Task.ENTITY_NAME,
+            entity_version=str(Task.ENTITY_VERSION),
+        )
+
+        if not current_entity:
+            return jsonify({"error": "Task not found"}), 404
+
+        previous_state = current_entity.metadata.state
+
+        # Execute the transition
+        response = await service.execute_transition(
+            entity_id=entity_id,
+            transition=data.transition_name,
+            entity_class=Task.ENTITY_NAME,
+            entity_version=str(Task.ENTITY_VERSION),
+        )
+
+        logger.info(
+            "Executed transition '%s' on Task %s",
+            data.transition_name,
+            entity_id,
+        )
+
+        return (
+            jsonify(
+                {
+                    "id": response.metadata.id,
+                    "message": "Transition executed successfully",
+                    "previousState": previous_state,
+                    "newState": response.metadata.state,
+                }
+            ),
+            200,
+        )
+
+    except Exception as e:  # pragma: no cover
+        logger.exception(
+            "Error executing transition on Task %s: %s", entity_id, str(e)
+        )
+        return jsonify({"error": str(e)}), 500
