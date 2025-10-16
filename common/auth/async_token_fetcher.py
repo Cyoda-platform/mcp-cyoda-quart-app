@@ -29,7 +29,7 @@ class AsyncTokenFetcher(BaseTokenFetcher):
             client_id=client_id,
             client_secret=client_secret,
             scope=scope,
-            verify=not skip_ssl
+            verify=not skip_ssl,
         )
         self._token_url: str = token_url
         self._lock: asyncio.Lock = asyncio.Lock()

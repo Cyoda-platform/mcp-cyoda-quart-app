@@ -44,11 +44,7 @@ class TaskValidationCriterion(CyodaCriteriaChecker):
             task = cast_entity(entity, Task)
 
             # Validate required fields
-            if (
-                not task.title
-                or len(task.title.strip()) < 3
-                or len(task.title) > 200
-            ):
+            if not task.title or len(task.title.strip()) < 3 or len(task.title) > 200:
                 self.logger.warning(
                     f"Entity {task.technical_id} has invalid title: '{task.title}'"
                 )
@@ -80,7 +76,8 @@ class TaskValidationCriterion(CyodaCriteriaChecker):
                 try:
                     # Basic ISO format validation - just check if it can be parsed
                     from datetime import datetime
-                    datetime.fromisoformat(task.due_date.replace('Z', '+00:00'))
+
+                    datetime.fromisoformat(task.due_date.replace("Z", "+00:00"))
                 except ValueError:
                     self.logger.warning(
                         f"Entity {task.technical_id} has invalid due_date format: {task.due_date}"

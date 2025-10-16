@@ -30,7 +30,7 @@ from example_application.models import (
 __all__ = [
     # Task-specific models
     "TaskQueryParams",
-    "TaskUpdateQueryParams", 
+    "TaskUpdateQueryParams",
     "TaskResponse",
     "TaskListResponse",
     "TaskSearchResponse",

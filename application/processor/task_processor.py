@@ -58,9 +58,7 @@ class TaskProcessor(CyodaProcessor):
             task.update_timestamp()
 
             # Log processing completion
-            self.logger.info(
-                f"Task {task.technical_id} processed successfully"
-            )
+            self.logger.info(f"Task {task.technical_id} processed successfully")
 
             return task
 
@@ -111,12 +109,7 @@ class TaskProcessor(CyodaProcessor):
         Returns:
             Numeric priority level (1-4)
         """
-        priority_mapping = {
-            "LOW": 1,
-            "MEDIUM": 2,
-            "HIGH": 3,
-            "URGENT": 4
-        }
+        priority_mapping = {"LOW": 1, "MEDIUM": 2, "HIGH": 3, "URGENT": 4}
         return priority_mapping.get(priority, 2)
 
     def _estimate_effort(self, priority: str, description: str) -> str:
@@ -132,9 +125,9 @@ class TaskProcessor(CyodaProcessor):
         """
         base_effort = {
             "LOW": "1-2 hours",
-            "MEDIUM": "2-4 hours", 
+            "MEDIUM": "2-4 hours",
             "HIGH": "4-8 hours",
-            "URGENT": "1-2 hours"  # Urgent tasks are typically quick fixes
+            "URGENT": "1-2 hours",  # Urgent tasks are typically quick fixes
         }
 
         # Adjust based on description length

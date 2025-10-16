@@ -18,7 +18,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class Task(CyodaEntity):
     """
     Task represents a work item that can be managed through a workflow.
-    
+
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     The state field manages workflow states: initial_state -> created -> validated -> processed -> completed
     """
@@ -31,18 +31,17 @@ class Task(CyodaEntity):
     title: str = Field(..., description="Title of the task")
     description: str = Field(..., description="Description of the task")
     priority: str = Field(..., description="Priority level of the task")
-    
+
     # Optional fields
     assignee: Optional[str] = Field(
-        default=None,
-        description="Person assigned to the task"
+        default=None, description="Person assigned to the task"
     )
     due_date: Optional[str] = Field(
         default=None,
         alias="dueDate",
-        description="Due date for the task (ISO 8601 format)"
+        description="Due date for the task (ISO 8601 format)",
     )
-    
+
     # Timestamps (inherited created_at from CyodaEntity)
     created_at: Optional[str] = Field(
         default_factory=lambda: datetime.now(timezone.utc)
@@ -70,12 +69,7 @@ class Task(CyodaEntity):
     )
 
     # Validation rules
-    ALLOWED_PRIORITIES: ClassVar[List[str]] = [
-        "LOW",
-        "MEDIUM", 
-        "HIGH",
-        "URGENT"
-    ]
+    ALLOWED_PRIORITIES: ClassVar[List[str]] = ["LOW", "MEDIUM", "HIGH", "URGENT"]
 
     @field_validator("title")
     @classmethod
