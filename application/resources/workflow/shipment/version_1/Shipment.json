@@ -1,0 +1,66 @@
+{
+  "version": "1.0",
+  "name": "Shipment Workflow",
+  "desc": "Workflow for Shipment entity lifecycle management",
+  "initialState": "initial_state",
+  "active": true,
+  "states": {
+    "initial_state": {
+      "transitions": [
+        {
+          "name": "create_from_order",
+          "next": "picking",
+          "manual": false
+        }
+      ]
+    },
+    "picking": {
+      "transitions": [
+        {
+          "name": "ready_to_send",
+          "next": "waiting_to_send",
+          "manual": true,
+          "criterion": {
+            "type": "function",
+            "function": {
+              "name": "ShipmentReadyCriterion",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "waiting_to_send": {
+      "transitions": [
+        {
+          "name": "mark_sent",
+          "next": "sent",
+          "manual": true,
+          "processors": [
+            {
+              "name": "ShipmentTrackingProcessor",
+              "executionMode": "SYNC",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "sent": {
+      "transitions": [
+        {
+          "name": "mark_delivered",
+          "next": "delivered",
+          "manual": true
+        }
+      ]
+    },
+    "delivered": {
+      "transitions": []
+    }
+  }
+}

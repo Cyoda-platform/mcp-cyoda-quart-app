@@ -1,0 +1,90 @@
+{
+  "version": "1.0",
+  "name": "Cart Workflow",
+  "desc": "Workflow for Cart entity lifecycle management",
+  "initialState": "initial_state",
+  "active": true,
+  "states": {
+    "initial_state": {
+      "transitions": [
+        {
+          "name": "create",
+          "next": "new",
+          "manual": false
+        }
+      ]
+    },
+    "new": {
+      "transitions": [
+        {
+          "name": "add_first_item",
+          "next": "active",
+          "manual": false,
+          "processors": [
+            {
+              "name": "CartTotalsProcessor",
+              "executionMode": "SYNC",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "active": {
+      "transitions": [
+        {
+          "name": "add_item",
+          "next": "active",
+          "manual": true,
+          "processors": [
+            {
+              "name": "CartTotalsProcessor",
+              "executionMode": "SYNC",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          ]
+        },
+        {
+          "name": "remove_item",
+          "next": "active",
+          "manual": true,
+          "processors": [
+            {
+              "name": "CartTotalsProcessor",
+              "executionMode": "SYNC",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          ]
+        },
+        {
+          "name": "open_checkout",
+          "next": "checking_out",
+          "manual": true
+        }
+      ]
+    },
+    "checking_out": {
+      "transitions": [
+        {
+          "name": "checkout",
+          "next": "converted",
+          "manual": true
+        },
+        {
+          "name": "cancel_checkout",
+          "next": "active",
+          "manual": true
+        }
+      ]
+    },
+    "converted": {
+      "transitions": []
+    }
+  }
+}

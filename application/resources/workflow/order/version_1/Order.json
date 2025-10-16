@@ -1,0 +1,66 @@
+{
+  "version": "1.0",
+  "name": "Order Workflow",
+  "desc": "Workflow for Order entity lifecycle management",
+  "initialState": "initial_state",
+  "active": true,
+  "states": {
+    "initial_state": {
+      "transitions": [
+        {
+          "name": "create_from_payment",
+          "next": "waiting_to_fulfill",
+          "manual": false,
+          "processors": [
+            {
+              "name": "OrderCreationProcessor",
+              "executionMode": "SYNC",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "waiting_to_fulfill": {
+      "transitions": [
+        {
+          "name": "start_picking",
+          "next": "picking",
+          "manual": true
+        }
+      ]
+    },
+    "picking": {
+      "transitions": [
+        {
+          "name": "ready_to_send",
+          "next": "waiting_to_send",
+          "manual": true
+        }
+      ]
+    },
+    "waiting_to_send": {
+      "transitions": [
+        {
+          "name": "mark_sent",
+          "next": "sent",
+          "manual": true
+        }
+      ]
+    },
+    "sent": {
+      "transitions": [
+        {
+          "name": "mark_delivered",
+          "next": "delivered",
+          "manual": true
+        }
+      ]
+    },
+    "delivered": {
+      "transitions": []
+    }
+  }
+}

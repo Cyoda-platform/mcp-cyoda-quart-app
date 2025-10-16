@@ -1,0 +1,70 @@
+{
+  "version": "1.0",
+  "name": "Payment Workflow",
+  "desc": "Workflow for Payment entity lifecycle management with dummy processing",
+  "initialState": "initial_state",
+  "active": true,
+  "states": {
+    "initial_state": {
+      "transitions": [
+        {
+          "name": "initiate",
+          "next": "initiated",
+          "manual": false,
+          "processors": [
+            {
+              "name": "PaymentInitiationProcessor",
+              "executionMode": "SYNC",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "initiated": {
+      "transitions": [
+        {
+          "name": "auto_process",
+          "next": "paid",
+          "manual": false,
+          "processors": [
+            {
+              "name": "DummyPaymentProcessor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          ]
+        },
+        {
+          "name": "fail",
+          "next": "failed",
+          "manual": true
+        },
+        {
+          "name": "cancel",
+          "next": "canceled",
+          "manual": true
+        }
+      ]
+    },
+    "paid": {
+      "transitions": []
+    },
+    "failed": {
+      "transitions": [
+        {
+          "name": "retry",
+          "next": "initiated",
+          "manual": true
+        }
+      ]
+    },
+    "canceled": {
+      "transitions": []
+    }
+  }
+}
