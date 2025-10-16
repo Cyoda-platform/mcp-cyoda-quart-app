@@ -297,11 +297,7 @@ async def open_checkout(cart_id: str) -> ResponseReturnValue:
             return jsonify({"error": "Cart not found"}), 404
 
         # Update cart status
-        cart_data = cart_response.data
-        if hasattr(cart_data, "model_dump"):
-            cart_dict = cart_data.model_dump(by_alias=True)
-        else:
-            cart_dict = cart_data
+        cart_dict = _to_dict(cart_response.data)
 
         cart_dict["status"] = "CHECKING_OUT"
 
@@ -317,11 +313,7 @@ async def open_checkout(cart_id: str) -> ResponseReturnValue:
         logger.info("Opened checkout for cart %s", cart_id)
 
         # Return updated cart
-        result_data = updated_response.data
-        if hasattr(result_data, "model_dump"):
-            result_dict = result_data.model_dump(by_alias=True)
-        else:
-            result_dict = result_data
+        result_dict = _to_dict(updated_response.data)
 
         return jsonify(result_dict), 200
 

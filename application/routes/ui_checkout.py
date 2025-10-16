@@ -19,6 +19,16 @@ logger = logging.getLogger(__name__)
 ui_checkout_bp = Blueprint("ui_checkout", __name__, url_prefix="/ui")
 
 
+def _to_dict(data: Any) -> Dict[str, Any]:
+    """Convert entity data to dictionary format"""
+    if hasattr(data, "model_dump"):
+        return data.model_dump(by_alias=True)
+    elif hasattr(data, '__dict__'):
+        return dict(data)
+    else:
+        return data
+
+
 @ui_checkout_bp.route("/checkout/<cart_id>", methods=["POST"])
 async def checkout(cart_id: str) -> ResponseReturnValue:
     """
@@ -78,11 +88,7 @@ async def checkout(cart_id: str) -> ResponseReturnValue:
             return jsonify({"error": "Cart not found"}), 404
 
         # Update cart with guest contact
-        cart_data = cart_response.data
-        if hasattr(cart_data, "model_dump"):
-            cart_dict = cart_data.model_dump(by_alias=True)
-        else:
-            cart_dict = cart_data
+        cart_dict = _to_dict(cart_response.data)
 
         # Validate cart status
         if cart_dict.get("status") != "CHECKING_OUT":
@@ -105,11 +111,7 @@ async def checkout(cart_id: str) -> ResponseReturnValue:
         logger.info("Updated cart %s with guest contact", cart_id)
 
         # Return updated cart
-        result_data = updated_response.data
-        if hasattr(result_data, "model_dump"):
-            result_dict = result_data.model_dump(by_alias=True)
-        else:
-            result_dict = result_data
+        result_dict = _to_dict(updated_response.data)
 
         return jsonify(result_dict), 200
 

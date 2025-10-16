@@ -21,6 +21,16 @@ logger = logging.getLogger(__name__)
 ui_payment_bp = Blueprint("ui_payment", __name__, url_prefix="/ui")
 
 
+def _to_dict(data: Any) -> Dict[str, Any]:
+    """Convert entity data to dictionary format"""
+    if hasattr(data, "model_dump"):
+        return data.model_dump(by_alias=True)
+    elif hasattr(data, '__dict__'):
+        return dict(data)
+    else:
+        return data
+
+
 @ui_payment_bp.route("/payment/start", methods=["POST"])
 async def start_payment() -> ResponseReturnValue:
     """
@@ -51,11 +61,7 @@ async def start_payment() -> ResponseReturnValue:
         if not cart_response:
             return jsonify({"error": "Cart not found"}), 404
 
-        cart_data = cart_response.data
-        if hasattr(cart_data, "model_dump"):
-            cart_dict = cart_data.model_dump(by_alias=True)
-        else:
-            cart_dict = cart_data
+        cart_dict = _to_dict(cart_response.data)
 
         # Validate cart status
         if cart_dict.get("status") != "CHECKING_OUT":
@@ -128,11 +134,7 @@ async def get_payment_status(payment_id: str) -> ResponseReturnValue:
             return jsonify({"error": "Payment not found"}), 404
 
         # Return payment data
-        payment_data = payment_response.data
-        if hasattr(payment_data, "model_dump"):
-            payment_dict = payment_data.model_dump(by_alias=True)
-        else:
-            payment_dict = payment_data
+        payment_dict = _to_dict(payment_response.data)
 
         return jsonify(payment_dict), 200
 

@@ -22,6 +22,16 @@ logger = logging.getLogger(__name__)
 ui_order_bp = Blueprint("ui_order", __name__, url_prefix="/ui")
 
 
+def _to_dict(data: Any) -> Dict[str, Any]:
+    """Convert entity data to dictionary format"""
+    if hasattr(data, "model_dump"):
+        return data.model_dump(by_alias=True)
+    elif hasattr(data, '__dict__'):
+        return dict(data)
+    else:
+        return data
+
+
 def _generate_order_number() -> str:
     """Generate a short ULID-style order number"""
     # For demo purposes, generate a simple order number
