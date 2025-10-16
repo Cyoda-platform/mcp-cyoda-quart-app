@@ -21,6 +21,16 @@ logger = logging.getLogger(__name__)
 ui_cart_bp = Blueprint("ui_cart", __name__, url_prefix="/ui")
 
 
+def _to_dict(data: Any) -> Dict[str, Any]:
+    """Convert entity data to dictionary format"""
+    if hasattr(data, "model_dump"):
+        return data.model_dump(by_alias=True)
+    elif hasattr(data, '__dict__'):
+        return dict(data)
+    else:
+        return data
+
+
 @ui_cart_bp.route("/cart", methods=["POST"])
 async def create_or_get_cart() -> ResponseReturnValue:
     """
@@ -46,11 +56,7 @@ async def create_or_get_cart() -> ResponseReturnValue:
         logger.info("Created new cart with ID: %s", response.metadata.id)
 
         # Return cart data
-        result_data = response.data
-        if hasattr(result_data, "model_dump"):
-            result_dict = result_data.model_dump(by_alias=True)
-        else:
-            result_dict = result_data
+        result_dict = _to_dict(response.data)
 
         return jsonify(result_dict), 201
 
@@ -82,11 +88,7 @@ async def get_cart(cart_id: str) -> ResponseReturnValue:
             return jsonify({"error": "Cart not found"}), 404
 
         # Return cart data
-        cart_data = cart_response.data
-        if hasattr(cart_data, "model_dump"):
-            cart_dict = cart_data.model_dump(by_alias=True)
-        else:
-            cart_dict = cart_data
+        cart_dict = _to_dict(cart_response.data)
 
         return jsonify(cart_dict), 200
 
@@ -130,11 +132,7 @@ async def add_cart_line(cart_id: str) -> ResponseReturnValue:
         if not product_response:
             return jsonify({"error": "Product not found"}), 404
 
-        product_data = product_response.data
-        if hasattr(product_data, "model_dump"):
-            product_dict = product_data.model_dump(by_alias=True)
-        else:
-            product_dict = product_data
+        product_dict = _to_dict(product_response.data)
 
         # Get cart
         cart_response = await entity_service.find_by_business_id(
@@ -148,11 +146,7 @@ async def add_cart_line(cart_id: str) -> ResponseReturnValue:
             return jsonify({"error": "Cart not found"}), 404
 
         # Update cart with new line item
-        cart_data = cart_response.data
-        if hasattr(cart_data, "model_dump"):
-            cart_dict = cart_data.model_dump(by_alias=True)
-        else:
-            cart_dict = cart_data
+        cart_dict = _to_dict(cart_response.data)
 
         # Add line item to cart data
         lines = cart_dict.get("lines", [])
@@ -197,11 +191,7 @@ async def add_cart_line(cart_id: str) -> ResponseReturnValue:
         logger.info("Added item %s to cart %s", sku, cart_id)
 
         # Return updated cart
-        result_data = updated_response.data
-        if hasattr(result_data, "model_dump"):
-            result_dict = result_data.model_dump(by_alias=True)
-        else:
-            result_dict = result_data
+        result_dict = _to_dict(updated_response.data)
 
         return jsonify(result_dict), 200
 
@@ -246,11 +236,7 @@ async def update_cart_line(cart_id: str) -> ResponseReturnValue:
             return jsonify({"error": "Cart not found"}), 404
 
         # Update cart line item
-        cart_data = cart_response.data
-        if hasattr(cart_data, "model_dump"):
-            cart_dict = cart_data.model_dump(by_alias=True)
-        else:
-            cart_dict = cart_data
+        cart_dict = _to_dict(cart_response.data)
 
         lines = cart_dict.get("lines", [])
 
@@ -279,11 +265,7 @@ async def update_cart_line(cart_id: str) -> ResponseReturnValue:
         logger.info("Updated line %s in cart %s to qty %d", sku, cart_id, qty)
 
         # Return updated cart
-        result_data = updated_response.data
-        if hasattr(result_data, "model_dump"):
-            result_dict = result_data.model_dump(by_alias=True)
-        else:
-            result_dict = result_data
+        result_dict = _to_dict(updated_response.data)
 
         return jsonify(result_dict), 200
 
