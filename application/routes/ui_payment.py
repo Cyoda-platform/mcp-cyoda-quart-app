@@ -91,7 +91,7 @@ async def start_payment() -> ResponseReturnValue:
 
         # Save payment
         payment_data = payment.model_dump(by_alias=True)
-        response = await entity_service.save(
+        await entity_service.save(
             entity=payment_data,
             entity_class=Payment.ENTITY_NAME,
             entity_version=str(Payment.ENTITY_VERSION),

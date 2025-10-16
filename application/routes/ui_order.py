@@ -80,11 +80,7 @@ async def create_order() -> ResponseReturnValue:
         if not payment_response:
             return jsonify({"error": "Payment not found"}), 404
 
-        payment_data = payment_response.data
-        if hasattr(payment_data, "model_dump"):
-            payment_dict = payment_data.model_dump(by_alias=True)
-        else:
-            payment_dict = payment_data
+        payment_dict = _to_dict(payment_response.data)
 
         # Validate payment is PAID
         if payment_dict.get("status") != "PAID":
@@ -101,11 +97,7 @@ async def create_order() -> ResponseReturnValue:
         if not cart_response:
             return jsonify({"error": "Cart not found"}), 404
 
-        cart_data = cart_response.data
-        if hasattr(cart_data, "model_dump"):
-            cart_dict = cart_data.model_dump(by_alias=True)
-        else:
-            cart_dict = cart_data
+        cart_dict = _to_dict(cart_response.data)
 
         # Validate cart has guest contact
         if not cart_dict.get("guestContact"):
@@ -124,7 +116,7 @@ async def create_order() -> ResponseReturnValue:
 
         # Save order
         order_data = order.model_dump(by_alias=True)
-        response = await entity_service.save(
+        await entity_service.save(
             entity=order_data,
             entity_class=Order.ENTITY_NAME,
             entity_version=str(Order.ENTITY_VERSION),
@@ -186,11 +178,7 @@ async def get_order(order_id: str) -> ResponseReturnValue:
             return jsonify({"error": "Order not found"}), 404
 
         # Return order data
-        order_data = order_response.data
-        if hasattr(order_data, "model_dump"):
-            order_dict = order_data.model_dump(by_alias=True)
-        else:
-            order_dict = order_data
+        order_dict = _to_dict(order_response.data)
 
         return jsonify(order_dict), 200
 
