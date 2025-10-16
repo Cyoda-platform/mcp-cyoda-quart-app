@@ -9,11 +9,11 @@ import logging
 import uuid
 from typing import Any
 
-from common.entity.entity_casting import cast_entity
-from common.processor.base import CyodaEntity, CyodaProcessor
 from application.entity.order.version_1.order import Order
 from application.entity.product.version_1.product import Product
 from application.entity.shipment.version_1.shipment import Shipment
+from common.entity.entity_casting import cast_entity
+from common.processor.base import CyodaEntity, CyodaProcessor
 from services.services import get_entity_service
 
 
@@ -56,7 +56,7 @@ class OrderCreationProcessor(CyodaProcessor):
             for line in order.lines:
                 sku = line.get("sku")
                 qty = line.get("qty", 0)
-                
+
                 if sku and qty > 0:
                     await self._decrement_product_stock(entity_service, sku, qty)
 
@@ -75,7 +75,9 @@ class OrderCreationProcessor(CyodaProcessor):
             )
             raise
 
-    async def _decrement_product_stock(self, entity_service: Any, sku: str, qty: int) -> None:
+    async def _decrement_product_stock(
+        self, entity_service: Any, sku: str, qty: int
+    ) -> None:
         """Decrement product stock by specified quantity"""
         try:
             # Find product by SKU (business ID)
@@ -87,18 +89,20 @@ class OrderCreationProcessor(CyodaProcessor):
             )
 
             if not product_response:
-                self.logger.warning(f"Product with SKU {sku} not found for stock decrement")
+                self.logger.warning(
+                    f"Product with SKU {sku} not found for stock decrement"
+                )
                 return
 
             # Cast to Product and decrement quantity
             product = cast_entity(product_response.data, Product)
-            
+
             if product.quantityAvailable < qty:
                 self.logger.warning(
                     f"Insufficient stock for SKU {sku}: available={product.quantityAvailable}, requested={qty}"
                 )
                 # For demo purposes, allow negative stock
-            
+
             product.decrement_quantity(qty)
 
             # Update the product
@@ -120,11 +124,10 @@ class OrderCreationProcessor(CyodaProcessor):
         """Create shipment for the order"""
         try:
             shipment_id = str(uuid.uuid4())
-            
+
             # Create shipment from order data
             shipment = Shipment.create_from_order(
-                shipment_id=shipment_id,
-                order_data=order.model_dump(by_alias=True)
+                shipment_id=shipment_id, order_data=order.model_dump(by_alias=True)
             )
 
             # Save the shipment
@@ -135,8 +138,12 @@ class OrderCreationProcessor(CyodaProcessor):
                 entity_version=str(Shipment.ENTITY_VERSION),
             )
 
-            self.logger.info(f"Created shipment {response.metadata.id} for order {order.orderId}")
+            self.logger.info(
+                f"Created shipment {response.metadata.id} for order {order.orderId}"
+            )
 
         except Exception as e:
-            self.logger.error(f"Error creating shipment for order {order.orderId}: {str(e)}")
+            self.logger.error(
+                f"Error creating shipment for order {order.orderId}: {str(e)}"
+            )
             # Don't raise - order creation should still succeed

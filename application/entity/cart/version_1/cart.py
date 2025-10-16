@@ -18,7 +18,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class Cart(CyodaEntity):
     """
     Cart entity for shopping cart functionality.
-    
+
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     Status managed by workflow: NEW → ACTIVE → CHECKING_OUT → CONVERTED
     """
@@ -29,39 +29,38 @@ class Cart(CyodaEntity):
 
     # Required fields
     cartId: str = Field(..., alias="cartId", description="Cart identifier")
-    status: str = Field(..., description="Cart status: NEW, ACTIVE, CHECKING_OUT, CONVERTED")
+    status: str = Field(
+        ..., description="Cart status: NEW, ACTIVE, CHECKING_OUT, CONVERTED"
+    )
     lines: List[Dict[str, Any]] = Field(
-        default_factory=list,
-        description="Cart line items with sku, name, price, qty"
+        default_factory=list, description="Cart line items with sku, name, price, qty"
     )
     totalItems: int = Field(
-        default=0,
-        alias="totalItems",
-        description="Total number of items in cart"
+        default=0, alias="totalItems", description="Total number of items in cart"
     )
     grandTotal: float = Field(
-        default=0.0,
-        alias="grandTotal",
-        description="Grand total amount"
+        default=0.0, alias="grandTotal", description="Grand total amount"
     )
 
     # Optional guest contact information
     guestContact: Optional[Dict[str, Any]] = Field(
         default=None,
         alias="guestContact",
-        description="Guest contact information including name, email, phone, address"
+        description="Guest contact information including name, email, phone, address",
     )
 
     # Timestamps
     createdAt: Optional[str] = Field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        default_factory=lambda: datetime.now(timezone.utc)
+        .isoformat()
+        .replace("+00:00", "Z"),
         alias="createdAt",
-        description="Timestamp when the cart was created"
+        description="Timestamp when the cart was created",
     )
     updatedAt: Optional[str] = Field(
         default=None,
         alias="updatedAt",
-        description="Timestamp when the cart was last updated"
+        description="Timestamp when the cart was last updated",
     )
 
     # Valid statuses
@@ -104,15 +103,17 @@ class Cart(CyodaEntity):
         """Validate business logic rules"""
         # Ensure totals match line items
         calculated_items = sum(line.get("qty", 0) for line in self.lines)
-        calculated_total = sum(line.get("price", 0) * line.get("qty", 0) for line in self.lines)
-        
+        calculated_total = sum(
+            line.get("price", 0) * line.get("qty", 0) for line in self.lines
+        )
+
         # Allow small floating point differences
         if abs(self.totalItems - calculated_items) > 0:
             self.totalItems = calculated_items
-        
+
         if abs(self.grandTotal - calculated_total) > 0.01:
             self.grandTotal = round(calculated_total, 2)
-        
+
         return self
 
     def update_timestamp(self) -> None:
@@ -135,12 +136,7 @@ class Cart(CyodaEntity):
                 return
 
         # Add new line item
-        self.lines.append({
-            "sku": sku,
-            "name": name,
-            "price": price,
-            "qty": qty
-        })
+        self.lines.append({"sku": sku, "name": name, "price": price, "qty": qty})
         self._recalculate_totals()
         self.update_timestamp()
 
@@ -177,7 +173,9 @@ class Cart(CyodaEntity):
     def _recalculate_totals(self) -> None:
         """Recalculate total items and grand total"""
         self.totalItems = sum(line.get("qty", 0) for line in self.lines)
-        self.grandTotal = round(sum(line.get("price", 0) * line.get("qty", 0) for line in self.lines), 2)
+        self.grandTotal = round(
+            sum(line.get("price", 0) * line.get("qty", 0) for line in self.lines), 2
+        )
 
     def clear_cart(self) -> None:
         """Clear all line items from the cart"""

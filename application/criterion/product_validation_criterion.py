@@ -7,9 +7,9 @@ proceed to the active stage as specified in functional requirements.
 
 from typing import Any
 
+from application.entity.product.version_1.product import Product
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.product.version_1.product import Product
 
 
 class ProductValidationCriterion(CyodaCriteriaChecker):
@@ -53,22 +53,32 @@ class ProductValidationCriterion(CyodaCriteriaChecker):
                 return False
 
             if not product.description or len(product.description.strip()) == 0:
-                self.logger.warning(f"Product {product.technical_id} has invalid description")
+                self.logger.warning(
+                    f"Product {product.technical_id} has invalid description"
+                )
                 return False
 
             if product.price < 0:
-                self.logger.warning(f"Product {product.technical_id} has negative price: {product.price}")
+                self.logger.warning(
+                    f"Product {product.technical_id} has negative price: {product.price}"
+                )
                 return False
 
             if product.quantityAvailable < 0:
-                self.logger.warning(f"Product {product.technical_id} has negative quantity: {product.quantityAvailable}")
+                self.logger.warning(
+                    f"Product {product.technical_id} has negative quantity: {product.quantityAvailable}"
+                )
                 return False
 
             if not product.category or len(product.category.strip()) == 0:
-                self.logger.warning(f"Product {product.technical_id} has invalid category")
+                self.logger.warning(
+                    f"Product {product.technical_id} has invalid category"
+                )
                 return False
 
-            self.logger.info(f"Product {product.technical_id} passed all validation criteria")
+            self.logger.info(
+                f"Product {product.technical_id} passed all validation criteria"
+            )
             return True
 
         except Exception as e:

@@ -7,9 +7,9 @@ as specified in functional requirements.
 
 from typing import Any
 
+from application.entity.shipment.version_1.shipment import Shipment
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.shipment.version_1.shipment import Shipment
 
 
 class ShipmentReadyCriterion(CyodaCriteriaChecker):
@@ -57,9 +57,7 @@ class ShipmentReadyCriterion(CyodaCriteriaChecker):
                 )
                 return False
 
-            self.logger.info(
-                f"Shipment {shipment.technical_id} is ready to be sent"
-            )
+            self.logger.info(f"Shipment {shipment.technical_id} is ready to be sent")
             return True
 
         except Exception as e:

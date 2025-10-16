@@ -9,9 +9,9 @@ import asyncio
 import logging
 from typing import Any
 
+from application.entity.payment.version_1.payment import Payment
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.payment.version_1.payment import Payment
 
 
 class DummyPaymentProcessor(CyodaProcessor):
@@ -49,7 +49,9 @@ class DummyPaymentProcessor(CyodaProcessor):
             payment = cast_entity(entity, Payment)
 
             # Simulate payment processing delay (~3 seconds)
-            self.logger.info(f"Payment {payment.technical_id} processing for 3 seconds...")
+            self.logger.info(
+                f"Payment {payment.technical_id} processing for 3 seconds..."
+            )
             await asyncio.sleep(3)
 
             # Auto-approve the payment (dummy implementation)

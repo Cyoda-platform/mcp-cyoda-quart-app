@@ -18,7 +18,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class Order(CyodaEntity):
     """
     Order entity for order lifecycle management.
-    
+
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     Status managed by workflow: WAITING_TO_FULFILL → PICKING → WAITING_TO_SEND → SENT → DELIVERED
     """
@@ -29,49 +29,52 @@ class Order(CyodaEntity):
 
     # Required fields
     orderId: str = Field(..., alias="orderId", description="Order identifier")
-    orderNumber: str = Field(..., alias="orderNumber", description="Short ULID order number")
+    orderNumber: str = Field(
+        ..., alias="orderNumber", description="Short ULID order number"
+    )
     status: str = Field(..., description="Order status")
     lines: List[Dict[str, Any]] = Field(
         default_factory=list,
-        description="Order line items with sku, name, unitPrice, qty, lineTotal"
+        description="Order line items with sku, name, unitPrice, qty, lineTotal",
     )
     totals: Dict[str, float] = Field(
-        default_factory=dict,
-        description="Order totals with items and grand total"
+        default_factory=dict, description="Order totals with items and grand total"
     )
     guestContact: Dict[str, Any] = Field(
         ...,
         alias="guestContact",
-        description="Guest contact information including name, email, phone, address"
+        description="Guest contact information including name, email, phone, address",
     )
 
     # Optional fields
     paymentId: Optional[str] = Field(
-        default=None,
-        alias="paymentId",
-        description="Associated payment identifier"
+        default=None, alias="paymentId", description="Associated payment identifier"
     )
     cartId: Optional[str] = Field(
-        default=None,
-        alias="cartId",
-        description="Source cart identifier"
+        default=None, alias="cartId", description="Source cart identifier"
     )
 
     # Timestamps
     createdAt: Optional[str] = Field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        default_factory=lambda: datetime.now(timezone.utc)
+        .isoformat()
+        .replace("+00:00", "Z"),
         alias="createdAt",
-        description="Timestamp when the order was created"
+        description="Timestamp when the order was created",
     )
     updatedAt: Optional[str] = Field(
         default=None,
         alias="updatedAt",
-        description="Timestamp when the order was last updated"
+        description="Timestamp when the order was last updated",
     )
 
     # Valid statuses
     VALID_STATUSES: ClassVar[List[str]] = [
-        "WAITING_TO_FULFILL", "PICKING", "WAITING_TO_SEND", "SENT", "DELIVERED"
+        "WAITING_TO_FULFILL",
+        "PICKING",
+        "WAITING_TO_SEND",
+        "SENT",
+        "DELIVERED",
     ]
 
     @field_validator("orderId")
@@ -104,20 +107,20 @@ class Order(CyodaEntity):
         """Validate guest contact information"""
         if not v:
             raise ValueError("Guest contact information is required")
-        
+
         # Validate required fields
         if not v.get("name"):
             raise ValueError("Guest contact name is required")
-        
+
         address = v.get("address", {})
         if not address:
             raise ValueError("Guest contact address is required")
-        
+
         required_address_fields = ["line1", "city", "postcode", "country"]
         for field in required_address_fields:
             if not address.get(field):
                 raise ValueError(f"Guest contact address {field} is required")
-        
+
         return v
 
     @model_validator(mode="after")
@@ -125,12 +128,14 @@ class Order(CyodaEntity):
         """Validate business logic rules"""
         # Ensure totals are calculated correctly
         if self.lines:
-            calculated_items_total = sum(line.get("lineTotal", 0) for line in self.lines)
+            calculated_items_total = sum(
+                line.get("lineTotal", 0) for line in self.lines
+            )
             if "items" not in self.totals:
                 self.totals["items"] = calculated_items_total
             if "grand" not in self.totals:
                 self.totals["grand"] = calculated_items_total
-        
+
         return self
 
     def update_timestamp(self) -> None:
@@ -145,13 +150,15 @@ class Order(CyodaEntity):
             raise ValueError("Unit price must be non-negative")
 
         line_total = round(unit_price * qty, 2)
-        self.lines.append({
-            "sku": sku,
-            "name": name,
-            "unitPrice": unit_price,
-            "qty": qty,
-            "lineTotal": line_total
-        })
+        self.lines.append(
+            {
+                "sku": sku,
+                "name": name,
+                "unitPrice": unit_price,
+                "qty": qty,
+                "lineTotal": line_total,
+            }
+        )
         self._recalculate_totals()
         self.update_timestamp()
 
@@ -160,7 +167,7 @@ class Order(CyodaEntity):
         items_total = sum(line.get("lineTotal", 0) for line in self.lines)
         self.totals = {
             "items": round(items_total, 2),
-            "grand": round(items_total, 2)  # For demo, grand total equals items total
+            "grand": round(items_total, 2),  # For demo, grand total equals items total
         }
 
     def set_guest_contact(self, guest_contact: Dict[str, Any]) -> None:
@@ -197,26 +204,27 @@ class Order(CyodaEntity):
         order_id: str,
         order_number: str,
         cart_data: Dict[str, Any],
-        payment_data: Dict[str, Any]
+        payment_data: Dict[str, Any],
     ) -> "Order":
         """Create order from cart and payment data"""
         # Convert cart lines to order lines
         order_lines = []
         for cart_line in cart_data.get("lines", []):
-            order_lines.append({
-                "sku": cart_line.get("sku"),
-                "name": cart_line.get("name"),
-                "unitPrice": cart_line.get("price"),
-                "qty": cart_line.get("qty"),
-                "lineTotal": round(cart_line.get("price", 0) * cart_line.get("qty", 0), 2)
-            })
+            order_lines.append(
+                {
+                    "sku": cart_line.get("sku"),
+                    "name": cart_line.get("name"),
+                    "unitPrice": cart_line.get("price"),
+                    "qty": cart_line.get("qty"),
+                    "lineTotal": round(
+                        cart_line.get("price", 0) * cart_line.get("qty", 0), 2
+                    ),
+                }
+            )
 
         # Calculate totals
         items_total = sum(line["lineTotal"] for line in order_lines)
-        totals = {
-            "items": round(items_total, 2),
-            "grand": round(items_total, 2)
-        }
+        totals = {"items": round(items_total, 2), "grand": round(items_total, 2)}
 
         return cls(
             orderId=order_id,
@@ -226,7 +234,7 @@ class Order(CyodaEntity):
             totals=totals,
             guestContact=cart_data.get("guestContact", {}),
             paymentId=payment_data.get("paymentId"),
-            cartId=cart_data.get("cartId")
+            cartId=cart_data.get("cartId"),
         )
 
     def to_api_response(self) -> Dict[str, Any]:

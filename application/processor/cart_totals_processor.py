@@ -8,9 +8,9 @@ removed, or updated as specified in functional requirements.
 import logging
 from typing import Any
 
+from application.entity.cart.version_1.cart import Cart
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.cart.version_1.cart import Cart
 
 
 class CartTotalsProcessor(CyodaProcessor):
@@ -54,7 +54,7 @@ class CartTotalsProcessor(CyodaProcessor):
             for line in cart.lines:
                 qty = line.get("qty", 0)
                 price = line.get("price", 0.0)
-                
+
                 total_items += qty
                 grand_total += price * qty
 

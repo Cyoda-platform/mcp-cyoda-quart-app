@@ -11,9 +11,9 @@ from typing import Any, Dict, List, Optional
 from quart import Blueprint, jsonify, request
 from quart.typing import ResponseReturnValue
 
+from application.entity.product.version_1.product import Product
 from common.service.entity_service import SearchConditionRequest
 from services.services import get_entity_service
-from application.entity.product.version_1.product import Product
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +24,7 @@ ui_products_bp = Blueprint("ui_products", __name__, url_prefix="/ui")
 async def list_products() -> ResponseReturnValue:
     """
     List products with optional filtering and search.
-    
+
     Query parameters:
     - search: Free-text search on name/description
     - category: Filter by category
@@ -32,7 +32,7 @@ async def list_products() -> ResponseReturnValue:
     - maxPrice: Maximum price filter
     - page: Page number (default: 0)
     - pageSize: Page size (default: 20)
-    
+
     Returns slim DTO for speed: {sku, name, description, price, quantityAvailable, category, imageUrl}
     """
     try:
@@ -100,7 +100,7 @@ async def list_products() -> ResponseReturnValue:
                 name = product_dict.get("name", "").lower()
                 description = product_dict.get("description", "").lower()
                 search_lower = search.lower()
-                
+
                 if search_lower not in name and search_lower not in description:
                     continue
 
@@ -112,7 +112,7 @@ async def list_products() -> ResponseReturnValue:
                 "price": product_dict.get("price"),
                 "quantityAvailable": product_dict.get("quantityAvailable"),
                 "category": product_dict.get("category"),
-                "imageUrl": _get_primary_image_url(product_dict.get("media", []))
+                "imageUrl": _get_primary_image_url(product_dict.get("media", [])),
             }
             product_list.append(slim_product)
 
@@ -122,13 +122,18 @@ async def list_products() -> ResponseReturnValue:
         end = start + page_size
         paginated_products = product_list[start:end]
 
-        return jsonify({
-            "products": paginated_products,
-            "total": total,
-            "page": page,
-            "pageSize": page_size,
-            "totalPages": (total + page_size - 1) // page_size
-        }), 200
+        return (
+            jsonify(
+                {
+                    "products": paginated_products,
+                    "total": total,
+                    "page": page,
+                    "pageSize": page_size,
+                    "totalPages": (total + page_size - 1) // page_size,
+                }
+            ),
+            200,
+        )
 
     except Exception as e:
         logger.exception("Error listing products: %s", str(e))
@@ -176,15 +181,15 @@ def _get_primary_image_url(media: List[Dict[str, Any]]) -> Optional[str]:
     """Get primary image URL from media"""
     if not media:
         return None
-    
+
     # Look for hero image first
     for media_item in media:
         if media_item.get("type") == "image" and "hero" in media_item.get("tags", []):
             return media_item.get("url")
-    
+
     # Fallback to first image
     for media_item in media:
         if media_item.get("type") == "image":
             return media_item.get("url")
-    
+
     return None

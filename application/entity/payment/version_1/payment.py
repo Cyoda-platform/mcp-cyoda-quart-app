@@ -18,7 +18,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class Payment(CyodaEntity):
     """
     Payment entity for dummy payment processing.
-    
+
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     Status managed by workflow: INITIATED → PAID/FAILED/CANCELED
     """
@@ -31,36 +31,40 @@ class Payment(CyodaEntity):
     paymentId: str = Field(..., alias="paymentId", description="Payment identifier")
     cartId: str = Field(..., alias="cartId", description="Associated cart identifier")
     amount: float = Field(..., description="Payment amount")
-    status: str = Field(..., description="Payment status: INITIATED, PAID, FAILED, CANCELED")
-    provider: str = Field(default="DUMMY", description="Payment provider (always DUMMY for demo)")
+    status: str = Field(
+        ..., description="Payment status: INITIATED, PAID, FAILED, CANCELED"
+    )
+    provider: str = Field(
+        default="DUMMY", description="Payment provider (always DUMMY for demo)"
+    )
 
     # Optional fields for payment processing
     initiatedAt: Optional[str] = Field(
         default=None,
         alias="initiatedAt",
-        description="Timestamp when payment was initiated"
+        description="Timestamp when payment was initiated",
     )
     completedAt: Optional[str] = Field(
         default=None,
         alias="completedAt",
-        description="Timestamp when payment was completed"
+        description="Timestamp when payment was completed",
     )
     failureReason: Optional[str] = Field(
-        default=None,
-        alias="failureReason",
-        description="Reason for payment failure"
+        default=None, alias="failureReason", description="Reason for payment failure"
     )
 
     # Timestamps
     createdAt: Optional[str] = Field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        default_factory=lambda: datetime.now(timezone.utc)
+        .isoformat()
+        .replace("+00:00", "Z"),
         alias="createdAt",
-        description="Timestamp when the payment was created"
+        description="Timestamp when the payment was created",
     )
     updatedAt: Optional[str] = Field(
         default=None,
         alias="updatedAt",
-        description="Timestamp when the payment was last updated"
+        description="Timestamp when the payment was last updated",
     )
 
     # Valid statuses
@@ -127,7 +131,9 @@ class Payment(CyodaEntity):
     def mark_failed(self, reason: str) -> None:
         """Mark payment as failed with reason"""
         if self.status not in ["INITIATED"]:
-            raise ValueError(f"Cannot mark payment as failed from status: {self.status}")
+            raise ValueError(
+                f"Cannot mark payment as failed from status: {self.status}"
+            )
         self.status = "FAILED"
         self.failureReason = reason
         self.completedAt = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
@@ -136,7 +142,9 @@ class Payment(CyodaEntity):
     def mark_canceled(self) -> None:
         """Mark payment as canceled"""
         if self.status not in ["INITIATED"]:
-            raise ValueError(f"Cannot mark payment as canceled from status: {self.status}")
+            raise ValueError(
+                f"Cannot mark payment as canceled from status: {self.status}"
+            )
         self.status = "CANCELED"
         self.completedAt = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
         self.update_timestamp()
@@ -157,7 +165,7 @@ class Payment(CyodaEntity):
         """Get processing duration in seconds if completed"""
         if not self.initiatedAt or not self.completedAt:
             return None
-        
+
         try:
             initiated = datetime.fromisoformat(self.initiatedAt.replace("Z", "+00:00"))
             completed = datetime.fromisoformat(self.completedAt.replace("Z", "+00:00"))

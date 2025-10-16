@@ -19,7 +19,7 @@ from common.entity.cyoda_entity import CyodaEntity
 class Product(CyodaEntity):
     """
     Product entity with comprehensive schema for OMS functionality.
-    
+
     Inherits from CyodaEntity to get common fields like entity_id, state, etc.
     Contains all fields from the attached Product schema for persistence and round-trip.
     """
@@ -33,73 +33,75 @@ class Product(CyodaEntity):
     name: str = Field(..., description="Product name")
     description: str = Field(..., description="Product description")
     price: float = Field(..., description="Default/base price (fallback)")
-    quantityAvailable: int = Field(..., alias="quantityAvailable", description="Quick projection field for available quantity")
+    quantityAvailable: int = Field(
+        ...,
+        alias="quantityAvailable",
+        description="Quick projection field for available quantity",
+    )
     category: str = Field(..., description="Product category")
-    
+
     # Optional core fields
-    warehouseId: Optional[str] = Field(default=None, alias="warehouseId", description="Optional default primary node")
+    warehouseId: Optional[str] = Field(
+        default=None, alias="warehouseId", description="Optional default primary node"
+    )
 
     # Complex nested structures
     attributes: Optional[Dict[str, Any]] = Field(
         default_factory=dict,
-        description="Product attributes including brand, model, dimensions, weight, hazards, custom"
+        description="Product attributes including brand, model, dimensions, weight, hazards, custom",
     )
-    
+
     localizations: Optional[Dict[str, Any]] = Field(
         default_factory=dict,
-        description="Localization content with default locale and content array"
+        description="Localization content with default locale and content array",
     )
-    
+
     media: Optional[List[Dict[str, Any]]] = Field(
-        default_factory=list,
-        description="Media files including images and documents"
+        default_factory=list, description="Media files including images and documents"
     )
-    
+
     options: Optional[Dict[str, Any]] = Field(
-        default_factory=dict,
-        description="Product options with axes and constraints"
+        default_factory=dict, description="Product options with axes and constraints"
     )
-    
+
     variants: Optional[List[Dict[str, Any]]] = Field(
         default_factory=list,
-        description="Product variants with option values and overrides"
+        description="Product variants with option values and overrides",
     )
-    
+
     bundles: Optional[List[Dict[str, Any]]] = Field(
-        default_factory=list,
-        description="Product bundles (kits or virtual bundles)"
+        default_factory=list, description="Product bundles (kits or virtual bundles)"
     )
-    
+
     inventory: Optional[Dict[str, Any]] = Field(
         default_factory=dict,
-        description="Inventory information with nodes, lots, reservations, policies"
+        description="Inventory information with nodes, lots, reservations, policies",
     )
-    
+
     compliance: Optional[Dict[str, Any]] = Field(
-        default_factory=dict,
-        description="Compliance documents and restrictions"
+        default_factory=dict, description="Compliance documents and restrictions"
     )
-    
+
     relationships: Optional[Dict[str, Any]] = Field(
-        default_factory=dict,
-        description="Supplier and related product relationships"
+        default_factory=dict, description="Supplier and related product relationships"
     )
-    
+
     events: Optional[List[Dict[str, Any]]] = Field(
-        default_factory=list,
-        description="Product lifecycle events"
+        default_factory=list, description="Product lifecycle events"
     )
 
     # Timestamps
     createdAt: Optional[str] = Field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        default_factory=lambda: datetime.now(timezone.utc)
+        .isoformat()
+        .replace("+00:00", "Z"),
         alias="createdAt",
-        description="Timestamp when the product was created"
+        description="Timestamp when the product was created",
     )
     updatedAt: Optional[str] = Field(
         default=None,
-        alias="updatedAt", 
-        description="Timestamp when the product was last updated"
+        alias="updatedAt",
+        description="Timestamp when the product was last updated",
     )
 
     @field_validator("sku")
@@ -165,7 +167,9 @@ class Product(CyodaEntity):
         if amount < 0:
             raise ValueError("Decrement amount must be non-negative")
         if self.quantityAvailable < amount:
-            raise ValueError(f"Insufficient quantity. Available: {self.quantityAvailable}, Requested: {amount}")
+            raise ValueError(
+                f"Insufficient quantity. Available: {self.quantityAvailable}, Requested: {amount}"
+            )
         self.quantityAvailable -= amount
         self.update_timestamp()
 
@@ -189,7 +193,7 @@ class Product(CyodaEntity):
             "price": self.price,
             "quantityAvailable": self.quantityAvailable,
             "category": self.category,
-            "imageUrl": self._get_primary_image_url()
+            "imageUrl": self._get_primary_image_url(),
         }
 
     def _get_primary_image_url(self) -> Optional[str]:
@@ -197,7 +201,9 @@ class Product(CyodaEntity):
         if not self.media:
             return None
         for media_item in self.media:
-            if media_item.get("type") == "image" and "hero" in media_item.get("tags", []):
+            if media_item.get("type") == "image" and "hero" in media_item.get(
+                "tags", []
+            ):
                 return media_item.get("url")
         # Fallback to first image if no hero image
         for media_item in self.media:

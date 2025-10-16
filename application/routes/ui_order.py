@@ -12,10 +12,10 @@ from typing import Any, Dict
 from quart import Blueprint, jsonify, request
 from quart.typing import ResponseReturnValue
 
-from services.services import get_entity_service
+from application.entity.cart.version_1.cart import Cart
 from application.entity.order.version_1.order import Order
 from application.entity.payment.version_1.payment import Payment
-from application.entity.cart.version_1.cart import Cart
+from services.services import get_entity_service
 
 logger = logging.getLogger(__name__)
 
@@ -25,13 +25,13 @@ ui_order_bp = Blueprint("ui_order", __name__, url_prefix="/ui")
 def _generate_order_number() -> str:
     """Generate a short ULID-style order number"""
     # For demo purposes, generate a simple order number
-    import time
     import random
     import string
-    
+    import time
+
     # Use timestamp and random chars for uniqueness
     timestamp = int(time.time())
-    random_chars = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
+    random_chars = "".join(random.choices(string.ascii_uppercase + string.digits, k=4))
     return f"O-{timestamp % 100000}-{random_chars}"
 
 
@@ -39,7 +39,7 @@ def _generate_order_number() -> str:
 async def create_order() -> ResponseReturnValue:
     """
     Create order from paid cart.
-    
+
     Body: {paymentId, cartId}
     Preconditions: Payment PAID
     Returns: {orderId, orderNumber, status}
@@ -109,7 +109,7 @@ async def create_order() -> ResponseReturnValue:
             order_id=order_id,
             order_number=order_number,
             cart_data=cart_dict,
-            payment_data=payment_dict
+            payment_data=payment_dict,
         )
 
         # Save order
@@ -130,13 +130,23 @@ async def create_order() -> ResponseReturnValue:
             entity_version=str(Cart.ENTITY_VERSION),
         )
 
-        logger.info("Created order %s from cart %s and payment %s", order_number, cart_id, payment_id)
+        logger.info(
+            "Created order %s from cart %s and payment %s",
+            order_number,
+            cart_id,
+            payment_id,
+        )
 
-        return jsonify({
-            "orderId": order_id,
-            "orderNumber": order_number,
-            "status": "WAITING_TO_FULFILL"
-        }), 201
+        return (
+            jsonify(
+                {
+                    "orderId": order_id,
+                    "orderNumber": order_number,
+                    "status": "WAITING_TO_FULFILL",
+                }
+            ),
+            201,
+        )
 
     except Exception as e:
         logger.exception("Error creating order: %s", str(e))

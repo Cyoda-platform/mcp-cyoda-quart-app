@@ -12,9 +12,9 @@ from typing import Any, Dict
 from quart import Blueprint, jsonify, request
 from quart.typing import ResponseReturnValue
 
-from services.services import get_entity_service
-from application.entity.payment.version_1.payment import Payment
 from application.entity.cart.version_1.cart import Cart
+from application.entity.payment.version_1.payment import Payment
+from services.services import get_entity_service
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +25,7 @@ ui_payment_bp = Blueprint("ui_payment", __name__, url_prefix="/ui")
 async def start_payment() -> ResponseReturnValue:
     """
     Start payment process.
-    
+
     Body: {cartId}
     Returns: {paymentId}
     """
@@ -80,7 +80,7 @@ async def start_payment() -> ResponseReturnValue:
             cartId=cart_id,
             amount=grand_total,
             status="INITIATED",
-            provider="DUMMY"
+            provider="DUMMY",
         )
 
         # Save payment
@@ -91,7 +91,12 @@ async def start_payment() -> ResponseReturnValue:
             entity_version=str(Payment.ENTITY_VERSION),
         )
 
-        logger.info("Started payment %s for cart %s, amount $%.2f", payment_id, cart_id, grand_total)
+        logger.info(
+            "Started payment %s for cart %s, amount $%.2f",
+            payment_id,
+            cart_id,
+            grand_total,
+        )
 
         return jsonify({"paymentId": payment_id}), 201
 

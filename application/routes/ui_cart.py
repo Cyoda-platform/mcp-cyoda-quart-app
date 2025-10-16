@@ -12,9 +12,9 @@ from typing import Any, Dict
 from quart import Blueprint, jsonify, request
 from quart.typing import ResponseReturnValue
 
-from services.services import get_entity_service
 from application.entity.cart.version_1.cart import Cart
 from application.entity.product.version_1.product import Product
+from services.services import get_entity_service
 
 logger = logging.getLogger(__name__)
 
@@ -28,15 +28,11 @@ async def create_or_get_cart() -> ResponseReturnValue:
     """
     try:
         entity_service = get_entity_service()
-        
+
         # Create new cart
         cart_id = str(uuid.uuid4())
         cart = Cart(
-            cartId=cart_id,
-            status="NEW",
-            lines=[],
-            totalItems=0,
-            grandTotal=0.0
+            cartId=cart_id, status="NEW", lines=[], totalItems=0, grandTotal=0.0
         )
 
         # Save the cart
@@ -48,14 +44,14 @@ async def create_or_get_cart() -> ResponseReturnValue:
         )
 
         logger.info("Created new cart with ID: %s", response.metadata.id)
-        
+
         # Return cart data
         result_data = response.data
         if hasattr(result_data, "model_dump"):
             result_dict = result_data.model_dump(by_alias=True)
         else:
             result_dict = result_data
-            
+
         return jsonify(result_dict), 201
 
     except Exception as e:
@@ -160,7 +156,7 @@ async def add_cart_line(cart_id: str) -> ResponseReturnValue:
 
         # Add line item to cart data
         lines = cart_dict.get("lines", [])
-        
+
         # Find existing line or add new one
         found = False
         for line in lines:
@@ -168,14 +164,16 @@ async def add_cart_line(cart_id: str) -> ResponseReturnValue:
                 line["qty"] += qty
                 found = True
                 break
-        
+
         if not found:
-            lines.append({
-                "sku": sku,
-                "name": product_dict.get("name"),
-                "price": product_dict.get("price"),
-                "qty": qty
-            })
+            lines.append(
+                {
+                    "sku": sku,
+                    "name": product_dict.get("name"),
+                    "price": product_dict.get("price"),
+                    "qty": qty,
+                }
+            )
 
         cart_dict["lines"] = lines
 

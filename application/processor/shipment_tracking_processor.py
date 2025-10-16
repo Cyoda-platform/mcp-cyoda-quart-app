@@ -9,9 +9,9 @@ import logging
 import uuid
 from typing import Any
 
+from application.entity.shipment.version_1.shipment import Shipment
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.shipment.version_1.shipment import Shipment
 
 
 class ShipmentTrackingProcessor(CyodaProcessor):
@@ -52,19 +52,17 @@ class ShipmentTrackingProcessor(CyodaProcessor):
             if not shipment.trackingNumber:
                 tracking_number = self._generate_tracking_number()
                 carrier = "DEMO_CARRIER"
-                
+
                 shipment.mark_shipped(tracking_number=tracking_number, carrier=carrier)
-                
+
                 self.logger.info(
                     f"Shipment {shipment.shipmentId} marked as shipped with tracking {tracking_number}"
                 )
             else:
                 # Just update timestamp if tracking already exists
                 shipment.update_timestamp()
-                
-                self.logger.info(
-                    f"Shipment {shipment.shipmentId} tracking updated"
-                )
+
+                self.logger.info(f"Shipment {shipment.shipmentId} tracking updated")
 
             return shipment
 

@@ -11,8 +11,8 @@ from typing import Any, Dict
 from quart import Blueprint, jsonify, request
 from quart.typing import ResponseReturnValue
 
-from services.services import get_entity_service
 from application.entity.cart.version_1.cart import Cart
+from services.services import get_entity_service
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +23,7 @@ ui_checkout_bp = Blueprint("ui_checkout", __name__, url_prefix="/ui")
 async def checkout(cart_id: str) -> ResponseReturnValue:
     """
     Checkout process - attach guest contact to cart.
-    
+
     Body:
     {
         "guestContact": {
