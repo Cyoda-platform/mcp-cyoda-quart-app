@@ -6,6 +6,7 @@ and workflow transitions as specified in functional requirements.
 """
 
 import logging
+from datetime import datetime
 from typing import Any, Dict, Optional, Tuple
 
 from pydantic import BaseModel, Field
@@ -17,6 +18,7 @@ from quart_schema import (
     validate_querystring,
 )
 
+from common.exception import is_not_found
 from common.service.entity_service import (
     SearchConditionRequest,
 )
@@ -527,4 +529,348 @@ async def find_all_entities() -> Tuple[Dict[str, Any], int]:
 
     except Exception as e:
         logger.exception("Error finding all OtherEntities: %s", str(e))
+        return {"error": str(e)}, 500
+
+
+# ---- Temporal Query Endpoints (PR #41) ------------------------------------------
+
+
+@other_entities_bp.route("/<entity_id>/at-time", methods=["GET"])
+@tag(["other-entities"])
+@operation_id("get_other_entity_at_time")
+@validate(
+    responses={
+        200: (OtherEntityResponse, None),
+        404: (ErrorResponse, None),
+        400: (ErrorResponse, None),
+        500: (ErrorResponse, None),
+    }
+)
+async def get_entity_at_time(entity_id: str) -> Tuple[Dict[str, Any], int]:
+    """Get OtherEntity as it existed at a specific point in time"""
+    try:
+        point_in_time_str = request.args.get("pointInTime")
+        if not point_in_time_str:
+            return (
+                {
+                    "error": "pointInTime query parameter required (ISO 8601 format)",
+                    "code": "MISSING_PARAMETER",
+                },
+                400,
+            )
+
+        # Parse ISO 8601 datetime
+        try:
+            point_in_time = datetime.fromisoformat(
+                point_in_time_str.replace("Z", "+00:00")
+            )
+        except ValueError as e:
+            return (
+                {
+                    "error": f"Invalid datetime format: {str(e)}",
+                    "code": "INVALID_DATETIME",
+                },
+                400,
+            )
+
+        response = await service.get_by_id_at_time(
+            entity_id=entity_id,
+            entity_class=OtherEntity.ENTITY_NAME,
+            point_in_time=point_in_time,
+            entity_version=str(OtherEntity.ENTITY_VERSION),
+        )
+
+        if not response:
+            return {"error": "OtherEntity not found", "code": "NOT_FOUND"}, 404
+
+        return _to_entity_dict(response.data), 200
+
+    except Exception as e:
+        if is_not_found(e):
+            return {"error": "OtherEntity not found", "code": "NOT_FOUND"}, 404
+        logger.exception(
+            "Error getting OtherEntity %s at time %s: %s",
+            entity_id,
+            point_in_time_str,
+            str(e),
+        )
+        return {"error": str(e), "code": "INTERNAL_ERROR"}, 500
+
+
+@other_entities_bp.route("/by-business-id/<business_id>/at-time", methods=["GET"])
+@tag(["other-entities"])
+@operation_id("get_other_entity_by_business_id_at_time")
+@validate(
+    responses={
+        200: (OtherEntityResponse, None),
+        404: (ErrorResponse, None),
+        400: (ErrorResponse, None),
+        500: (ErrorResponse, None),
+    }
+)
+async def get_by_business_id_at_time(business_id: str) -> Tuple[Dict[str, Any], int]:
+    """Get OtherEntity by business ID as it existed at a specific point in time"""
+    try:
+        business_id_field = request.args.get("field", "title")
+        point_in_time_str = request.args.get("pointInTime")
+
+        if not point_in_time_str:
+            return (
+                {
+                    "error": "pointInTime query parameter required (ISO 8601 format)",
+                    "code": "MISSING_PARAMETER",
+                },
+                400,
+            )
+
+        # Parse datetime
+        try:
+            point_in_time = datetime.fromisoformat(
+                point_in_time_str.replace("Z", "+00:00")
+            )
+        except ValueError as e:
+            return (
+                {
+                    "error": f"Invalid datetime format: {str(e)}",
+                    "code": "INVALID_DATETIME",
+                },
+                400,
+            )
+
+        result = await service.find_by_business_id_at_time(
+            entity_class=OtherEntity.ENTITY_NAME,
+            business_id=business_id,
+            business_id_field=business_id_field,
+            point_in_time=point_in_time,
+            entity_version=str(OtherEntity.ENTITY_VERSION),
+        )
+
+        if not result:
+            return {"error": "OtherEntity not found", "code": "NOT_FOUND"}, 404
+
+        return _to_entity_dict(result.data), 200
+
+    except Exception as e:
+        if is_not_found(e):
+            return {"error": "OtherEntity not found", "code": "NOT_FOUND"}, 404
+        logger.exception(
+            "Error getting OtherEntity by business ID %s at time: %s",
+            business_id,
+            str(e),
+        )
+        return {"error": str(e)}, 500
+
+
+@other_entities_bp.route("/at-time", methods=["GET"])
+@tag(["other-entities"])
+@operation_id("list_other_entities_at_time")
+@validate(
+    responses={
+        200: (OtherEntityListResponse, None),
+        400: (ErrorResponse, None),
+        500: (ErrorResponse, None),
+    }
+)
+async def list_entities_at_time() -> Tuple[Dict[str, Any], int]:
+    """List all OtherEntities as they existed at a specific point in time"""
+    try:
+        point_in_time_str = request.args.get("pointInTime")
+        if not point_in_time_str:
+            return (
+                {
+                    "error": "pointInTime query parameter required (ISO 8601 format)",
+                    "code": "MISSING_PARAMETER",
+                },
+                400,
+            )
+
+        # Parse datetime
+        try:
+            point_in_time = datetime.fromisoformat(
+                point_in_time_str.replace("Z", "+00:00")
+            )
+        except ValueError as e:
+            return (
+                {
+                    "error": f"Invalid datetime format: {str(e)}",
+                    "code": "INVALID_DATETIME",
+                },
+                400,
+            )
+
+        results = await service.find_all_at_time(
+            entity_class=OtherEntity.ENTITY_NAME,
+            point_in_time=point_in_time,
+            entity_version=str(OtherEntity.ENTITY_VERSION),
+        )
+
+        entities = [_to_entity_dict(r.data) for r in results]
+        return {"entities": entities, "total": len(entities)}, 200
+
+    except Exception as e:
+        logger.exception("Error listing OtherEntities at time: %s", str(e))
+        return {"error": str(e)}, 500
+
+
+@other_entities_bp.route("/search/at-time", methods=["POST"])
+@tag(["other-entities"])
+@operation_id("search_other_entities_at_time")
+@validate(
+    request=OtherEntitySearchRequest,
+    responses={
+        200: (OtherEntityListResponse, None),
+        400: (ValidationErrorResponse, None),
+        500: (ErrorResponse, None),
+    },
+)
+async def search_entities_at_time(
+    data: OtherEntitySearchRequest,
+) -> Tuple[Dict[str, Any], int]:
+    """Search OtherEntities as they existed at a specific point in time"""
+    try:
+        point_in_time_str = request.args.get("pointInTime")
+        if not point_in_time_str:
+            return (
+                {
+                    "error": "pointInTime query parameter required (ISO 8601 format)",
+                    "code": "MISSING_PARAMETER",
+                },
+                400,
+            )
+
+        # Parse datetime
+        try:
+            point_in_time = datetime.fromisoformat(
+                point_in_time_str.replace("Z", "+00:00")
+            )
+        except ValueError as e:
+            return (
+                {
+                    "error": f"Invalid datetime format: {str(e)}",
+                    "code": "INVALID_DATETIME",
+                },
+                400,
+            )
+
+        # Build search conditions
+        search_data = data.model_dump(by_alias=True, exclude_none=True)
+        if not search_data:
+            return {"error": "Search conditions required", "code": "EMPTY_SEARCH"}, 400
+
+        builder = SearchConditionRequest.builder()
+        for field, value in search_data.items():
+            builder.equals(field, value)
+
+        search_request = builder.build()
+        results = await service.search_at_time(
+            entity_class=OtherEntity.ENTITY_NAME,
+            condition=search_request,
+            point_in_time=point_in_time,
+            entity_version=str(OtherEntity.ENTITY_VERSION),
+        )
+
+        entities = [_to_entity_dict(r.data) for r in results]
+        return {"entities": entities, "total": len(entities)}, 200
+
+    except Exception as e:
+        logger.exception("Error searching OtherEntities at time: %s", str(e))
+        return {"error": str(e)}, 500
+
+
+@other_entities_bp.route("/count/at-time", methods=["GET"])
+@tag(["other-entities"])
+@operation_id("count_other_entities_at_time")
+@validate(
+    responses={
+        200: (CountResponse, None),
+        400: (ErrorResponse, None),
+        500: (ErrorResponse, None),
+    }
+)
+async def count_entities_at_time() -> Tuple[Dict[str, Any], int]:
+    """Count OtherEntities as they existed at a specific point in time"""
+    try:
+        point_in_time_str = request.args.get("pointInTime")
+        if not point_in_time_str:
+            return (
+                {
+                    "error": "pointInTime query parameter required (ISO 8601 format)",
+                    "code": "MISSING_PARAMETER",
+                },
+                400,
+            )
+
+        # Parse datetime
+        try:
+            point_in_time = datetime.fromisoformat(
+                point_in_time_str.replace("Z", "+00:00")
+            )
+        except ValueError as e:
+            return (
+                {
+                    "error": f"Invalid datetime format: {str(e)}",
+                    "code": "INVALID_DATETIME",
+                },
+                400,
+            )
+
+        count = await service.get_entity_count(
+            entity_class=OtherEntity.ENTITY_NAME,
+            entity_version=str(OtherEntity.ENTITY_VERSION),
+            point_in_time=point_in_time,
+        )
+
+        response = CountResponse(count=count)
+        return response.model_dump(), 200
+
+    except Exception as e:
+        logger.exception("Error counting OtherEntities at time: %s", str(e))
+        return {"error": str(e)}, 500
+
+
+@other_entities_bp.route("/<entity_id>/changes", methods=["GET"])
+@tag(["other-entities"])
+@operation_id("get_other_entity_changes")
+@validate(
+    responses={
+        200: (Dict[str, Any], None),
+        404: (ErrorResponse, None),
+        500: (ErrorResponse, None),
+    }
+)
+async def get_entity_changes(entity_id: str) -> Tuple[Dict[str, Any], int]:
+    """Get change history metadata for OtherEntity"""
+    try:
+        # Optional point_in_time parameter
+        point_in_time = None
+        point_in_time_str = request.args.get("pointInTime")
+        if point_in_time_str:
+            try:
+                point_in_time = datetime.fromisoformat(
+                    point_in_time_str.replace("Z", "+00:00")
+                )
+            except ValueError as e:
+                return (
+                    {
+                        "error": f"Invalid datetime format: {str(e)}",
+                        "code": "INVALID_DATETIME",
+                    },
+                    400,
+                )
+
+        changes = await service.get_entity_changes_metadata(
+            entity_id=entity_id,
+            entity_class=OtherEntity.ENTITY_NAME,
+            entity_version=str(OtherEntity.ENTITY_VERSION),
+            point_in_time=point_in_time,
+        )
+
+        return {"entity_id": entity_id, "changes": changes}, 200
+
+    except Exception as e:
+        if is_not_found(e):
+            return {"error": "OtherEntity not found", "code": "NOT_FOUND"}, 404
+        logger.exception(
+            "Error getting changes for OtherEntity %s: %s", entity_id, str(e)
+        )
         return {"error": str(e)}, 500

@@ -10,6 +10,7 @@ import json
 import logging
 import threading
 import time
+from datetime import datetime
 from typing import Any, Dict, List, Optional, Sequence, cast
 
 from common.config.config import CYODA_ENTITY_TYPE_EDGE_MESSAGE
@@ -127,9 +128,12 @@ class CyodaRepository(CrudRepository[Any]):  # type: ignore[type-arg]
     # -----------------------
 
     async def find_by_id(
-        self, meta: Optional[Dict[str, Any]], entity_id: Any
+        self,
+        meta: Optional[Dict[str, Any]],
+        entity_id: Any,
+        point_in_time: Optional[datetime] = None,
     ) -> Optional[Any]:
-        """Find entity by ID."""
+        """Find entity by ID, optionally at a specific point in time."""
         if meta and meta.get("type") == CYODA_ENTITY_TYPE_EDGE_MESSAGE:
             key = str(entity_id)
             if key in _edge_messages_cache:
@@ -145,7 +149,13 @@ class CyodaRepository(CrudRepository[Any]):  # type: ignore[type-arg]
                 _edge_messages_cache[key] = data
             return data
 
+        # Build path with optional point_in_time parameter
         path = f"entity/{entity_id}"
+        if point_in_time:
+            # Format datetime to ISO 8601 format
+            pit_str = point_in_time.isoformat()
+            path = f"{path}?pointInTime={pit_str}"
+
         resp = await send_cyoda_request(
             cyoda_auth_service=self._cyoda_auth_service, method="get", path=path
         )
@@ -179,11 +189,19 @@ class CyodaRepository(CrudRepository[Any]):  # type: ignore[type-arg]
         return json_data if isinstance(json_data, list) else []
 
     async def find_all_by_criteria(
-        self, meta: Dict[str, Any], criteria: Any
+        self,
+        meta: Dict[str, Any],
+        criteria: Any,
+        point_in_time: Optional[datetime] = None,
     ) -> List[Dict[str, Any]]:
-        """Find entities matching specific criteria using direct search endpoint."""
+        """Find entities matching specific criteria, optionally at a specific point in time."""
         # Use direct search endpoint: POST /search/{entityName}/{modelVersion}
         search_path = f"search/{meta['entity_model']}/{meta['entity_version']}"
+
+        # Add point_in_time parameter if provided
+        if point_in_time:
+            pit_str = point_in_time.isoformat()
+            search_path = f"{search_path}?pointInTime={pit_str}"
 
         # Convert criteria to Cyoda-native format if needed
         search_criteria: Dict[str, Any] = self._ensure_cyoda_format(criteria)
@@ -491,3 +509,89 @@ class CyodaRepository(CrudRepository[Any]):  # type: ignore[type-arg]
         return (
             json_payload if isinstance(json_payload, dict) else {"result": json_payload}
         )
+
+    async def get_entity_count(
+        self, meta: Dict[str, Any], point_in_time: Optional[datetime] = None
+    ) -> int:
+        """
+        Get count of entities for a specific model, optionally at a point in time.
+
+        Args:
+            meta: Metadata containing entity model information
+            point_in_time: Optional datetime for temporal queries
+
+        Returns:
+            Number of entities
+        """
+        # Build path for entity statistics endpoint
+        path = f"entity/stats/{meta['entity_model']}/{meta['entity_version']}"
+
+        # Add point_in_time parameter if provided
+        if point_in_time:
+            pit_str = point_in_time.isoformat()
+            path = f"{path}?pointInTime={pit_str}"
+
+        resp: Dict[str, Any] = await send_cyoda_request(
+            cyoda_auth_service=self._cyoda_auth_service, method="get", path=path
+        )
+
+        if resp.get("status") != 200:
+            logger.error(
+                "Failed to get entity count: status=%s, body=%s",
+                resp.get("status"),
+                resp.get("json"),
+            )
+            return 0
+
+        # Extract count from response
+        stats = resp.get("json", {})
+        if isinstance(stats, dict):
+            return stats.get("count", 0)
+        elif isinstance(stats, list) and stats:
+            # If response is a list, sum up counts
+            total = sum(
+                item.get("count", 0) for item in stats if isinstance(item, dict)
+            )
+            return total
+
+        return 0
+
+    async def get_entity_changes_metadata(
+        self, entity_id: Any, point_in_time: Optional[datetime] = None
+    ) -> List[Dict[str, Any]]:
+        """
+        Get entity change history metadata.
+
+        Args:
+            entity_id: Unique identifier of the entity
+            point_in_time: Optional datetime for temporal queries
+
+        Returns:
+            List of change metadata entries
+        """
+        # Build path for entity changes metadata endpoint
+        path = f"entity/{entity_id}/changes"
+
+        # Add point_in_time parameter if provided
+        if point_in_time:
+            pit_str = point_in_time.isoformat()
+            path = f"{path}?pointInTime={pit_str}"
+
+        resp: Dict[str, Any] = await send_cyoda_request(
+            cyoda_auth_service=self._cyoda_auth_service, method="get", path=path
+        )
+
+        if resp.get("status") != 200:
+            logger.error(
+                "Failed to get entity changes metadata: status=%s, body=%s",
+                resp.get("status"),
+                resp.get("json"),
+            )
+            return []
+
+        # Extract changes from response
+        changes = resp.get("json", [])
+        if isinstance(changes, list):
+            return changes
+
+        return []
