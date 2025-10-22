@@ -5,8 +5,6 @@ This module provides template tests for application routes.
 Extend these tests with your specific route implementations.
 """
 
-from unittest.mock import AsyncMock, MagicMock, patch
-
 import pytest
 
 from application.app import app
