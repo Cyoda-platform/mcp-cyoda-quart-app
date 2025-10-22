@@ -283,3 +283,58 @@ def handle_error(
 ) -> GrpcClientError:
     """Convenience function to handle errors using global handler."""
     return _error_handler.handle_error(error, context)
+
+
+def is_not_found(exception: Exception) -> bool:
+    """
+    Check if an exception represents a NOT_FOUND error.
+
+    This function walks the exception cause chain to find indicators of a NOT_FOUND error,
+    such as 404 status codes or specific error messages.
+
+    Args:
+        exception: The exception to check
+
+    Returns:
+        True if the exception represents a NOT_FOUND error, False otherwise
+
+    Examples:
+        >>> try:
+        ...     result = await repository.find_by_id(meta, "non-existent-id")
+        ... except Exception as e:
+        ...     if is_not_found(e):
+        ...         return None
+        ...     raise
+    """
+    if exception is None:
+        return False
+
+    # Check the exception chain
+    current: Optional[Exception] = exception
+    while current is not None:
+        # Check exception message for common NOT_FOUND indicators
+        error_msg = str(current).lower()
+        if any(
+            indicator in error_msg
+            for indicator in [
+                "not found",
+                "404",
+                "does not exist",
+                "no such entity",
+                "entity not found",
+            ]
+        ):
+            return True
+
+        # Check if it's a GrpcClientError with specific error code
+        if isinstance(current, GrpcClientError):
+            if current.error_code in ["NOT_FOUND", "ENTITY_NOT_FOUND"]:
+                return True
+
+        # Move to the cause/context
+        next_exception = getattr(current, "__cause__", None) or getattr(
+            current, "__context__", None
+        )
+        current = next_exception if isinstance(next_exception, Exception) else None
+
+    return False

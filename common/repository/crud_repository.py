@@ -6,6 +6,7 @@ following repository pattern best practices.
 """
 
 from abc import ABC, abstractmethod
+from datetime import datetime
 from typing import Any, Dict, Generic, List, Optional, TypeVar
 
 # Generic type for entity
@@ -21,13 +22,19 @@ class CrudRepository(ABC, Generic[T]):
     """
 
     @abstractmethod
-    async def find_by_id(self, meta: Dict[str, Any], entity_id: Any) -> Optional[T]:
+    async def find_by_id(
+        self,
+        meta: Dict[str, Any],
+        entity_id: Any,
+        point_in_time: Optional[datetime] = None,
+    ) -> Optional[T]:
         """
-        Find entity by ID.
+        Find entity by ID, optionally at a specific point in time.
 
         Args:
             meta: Metadata containing entity model information
             entity_id: Unique identifier of the entity
+            point_in_time: Optional datetime for temporal queries
 
         Returns:
             Entity if found, None otherwise
@@ -49,14 +56,18 @@ class CrudRepository(ABC, Generic[T]):
 
     @abstractmethod
     async def find_all_by_criteria(
-        self, meta: Dict[str, Any], criteria: Any
+        self,
+        meta: Dict[str, Any],
+        criteria: Any,
+        point_in_time: Optional[datetime] = None,
     ) -> List[T]:
         """
-        Find entities matching specific criteria.
+        Find entities matching specific criteria, optionally at a specific point in time.
 
         Args:
             meta: Metadata containing entity model information
             criteria: Search criteria
+            point_in_time: Optional datetime for temporal queries
 
         Returns:
             List of matching entities
@@ -143,6 +154,38 @@ class CrudRepository(ABC, Generic[T]):
 
         Returns:
             True if entity exists, False otherwise
+        """
+        pass
+
+    @abstractmethod
+    async def get_entity_count(
+        self, meta: Dict[str, Any], point_in_time: Optional[datetime] = None
+    ) -> int:
+        """
+        Get count of entities for a specific model, optionally at a point in time.
+
+        Args:
+            meta: Metadata containing entity model information
+            point_in_time: Optional datetime for temporal queries
+
+        Returns:
+            Number of entities
+        """
+        pass
+
+    @abstractmethod
+    async def get_entity_changes_metadata(
+        self, entity_id: Any, point_in_time: Optional[datetime] = None
+    ) -> List[Dict[str, Any]]:
+        """
+        Get entity change history metadata.
+
+        Args:
+            entity_id: Unique identifier of the entity
+            point_in_time: Optional datetime for temporal queries
+
+        Returns:
+            List of change metadata entries
         """
         pass
 

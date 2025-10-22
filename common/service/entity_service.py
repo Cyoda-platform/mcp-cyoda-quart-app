@@ -333,6 +333,31 @@ class EntityService(ABC):
         pass
 
     @abstractmethod
+    async def find_by_business_id_at_time(
+        self,
+        entity_class: str,
+        business_id: str,
+        business_id_field: str,
+        point_in_time: datetime,
+        entity_version: str = "1",
+    ) -> Optional[EntityResponse]:
+        """
+        Find entity by business identifier at a specific point in time (MEDIUM SPEED).
+        Examples: cart_id="CART-123", payment_id="PAY-456", order_id="ORD-789"
+
+        Args:
+            entity_class: Entity class/model name
+            business_id: Business identifier value (e.g., "CART-123")
+            business_id_field: Field name containing the business ID (e.g., "cart_id")
+            point_in_time: Datetime for temporal query
+            entity_version: Entity model version
+
+        Returns:
+            EntityResponse with entity and metadata, or None if not found
+        """
+        pass
+
+    @abstractmethod
     async def find_all(
         self, entity_class: str, entity_version: str = "1"
     ) -> List[EntityResponse]:
@@ -341,6 +366,23 @@ class EntityService(ABC):
 
         Args:
             entity_class: Entity class/model name
+            entity_version: Entity model version
+
+        Returns:
+            List of EntityResponse with entities and metadata
+        """
+        pass
+
+    @abstractmethod
+    async def find_all_at_time(
+        self, entity_class: str, point_in_time: datetime, entity_version: str = "1"
+    ) -> List[EntityResponse]:
+        """
+        Get all entities of a type at a specific point in time (SLOW - use sparingly).
+
+        Args:
+            entity_class: Entity class/model name
+            point_in_time: Datetime for temporal query
             entity_version: Entity model version
 
         Returns:
@@ -625,6 +667,96 @@ class EntityService(ABC):
             return len(entities)
         except Exception:
             return 0
+
+    # ========================================
+    # TEMPORAL AND STATISTICS METHODS
+    # ========================================
+
+    @abstractmethod
+    async def get_by_id_at_time(
+        self,
+        entity_id: str,
+        entity_class: str,
+        point_in_time: datetime,
+        entity_version: str = "1",
+    ) -> Optional[EntityResponse]:
+        """
+        Get entity by technical UUID at a specific point in time.
+
+        Args:
+            entity_id: Technical UUID from EntityResponse.metadata.id
+            entity_class: Entity class/model name
+            point_in_time: Datetime for temporal query
+            entity_version: Entity model version
+
+        Returns:
+            EntityResponse with entity and metadata, or None if not found
+        """
+        pass
+
+    @abstractmethod
+    async def search_at_time(
+        self,
+        entity_class: str,
+        condition: SearchConditionRequest,
+        point_in_time: datetime,
+        entity_version: str = "1",
+    ) -> List[EntityResponse]:
+        """
+        Search entities at a specific point in time.
+
+        Args:
+            entity_class: Entity class/model name
+            condition: Search condition
+            point_in_time: Datetime for temporal query
+            entity_version: Entity model version
+
+        Returns:
+            List of EntityResponse with entities and metadata
+        """
+        pass
+
+    @abstractmethod
+    async def get_entity_count(
+        self,
+        entity_class: str,
+        entity_version: str = "1",
+        point_in_time: Optional[datetime] = None,
+    ) -> int:
+        """
+        Get count of entities for a specific model, optionally at a point in time.
+
+        Args:
+            entity_class: Entity class/model name
+            entity_version: Entity model version
+            point_in_time: Optional datetime for temporal queries
+
+        Returns:
+            Number of entities
+        """
+        pass
+
+    @abstractmethod
+    async def get_entity_changes_metadata(
+        self,
+        entity_id: str,
+        entity_class: str,
+        entity_version: str = "1",
+        point_in_time: Optional[datetime] = None,
+    ) -> List[Dict[str, Any]]:
+        """
+        Get entity change history metadata.
+
+        Args:
+            entity_id: Technical UUID of the entity
+            entity_class: Entity class/model name
+            entity_version: Entity model version
+            point_in_time: Optional datetime for temporal queries
+
+        Returns:
+            List of change metadata entries
+        """
+        pass
 
     # ========================================
     # LEGACY COMPATIBILITY METHODS

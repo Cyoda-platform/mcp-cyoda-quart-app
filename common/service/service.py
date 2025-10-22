@@ -299,6 +299,51 @@ class EntityServiceImpl(EntityService):
                 f"Find by business ID failed: {str(e)}", entity_class, business_id
             )
 
+    async def find_by_business_id_at_time(
+        self,
+        entity_class: str,
+        business_id: str,
+        business_id_field: str,
+        point_in_time: datetime,
+        entity_version: str = "1.0",
+    ) -> Optional[EntityResponse]:
+        """
+        Find entity by business identifier at a specific point in time.
+
+        Args:
+            entity_class: Entity class/model name
+            business_id: Business identifier value (e.g., "CART-123")
+            business_id_field: Field name containing the business ID (e.g., "cart_id")
+            point_in_time: Datetime for temporal query
+            entity_version: Entity model version
+
+        Returns:
+            EntityResponse with entity and metadata, or None if not found
+        """
+        try:
+            # Use search_at_time to find by business ID
+            search_request = (
+                SearchConditionRequest.builder()
+                .equals(business_id_field, business_id)
+                .limit(1)
+                .build()
+            )
+            results = await self.search_at_time(
+                entity_class, search_request, point_in_time, entity_version
+            )
+
+            return results[0] if results else None
+
+        except Exception as e:
+            logger.exception(
+                f"Failed to find entity by business ID at time {point_in_time}: {business_id}"
+            )
+            raise EntityServiceError(
+                f"Find by business ID at time failed: {str(e)}",
+                entity_class,
+                business_id,
+            )
+
     async def find_all(
         self, entity_class: str, entity_version: str = "1.0"
     ) -> List[EntityResponse]:
@@ -338,6 +383,53 @@ class EntityServiceImpl(EntityService):
         except Exception as e:
             logger.exception(f"Failed to find all entities of type: {entity_class}")
             raise EntityServiceError(f"Find all failed: {str(e)}", entity_class)
+
+    async def find_all_at_time(
+        self, entity_class: str, point_in_time: datetime, entity_version: str = "1.0"
+    ) -> List[EntityResponse]:
+        """
+        Get all entities of a type at a specific point in time (SLOW - use sparingly).
+
+        Args:
+            entity_class: Entity class/model name
+            point_in_time: Datetime for temporal query
+            entity_version: Entity model version
+
+        Returns:
+            List of EntityResponse with entities and metadata
+        """
+        try:
+            meta = await self._get_repository_meta("", entity_class, entity_version)
+
+            # Use find_all_by_criteria with empty criteria and point_in_time
+            # This will return all entities as they existed at the specified time
+            data = await self._repository.find_all_by_criteria(meta, {}, point_in_time)
+
+            # Handle repository errors
+            data = self._handle_repository_error(data, "find_all_at_time", entity_class)
+
+            if not data:
+                return []
+
+            # Parse and create responses
+            results: List[EntityResponse] = []
+            for item in data if isinstance(data, list) else [data]:
+                parsed_item = self._parse_entity_data(item, entity_class)
+                response = self._create_entity_response(parsed_item)
+                results.append(response)
+
+            logger.debug(
+                f"Found {len(results)} entities of type {entity_class} at time {point_in_time}"
+            )
+            return results
+
+        except EntityServiceError:
+            raise
+        except Exception as e:
+            logger.exception(
+                f"Failed to find all entities at time {point_in_time}: {entity_class}"
+            )
+            raise EntityServiceError(f"Find all at time failed: {str(e)}", entity_class)
 
     async def search(
         self,
@@ -838,6 +930,148 @@ class EntityServiceImpl(EntityService):
             raise EntityServiceError(
                 f"Execute transition failed: {str(e)}", entity_class, entity_id
             )
+
+    # ========================================
+    # TEMPORAL AND STATISTICS METHODS
+    # ========================================
+
+    async def get_by_id_at_time(
+        self,
+        entity_id: str,
+        entity_class: str,
+        point_in_time: datetime,
+        entity_version: str = "1",
+    ) -> Optional[EntityResponse]:
+        """
+        Get entity by technical UUID at a specific point in time.
+
+        Args:
+            entity_id: Technical UUID from EntityResponse.metadata.id
+            entity_class: Entity class/model name
+            point_in_time: Datetime for temporal query
+            entity_version: Entity model version
+
+        Returns:
+            EntityResponse with entity and metadata, or None if not found
+        """
+        try:
+            meta = await self._get_repository_meta("", entity_class, entity_version)
+            entity_data = await self._repository.find_by_id(
+                meta, entity_id, point_in_time
+            )
+
+            if entity_data is None:
+                return None
+
+            # Parse entity data
+            parsed_entity = self._parse_entity_data(entity_data, entity_class)
+
+            # Create response
+            return self._create_entity_response(parsed_entity, entity_id)
+
+        except Exception as e:
+            logger.exception(
+                f"Failed to get entity {entity_id} at time {point_in_time}"
+            )
+            raise EntityServiceError(
+                f"Get by ID at time failed: {str(e)}", entity_class, entity_id
+            )
+
+    async def search_at_time(
+        self,
+        entity_class: str,
+        condition: SearchConditionRequest,
+        point_in_time: datetime,
+        entity_version: str = "1",
+    ) -> List[EntityResponse]:
+        """
+        Search entities at a specific point in time.
+
+        Args:
+            entity_class: Entity class/model name
+            condition: Search condition
+            point_in_time: Datetime for temporal query
+            entity_version: Entity model version
+
+        Returns:
+            List of EntityResponse with entities and metadata
+        """
+        try:
+            meta = await self._get_repository_meta("", entity_class, entity_version)
+
+            # Convert SearchConditionRequest to criteria format
+            criteria = self._convert_search_condition(condition)
+
+            # Search with point_in_time
+            entities = await self._repository.find_all_by_criteria(
+                meta, criteria, point_in_time
+            )
+
+            # Convert to EntityResponse objects
+            results: List[EntityResponse] = []
+            for entity_data in entities:
+                parsed_entity = self._parse_entity_data(entity_data, entity_class)
+                response = self._create_entity_response(parsed_entity)
+                results.append(response)
+
+            return results
+
+        except Exception as e:
+            logger.exception(f"Failed to search {entity_class} at time {point_in_time}")
+            raise EntityServiceError(f"Search at time failed: {str(e)}", entity_class)
+
+    async def get_entity_count(
+        self,
+        entity_class: str,
+        entity_version: str = "1",
+        point_in_time: Optional[datetime] = None,
+    ) -> int:
+        """
+        Get count of entities for a specific model, optionally at a point in time.
+
+        Args:
+            entity_class: Entity class/model name
+            entity_version: Entity model version
+            point_in_time: Optional datetime for temporal queries
+
+        Returns:
+            Number of entities
+        """
+        try:
+            meta = await self._repository.get_meta("", entity_class, entity_version)
+            return await self._repository.get_entity_count(meta, point_in_time)
+
+        except Exception:
+            logger.exception(f"Failed to get entity count for {entity_class}")
+            return 0
+
+    async def get_entity_changes_metadata(
+        self,
+        entity_id: str,
+        entity_class: str,
+        entity_version: str = "1",
+        point_in_time: Optional[datetime] = None,
+    ) -> List[Dict[str, Any]]:
+        """
+        Get entity change history metadata.
+
+        Args:
+            entity_id: Technical UUID of the entity
+            entity_class: Entity class/model name
+            entity_version: Entity model version
+            point_in_time: Optional datetime for temporal queries
+
+        Returns:
+            List of change metadata entries
+        """
+        try:
+            return await self._repository.get_entity_changes_metadata(
+                entity_id, point_in_time
+            )
+
+        except Exception:
+            logger.exception(f"Failed to get entity changes metadata for {entity_id}")
+            return []
 
     # ========================================
     # LEGACY COMPATIBILITY METHODS
