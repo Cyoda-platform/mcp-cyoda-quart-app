@@ -6,7 +6,6 @@ through validation, processing, and approval.
 """
 
 import pytest
-from unittest.mock import AsyncMock, patch
 
 from application.entity.adoption_request import AdoptionRequest
 from application.processor.adoption_request_processor import AdoptionRequestProcessor
@@ -38,9 +37,7 @@ class TestAdoptionRequestWorkflowIntegration:
         assert request.state == "initial_state"
 
     @pytest.mark.asyncio
-    async def test_validate_adoption_request(
-        self, valid_request_data: dict
-    ) -> None:
+    async def test_validate_adoption_request(self, valid_request_data: dict) -> None:
         """Test validating an adoption request."""
         request = AdoptionRequest(**valid_request_data)
         criterion = AdoptionRequestValidationCriterion()
@@ -48,9 +45,7 @@ class TestAdoptionRequestWorkflowIntegration:
         assert result is True
 
     @pytest.mark.asyncio
-    async def test_process_adoption_request(
-        self, valid_request_data: dict
-    ) -> None:
+    async def test_process_adoption_request(self, valid_request_data: dict) -> None:
         """Test processing an adoption request."""
         request = AdoptionRequest(**valid_request_data)
         processor = AdoptionRequestProcessor()
@@ -58,9 +53,7 @@ class TestAdoptionRequestWorkflowIntegration:
         # Should not raise an exception
 
     @pytest.mark.asyncio
-    async def test_workflow_state_transitions(
-        self, valid_request_data: dict
-    ) -> None:
+    async def test_workflow_state_transitions(self, valid_request_data: dict) -> None:
         """Test state transitions through workflow."""
         request = AdoptionRequest(**valid_request_data)
         assert request.state == "initial_state"
@@ -73,9 +66,7 @@ class TestAdoptionRequestWorkflowIntegration:
         assert request.is_ready_for_review() is True
 
     @pytest.mark.asyncio
-    async def test_workflow_approval_flow(
-        self, valid_request_data: dict
-    ) -> None:
+    async def test_workflow_approval_flow(self, valid_request_data: dict) -> None:
         """Test approval flow through workflow."""
         request = AdoptionRequest(**valid_request_data)
 
@@ -85,9 +76,7 @@ class TestAdoptionRequestWorkflowIntegration:
         assert request.reviewer_id == "reviewer-123"
 
     @pytest.mark.asyncio
-    async def test_workflow_rejection_flow(
-        self, valid_request_data: dict
-    ) -> None:
+    async def test_workflow_rejection_flow(self, valid_request_data: dict) -> None:
         """Test rejection flow through workflow."""
         request = AdoptionRequest(**valid_request_data)
 
@@ -97,9 +86,7 @@ class TestAdoptionRequestWorkflowIntegration:
         assert request.approval_status == "rejected"
 
     @pytest.mark.asyncio
-    async def test_workflow_with_review_notes(
-        self, valid_request_data: dict
-    ) -> None:
+    async def test_workflow_with_review_notes(self, valid_request_data: dict) -> None:
         """Test workflow with review notes."""
         request = AdoptionRequest(**valid_request_data)
 
@@ -109,9 +96,7 @@ class TestAdoptionRequestWorkflowIntegration:
         assert request.updated_at is not None
 
     @pytest.mark.asyncio
-    async def test_workflow_multiple_updates(
-        self, valid_request_data: dict
-    ) -> None:
+    async def test_workflow_multiple_updates(self, valid_request_data: dict) -> None:
         """Test multiple updates in workflow."""
         request = AdoptionRequest(**valid_request_data)
         original_created_at = request.created_at
@@ -167,9 +152,7 @@ class TestAdoptionRequestWorkflowIntegration:
         assert request.approval_status == "pending"
 
     @pytest.mark.asyncio
-    async def test_workflow_api_response_format(
-        self, valid_request_data: dict
-    ) -> None:
+    async def test_workflow_api_response_format(self, valid_request_data: dict) -> None:
         """Test API response format from workflow."""
         request = AdoptionRequest(**valid_request_data, state="submitted")
         response = request.to_api_response()
@@ -178,4 +161,3 @@ class TestAdoptionRequestWorkflowIntegration:
         assert "applicant_email" in response
         assert "state" in response
         assert response["state"] == "submitted"
-
