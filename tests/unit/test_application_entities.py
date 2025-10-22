@@ -8,8 +8,8 @@ Extend these tests with your specific entity implementations.
 import pytest
 from pydantic import ValidationError
 
-from common.entity.cyoda_entity import CyodaEntity
 from application.entity.adoption_request import AdoptionRequest
+from common.entity.cyoda_entity import CyodaEntity
 
 
 class TemplateApplicationEntity(CyodaEntity):

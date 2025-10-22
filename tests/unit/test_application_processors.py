@@ -5,13 +5,14 @@ This module provides template tests for application processors.
 Extend these tests with your specific processor implementations.
 """
 
-import pytest
 from unittest.mock import patch
 
-from common.entity.cyoda_entity import CyodaEntity
-from common.processor.base import CyodaProcessor
+import pytest
+
 from application.entity.adoption_request import AdoptionRequest
 from application.processor.adoption_request_processor import AdoptionRequestProcessor
+from common.entity.cyoda_entity import CyodaEntity
+from common.processor.base import CyodaProcessor
 
 
 class TemplateApplicationEntity(CyodaEntity):

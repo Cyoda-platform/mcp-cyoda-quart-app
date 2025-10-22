@@ -5,15 +5,16 @@ This module provides template tests for application criteria checkers.
 Extend these tests with your specific criteria implementations.
 """
 
-import pytest
 from unittest.mock import patch
 
-from common.entity.cyoda_entity import CyodaEntity
-from common.processor.base import CyodaCriteriaChecker
-from application.entity.adoption_request import AdoptionRequest
+import pytest
+
 from application.criterion.adoption_request_criterion import (
     AdoptionRequestValidationCriterion,
 )
+from application.entity.adoption_request import AdoptionRequest
+from common.entity.cyoda_entity import CyodaEntity
+from common.processor.base import CyodaCriteriaChecker
 
 
 class TemplateApplicationEntity(CyodaEntity):
