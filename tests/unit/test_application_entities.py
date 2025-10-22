@@ -30,7 +30,7 @@ class TestApplicationEntityBasics:
 
         assert entity.name == "Test Entity"
         assert entity.description == "A test entity"
-        assert entity.state == "none"
+        assert entity.state == "initial_state"
 
     def test_entity_with_state(self) -> None:
         """Test entity with initial state."""
@@ -65,8 +65,8 @@ class TestApplicationEntityBasics:
             description="A test entity"
         )
 
-        # Initial state should be 'none'
-        assert entity.state == "none"
+        # Initial state should be 'initial_state'
+        assert entity.state == "initial_state"
 
         # Update state
         entity.state = "created"

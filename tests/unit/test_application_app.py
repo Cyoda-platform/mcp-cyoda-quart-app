@@ -51,7 +51,8 @@ class TestApplicationAppConfiguration:
         from quart_schema import ResponseSchemaValidationError
 
         # Check that error handler is registered
-        assert ResponseSchemaValidationError in app.error_handler_spec.get(None, {})
+        error_handlers = app.error_handler_spec.get(None, {})
+        assert ResponseSchemaValidationError in error_handlers
 
 
 class TestApplicationAppRoutes:
