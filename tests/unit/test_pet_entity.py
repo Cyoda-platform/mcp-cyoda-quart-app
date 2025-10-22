@@ -6,10 +6,9 @@ demonstrating how to test entity validation, methods, and functionality.
 """
 
 import pytest
-from datetime import datetime, timezone
 from pydantic import ValidationError
 
-from application.entity.pet.version_1.pet import Pet, Category, Tag
+from application.entity.pet.version_1.pet import Category, Pet, Tag
 
 
 class TestPetEntity:
