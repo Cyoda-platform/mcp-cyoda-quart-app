@@ -6,7 +6,7 @@ Extend these tests with your specific processor implementations.
 """
 
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import patch
 
 from common.entity.cyoda_entity import CyodaEntity
 from common.processor.base import CyodaProcessor

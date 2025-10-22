@@ -460,4 +460,3 @@ class TestAdoptionRequestBusinessLogic:
         assert response["applicant_email"] == "john@example.com"
         assert response["state"] == "submitted"
         assert "created_at" in response or "createdAt" in response
-
