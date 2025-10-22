@@ -5,8 +5,9 @@ This module provides template tests for application routes.
 Extend these tests with your specific route implementations.
 """
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 from application.app import app
 
@@ -88,4 +89,3 @@ class TestApplicationRouteErrorHandling:
             response = await client.get("/nonexistent-route")
             # Should return error status code (404, 405, or 500 from error handler)
             assert response.status_code in [404, 405, 500]
-

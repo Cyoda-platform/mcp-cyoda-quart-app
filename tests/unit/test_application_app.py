@@ -5,7 +5,6 @@ This module tests the main application initialization and configuration.
 """
 
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
 
 from application.app import app
 
@@ -48,8 +47,6 @@ class TestApplicationAppConfiguration:
 
     def test_app_error_handler_for_validation_errors(self) -> None:
         """Test error handler for validation errors."""
-        from quart_schema import ResponseSchemaValidationError
-
         # Check that error handler is registered
         # error_handler_spec is a nested dict: {blueprint: {exception_class: handler}}
         error_handlers = app.error_handler_spec.get(None, {})
@@ -88,4 +85,3 @@ class TestApplicationAppLifecycle:
         """Test that after_serving handlers are registered."""
         # The app should have shutdown handlers
         assert app is not None
-

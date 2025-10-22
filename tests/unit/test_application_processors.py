@@ -34,8 +34,7 @@ class TestApplicationProcessorBasics:
     def test_processor_initialization(self) -> None:
         """Test processor initialization."""
         processor = TemplateApplicationProcessor(
-            name="TestProcessor",
-            description="A test processor"
+            name="TestProcessor", description="A test processor"
         )
 
         assert processor.name == "TestProcessor"
@@ -45,8 +44,7 @@ class TestApplicationProcessorBasics:
     def test_processor_has_required_attributes(self) -> None:
         """Test that processor has required attributes."""
         processor = TemplateApplicationProcessor(
-            name="TestProcessor",
-            description="A test processor"
+            name="TestProcessor", description="A test processor"
         )
 
         assert hasattr(processor, "name")
@@ -58,8 +56,7 @@ class TestApplicationProcessorBasics:
     async def test_processor_process_method(self) -> None:
         """Test processor process method."""
         processor = TemplateApplicationProcessor(
-            name="TestProcessor",
-            description="A test processor"
+            name="TestProcessor", description="A test processor"
         )
 
         entity = TemplateApplicationEntity(name="Test", value=5)
@@ -71,8 +68,7 @@ class TestApplicationProcessorBasics:
     async def test_processor_with_kwargs(self) -> None:
         """Test processor with additional kwargs."""
         processor = TemplateApplicationProcessor(
-            name="TestProcessor",
-            description="A test processor"
+            name="TestProcessor", description="A test processor"
         )
 
         entity = TemplateApplicationEntity(name="Test", value=10)
@@ -83,10 +79,8 @@ class TestApplicationProcessorBasics:
     def test_processor_string_representation(self) -> None:
         """Test processor string representation."""
         processor = TemplateApplicationProcessor(
-            name="TestProcessor",
-            description="A test processor"
+            name="TestProcessor", description="A test processor"
         )
 
         processor_str = str(processor)
         assert "TestProcessor" in processor_str or "test" in processor_str.lower()
-

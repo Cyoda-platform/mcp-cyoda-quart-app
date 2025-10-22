@@ -24,8 +24,7 @@ class TestApplicationEntityBasics:
     def test_entity_creation(self) -> None:
         """Test creating an application entity."""
         entity = TemplateApplicationEntity(
-            name="Test Entity",
-            description="A test entity"
+            name="Test Entity", description="A test entity"
         )
 
         assert entity.name == "Test Entity"
@@ -35,9 +34,7 @@ class TestApplicationEntityBasics:
     def test_entity_with_state(self) -> None:
         """Test entity with initial state."""
         entity = TemplateApplicationEntity(
-            name="Test Entity",
-            description="A test entity",
-            state="created"
+            name="Test Entity", description="A test entity", state="created"
         )
 
         assert entity.state == "created"
@@ -50,8 +47,7 @@ class TestApplicationEntityBasics:
     def test_entity_to_dict(self) -> None:
         """Test converting entity to dictionary."""
         entity = TemplateApplicationEntity(
-            name="Test Entity",
-            description="A test entity"
+            name="Test Entity", description="A test entity"
         )
 
         entity_dict = entity.model_dump()
@@ -61,8 +57,7 @@ class TestApplicationEntityBasics:
     def test_entity_state_transitions(self) -> None:
         """Test entity state management."""
         entity = TemplateApplicationEntity(
-            name="Test Entity",
-            description="A test entity"
+            name="Test Entity", description="A test entity"
         )
 
         # Initial state should be 'initial_state'
@@ -75,12 +70,10 @@ class TestApplicationEntityBasics:
     def test_entity_metadata(self) -> None:
         """Test entity metadata."""
         entity = TemplateApplicationEntity(
-            name="Test Entity",
-            description="A test entity"
+            name="Test Entity", description="A test entity"
         )
 
         # Check that entity has required metadata
         assert hasattr(entity, "state")
         assert hasattr(entity, "entity_id")
         assert entity.state is not None
-

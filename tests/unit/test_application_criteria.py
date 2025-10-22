@@ -34,8 +34,7 @@ class TestApplicationCriteriaBasics:
     def test_criteria_initialization(self) -> None:
         """Test criteria initialization."""
         criteria = TemplateApplicationCriteria(
-            name="TestCriteria",
-            description="A test criteria"
+            name="TestCriteria", description="A test criteria"
         )
 
         assert criteria.name == "TestCriteria"
@@ -45,8 +44,7 @@ class TestApplicationCriteriaBasics:
     def test_criteria_has_required_attributes(self) -> None:
         """Test that criteria has required attributes."""
         criteria = TemplateApplicationCriteria(
-            name="TestCriteria",
-            description="A test criteria"
+            name="TestCriteria", description="A test criteria"
         )
 
         assert hasattr(criteria, "name")
@@ -58,8 +56,7 @@ class TestApplicationCriteriaBasics:
     async def test_criteria_check_method_true(self) -> None:
         """Test criteria check method returns True."""
         criteria = TemplateApplicationCriteria(
-            name="TestCriteria",
-            description="A test criteria"
+            name="TestCriteria", description="A test criteria"
         )
 
         entity = TemplateApplicationEntity(name="Test", value=5)
@@ -71,8 +68,7 @@ class TestApplicationCriteriaBasics:
     async def test_criteria_check_method_false(self) -> None:
         """Test criteria check method returns False."""
         criteria = TemplateApplicationCriteria(
-            name="TestCriteria",
-            description="A test criteria"
+            name="TestCriteria", description="A test criteria"
         )
 
         entity = TemplateApplicationEntity(name="Test", value=-5)
@@ -84,8 +80,7 @@ class TestApplicationCriteriaBasics:
     async def test_criteria_with_kwargs(self) -> None:
         """Test criteria with additional kwargs."""
         criteria = TemplateApplicationCriteria(
-            name="TestCriteria",
-            description="A test criteria"
+            name="TestCriteria", description="A test criteria"
         )
 
         entity = TemplateApplicationEntity(name="Test", value=10)
@@ -96,10 +91,8 @@ class TestApplicationCriteriaBasics:
     def test_criteria_string_representation(self) -> None:
         """Test criteria string representation."""
         criteria = TemplateApplicationCriteria(
-            name="TestCriteria",
-            description="A test criteria"
+            name="TestCriteria", description="A test criteria"
         )
 
         criteria_str = str(criteria)
         assert "TestCriteria" in criteria_str or "test" in criteria_str.lower()
-
