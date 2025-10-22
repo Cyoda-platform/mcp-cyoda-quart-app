@@ -8,9 +8,9 @@ import logging
 from datetime import datetime, timezone
 from typing import Any, Dict
 
+from application.entity.pet import Pet
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaEntity, CyodaProcessor
-from application.entity.pet import Pet
 
 
 class PetProcessor(CyodaProcessor):
@@ -49,9 +49,7 @@ class PetProcessor(CyodaProcessor):
             processing_result = self._create_processing_result(pet)
             pet.set_processing_result(processing_result)
 
-            self.logger.info(
-                f"Pet {pet.technical_id} processed successfully"
-            )
+            self.logger.info(f"Pet {pet.technical_id} processed successfully")
 
             return pet
 
@@ -93,4 +91,3 @@ class PetProcessor(CyodaProcessor):
             processing_result["price_processed"] = pet.price
 
         return processing_result
-

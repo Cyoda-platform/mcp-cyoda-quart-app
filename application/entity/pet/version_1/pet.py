@@ -27,7 +27,9 @@ class Pet(CyodaEntity):
 
     # Required fields from pet store API
     name: str = Field(..., description="Name of the pet")
-    pet_type: str = Field(..., alias="petType", description="Type of pet (e.g., dog, cat)")
+    pet_type: str = Field(
+        ..., alias="petType", description="Type of pet (e.g., dog, cat)"
+    )
     status: Optional[str] = Field(
         default="available",
         description="Status of the pet (available, pending, sold)",
@@ -118,4 +120,3 @@ class Pet(CyodaEntity):
         validate_assignment=True,
         extra="allow",
     )
-

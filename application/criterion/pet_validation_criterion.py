@@ -7,9 +7,9 @@ proceed to the processing stage.
 
 from typing import Any
 
+from application.entity.pet import Pet
 from common.entity.entity_casting import cast_entity
 from common.processor.base import CyodaCriteriaChecker, CyodaEntity
-from application.entity.pet import Pet
 
 
 class PetValidationCriterion(CyodaCriteriaChecker):
@@ -43,15 +43,11 @@ class PetValidationCriterion(CyodaCriteriaChecker):
             pet = cast_entity(entity, Pet)
 
             if not pet.name or len(pet.name.strip()) == 0:
-                self.logger.warning(
-                    f"Pet {pet.technical_id} has invalid name"
-                )
+                self.logger.warning(f"Pet {pet.technical_id} has invalid name")
                 return False
 
             if not pet.pet_type or len(pet.pet_type.strip()) == 0:
-                self.logger.warning(
-                    f"Pet {pet.technical_id} has invalid pet type"
-                )
+                self.logger.warning(f"Pet {pet.technical_id} has invalid pet type")
                 return False
 
             allowed_statuses = ["available", "pending", "sold"]
@@ -61,9 +57,7 @@ class PetValidationCriterion(CyodaCriteriaChecker):
                 )
                 return False
 
-            self.logger.info(
-                f"Pet {pet.technical_id} passed all validation criteria"
-            )
+            self.logger.info(f"Pet {pet.technical_id} passed all validation criteria")
             return True
 
         except Exception as e:
@@ -71,4 +65,3 @@ class PetValidationCriterion(CyodaCriteriaChecker):
                 f"Error validating Pet {getattr(entity, 'technical_id', '<unknown>')}: {str(e)}"
             )
             return False
-

@@ -12,12 +12,10 @@ from typing import Any, Dict, Optional
 
 from quart import Blueprint, jsonify, request
 from quart.typing import ResponseReturnValue
-from quart_schema import operation_id, tag, validate, validate_querystring
-
-from common.service.entity_service import SearchConditionRequest
-from services.services import get_entity_service
+from quart_schema import operation_id, tag, validate
 
 from application.entity.pet import Pet
+from services.services import get_entity_service
 
 logger = logging.getLogger(__name__)
 
@@ -183,7 +181,11 @@ async def delete_pet(entity_id: str) -> ResponseReturnValue:
         )
 
         logger.info("Deleted Pet %s", entity_id)
-        return {"success": True, "message": "Pet deleted successfully", "entity_id": entity_id}, 200
+        return {
+            "success": True,
+            "message": "Pet deleted successfully",
+            "entity_id": entity_id,
+        }, 200
 
     except Exception as e:
         logger.exception("Error deleting Pet %s: %s", entity_id, str(e))
@@ -207,9 +209,11 @@ async def get_pet_transitions(entity_id: str) -> ResponseReturnValue:
             entity_class=Pet.ENTITY_NAME,
             entity_version=str(Pet.ENTITY_VERSION),
         )
-        return jsonify({"entity_id": entity_id, "available_transitions": transitions}), 200
+        return (
+            jsonify({"entity_id": entity_id, "available_transitions": transitions}),
+            200,
+        )
 
     except Exception as e:
         logger.exception("Error getting transitions for Pet %s: %s", entity_id, str(e))
         return jsonify({"error": str(e)}), 500
-
