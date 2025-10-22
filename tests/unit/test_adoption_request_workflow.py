@@ -7,11 +7,11 @@ through validation, processing, and approval.
 
 import pytest
 
-from application.entity.adoption_request import AdoptionRequest
-from application.processor.adoption_request_processor import AdoptionRequestProcessor
 from application.criterion.adoption_request_criterion import (
     AdoptionRequestValidationCriterion,
 )
+from application.entity.adoption_request import AdoptionRequest
+from application.processor.adoption_request_processor import AdoptionRequestProcessor
 
 
 class TestAdoptionRequestWorkflowIntegration:

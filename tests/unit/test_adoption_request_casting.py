@@ -6,11 +6,9 @@ for the adoption request entity.
 """
 
 import pytest
-from datetime import datetime, timezone
 
 from application.entity.adoption_request import AdoptionRequest
 from common.entity.cyoda_entity import CyodaEntity
-from common.entity.entity_casting import cast_entity
 
 
 class TestAdoptionRequestCasting:

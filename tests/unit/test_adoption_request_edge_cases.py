@@ -5,9 +5,6 @@ This module tests edge cases, boundary conditions, and error handling
 for the adoption request entity.
 """
 
-import pytest
-from pydantic import ValidationError
-
 from application.entity.adoption_request import AdoptionRequest
 
 
