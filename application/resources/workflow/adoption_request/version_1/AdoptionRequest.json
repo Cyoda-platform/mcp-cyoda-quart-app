@@ -1,0 +1,81 @@
+{
+  "version": "1.0",
+  "name": "AdoptionRequest Workflow",
+  "desc": "Workflow for processing adoption requests through submission, review, and approval stages",
+  "initialState": "initial_state",
+  "active": true,
+  "states": {
+    "initial_state": {
+      "transitions": [
+        {
+          "name": "submit",
+          "next": "submitted",
+          "manual": false
+        }
+      ]
+    },
+    "submitted": {
+      "transitions": [
+        {
+          "name": "review",
+          "next": "reviewed",
+          "manual": false,
+          "criterion": {
+            "type": "function",
+            "function": {
+              "name": "AdoptionRequestValidationCriterion",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "reviewed": {
+      "transitions": [
+        {
+          "name": "approve",
+          "next": "approved",
+          "manual": true
+        },
+        {
+          "name": "reject",
+          "next": "rejected",
+          "manual": true
+        }
+      ]
+    },
+    "approved": {
+      "transitions": [
+        {
+          "name": "complete",
+          "next": "completed",
+          "manual": false,
+          "processors": [
+            {
+              "name": "AdoptionRequestProcessor",
+              "executionMode": "SYNC",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "rejected": {
+      "transitions": [
+        {
+          "name": "resubmit",
+          "next": "submitted",
+          "manual": true
+        }
+      ]
+    },
+    "completed": {
+      "transitions": []
+    }
+  }
+}
+
