@@ -20,10 +20,18 @@ RUN apt-get update && apt-get install -y \
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Copy requirements and install Python dependencies
-COPY requirements.txt .
+# Copy all project files
+WORKDIR /build
+COPY pyproject.toml .
+COPY MANIFEST.in .
+COPY cyoda_mcp ./cyoda_mcp
+COPY application ./application
+COPY common ./common
+COPY services ./services
+
+# Install the package in editable mode (same as local development)
 RUN pip install --upgrade pip && \
-    pip install -r requirements.txt
+    pip install -e .
 
 # Production stage
 FROM python:3.12-slim as production
@@ -32,6 +40,7 @@ FROM python:3.12-slim as production
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PATH="/opt/venv/bin:$PATH" \
+    PYTHONPATH="/app" \
     ENVIRONMENT=production
 
 # Install runtime dependencies
@@ -46,8 +55,12 @@ COPY --from=builder /opt/venv /opt/venv
 # Create application directory
 WORKDIR /app
 
-# Copy application code
-COPY . .
+# Copy application code from builder
+COPY --from=builder /build/cyoda_mcp ./cyoda_mcp
+COPY --from=builder /build/application ./application
+COPY --from=builder /build/common ./common
+COPY --from=builder /build/services ./services
+COPY --from=builder /build/pyproject.toml .
 
 # Change ownership to non-root user
 RUN chown -R appuser:appuser /app
@@ -63,4 +76,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 EXPOSE 5000
 
 # Default command
-CMD ["hypercorn", "app:app", "--bind", "0.0.0.0:5000"]
+CMD ["hypercorn", "application.app:app", "--bind", "0.0.0.0:5000"]
