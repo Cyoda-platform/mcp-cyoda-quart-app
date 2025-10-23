@@ -20,10 +20,16 @@ RUN apt-get update && apt-get install -y \
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Copy requirements and install Python dependencies
-COPY requirements.txt .
+# Copy project files needed for installation
+COPY pyproject.toml .
+COPY MANIFEST.in .
+COPY application ./application
+COPY common ./common
+COPY services ./services
+
+# Install Python dependencies
 RUN pip install --upgrade pip && \
-    pip install -r requirements.txt
+    pip install --no-cache-dir .
 
 # Production stage
 FROM python:3.12-slim as production
@@ -63,4 +69,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 EXPOSE 5000
 
 # Default command
-CMD ["hypercorn", "app:app", "--bind", "0.0.0.0:5000"]
+CMD ["hypercorn", "application.app:app", "--bind", "0.0.0.0:5000"]
