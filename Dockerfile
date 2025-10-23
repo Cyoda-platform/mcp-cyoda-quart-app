@@ -20,16 +20,18 @@ RUN apt-get update && apt-get install -y \
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Copy project files needed for installation
+# Copy all project files
+WORKDIR /build
 COPY pyproject.toml .
 COPY MANIFEST.in .
+COPY cyoda_mcp ./cyoda_mcp
 COPY application ./application
 COPY common ./common
 COPY services ./services
 
-# Install Python dependencies
+# Install the package in editable mode (same as local development)
 RUN pip install --upgrade pip && \
-    pip install --no-cache-dir .
+    pip install -e .
 
 # Production stage
 FROM python:3.12-slim as production
@@ -38,6 +40,7 @@ FROM python:3.12-slim as production
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PATH="/opt/venv/bin:$PATH" \
+    PYTHONPATH="/app" \
     ENVIRONMENT=production
 
 # Install runtime dependencies
@@ -52,8 +55,12 @@ COPY --from=builder /opt/venv /opt/venv
 # Create application directory
 WORKDIR /app
 
-# Copy application code
-COPY . .
+# Copy application code from builder
+COPY --from=builder /build/cyoda_mcp ./cyoda_mcp
+COPY --from=builder /build/application ./application
+COPY --from=builder /build/common ./common
+COPY --from=builder /build/services ./services
+COPY --from=builder /build/pyproject.toml .
 
 # Change ownership to non-root user
 RUN chown -R appuser:appuser /app
