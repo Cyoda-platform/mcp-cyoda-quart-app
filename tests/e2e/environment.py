@@ -6,12 +6,15 @@ from services.config import get_service_config
 
 logger = logging.getLogger(__name__)
 test_processor_module = 'tests.e2e.processors'
+test_criterion_module = 'tests.e2e.criterions'
 
 
 def before_all(context):
     config = get_service_config()
     config['processor']['modules'].append(test_processor_module)
     logger.info(f'Config was ehanced. Added new processor module: {test_processor_module}')
+    config['processor']['modules'].append(test_criterion_module)
+    logger.info(f'Config was ehanced. Added new criterion module: {test_criterion_module}')
     initialize_services(config)
     context.entity_service = get_entity_service()
     processor_manager = get_processor_manager()
@@ -21,6 +24,14 @@ def before_all(context):
             continue
 
         context.processor = p
+        break
+
+    for n, c in getattr(processor_manager, 'criteria').items():
+        if n != 'test-criterion':
+            continue
+
+        context.criterion = c
+        break
 
     context.grpc_client = get_grpc_client()
 

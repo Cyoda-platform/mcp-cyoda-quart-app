@@ -196,6 +196,15 @@ def awaits_processor_triggered(context):
     assert is_triggered, "Expected that processor is triggered"
 
 
+@then(u'Awaits criterion is triggered')
+def awaits_criterion_triggered(context):
+    def check_if_triggered():
+        return context.criterion.is_triggered
+
+    is_triggered = poll_for_condition(check_if_triggered)
+    assert is_triggered, "Expected that criterion is triggered"
+
+
 def poll_for_condition(condition_func, timeout=10, poll_interval=0.5):
     start_time = time.time()
     while time.time() - start_time < timeout:

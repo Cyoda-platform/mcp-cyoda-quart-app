@@ -12,23 +12,22 @@
           "disabled": false
         },
         {
-          "name": "TRIGGER_PROCESSOR",
+          "name": "TRIGGER_CRITERION",
           "next": "CREATED",
           "manual": true,
           "disabled": false,
-          "processors": [
-            {
-              "name": "test-processor-1",
-              "executionMode": "SYNC",
+          "criterion": {
+            "type": "function",
+            "function": {
+              "name": "test-criterion",
               "config": {
                 "attachEntity": true,
                 "calculationNodesTags": "test-cyoda_application",
-                "_calculationNodesTags": "cloud_manager_app",
                 "responseTimeoutMs": 5000,
                 "retryPolicy": "FIXED"
               }
             }
-          ]
+          }
         },
         {
           "name": "DELETE",
