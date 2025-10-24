@@ -1,26 +1,38 @@
 import asyncio
 import logging
 import threading
-from services.services import initialize_services, get_grpc_client, get_entity_service, get_processor_manager, shutdown_services
+from services.services import initialize_services, get_grpc_client, get_entity_service, get_processor_manager, shutdown_services, get_workflow_management_service
 from services.config import get_service_config
 
 logger = logging.getLogger(__name__)
 test_processor_module = 'tests.e2e.processors'
+test_criterion_module = 'tests.e2e.criterions'
 
 
 def before_all(context):
     config = get_service_config()
     config['processor']['modules'].append(test_processor_module)
     logger.info(f'Config was ehanced. Added new processor module: {test_processor_module}')
+    config['processor']['modules'].append(test_criterion_module)
+    logger.info(f'Config was ehanced. Added new criterion module: {test_criterion_module}')
     initialize_services(config)
     context.entity_service = get_entity_service()
     processor_manager = get_processor_manager()
+    context.workflow_management_service = get_workflow_management_service()
 
     for n, p in getattr(processor_manager, 'processors').items():
         if n != 'test-processor-1':
             continue
 
         context.processor = p
+        break
+
+    context.criterions = {}
+    for n, c in getattr(processor_manager, 'criteria').items():
+        if n != 'test-criterion-true' and n != 'test-criterion-false':
+            continue
+
+        context.criterions[n] = c
 
     context.grpc_client = get_grpc_client()
 
