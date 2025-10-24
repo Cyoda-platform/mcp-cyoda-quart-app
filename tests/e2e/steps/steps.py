@@ -3,7 +3,6 @@ import time
 from asyncio import run
 from behave import given, when, then
 from common.service.entity_service import SearchConditionRequest
-from scripts import import_workflows
 
 workflows_dir = 'tests/e2e/workflow/'
 
@@ -107,16 +106,17 @@ def fetching_by_condition(context, model_name, model_version):
     ))
 
 
-@when(u'I import workflow from file {workflow_file_name} for model {model_name} version {model_version}')
-def import_workflow(context, workflow_file_name, model_name, model_version):
-    workflow_file_name = workflow_file_name.replace('"', '')
+@when(u'I import workflow for model {model_name} version {model_version}:')
+def import_workflow(context, model_name, model_version):
     model_name = model_name.replace('"', '')
-    context.workflow_import_result = run(import_workflows.import_workflows_from_file(
+    workflows = json.loads("[" + context.text + "]")
+    context.workflow_import_result = run(context.workflow_management_service.import_entity_workflows(
         model_name,
         model_version,
-        workflows_dir + workflow_file_name,
-        import_mode='REPLACE'
+        workflows,
+        import_mode='REPLACE',
     ))
+
 
 
 @when(u'I update the prize with transition {transition_name}')

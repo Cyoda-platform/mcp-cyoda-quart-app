@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import threading
-from services.services import initialize_services, get_grpc_client, get_entity_service, get_processor_manager, shutdown_services
+from services.services import initialize_services, get_grpc_client, get_entity_service, get_processor_manager, shutdown_services, get_workflow_management_service
 from services.config import get_service_config
 
 logger = logging.getLogger(__name__)
@@ -18,6 +18,7 @@ def before_all(context):
     initialize_services(config)
     context.entity_service = get_entity_service()
     processor_manager = get_processor_manager()
+    context.workflow_management_service = get_workflow_management_service()
 
     for n, p in getattr(processor_manager, 'processors').items():
         if n != 'test-processor-1':
