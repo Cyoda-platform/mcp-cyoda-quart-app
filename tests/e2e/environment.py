@@ -26,12 +26,12 @@ def before_all(context):
         context.processor = p
         break
 
+    context.criterions = {}
     for n, c in getattr(processor_manager, 'criteria').items():
-        if n != 'test-criterion':
+        if n != 'test-criterion-true' and n != 'test-criterion-false':
             continue
 
-        context.criterion = c
-        break
+        context.criterions[n] = c
 
     context.grpc_client = get_grpc_client()
 
