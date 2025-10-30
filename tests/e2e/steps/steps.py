@@ -3,7 +3,6 @@ import time
 from asyncio import run
 from behave import given, when, then
 from common.service.entity_service import SearchConditionRequest
-from scripts import import_workflows
 
 workflows_dir = 'tests/e2e/workflow/'
 
@@ -107,29 +106,36 @@ def fetching_by_condition(context, model_name, model_version):
     ))
 
 
-@when(u'I import workflow from file {workflow_file_name} for model {model_name} version {model_version}')
-def import_workflow(context, workflow_file_name, model_name, model_version):
-    workflow_file_name = workflow_file_name.replace('"', '')
+@when(u'I import workflow for model {model_name} version {model_version}:')
+def import_workflow(context, model_name, model_version):
     model_name = model_name.replace('"', '')
-    context.workflow_import_result = run(import_workflows.import_workflows_from_file(
+    workflows = json.loads("[" + context.text + "]")
+    context.workflow_import_result = run(context.workflow_management_service.import_entity_workflows(
         model_name,
         model_version,
-        workflows_dir + workflow_file_name,
-        import_mode='REPLACE'
+        workflows,
+        import_mode='REPLACE',
     ))
+
 
 
 @when(u'I update the prize with transition {transition_name}')
 def apply_transition(context, transition_name):
     transition_name = transition_name.replace('"', '')
     entity_to_update = context.create_result
-    run(context.entity_service.update(
-        entity_to_update.get_id(),
-        entity_to_update.data,
-        "nobel_prize",
-        transition_name,
-        "1"
-    ))
+    try:
+        run(context.entity_service.update(
+            entity_to_update.get_id(),
+            entity_to_update.data,
+            "nobel_prize",
+            transition_name,
+            "1"
+        ))
+        context.apply_transition_result = True
+    except:
+        context.apply_transition_result = False
+
+
 
 
 @then(u'{expected_amount:d} prizes should be created successfully')
@@ -194,6 +200,26 @@ def awaits_processor_triggered(context):
 
     is_triggered = poll_for_condition(check_if_triggered)
     assert is_triggered, "Expected that processor is triggered"
+
+
+@then(u'Awaits criterion is triggered and passed')
+def awaits_criterion_triggered_and_passed(context):
+    def check_if_triggered():
+        return context.criterions["test-criterion-true"].is_triggered
+
+    is_triggered = poll_for_condition(check_if_triggered)
+    assert is_triggered, "Expected that criterion is triggered"
+    assert context.apply_transition_result, "Expected that transition applied succesfully"
+
+
+@then(u'Awaits criterion is triggered and failed')
+def awaits_criterion_triggered_and_failed(context):
+    def check_if_triggered():
+        return context.criterions["test-criterion-false"].is_triggered
+
+    is_triggered = poll_for_condition(check_if_triggered)
+    assert is_triggered, "Expected that criterion is triggered"
+    assert not context.apply_transition_result, "Expected that transition isn't applied"
 
 
 def poll_for_condition(condition_func, timeout=10, poll_interval=0.5):
