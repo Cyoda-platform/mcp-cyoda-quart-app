@@ -5,7 +5,6 @@ include README.txt
 
 # Include configuration files
 include pyproject.toml
-include requirements.txt
 
 # Include proto files and generated code
 recursive-include common/proto *.proto

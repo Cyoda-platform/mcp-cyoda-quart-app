@@ -9,7 +9,12 @@ import logging
 import os
 from typing import Any, Dict
 
-from common.config.config import CYODA_CLIENT_ID, CYODA_CLIENT_SECRET, CYODA_TOKEN_URL, SKIP_SSL
+from common.config.config import (
+    CYODA_CLIENT_ID,
+    CYODA_CLIENT_SECRET,
+    CYODA_TOKEN_URL,
+    SKIP_SSL,
+)
 
 logger = logging.getLogger(__name__)
 
