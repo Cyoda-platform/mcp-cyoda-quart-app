@@ -127,12 +127,17 @@ class InMemoryRepository(CrudRepository[Any]):
         with self._cache_lock:
             return cache.get(key)
 
-    async def find_by_id(self, meta: Dict[str, Any], uuid: Any) -> Optional[Any]:
+    async def find_by_id(
+        self,
+        meta: Dict[str, Any],
+        entity_id: Any,
+        point_in_time: Optional[Any] = None,
+    ) -> Optional[Any]:
         with self._cache_lock:
-            return cache.get(uuid)
+            return cache.get(entity_id)
 
     async def find_all_by_criteria(
-        self, meta: Dict[str, Any], criteria: Any
+        self, meta: Dict[str, Any], criteria: Any, point_in_time: Optional[Any] = None
     ) -> List[Any]:
         """
         Very simple filtering:
@@ -229,3 +234,22 @@ class InMemoryRepository(CrudRepository[Any]):
     async def delete_by_id(self, meta: Dict[str, Any], technical_id: Any) -> None:
         with self._cache_lock:
             cache.pop(technical_id, None)
+
+    async def get_entity_count(
+        self, meta: Dict[str, Any], point_in_time: Optional[Any] = None
+    ) -> int:
+        """
+        Get count of entities for a specific model.
+        In-memory implementation ignores point_in_time since we don't track history.
+        """
+        with self._cache_lock:
+            return len(cache)
+
+    async def get_entity_changes_metadata(
+        self, entity_id: Any, point_in_time: Optional[Any] = None
+    ) -> List[Dict[str, Any]]:
+        """
+        Get entity change history metadata.
+        In-memory implementation doesn't track change history, returns empty list.
+        """
+        return []

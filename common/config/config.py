@@ -39,8 +39,12 @@ CYODA_TOKEN_URL = f"{'http' if SKIP_SSL else 'https'}://{CYODA_HOST}/api/oauth/t
 CHAT_ID = os.getenv("CHAT_ID", "cyoda-client")
 ENTITY_VERSION = os.getenv("ENTITY_VERSION", "1")
 GRPC_PROCESSOR_TAG = os.getenv("GRPC_PROCESSOR_TAG", "cloud_manager_app")
-CYODA_AI_URL = os.getenv("CYODA_AI_URL", f"{'http' if SKIP_SSL else 'https'}://{CYODA_HOST}/ai")
-CYODA_API_URL = os.getenv("CYODA_API_URL", f"{'http' if SKIP_SSL else 'https'}://{CYODA_HOST}/api")
+CYODA_AI_URL = os.getenv(
+    "CYODA_AI_URL", f"{'http' if SKIP_SSL else 'https'}://{CYODA_HOST}/ai"
+)
+CYODA_API_URL = os.getenv(
+    "CYODA_API_URL", f"{'http' if SKIP_SSL else 'https'}://{CYODA_HOST}/api"
+)
 GRPC_ADDRESS = os.getenv("GRPC_ADDRESS", f"grpc-{CYODA_HOST}")
 PROJECT_DIR = os.getenv("PROJECT_DIR", os.path.expanduser("~/cyoda_projects"))
 CHAT_REPOSITORY = os.getenv("CHAT_REPOSITORY", "cyoda")

@@ -61,7 +61,11 @@ class GrpcStreamingFacade:
             self.metadata_callback
         )
 
-        ssl_creds = grpc.local_channel_credentials() if SKIP_SSL else grpc.ssl_channel_credentials()
+        ssl_creds = (
+            grpc.local_channel_credentials()
+            if SKIP_SSL
+            else grpc.ssl_channel_credentials()
+        )
         return grpc.composite_channel_credentials(ssl_creds, call_creds)
 
     def _on_event(self, event: CloudEvent) -> None:
@@ -95,9 +99,7 @@ class GrpcStreamingFacade:
                 ]
 
                 async with grpc.aio.secure_channel(
-                    GRPC_ADDRESS,
-                    creds,
-                    options=keepalive_opts
+                    GRPC_ADDRESS, creds, options=keepalive_opts
                 ) as channel:
                     # Generated stubs are untyped; suppress no-untyped-call for this line.
                     stub: Any = CloudEventsServiceStub(channel)  # type: ignore[no-untyped-call]

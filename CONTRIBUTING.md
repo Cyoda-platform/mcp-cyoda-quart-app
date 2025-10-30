@@ -172,7 +172,7 @@ Before submitting a pull request, ensure:
 - [ ] All tests pass with `pytest`
 
 ### Testing ✅  
-- [ ] Integration tests pass (12/12)
+- [ ] Integration tests pass
 - [ ] New functionality has tests
 - [ ] E2E workflow verified with AI assistance
 - [ ] No regressions in existing functionality
