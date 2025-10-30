@@ -60,7 +60,9 @@ class TestGrpcStreamingFacade:
             first_middleware=middleware,
         )
 
-    def test_facade_initialization(self, facade, mock_auth, router, builders, outbox, middleware):
+    def test_facade_initialization(
+        self, facade, mock_auth, router, builders, outbox, middleware
+    ):
         """Test facade initialization."""
         assert facade.auth is mock_auth
         assert facade.router is router
@@ -94,7 +96,9 @@ class TestGrpcStreamingFacade:
         facade.metadata_callback(context, callback)
 
         mock_auth.get_access_token_sync.assert_called_once()
-        callback.assert_called_once_with([("authorization", "Bearer test-token-123")], None)
+        callback.assert_called_once_with(
+            [("authorization", "Bearer test-token-123")], None
+        )
 
     def test_metadata_callback_retry_on_failure(self, facade, mock_auth):
         """Test metadata callback retries on token fetch failure."""
@@ -114,7 +118,9 @@ class TestGrpcStreamingFacade:
         # Should have invalidated tokens
         mock_auth.invalidate_tokens.assert_called_once()
         # Should have called callback with retry token
-        callback.assert_called_once_with([("authorization", "Bearer retry-token-456")], None)
+        callback.assert_called_once_with(
+            [("authorization", "Bearer retry-token-456")], None
+        )
 
     @patch("common.grpc_client.facade.grpc")
     def test_get_grpc_credentials(self, mock_grpc_module, facade):
@@ -125,7 +131,9 @@ class TestGrpcStreamingFacade:
 
         mock_grpc_module.metadata_call_credentials.return_value = mock_call_creds
         mock_grpc_module.ssl_channel_credentials.return_value = mock_ssl_creds
-        mock_grpc_module.composite_channel_credentials.return_value = mock_composite_creds
+        mock_grpc_module.composite_channel_credentials.return_value = (
+            mock_composite_creds
+        )
 
         result = facade.get_grpc_credentials()
 
@@ -214,7 +222,9 @@ class TestGrpcStreamingFacade:
         assert facade.get_grpc_credentials.call_count > 0
 
     @pytest.mark.asyncio
-    async def test_consume_stream_handles_unauthenticated_error(self, facade, mock_auth):
+    async def test_consume_stream_handles_unauthenticated_error(
+        self, facade, mock_auth
+    ):
         """Test that consume stream handles UNAUTHENTICATED errors."""
         facade._running = True
 
@@ -249,7 +259,9 @@ class TestGrpcStreamingFacade:
 
         with patch("common.grpc_client.facade.grpc.aio.secure_channel") as mock_channel:
             # Make the channel raise generic exception
-            mock_channel.return_value.__aenter__.side_effect = Exception("Unexpected error")
+            mock_channel.return_value.__aenter__.side_effect = Exception(
+                "Unexpected error"
+            )
 
             # Stop after first iteration
             async def stop_after_sleep(delay):
@@ -309,4 +321,3 @@ class TestGrpcStreamingFacade:
         assert max(sleep_delays) == 30
         # After reaching 30, should stay at 30
         assert all(delay == 30 for delay in sleep_delays[-3:])
-

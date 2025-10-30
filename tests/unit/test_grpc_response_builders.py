@@ -290,4 +290,3 @@ class TestCriteriaCalcResponseBuilder:
         assert data["requestId"] is None
         assert data["entityId"] is None
         assert data["matches"] is None
-

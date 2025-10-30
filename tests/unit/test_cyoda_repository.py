@@ -9,7 +9,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-
 from common.repository.cyoda.cyoda_repository import CyodaRepository
 
 
@@ -691,9 +690,7 @@ class TestCyodaRepository:
             assert result == []
 
     @pytest.mark.asyncio
-    async def test_update_non_200_response_returns_none(
-        self, repository, sample_meta
-    ):
+    async def test_update_non_200_response_returns_none(self, repository, sample_meta):
         """Test update with non-200 response returns None."""
         with patch(
             "common.repository.cyoda.cyoda_repository.send_cyoda_request"
@@ -703,7 +700,9 @@ class TestCyodaRepository:
                 "status": 400,
             }
 
-            result = await repository.update(sample_meta, "test-id", {"name": "Updated"})
+            result = await repository.update(
+                sample_meta, "test-id", {"name": "Updated"}
+            )
 
             assert result is None
 
@@ -720,7 +719,9 @@ class TestCyodaRepository:
             }
 
             with pytest.raises(TimeoutError) as exc_info:
-                await repository._wait_for_search_completion("snapshot-123", timeout=0.1, interval=0.05)
+                await repository._wait_for_search_completion(
+                    "snapshot-123", timeout=0.1, interval=0.05
+                )
 
             assert "Timeout exceeded" in str(exc_info.value)
 
@@ -889,7 +890,12 @@ class TestCyodaRepository:
             "type": "group",
             "operator": "AND",
             "conditions": [
-                {"type": "simple", "jsonPath": "$.name", "operatorType": "EQUALS", "value": "Test"}
+                {
+                    "type": "simple",
+                    "jsonPath": "$.name",
+                    "operatorType": "EQUALS",
+                    "value": "Test",
+                }
             ],
         }
 
@@ -948,11 +954,15 @@ class TestCyodaRepository:
         assert len(result["conditions"]) == 3
 
         # Check operator mapping
-        name_condition = next(c for c in result["conditions"] if c["jsonPath"] == "$.name")
+        name_condition = next(
+            c for c in result["conditions"] if c["jsonPath"] == "$.name"
+        )
         assert name_condition["operatorType"] == "EQUALS"
         assert name_condition["value"] == "Test"
 
-        value_condition = next(c for c in result["conditions"] if c["jsonPath"] == "$.value")
+        value_condition = next(
+            c for c in result["conditions"] if c["jsonPath"] == "$.value"
+        )
         assert value_condition["operatorType"] == "GREATER_THAN"
         assert value_condition["value"] == 10
 
@@ -1034,7 +1044,9 @@ class TestCyodaRepository:
         }
 
         for field, expected_op in operator_map.items():
-            condition = next(c for c in result["conditions"] if f"$.{field}" in c["jsonPath"])
+            condition = next(
+                c for c in result["conditions"] if f"$.{field}" in c["jsonPath"]
+            )
             assert condition["operatorType"] == expected_op
 
     # Edge Message Tests
@@ -1075,9 +1087,7 @@ class TestCyodaRepository:
             "common.repository.cyoda.cyoda_repository.send_cyoda_request"
         ) as mock_request:
             mock_request.return_value = {
-                "json": {
-                    "content": '{"edge_message_content": {"message": "test"}}'
-                },
+                "json": {"content": '{"edge_message_content": {"message": "test"}}'},
                 "status": 200,
             }
 
@@ -1159,7 +1169,9 @@ class TestCyodaRepository:
 
             meta_with_transition = {**sample_meta, "transition": "approve"}
 
-            result = await repository._launch_transition(meta_with_transition, "test-id-123")
+            result = await repository._launch_transition(
+                meta_with_transition, "test-id-123"
+            )
 
             assert result is not None
             # Verify the request was made
@@ -1190,18 +1202,14 @@ class TestCyodaRepository:
     @pytest.mark.asyncio
     async def test_send_search_request_success(self, repository, sample_meta):
         """Test _send_search_request with successful response."""
-        with patch(
-            "common.utils.utils.send_request"
-        ) as mock_request:
+        with patch("common.utils.utils.send_request") as mock_request:
             mock_request.return_value = {
                 "json": [{"name": "Test", "id": "id-1"}],
                 "status": 200,
             }
 
             criteria = {"name": "Test"}
-            result = await repository._send_search_request(
-                sample_meta, criteria, None
-            )
+            result = await repository._send_search_request(sample_meta, criteria, None)
 
             assert result["status"] == 200
             assert len(result["json"]) == 1
@@ -1209,9 +1217,7 @@ class TestCyodaRepository:
     @pytest.mark.asyncio
     async def test_send_search_request_with_401_retry(self, repository, sample_meta):
         """Test _send_search_request with 401 retry."""
-        with patch(
-            "common.utils.utils.send_request"
-        ) as mock_request:
+        with patch("common.utils.utils.send_request") as mock_request:
             # First call returns 401, second succeeds
             mock_request.side_effect = [
                 {"json": {"error": "Unauthorized"}, "status": 401},
@@ -1219,9 +1225,7 @@ class TestCyodaRepository:
             ]
 
             criteria = {"name": "Test"}
-            result = await repository._send_search_request(
-                sample_meta, criteria, None
-            )
+            result = await repository._send_search_request(sample_meta, criteria, None)
 
             assert result["status"] == 200
             assert mock_request.call_count == 2
@@ -1239,7 +1243,9 @@ class TestCyodaRepository:
                 "status": 500,
             }
 
-            result = await repository.update(sample_meta, "test-id", {"name": "Updated"})
+            result = await repository.update(
+                sample_meta, "test-id", {"name": "Updated"}
+            )
 
             # Should return None on non-200 status
             assert result is None
@@ -1255,7 +1261,9 @@ class TestCyodaRepository:
                 "status": 200,
             }
 
-            result = await repository.update(sample_meta, "test-id", {"name": "Updated"})
+            result = await repository.update(
+                sample_meta, "test-id", {"name": "Updated"}
+            )
 
             # Should return None for non-dict response
             assert result is None
@@ -1271,7 +1279,9 @@ class TestCyodaRepository:
                 "status": 200,
             }
 
-            result = await repository.update(sample_meta, "test-id", {"name": "Updated"})
+            result = await repository.update(
+                sample_meta, "test-id", {"name": "Updated"}
+            )
 
             # Should return None when no entityIds
             assert result is None
@@ -1287,7 +1297,9 @@ class TestCyodaRepository:
                 "status": 200,
             }
 
-            result = await repository.update(sample_meta, "test-id", {"name": "Updated"})
+            result = await repository.update(
+                sample_meta, "test-id", {"name": "Updated"}
+            )
 
             # Should return None for empty entityIds
             assert result is None
@@ -1303,7 +1315,9 @@ class TestCyodaRepository:
                 "status": 200,
             }
 
-            result = await repository.update(sample_meta, "test-id", {"name": "Updated"})
+            result = await repository.update(
+                sample_meta, "test-id", {"name": "Updated"}
+            )
 
             # Should return None when entityId is None
             assert result is None

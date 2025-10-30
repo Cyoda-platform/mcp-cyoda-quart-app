@@ -8,7 +8,11 @@ from unittest.mock import AsyncMock, Mock
 import pytest
 
 from common.entity.cyoda_entity import CyodaEntity
-from common.exception.grpc_exceptions import HandlerError, ProcessingError, ValidationError
+from common.exception.grpc_exceptions import (
+    HandlerError,
+    ProcessingError,
+    ValidationError,
+)
 from common.grpc_client.constants import CALC_REQ_EVENT_TYPE, CALC_RESP_EVENT_TYPE
 from common.grpc_client.handlers.calc import CalcRequestHandler
 from common.grpc_client.handlers.criteria_calc import CriteriaCalcRequestHandler
@@ -44,28 +48,25 @@ class TestCalcRequestHandler:
         event = CloudEvent()
         event.id = "calc-123"
         event.type = CALC_REQ_EVENT_TYPE
-        event.text_data = json.dumps({
-            "processorName": "test_processor",
-            "entityId": "entity-456",
-            "requestId": "request-789",
-            "payload": {
-                "meta": {
-                    "modelKey": {
-                        "name": "TestEntity",
-                        "version": 1
-                    }
+        event.text_data = json.dumps(
+            {
+                "processorName": "test_processor",
+                "entityId": "entity-456",
+                "requestId": "request-789",
+                "payload": {
+                    "meta": {"modelKey": {"name": "TestEntity", "version": 1}},
+                    "data": {"name": "Test", "value": 42},
                 },
-                "data": {
-                    "name": "Test",
-                    "value": 42
-                }
             }
-        })
+        )
         return event
 
     @pytest.mark.asyncio
-    async def test_handle_calc_request_success(self, handler, services, processor_manager, calc_event):
+    async def test_handle_calc_request_success(
+        self, handler, services, processor_manager, calc_event
+    ):
         """Test successful calc request handling."""
+
         # Setup processor to return modified entity
         async def process_entity(processor_name, entity):
             entity.value = 100  # Modify the entity
@@ -83,33 +84,25 @@ class TestCalcRequestHandler:
         assert result.data["payload"]["data"]["value"] == 100
 
     @pytest.mark.asyncio
-    async def test_handle_calc_request_with_transition(self, handler, services, processor_manager):
+    async def test_handle_calc_request_with_transition(
+        self, handler, services, processor_manager
+    ):
         """Test calc request with transition information."""
         event = CloudEvent()
         event.id = "calc-123"
         event.type = CALC_REQ_EVENT_TYPE
-        event.text_data = json.dumps({
-            "processorName": "test_processor",
-            "entityId": "entity-456",
-            "requestId": "request-789",
-            "transition": {
-                "name": "approve",
-                "from": "draft",
-                "to": "approved"
-            },
-            "payload": {
-                "meta": {
-                    "modelKey": {
-                        "name": "TestEntity",
-                        "version": 1
-                    }
+        event.text_data = json.dumps(
+            {
+                "processorName": "test_processor",
+                "entityId": "entity-456",
+                "requestId": "request-789",
+                "transition": {"name": "approve", "from": "draft", "to": "approved"},
+                "payload": {
+                    "meta": {"modelKey": {"name": "TestEntity", "version": 1}},
+                    "data": {"name": "Test", "value": 42},
                 },
-                "data": {
-                    "name": "Test",
-                    "value": 42
-                }
             }
-        })
+        )
 
         async def process_entity(processor_name, entity):
             # Verify transition metadata was added
@@ -123,28 +116,24 @@ class TestCalcRequestHandler:
         assert result.success is True
 
     @pytest.mark.asyncio
-    async def test_handle_calc_request_unknown_entity_type(self, handler, services, processor_manager):
+    async def test_handle_calc_request_unknown_entity_type(
+        self, handler, services, processor_manager
+    ):
         """Test calc request with unknown entity type (fallback to CyodaEntity)."""
         event = CloudEvent()
         event.id = "calc-123"
         event.type = CALC_REQ_EVENT_TYPE
-        event.text_data = json.dumps({
-            "processorName": "test_processor",
-            "entityId": "entity-456",
-            "requestId": "request-789",
-            "payload": {
-                "meta": {
-                    "modelKey": {
-                        "name": "UnknownEntity",
-                        "version": 1
-                    }
+        event.text_data = json.dumps(
+            {
+                "processorName": "test_processor",
+                "entityId": "entity-456",
+                "requestId": "request-789",
+                "payload": {
+                    "meta": {"modelKey": {"name": "UnknownEntity", "version": 1}},
+                    "data": {"name": "Test", "value": 42},
                 },
-                "data": {
-                    "name": "Test",
-                    "value": 42
-                }
             }
-        })
+        )
 
         async def process_entity(processor_name, entity):
             # Should be a CyodaEntity
@@ -170,8 +159,11 @@ class TestCalcRequestHandler:
         assert "processor_manager not available" in str(exc_info.value)
 
     @pytest.mark.asyncio
-    async def test_handle_calc_request_processing_error(self, handler, services, processor_manager, calc_event):
+    async def test_handle_calc_request_processing_error(
+        self, handler, services, processor_manager, calc_event
+    ):
         """Test calc request with processing error."""
+
         # Setup processor to raise error
         async def process_entity_error(processor_name, entity):
             raise RuntimeError("Processing failed")
@@ -215,27 +207,23 @@ class TestCriteriaCalcRequestHandler:
         event = CloudEvent()
         event.id = "criteria-123"
         event.type = "EntityCriteriaCalculationRequest"
-        event.text_data = json.dumps({
-            "criteriaName": "test_criteria",
-            "entityId": "entity-456",
-            "requestId": "request-789",
-            "payload": {
-                "meta": {
-                    "modelKey": {
-                        "name": "TestEntity",
-                        "version": 1
-                    }
+        event.text_data = json.dumps(
+            {
+                "criteriaName": "test_criteria",
+                "entityId": "entity-456",
+                "requestId": "request-789",
+                "payload": {
+                    "meta": {"modelKey": {"name": "TestEntity", "version": 1}},
+                    "data": {"name": "Test", "value": 42},
                 },
-                "data": {
-                    "name": "Test",
-                    "value": 42
-                }
             }
-        })
+        )
         return event
 
     @pytest.mark.asyncio
-    async def test_handle_criteria_calc_success(self, handler, services, processor_manager, criteria_event):
+    async def test_handle_criteria_calc_success(
+        self, handler, services, processor_manager, criteria_event
+    ):
         """Test successful criteria calc handling."""
         # Setup processor to return True
         processor_manager.check_criteria.return_value = True
@@ -248,27 +236,23 @@ class TestCriteriaCalcRequestHandler:
         assert result.data["matches"] is True
 
     @pytest.mark.asyncio
-    async def test_handle_criteria_calc_with_unknown_entity(self, handler, services, processor_manager):
+    async def test_handle_criteria_calc_with_unknown_entity(
+        self, handler, services, processor_manager
+    ):
         """Test criteria calc with unknown entity type (fallback to CyodaEntity)."""
         event = CloudEvent()
         event.id = "criteria-123"
         event.type = "EntityCriteriaCalculationRequest"
-        event.text_data = json.dumps({
-            "criteriaName": "test_criteria",
-            "entityId": "entity-456",
-            "payload": {
-                "meta": {
-                    "modelKey": {
-                        "name": "UnknownEntity",
-                        "version": 1
-                    }
+        event.text_data = json.dumps(
+            {
+                "criteriaName": "test_criteria",
+                "entityId": "entity-456",
+                "payload": {
+                    "meta": {"modelKey": {"name": "UnknownEntity", "version": 1}},
+                    "data": {"name": "Test", "value": 42},
                 },
-                "data": {
-                    "name": "Test",
-                    "value": 42
-                }
             }
-        })
+        )
 
         processor_manager.check_criteria.return_value = False
 
@@ -278,29 +262,24 @@ class TestCriteriaCalcRequestHandler:
         assert result.data["matches"] is False
 
     @pytest.mark.asyncio
-    async def test_handle_criteria_calc_with_transition(self, handler, services, processor_manager):
+    async def test_handle_criteria_calc_with_transition(
+        self, handler, services, processor_manager
+    ):
         """Test criteria calc with transition information."""
         event = CloudEvent()
         event.id = "criteria-123"
         event.type = "EntityCriteriaCalculationRequest"
-        event.text_data = json.dumps({
-            "criteriaName": "test_criteria",
-            "entityId": "entity-456",
-            "transition": {
-                "name": "approve"
-            },
-            "payload": {
-                "meta": {
-                    "modelKey": {
-                        "name": "TestEntity",
-                        "version": 1
-                    }
+        event.text_data = json.dumps(
+            {
+                "criteriaName": "test_criteria",
+                "entityId": "entity-456",
+                "transition": {"name": "approve"},
+                "payload": {
+                    "meta": {"modelKey": {"name": "TestEntity", "version": 1}},
+                    "data": {"name": "Test"},
                 },
-                "data": {
-                    "name": "Test"
-                }
             }
-        })
+        )
 
         processor_manager.check_criteria.return_value = True
 
@@ -309,7 +288,9 @@ class TestCriteriaCalcRequestHandler:
         assert result.success is True
 
     @pytest.mark.asyncio
-    async def test_handle_criteria_calc_no_processor_manager(self, handler, criteria_event):
+    async def test_handle_criteria_calc_no_processor_manager(
+        self, handler, criteria_event
+    ):
         """Test criteria calc without processor manager."""
         services = Mock()
         services.processor_manager = None
@@ -322,7 +303,9 @@ class TestCriteriaCalcRequestHandler:
         assert result.data["matches"] is False
 
     @pytest.mark.asyncio
-    async def test_handle_criteria_calc_processing_error(self, handler, services, processor_manager, criteria_event):
+    async def test_handle_criteria_calc_processing_error(
+        self, handler, services, processor_manager, criteria_event
+    ):
         """Test criteria calc with processing error."""
         # Setup processor to raise error
         processor_manager.check_criteria.side_effect = ValueError("Evaluation failed")
@@ -333,4 +316,3 @@ class TestCriteriaCalcRequestHandler:
         assert isinstance(result, ResponseSpec)
         assert result.success is True
         assert result.data["matches"] is False
-

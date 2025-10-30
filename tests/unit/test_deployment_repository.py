@@ -8,9 +8,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from common.repository.cyoda.deployment_repository import (
+    DeploymentRepository,
     DeploymentRequest,
     DeploymentResponse,
-    DeploymentRepository,
 )
 
 

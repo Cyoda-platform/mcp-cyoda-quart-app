@@ -5,17 +5,18 @@ Tests the new point-in-time query, entity statistics, and change metadata
 functionality added to CrudRepository, CyodaRepository, and EntityService.
 """
 
-import pytest
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
+
 from common.repository.cyoda.cyoda_repository import CyodaRepository
-from common.service.service import EntityServiceImpl
 from common.service.entity_service import (
     EntityResponse,
     SearchConditionRequest,
 )
+from common.service.service import EntityServiceImpl
 
 
 @pytest.fixture
@@ -68,7 +69,10 @@ class TestCyodaRepositoryTemporalQueries:
         self, cyoda_repository, sample_entity_data, point_in_time
     ):
         """Test finding entity by ID at a specific point in time."""
-        with patch("common.repository.cyoda.cyoda_repository.send_cyoda_request", new_callable=AsyncMock) as mock_request:
+        with patch(
+            "common.repository.cyoda.cyoda_repository.send_cyoda_request",
+            new_callable=AsyncMock,
+        ) as mock_request:
             # The response should have data and meta structure
             mock_request.return_value = {
                 "status": 200,
@@ -96,7 +100,10 @@ class TestCyodaRepositoryTemporalQueries:
         self, cyoda_repository, sample_entity_data
     ):
         """Test finding entity by ID without point in time (current state)."""
-        with patch("common.repository.cyoda.cyoda_repository.send_cyoda_request", new_callable=AsyncMock) as mock_request:
+        with patch(
+            "common.repository.cyoda.cyoda_repository.send_cyoda_request",
+            new_callable=AsyncMock,
+        ) as mock_request:
             mock_request.return_value = {
                 "status": 200,
                 "json": {
@@ -120,7 +127,7 @@ class TestCyodaRepositoryTemporalQueries:
         """Test searching entities with criteria at a specific point in time."""
         with patch(
             "common.repository.cyoda.cyoda_repository.CyodaRepository._send_search_request",
-            new_callable=AsyncMock
+            new_callable=AsyncMock,
         ) as mock_search:
             mock_search.return_value = {
                 "status": 200,
@@ -143,7 +150,10 @@ class TestCyodaRepositoryTemporalQueries:
     @pytest.mark.asyncio
     async def test_get_entity_count(self, cyoda_repository, point_in_time):
         """Test getting entity count with optional point in time."""
-        with patch("common.repository.cyoda.cyoda_repository.send_cyoda_request", new_callable=AsyncMock) as mock_request:
+        with patch(
+            "common.repository.cyoda.cyoda_repository.send_cyoda_request",
+            new_callable=AsyncMock,
+        ) as mock_request:
             mock_request.return_value = {
                 "status": 200,
                 "json": {"count": 42},
@@ -161,7 +171,10 @@ class TestCyodaRepositoryTemporalQueries:
     @pytest.mark.asyncio
     async def test_get_entity_count_without_point_in_time(self, cyoda_repository):
         """Test getting current entity count."""
-        with patch("common.repository.cyoda.cyoda_repository.send_cyoda_request", new_callable=AsyncMock) as mock_request:
+        with patch(
+            "common.repository.cyoda.cyoda_repository.send_cyoda_request",
+            new_callable=AsyncMock,
+        ) as mock_request:
             mock_request.return_value = {
                 "status": 200,
                 "json": {"count": 100},
@@ -175,7 +188,10 @@ class TestCyodaRepositoryTemporalQueries:
     @pytest.mark.asyncio
     async def test_get_entity_count_with_list_response(self, cyoda_repository):
         """Test getting entity count when response is a list (by state)."""
-        with patch("common.repository.cyoda.cyoda_repository.send_cyoda_request", new_callable=AsyncMock) as mock_request:
+        with patch(
+            "common.repository.cyoda.cyoda_repository.send_cyoda_request",
+            new_callable=AsyncMock,
+        ) as mock_request:
             mock_request.return_value = {
                 "status": 200,
                 "json": [
@@ -192,7 +208,10 @@ class TestCyodaRepositoryTemporalQueries:
     @pytest.mark.asyncio
     async def test_get_entity_count_error_handling(self, cyoda_repository):
         """Test entity count error handling."""
-        with patch("common.repository.cyoda.cyoda_repository.send_cyoda_request", new_callable=AsyncMock) as mock_request:
+        with patch(
+            "common.repository.cyoda.cyoda_repository.send_cyoda_request",
+            new_callable=AsyncMock,
+        ) as mock_request:
             mock_request.return_value = {
                 "status": 500,
                 "json": {"error": "Internal server error"},
@@ -206,7 +225,10 @@ class TestCyodaRepositoryTemporalQueries:
     @pytest.mark.asyncio
     async def test_get_entity_changes_metadata(self, cyoda_repository, point_in_time):
         """Test getting entity change history metadata."""
-        with patch("common.repository.cyoda.cyoda_repository.send_cyoda_request", new_callable=AsyncMock) as mock_request:
+        with patch(
+            "common.repository.cyoda.cyoda_repository.send_cyoda_request",
+            new_callable=AsyncMock,
+        ) as mock_request:
             mock_changes = [
                 {
                     "timestamp": "2024-01-01T10:00:00Z",
@@ -240,7 +262,10 @@ class TestCyodaRepositoryTemporalQueries:
     @pytest.mark.asyncio
     async def test_get_entity_changes_metadata_error_handling(self, cyoda_repository):
         """Test entity changes metadata error handling."""
-        with patch("common.repository.cyoda.cyoda_repository.send_cyoda_request", new_callable=AsyncMock) as mock_request:
+        with patch(
+            "common.repository.cyoda.cyoda_repository.send_cyoda_request",
+            new_callable=AsyncMock,
+        ) as mock_request:
             mock_request.return_value = {
                 "status": 404,
                 "json": {"error": "Entity not found"},
@@ -251,9 +276,6 @@ class TestCyodaRepositoryTemporalQueries:
             )
 
             assert changes == []  # Should return empty list on error
-
-
-
 
 
 class TestEntityServiceTemporalQueries:
@@ -330,7 +352,9 @@ class TestEntityServiceTemporalQueries:
                     "entity_version": "1",
                 }
 
-                condition = SearchConditionRequest.builder().equals("name", "Test").build()
+                condition = (
+                    SearchConditionRequest.builder().equals("name", "Test").build()
+                )
                 results = await entity_service.search_at_time(
                     "TestEntity", condition, point_in_time
                 )
@@ -410,7 +434,6 @@ class TestEntityServiceTemporalQueries:
                 count = await entity_service.get_entity_count("TestEntity")
 
                 assert count == 0  # Should return 0 on error
-
 
     @pytest.mark.asyncio
     async def test_get_entity_changes_metadata(self, entity_service, point_in_time):

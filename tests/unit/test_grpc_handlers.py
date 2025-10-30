@@ -185,7 +185,9 @@ class TestKeepAliveHandler:
         event = CloudEvent()
         event.id = "keepalive-123"
         event.type = "CalculationMemberKeepAliveEvent"
-        event.text_data = json.dumps({"id": "event-id-456", "timestamp": "2024-01-15T10:30:00Z"})
+        event.text_data = json.dumps(
+            {"id": "event-id-456", "timestamp": "2024-01-15T10:30:00Z"}
+        )
 
         result = await handler.handle(event)
 
@@ -209,4 +211,3 @@ class TestKeepAliveHandler:
         assert isinstance(result, ResponseSpec)
         assert result.response_type == EVENT_ACK_TYPE
         assert result.source_event_id == "event-id-789"
-

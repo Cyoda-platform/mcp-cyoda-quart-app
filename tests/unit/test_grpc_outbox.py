@@ -273,4 +273,3 @@ class TestOutbox:
         assert len(events) == 2
         assert events[0].type == JOIN_EVENT_TYPE
         assert events[1].id == "event-1"
-

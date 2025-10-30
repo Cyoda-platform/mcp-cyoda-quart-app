@@ -17,8 +17,8 @@ from common.grpc_client.constants import (
     JOIN_EVENT_TYPE,
     KEEP_ALIVE_EVENT_TYPE,
 )
-from common.grpc_client.factory import GrpcStreamingFacadeFactory
 from common.grpc_client.facade import GrpcStreamingFacade
+from common.grpc_client.factory import GrpcStreamingFacadeFactory
 
 
 class TestGrpcStreamingFacadeFactory:
@@ -316,4 +316,3 @@ class TestGrpcStreamingFacadeFactory:
             )
 
         assert "Failed to create middleware chain" in str(exc_info.value)
-

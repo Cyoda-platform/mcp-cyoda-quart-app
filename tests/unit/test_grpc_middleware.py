@@ -165,7 +165,9 @@ class TestLoggingMiddleware:
         event.id = "error-123"
         event.type = ERROR_EVENT_TYPE
         event.source = "test"
-        event.text_data = json.dumps({"code": "INTERNAL_ERROR", "message": "Error occurred"})
+        event.text_data = json.dumps(
+            {"code": "INTERNAL_ERROR", "message": "Error occurred"}
+        )
 
         result = await middleware.handle(event)
 
@@ -451,4 +453,3 @@ class TestMetricsMiddleware:
         result = await middleware.handle(event)
 
         assert result is None
-
