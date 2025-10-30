@@ -1,6 +1,7 @@
-from common.processor.base import CyodaCriteriaChecker
-from common.entity.cyoda_entity import CyodaEntity
 from typing import Any
+
+from common.entity.cyoda_entity import CyodaEntity
+from common.processor.base import CyodaCriteriaChecker
 
 
 class TestEntityCriterionFalse(CyodaCriteriaChecker):
@@ -9,8 +10,7 @@ class TestEntityCriterionFalse(CyodaCriteriaChecker):
 
     def __init__(self) -> None:
         super().__init__(
-            name="test-criterion-false",
-            description="always False test criterion"
+            name="test-criterion-false", description="always False test criterion"
         )
 
     async def check(self, entity: CyodaEntity, **kwargs: Any) -> bool:

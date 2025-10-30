@@ -170,4 +170,3 @@ class TestEventRouter:
         result = router.route(event)
         assert result is handler_instance
         assert result.handle() == "handled"
-

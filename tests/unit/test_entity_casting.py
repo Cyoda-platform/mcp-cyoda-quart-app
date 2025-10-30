@@ -234,4 +234,3 @@ class TestEntityCastingEdgeCases:
 
         # Fallback means original entity is returned
         assert result is entity
-

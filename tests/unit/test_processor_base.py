@@ -108,7 +108,9 @@ class TestCyodaCriteriaChecker:
 
     def test_criteria_initialization(self):
         """Test criteria checker initialization."""
-        criteria = SampleCriteriaChecker(name="TestCriteria", description="A test criteria")
+        criteria = SampleCriteriaChecker(
+            name="TestCriteria", description="A test criteria"
+        )
 
         assert criteria.name == "TestCriteria"
         assert criteria.description == "A test criteria"
@@ -153,7 +155,9 @@ class TestCyodaCriteriaChecker:
 
     def test_criteria_get_info(self):
         """Test criteria get_info method."""
-        criteria = SampleCriteriaChecker(name="TestCriteria", description="A test criteria")
+        criteria = SampleCriteriaChecker(
+            name="TestCriteria", description="A test criteria"
+        )
 
         info = criteria.get_info()
 
@@ -164,7 +168,9 @@ class TestCyodaCriteriaChecker:
 
     def test_criteria_str_representation(self):
         """Test criteria string representation."""
-        criteria = SampleCriteriaChecker(name="TestCriteria", description="A test criteria")
+        criteria = SampleCriteriaChecker(
+            name="TestCriteria", description="A test criteria"
+        )
 
         str_repr = str(criteria)
 
@@ -172,7 +178,9 @@ class TestCyodaCriteriaChecker:
 
     def test_criteria_repr_representation(self):
         """Test criteria repr representation."""
-        criteria = SampleCriteriaChecker(name="TestCriteria", description="A test criteria")
+        criteria = SampleCriteriaChecker(
+            name="TestCriteria", description="A test criteria"
+        )
 
         repr_str = repr(criteria)
 
@@ -220,4 +228,3 @@ class TestProcessorLogging:
         logger_name = criteria.logger.name
 
         assert "SampleCriteriaChecker" in logger_name
-

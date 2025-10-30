@@ -494,9 +494,7 @@ class TestEdgeMessageRepository:
         assert result.header.reply_to == "noreply@example.com"
         assert result.header.correlation_id == "corr-unique-456"
         assert result.metadata.values == {"priority": "high", "category": "alert"}
-        assert result.metadata.indexed_values == {
-            "timestamp": "2024-01-01T00:00:00Z"
-        }
+        assert result.metadata.indexed_values == {"timestamp": "2024-01-01T00:00:00Z"}
         assert result.content == "<xml>data</xml>"
 
     @pytest.mark.asyncio

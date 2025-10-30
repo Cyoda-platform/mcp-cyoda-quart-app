@@ -394,4 +394,3 @@ class TestConfigurationFunctions:
 
         registry = get_middleware_registry()
         assert MiddlewareType.CUSTOM in registry._factories
-

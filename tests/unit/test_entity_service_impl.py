@@ -1157,9 +1157,7 @@ class TestEntityServiceImpl:
     @pytest.mark.asyncio
     async def test_handle_repository_error_with_nested_error(self, service):
         """Test handling repository error with nested error structure."""
-        error_data = {
-            "error": {"message": "Nested error message", "code": "ERR_001"}
-        }
+        error_data = {"error": {"message": "Nested error message", "code": "ERR_001"}}
 
         # Should not raise if no errorMessage key
         result = service._handle_repository_error(error_data, "test_operation")
@@ -1366,6 +1364,7 @@ class TestEntityServiceImpl:
     @pytest.mark.asyncio
     async def test_get_transitions_repository_without_method(self, repository):
         """Test get_transitions when repository doesn't have the method."""
+
         # Create a minimal repository class without get_transitions
         class MinimalRepository:
             async def get_meta(self, token, entity_model, entity_version):
@@ -1409,6 +1408,7 @@ class TestEntityServiceImpl:
     @pytest.mark.asyncio
     async def test_save_all_without_repository_batch_support(self, repository):
         """Test save_all when repository doesn't support batch operations."""
+
         # Create a new service instance with a repository that doesn't have save_all
         class MinimalRepository:
             def __init__(self):
@@ -1490,8 +1490,16 @@ class TestEntityServiceImpl:
     @pytest.mark.asyncio
     async def test_get_items_deprecated_warning(self, service, repository):
         """Test get_items raises deprecation warning."""
-        repository.storage["id-1"] = {"name": "Test1", "value": 10, "technical_id": "id-1"}
-        repository.storage["id-2"] = {"name": "Test2", "value": 20, "technical_id": "id-2"}
+        repository.storage["id-1"] = {
+            "name": "Test1",
+            "value": 10,
+            "technical_id": "id-1",
+        }
+        repository.storage["id-2"] = {
+            "name": "Test2",
+            "value": 20,
+            "technical_id": "id-2",
+        }
 
         with pytest.warns(DeprecationWarning, match="get_items.*deprecated"):
             results = await service.get_items("token", "TestEntity", "1")
@@ -1511,9 +1519,15 @@ class TestEntityServiceImpl:
     @pytest.mark.asyncio
     async def test_get_single_item_by_condition_deprecated(self, service, repository):
         """Test get_single_item_by_condition raises deprecation warning."""
-        repository.storage["id-1"] = {"name": "Test", "value": 10, "technical_id": "id-1"}
+        repository.storage["id-1"] = {
+            "name": "Test",
+            "value": 10,
+            "technical_id": "id-1",
+        }
 
-        with pytest.warns(DeprecationWarning, match="get_single_item_by_condition.*deprecated"):
+        with pytest.warns(
+            DeprecationWarning, match="get_single_item_by_condition.*deprecated"
+        ):
             result = await service.get_single_item_by_condition(
                 "token", "TestEntity", "1", {"name": "Test"}
             )
@@ -1546,9 +1560,15 @@ class TestEntityServiceImpl:
     @pytest.mark.asyncio
     async def test_get_items_by_condition_deprecated(self, service, repository):
         """Test get_items_by_condition raises deprecation warning."""
-        repository.storage["id-1"] = {"name": "Test", "value": 10, "technical_id": "id-1"}
+        repository.storage["id-1"] = {
+            "name": "Test",
+            "value": 10,
+            "technical_id": "id-1",
+        }
 
-        with pytest.warns(DeprecationWarning, match="get_items_by_condition.*deprecated"):
+        with pytest.warns(
+            DeprecationWarning, match="get_items_by_condition.*deprecated"
+        ):
             results = await service.get_items_by_condition(
                 "token", "TestEntity", "1", {"name": "Test"}
             )
@@ -1556,11 +1576,17 @@ class TestEntityServiceImpl:
         assert len(results) == 1
 
     @pytest.mark.asyncio
-    async def test_get_items_by_condition_with_chat_repository(self, service, repository):
+    async def test_get_items_by_condition_with_chat_repository(
+        self, service, repository
+    ):
         """Test get_items_by_condition handles CHAT_REPOSITORY wrapper."""
         from common.config.config import CHAT_REPOSITORY
 
-        repository.storage["id-1"] = {"name": "Test", "value": 10, "technical_id": "id-1"}
+        repository.storage["id-1"] = {
+            "name": "Test",
+            "value": 10,
+            "technical_id": "id-1",
+        }
 
         condition = {CHAT_REPOSITORY: {"name": "Test"}}
 
@@ -1599,14 +1625,20 @@ class TestEntityServiceImpl:
         repository.save = AsyncMock(side_effect=Exception("Save error"))
 
         with pytest.warns(DeprecationWarning):
-            result = await service.add_item("token", "TestEntity", "1", {"name": "Test"})
+            result = await service.add_item(
+                "token", "TestEntity", "1", {"name": "Test"}
+            )
 
         assert result is None
 
     @pytest.mark.asyncio
     async def test_update_item_deprecated(self, service, repository):
         """Test update_item raises deprecation warning."""
-        repository.storage["id-1"] = {"name": "Test", "value": 10, "technical_id": "id-1"}
+        repository.storage["id-1"] = {
+            "name": "Test",
+            "value": 10,
+            "technical_id": "id-1",
+        }
 
         entity = {"name": "Updated", "value": 20}
         meta = {"update_transition": "approve"}
@@ -1621,7 +1653,11 @@ class TestEntityServiceImpl:
     @pytest.mark.asyncio
     async def test_update_item_without_meta(self, service, repository):
         """Test update_item without meta dict."""
-        repository.storage["id-1"] = {"name": "Test", "value": 10, "technical_id": "id-1"}
+        repository.storage["id-1"] = {
+            "name": "Test",
+            "value": 10,
+            "technical_id": "id-1",
+        }
 
         with pytest.warns(DeprecationWarning):
             result = await service.update_item(
@@ -1645,7 +1681,11 @@ class TestEntityServiceImpl:
     @pytest.mark.asyncio
     async def test_delete_item_deprecated(self, service, repository):
         """Test delete_item raises deprecation warning."""
-        repository.storage["id-1"] = {"name": "Test", "value": 10, "technical_id": "id-1"}
+        repository.storage["id-1"] = {
+            "name": "Test",
+            "value": 10,
+            "technical_id": "id-1",
+        }
 
         with pytest.warns(DeprecationWarning, match="delete_item.*deprecated"):
             result = await service.delete_item("token", "TestEntity", "1", "id-1", None)
@@ -1685,7 +1725,9 @@ class TestEntityServiceImpl:
     # ========================================
 
     @pytest.mark.asyncio
-    async def test_get_by_id_entity_service_error_propagation(self, service, repository):
+    async def test_get_by_id_entity_service_error_propagation(
+        self, service, repository
+    ):
         """Test get_by_id propagates EntityServiceError."""
         from common.service.service import EntityServiceError
 
@@ -1712,7 +1754,9 @@ class TestEntityServiceImpl:
         assert "Get by ID failed" in str(exc_info.value)
 
     @pytest.mark.asyncio
-    async def test_update_by_business_id_entity_service_error(self, service, repository):
+    async def test_update_by_business_id_entity_service_error(
+        self, service, repository
+    ):
         """Test update_by_business_id propagates EntityServiceError."""
         from common.service.service import EntityServiceError
 
@@ -1772,7 +1816,10 @@ class TestEntityServiceImpl:
         with pytest.raises(EntityServiceError) as exc_info:
             await service.save_all([{"name": "Test"}], "TestEntity", "1")
 
-        assert "save" in str(exc_info.value).lower() or "failed" in str(exc_info.value).lower()
+        assert (
+            "save" in str(exc_info.value).lower()
+            or "failed" in str(exc_info.value).lower()
+        )
 
     @pytest.mark.asyncio
     async def test_execute_transition_entity_service_error(self, service, repository):
@@ -1801,7 +1848,10 @@ class TestEntityServiceImpl:
             await service.execute_transition("id-1", "approve", "TestEntity", "1")
 
         # The error message includes "Update failed" because execute_transition calls update
-        assert "update failed" in str(exc_info.value).lower() or "transition" in str(exc_info.value).lower()
+        assert (
+            "update failed" in str(exc_info.value).lower()
+            or "transition" in str(exc_info.value).lower()
+        )
 
 
 class TestSearchConditionRequestBuilder:
@@ -1972,7 +2022,9 @@ class TestAdditionalCoverage:
                 "1",
             )
 
-        assert "Update by business ID failed" in str(exc_info.value) or "TestEntity" in str(exc_info.value)
+        assert "Update by business ID failed" in str(
+            exc_info.value
+        ) or "TestEntity" in str(exc_info.value)
 
     @pytest.mark.asyncio
     async def test_execute_transition_with_pydantic_model(self, service, repository):
@@ -2007,12 +2059,17 @@ class TestAdditionalCoverage:
         with pytest.raises(EntityServiceError) as exc_info:
             await service.execute_transition("id-1", "approve", "TestEntity", "1")
 
-        assert "execute transition failed" in str(exc_info.value).lower() or "update failed" in str(exc_info.value).lower()
+        assert (
+            "execute transition failed" in str(exc_info.value).lower()
+            or "update failed" in str(exc_info.value).lower()
+        )
 
     @pytest.mark.asyncio
     async def test_get_entity_count_exception_returns_zero(self, service, repository):
         """Test get_entity_count returns 0 on exception."""
-        repository.get_entity_count = AsyncMock(side_effect=RuntimeError("Count failed"))
+        repository.get_entity_count = AsyncMock(
+            side_effect=RuntimeError("Count failed")
+        )
 
         count = await service.get_entity_count("TestEntity", "1")
         assert count == 0
