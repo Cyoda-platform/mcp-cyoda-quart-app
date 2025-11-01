@@ -19,7 +19,8 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List
 
-from services.services import get_workflow_management_service
+from services.config import get_service_config
+from services.services import get_workflow_management_service, initialize_services
 
 # Add the project root to the path so we can import from the main app
 project_root = Path(__file__).parent.parent
@@ -292,6 +293,12 @@ def print_workflow_files(workflow_files: List[Dict[str, Any]]) -> None:
 
 async def main() -> None:
     """Main function to handle command line arguments and execute workflow import."""
+    # Initialize services first
+    logger.info("Initializing services...")
+    config = get_service_config()
+    initialize_services(config)
+    logger.info("Services initialized successfully")
+
     parser = argparse.ArgumentParser(
         description="Import workflows from JSON files to Cyoda platform",
         formatter_class=argparse.RawDescriptionHelpFormatter,
